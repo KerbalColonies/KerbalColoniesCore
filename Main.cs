@@ -5,23 +5,24 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
+using KerbalKonstructs;
 
-namespace StaticColonization
+namespace KerbalKonstructsKolonization
 {
     [KSPAddon(KSPAddon.Startup.Flight, false)]
-    public class StaticColonization : MonoBehaviour
+    public class KerbalKonstructsKolonization : MonoBehaviour
     {
-        const string APP_NAME = "StaticColonization";
+        const string APP_NAME = "KerbalKonstructsKolonization";
 
         protected void Start()
         {
-            writeDebug("Starting SC");
+            writeDebug("Starting KKK");
         }
 
 
         public void Update()
         {
-            writeDebug("Update!!!");
+            writeDebug("KKK Update!!!");
         }
 
         void writeDebug(string text)

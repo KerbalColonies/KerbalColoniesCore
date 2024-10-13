@@ -22,7 +22,10 @@ namespace KerbalKonstructsKolonization
 
         public void Update()
         {
-            writeDebug("KKK Update!!!");
+            if (Input.GetKeyDown(KeyCode.U))
+            {
+                KerbalKonstructs.API.PlaceStatic("KK_1700m_C_runway", FlightGlobals.currentMainBody.name, FlightGlobals.ship_latitude, FlightGlobals.ship_longitude, (float) FlightGlobals.ship_altitude - 10f, 0f);
+            }
         }
 
         void writeDebug(string text)

@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.8.34322.80
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KerbalKonstructsKolonization", "KerbalKonstructsKolonization.csproj", "{B1419033-9F83-4054-B471-997F60C77912}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KerbalColonies", "KerbalColonies.csproj", "{B1419033-9F83-4054-B471-997F60C77912}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

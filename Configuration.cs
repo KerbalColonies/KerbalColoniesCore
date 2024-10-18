@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
 
-namespace KerbalKonstructsKolonization
+namespace KerbalColonies
 {
 
     [KSPAddon(KSPAddon.Startup.MainMenu, true)]

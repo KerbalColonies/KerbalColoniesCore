@@ -31,12 +31,13 @@ using static EdyCommonTools.RotationController;
 //You should have received a copy of the GNU General Public License
 //along with this program.  If not, see <https://www.gnu.org/licenses/
 
-namespace KerbalKonstructsKolonization
+namespace KerbalColonies
 {
     [KSPAddon(KSPAddon.Startup.Flight, false)]
-    public class KerbalKonstructsKolonization : MonoBehaviour
+    public class KerbalColonies : MonoBehaviour
     {
-        const string APP_NAME = "KerbalKonstructsKolonization";
+        private string uuid;
+        const string APP_NAME = "KerbalColonies";
 
         protected void Start()
         {
@@ -55,11 +56,32 @@ namespace KerbalKonstructsKolonization
                 if (vessel.srfSpeed <= 0.5f && vessel.Landed)
                 {
 
-                    string uuid = KerbalKonstructs.API.PlaceStatic("LandingZoneSmall", FlightGlobals.currentMainBody.name, FlightGlobals.ship_latitude, FlightGlobals.ship_longitude, vessel.GetHeightFromSurface() - 2, 0f);
+                    uuid = KerbalKonstructs.API.PlaceStatic("LandingZoneSmall", FlightGlobals.currentMainBody.name, FlightGlobals.ship_latitude, FlightGlobals.ship_longitude, vessel.GetHeightFromSurface() - 2, 0f);
                     vessel.SetPosition(new Vector3d(vessel.latitude, vessel.longitude, vessel.GetHeightFromTerrain() + 2));
                     KerbalKonstructs.API.HighLightStatic(uuid, Color.yellow);
                 }
             }
+            else if (Input.GetKeyDown(KeyCode.J))
+            {
+                writeDebug(KerbalKonstructs.API.CreateGroup("KKK-Group").ToString());
+            }
+            else if (Input.GetKeyDown(KeyCode.H))
+            {
+                writeDebug(KerbalKonstructs.API.RemoveGroup("KKK-Group").ToString());
+            }
+            else if (Input.GetKeyDown(KeyCode.C))
+            {
+                writeDebug(KerbalKonstructs.API.CopyGroup("KKK-Group", "KKK-Group-2").ToString());
+            }
+            else if (Input.GetKeyDown(KeyCode.V))
+            {
+                writeDebug(KerbalKonstructs.API.AddStaticToGroup(uuid, "KKK-Group").ToString());
+            }
+            else if (Input.GetKeyDown(KeyCode.Z))
+            {
+                KerbalKonstructs.API.Save();
+            }
+
         }
 
         void writeDebug(string text)

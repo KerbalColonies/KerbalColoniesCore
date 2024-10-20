@@ -8,8 +8,8 @@
     <ProjectGuid>{B1419033-9F83-4054-B471-997F60C77912}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>StaticColonization</RootNamespace>
-    <AssemblyName>StaticColonization</AssemblyName>
+    <RootNamespace>KerbalColonies</RootNamespace>
+    <AssemblyName>KerbalColonies</AssemblyName>
     <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
@@ -34,7 +34,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="colonies\CreateColony.cs" />
     <Compile Include="Configuration.cs" />
+    <Compile Include="KCPartModule.cs" />
     <Compile Include="Main.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

@@ -14,9 +14,9 @@ using KerbalKonstructs.Core;
 using LibNoise;
 using static EdyCommonTools.RotationController;
 
-// KKK: Kerbal Konstructs Kolonization
+// KC: Kerbal Colonies
 // This mod aimes to create a colony system with Kerbal Konstructs statics
-//Copyright (C) 2024 AMPW, lolsmcfee
+//Copyright (C) 2024 AMPW, Halengar
 
 //This program is free software: you can redistribute it and/or modify
 //it under the terms of the GNU General Public License as published by
@@ -37,7 +37,6 @@ namespace KerbalColonies
     public class KerbalColonies : MonoBehaviour
     {
         private string uuid;
-        const string APP_NAME = "KerbalColonies";
 
         protected void Start()
         {
@@ -84,7 +83,7 @@ namespace KerbalColonies
 
         }
 
-        void writeDebug(string text)
+        internal void writeDebug(string text)
         {
             if (Configuration.enableLogging)
             {
@@ -92,9 +91,9 @@ namespace KerbalColonies
             }
         }
 
-        void writeLog(string text)
+        internal void writeLog(string text)
         {
-            KSPLog.print(APP_NAME + ": " + text);
+            KSPLog.print(Configuration.APP_NAME + ": " + text);
         }
     }
 }

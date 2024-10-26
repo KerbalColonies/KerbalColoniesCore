@@ -7,7 +7,7 @@ using UnityEngine;
 
 // KC: Kerbal Colonies
 // This mod aimes to create a colony system with Kerbal Konstructs statics
-// Copyright (C) 2024 AMPW, Halengar
+//Copyright (C) 2024 AMPW, Halengar
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -42,7 +42,7 @@ namespace KerbalColonies
     {
         public static int coloniesPerBody = 3;              // Limits the amount of colonies per celestial body (planet/moon)
                                                             // set it to zero to disable the limit
-        public static int OreRequiredPerColony = 10000;     // The required amount of ore to start a colony
+        public static int OreRequiredPerColony = 1000;     // The required amount of ore to start a colony
                                                             // It's planned to change this so different resources can be used
 
         internal const string APP_NAME = "KerbalColonies";

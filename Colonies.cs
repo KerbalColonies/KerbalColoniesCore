@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using KerbalKonstructs;
+using KerbalKonstructs.Core;
 using UnityEngine;
 
 // KC: Kerbal Colonies
@@ -27,28 +28,69 @@ namespace KerbalColonies
 {
     internal static class Colonies
     {
-        static string activeColony = "";
+        internal static string activeColony = "";
 
+
+        /// <summary>
+        /// This function is called after a group is saved.
+        /// All statics from the temporary group (activeColony_temp) get copied to activeColony.
+        /// The temporary group gets deleted, the function unregisters itself from the KK groupSave and runs the save function.
+        /// </summary>
         internal static void GroupSaved(KerbalKonstructs.Core.GroupCenter groupCenter)
         {
-            KerbalKonstructs.API.CreateGroup(activeColony, groupCenter.RadialPosition);
-            KerbalKonstructs.API.CopyGroup(activeColony, $"{activeColony}_temp");
+            List<KerbalKonstructs.Core.StaticInstance> instances = KerbalKonstructs.API.GetGroupStatics(groupCenter.Group);
+            // There was a Exception because the AddStaticToGroup changes
+            // This ensure that all statics are added
+            while (true)
+            {
+                try
+                {
+                    foreach (KerbalKonstructs.Core.StaticInstance instance in instances)
+                    {
+                        KerbalKonstructs.API.AddStaticToGroup(instance.UUID, activeColony);
+                    }
+                    break;
+                }
+                catch (Exception e) { }
+
+            }
+
             KerbalKonstructs.API.RemoveGroup($"{activeColony}_temp");
             KerbalKonstructs.API.UnRegisterOnGroupSaved(GroupSaved);
             KerbalKonstructs.API.Save();
         }
 
+        /// <summary>
+        /// This function creates a new colony.
+        /// It's meant to be used by the partmodule only.
+        /// </summary>
         internal static bool CreateColony()
         {
+            FlightGlobals.fetch.SetVesselPosition(FlightGlobals.GetBodyIndex(FlightGlobals.currentMainBody), FlightGlobals.ship_latitude, FlightGlobals.ship_longitude, FlightGlobals.ship_altitude + 2, FlightGlobals.ActiveVessel.ReferenceTransform.eulerAngles, false, easeToSurface: true, 0.01);
+            FloatingOrigin.ResetTerrainShaderOffset();
+            int colonyCount = 1;
+            if (Configuration.coloniesPerBody.ContainsKey(FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody))){
+                Configuration.coloniesPerBody[FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody)] += 1;
+                colonyCount = Configuration.coloniesPerBody[FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody)];
+            }
+            else
+            {
+                Configuration.coloniesPerBody.Add(FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody), 1);
+            }
+                activeColony = KerbalKonstructs.API.CreateGroup($"KC_{FlightGlobals.currentMainBody.name}_{colonyCount}");
             Vessel vessel = FlightGlobals.ActiveVessel;
-            vessel.SetPosition(new Vector3d(vessel.latitude, vessel.longitude, vessel.GetHeightFromTerrain() + 4));
-            vessel.easingInToSurface = true;
-            EditorGroupPlace("KC_CAB", $"KC_{FlightGlobals.currentMainBody.name}"); //CAB: Colony Assembly Hub, initial start group
+            EditorGroupPlace("KC_CAB", activeColony); //CAB: Colony Assembly Hub, initial start group
             return true;
         }
 
-        internal static bool EditorGroupPlace(string groupName, string colonyName)
+        /// <summary>
+        /// This function opens the groupeditor and lets the player position the group where they want.
+        /// Therefore it creates a temporary group so the entire group can be moved together.
+        /// It adds the GroupSaved method to the KK groupsave to transfer the statics over to the main group.
+        /// </summary>
+        internal static bool EditorGroupPlace(string groupName, string colonyName, int range = int.MaxValue)
         {
+            KerbalKonstructs.API.SetEditorRange(range);
             activeColony = colonyName;
             KerbalKonstructs.API.CreateGroup($"{colonyName}_temp");
             KerbalKonstructs.API.CopyGroup($"{colonyName}_temp", groupName);

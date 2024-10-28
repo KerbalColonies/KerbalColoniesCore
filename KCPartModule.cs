@@ -34,6 +34,7 @@ namespace KerbalColonies
         [KSPEvent(name = "Activate", guiName = "Activate", active = true, guiActive = true)]
         public void Activate()
         {
+            Vessel vessel = FlightGlobals.ActiveVessel;
             if (vessel.srfSpeed >= 0.5f && !vessel.Landed)
             {
                 ScreenMessages.PostScreenMessage("The current vessel must be landed and have a surface speed slower than 0.5m/s", 10f, ScreenMessageStyle.UPPER_RIGHT);

@@ -38,14 +38,16 @@ namespace KerbalColonies
     /// <summary>
     /// Reads and holds configuration parameters
     /// </summary>
-    static class Configuration
+    internal static class Configuration
     {
-        public static int coloniesPerBody = 3;              // Limits the amount of colonies per celestial body (planet/moon)
-                                                            // set it to zero to disable the limit
-        public static int OreRequiredPerColony = 1000;     // The required amount of ore to start a colony
+        internal static int maxColoniesPerBody = 3;              // Limits the amount of colonies per celestial body (planet/moon)
+                                                                 // set it to zero to disable the limit
+        internal static Dictionary<int, int> coloniesPerBody = new Dictionary<int, int> { };
+
+        internal static int OreRequiredPerColony = 1000;     // The required amount of ore to start a colony
                                                             // It's planned to change this so different resources can be used
 
         internal const string APP_NAME = "KerbalColonies";
-        public static bool enableLogging = true;            // Enable this only in debug purposes as it floods the logs very much
+        internal static bool enableLogging = true;            // Enable this only in debug purposes as it floods the logs very much
     }
 }

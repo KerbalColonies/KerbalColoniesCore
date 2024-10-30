@@ -33,7 +33,18 @@ namespace KerbalColonies
         /// </summary>
         public void FixedUpdate()
         {
-
+            if (Input.GetKeyDown(KeyCode.U))
+            {
+                string uuid = KerbalKonstructs.API.PlaceStatic("LandingZoneSmall", FlightGlobals.currentMainBody.name, FlightGlobals.ship_latitude, FlightGlobals.ship_longitude, (float) FlightGlobals.ship_altitude - 2, 0f);
+            }
+            else if (Input.GetKeyDown(KeyCode.Z))
+            {
+                string uuid = KerbalKonstructs.API.PlaceStatic("Tier4VerticalAssemblyBuilding", FlightGlobals.currentMainBody.name, FlightGlobals.ship_latitude, FlightGlobals.ship_longitude, (float)FlightGlobals.ship_altitude - 2, 0f, variant: "Tier4VerticalAssemblyBuilding_Default");
+            }
+            else if (Input.GetKeyDown(KeyCode.H))
+            {
+                string uuid = KerbalKonstructs.API.PlaceStatic("Tier4VerticalAssemblyBuilding", FlightGlobals.currentMainBody.name, FlightGlobals.ship_latitude, FlightGlobals.ship_longitude, (float)FlightGlobals.ship_altitude - 2, 0f, variant: "Tier4VerticalAssemblyBuilding_NoHexBase");
+            }
         }
 
         internal void writeDebug(string text)

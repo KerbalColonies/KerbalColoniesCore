@@ -9,7 +9,7 @@ using UnityEngine;
 
 // KC: Kerbal Colonies
 // This mod aimes to create a colony system with Kerbal Konstructs statics
-//Copyright (C) 2024 AMPW, Halengar
+// Copyright (C) 2024 AMPW, Halengar
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -90,6 +90,7 @@ namespace KerbalColonies
         /// </summary>
         internal static bool EditorGroupPlace(string groupName, string colonyName, int range = int.MaxValue)
         {
+            // range isn't working
             KerbalKonstructs.API.SetEditorRange(range);
             activeColony = colonyName;
             KerbalKonstructs.API.CreateGroup($"{colonyName}_temp");

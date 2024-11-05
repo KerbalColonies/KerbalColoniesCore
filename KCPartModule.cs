@@ -9,7 +9,7 @@ using static UnityEngine.GraphicsBuffer;
 
 // KC: Kerbal Colonies
 // This mod aimes to create a colony system with Kerbal Konstructs statics
-//Copyright (C) 2024 AMPW, Halengar
+// Copyright (C) 2024 AMPW, Halengar
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by

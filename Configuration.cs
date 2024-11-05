@@ -7,7 +7,7 @@ using UnityEngine;
 
 // KC: Kerbal Colonies
 // This mod aimes to create a colony system with Kerbal Konstructs statics
-//Copyright (C) 2024 AMPW, Halengar
+// Copyright (C) 2024 AMPW, Halengar
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -28,10 +28,31 @@ namespace KerbalColonies
     [KSPAddon(KSPAddon.Startup.MainMenu, true)]
     class SettingsLoader : MonoBehaviour
     {
+        public void OnBuildingClickedTest(KerbalKonstructs.Core.StaticInstance instance)
+        {
+            writeDebug(instance.UUID);
+            writeDebug(instance.VariantName);
+            writeDebug("");
+        }
+
         public void Awake()
         {
             // load settings when game start
+            KerbalKonstructs.API.RegisterOnBuildingClicked(OnBuildingClickedTest);
 
+        }
+
+        internal void writeDebug(string text)
+        {
+            if (Configuration.enableLogging)
+            {
+                writeLog(text);
+            }
+        }
+
+        internal void writeLog(string text)
+        {
+            KSPLog.print(Configuration.APP_NAME + ": " + text);
         }
     }
 

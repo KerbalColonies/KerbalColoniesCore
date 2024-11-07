@@ -29,6 +29,8 @@ namespace KerbalColonies
     internal static class Colonies
     {
         internal static string activeColony = "";
+        internal static int colonyCount = 0;
+
 
 
         /// <summary>
@@ -47,6 +49,8 @@ namespace KerbalColonies
                 {
                     foreach (KerbalKonstructs.Core.StaticInstance instance in instances)
                     {
+                        Configuration.coloniesPerBody[FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody)][activeColony].Add(instance.UUID, "");
+
                         KerbalKonstructs.API.AddStaticToGroup(instance.UUID, activeColony);
                     }
                     break;
@@ -55,6 +59,7 @@ namespace KerbalColonies
 
             }
 
+            Configuration.saveColonies("KCCD");
             KerbalKonstructs.API.RemoveGroup($"{activeColony}_temp");
             KerbalKonstructs.API.UnRegisterOnGroupSaved(GroupSaved);
             KerbalKonstructs.API.Save();
@@ -68,16 +73,15 @@ namespace KerbalColonies
         {
             FlightGlobals.fetch.SetVesselPosition(FlightGlobals.GetBodyIndex(FlightGlobals.currentMainBody), FlightGlobals.ship_latitude, FlightGlobals.ship_longitude, FlightGlobals.ship_altitude + 2, FlightGlobals.ActiveVessel.ReferenceTransform.eulerAngles, false, easeToSurface: true, 0.01);
             FloatingOrigin.ResetTerrainShaderOffset();
-            int colonyCount = 1;
             if (Configuration.coloniesPerBody.ContainsKey(FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody))){
-                Configuration.coloniesPerBody[FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody)] += 1;
-                colonyCount = Configuration.coloniesPerBody[FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody)];
+                colonyCount = Configuration.coloniesPerBody[FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody)].Count;
+                Configuration.coloniesPerBody[FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody)].Add($"KC_{FlightGlobals.currentMainBody.name}_{colonyCount}", new Dictionary<string, string>() );
             }
             else
             {
-                Configuration.coloniesPerBody.Add(FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody), 1);
+                Configuration.coloniesPerBody.Add(FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody), new Dictionary<string, Dictionary<string, string>> { { $"KC_{FlightGlobals.currentMainBody.name}_{colonyCount}", new Dictionary<string, string>() } });
             }
-                activeColony = KerbalKonstructs.API.CreateGroup($"KC_{FlightGlobals.currentMainBody.name}_{colonyCount}");
+            activeColony = KerbalKonstructs.API.CreateGroup($"KC_{FlightGlobals.currentMainBody.name}_{colonyCount}");
             Vessel vessel = FlightGlobals.ActiveVessel;
             EditorGroupPlace("KC_CAB", activeColony); //CAB: Colony Assembly Hub, initial start group
             return true;

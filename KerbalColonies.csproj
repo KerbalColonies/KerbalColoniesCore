@@ -37,8 +37,12 @@
     <Compile Include="Colonies.cs" />
     <Compile Include="Configuration.cs" />
     <Compile Include="KCPartModule.cs" />
+    <Compile Include="KCWindow.cs" />
+    <Compile Include="KCWindowManager.cs" />
     <Compile Include="Main.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="KCUI.cs" />
+    <Compile Include="UIConfig.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

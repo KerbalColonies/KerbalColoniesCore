@@ -44,9 +44,9 @@ namespace KerbalColonies
             PartResourceDefinition oreResource = PartResourceLibrary.Instance.GetDefinition("Ore");
 
             part.vessel.GetConnectedResourceTotals(oreResource.id, false, out double amount, out double maxAmount);
-            if (amount >= Configuration.OreRequiredPerColony)
+            if (amount >= Configuration.oreRequiredPerColony)
             {
-                part.RequestResource("Ore", (double) Configuration.OreRequiredPerColony);
+                part.RequestResource("Ore", (double) Configuration.oreRequiredPerColony);
                 writeLog("Creating colony");
                 ScreenMessages.PostScreenMessage($"Creating a colony on {part.vessel.mainBody.name}", 10f, ScreenMessageStyle.UPPER_RIGHT);
                 Colonies.CreateColony();
@@ -54,7 +54,7 @@ namespace KerbalColonies
             }
             else
             {
-                ScreenMessages.PostScreenMessage($"Not enough ore: {amount}/{Configuration.OreRequiredPerColony}", 10f, ScreenMessageStyle.UPPER_RIGHT);
+                ScreenMessages.PostScreenMessage($"Not enough ore: {amount}/{Configuration.oreRequiredPerColony}", 10f, ScreenMessageStyle.UPPER_RIGHT);
             }
         }
 

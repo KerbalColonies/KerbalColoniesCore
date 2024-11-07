@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using KerbalKonstructs.UI;
+using UnityEngine;
 
 // KC: Kerbal Colonies
 // This mod aimes to create a colony system with Kerbal Konstructs statics
@@ -22,6 +23,11 @@ namespace KerbalColonies
     [KSPAddon(KSPAddon.Startup.Flight, false)]
     public class KerbalColonies : MonoBehaviour
     {
+        protected void Awake()
+        {
+            //Configuration.loadConfiguration(Configuration.APP_NAME.ToUpper());
+        }
+
         private string uuid;
 
         protected void Start()
@@ -35,11 +41,11 @@ namespace KerbalColonies
         {
             if (Input.GetKeyDown(KeyCode.U))
             {
-                string uuid = KerbalKonstructs.API.PlaceStatic("LandingZoneSmall", FlightGlobals.currentMainBody.name, FlightGlobals.ship_latitude, FlightGlobals.ship_longitude, (float) FlightGlobals.ship_altitude - 2, 0f);
+                KCUI.instance.Toggle();
             }
             else if (Input.GetKeyDown(KeyCode.Z))
             {
-                string uuid = KerbalKonstructs.API.PlaceStatic("Tier4VerticalAssemblyBuilding", FlightGlobals.currentMainBody.name, FlightGlobals.ship_latitude, FlightGlobals.ship_longitude, (float)FlightGlobals.ship_altitude - 2, 0f, variant: "Tier4VerticalAssemblyBuilding_Default");
+                
             }
             else if (Input.GetKeyDown(KeyCode.H))
             {

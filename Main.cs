@@ -1,4 +1,5 @@
 ﻿using KerbalKonstructs.UI;
+using SaveUpgradePipeline;
 using UnityEngine;
 
 // KC: Kerbal Colonies
@@ -20,12 +21,27 @@ using UnityEngine;
 
 namespace KerbalColonies
 {
+    [KSPAddon(KSPAddon.Startup.AllGameScenes, true)]
+    public class GameSateLoad : MonoBehaviour
+    {
+        public void GetGameNode(ConfigNode node)
+        {
+            Configuration.gameNode = node;
+        }
+
+        protected void Awake()
+        {
+            GameEvents.onGameStateLoad.Add(GetGameNode);
+        }
+    }
+
     [KSPAddon(KSPAddon.Startup.Flight, false)]
     public class KerbalColonies : MonoBehaviour
     {
         protected void Awake()
         {
-            //Configuration.loadConfiguration(Configuration.APP_NAME.ToUpper());
+            Configuration.LoadConfiguration(Configuration.APP_NAME.ToUpper());
+            Configuration.LoadColonies("KCCD");
         }
 
         private string uuid;
@@ -33,19 +49,23 @@ namespace KerbalColonies
         protected void Start()
         {
             writeDebug("Starting KC");
+
+
         }
 
         /// <summary>
         /// </summary>
         public void FixedUpdate()
         {
+            
             if (Input.GetKeyDown(KeyCode.U))
             {
                 KCUI.instance.Toggle();
             }
             else if (Input.GetKeyDown(KeyCode.Z))
             {
-                
+                writeDebug(Configuration.gameNode.ToString());
+                writeDebug(Configuration.gameNode.name);
             }
             else if (Input.GetKeyDown(KeyCode.H))
             {

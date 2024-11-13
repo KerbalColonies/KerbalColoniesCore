@@ -1,11 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Collections.Generic;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
-using UnityEngine;
 using System.IO;
+using KerbalColonies.colonyFacilities;
+using KerbalColonies.Serialization;
 
 // KC: Kerbal Colonies
 // This mod aimes to create a colony system with Kerbal Konstructs statics
@@ -39,17 +36,35 @@ namespace KerbalColonies
                                                              // It's planned to change this so different resources can be used
         internal static bool enableLogging = true;            // Enable this only in debug purposes as it floods the logs very much
 
+        // this is the GAME confignode (the confignode from the save file)
+        internal static ConfigNode gameNode;
 
         // saves the colonies per body with
-        // Dictionary 0: bodyindex as key
-        // Dictionary 1: colonyName as key
-        // Dictionary 2: static uuid as key and a string with all of the building params, might change later
-        internal static Dictionary<int, Dictionary<string, Dictionary<string, string>>> coloniesPerBody = new Dictionary<int, Dictionary<string, Dictionary<string, string>>> { };
+        // Dictionary 0: the SaveGame name (the "name" field in the GAME node) as key
+        // Dictionary 1: bodyindex as key
+        // Dictionary 2: colonyName as key
+        // Dictionary 3: static uuid as key
+        // Dictionary 4: A KCFacility as key and a "dataString" with all of the building params, might change later
+        internal static Dictionary<string, Dictionary<int, Dictionary<string, Dictionary<string, Dictionary<KCFacilityBase, string>>>>> coloniesPerBody = new Dictionary<string, Dictionary<int, Dictionary<string, Dictionary<string, Dictionary<KCFacilityBase, string>>>>> { };
 
         // static parameters
         internal const string APP_NAME = "KerbalColonies";
 
-        internal static void saveConfiguration(string root)
+        public static void LoadConfiguration(string root)
+        {
+            ConfigNode[] nodes = GameDatabase.Instance.GetConfigNodes(root);
+
+            if ((nodes == null) || (nodes.Length == 0))
+            {
+                return;
+            }
+            int.TryParse(nodes[0].GetValue("maxColoniesPerBody"), out maxColoniesPerBody);
+            int.TryParse(nodes[0].GetValue("oreRequiredPerColony"), out oreRequiredPerColony);
+
+            bool.TryParse(nodes[0].GetValue("enableLogging"), out enableLogging);
+        }
+
+        internal static void SaveConfiguration(string root)
         {
             ConfigNode[] nodes = GameDatabase.Instance.GetConfigNodes(root);
             if ((nodes == null) || (nodes.Length == 0))
@@ -70,7 +85,59 @@ namespace KerbalColonies
             node.Save(path);
         }
 
-        internal static void saveColonies(string root)
+        internal static void LoadColonies(string root)
+        {
+            ConfigNode[] nodes = GameDatabase.Instance.GetConfigNodes(root);
+
+            if ((nodes == null) || (nodes.Length == 0))
+            {
+                return;
+            }
+
+            foreach (ConfigNode saveGame in nodes[0].GetNodes())
+            {
+                if (!coloniesPerBody.ContainsKey(saveGame.name))
+                {
+                    coloniesPerBody.Add(saveGame.name, new Dictionary<int, Dictionary<string, Dictionary<string, Dictionary<KCFacilityBase, string>>>> { });
+                }
+
+                foreach (ConfigNode bodyId in nodes[0].GetNode(saveGame.name).GetNodes())
+                {
+                    if (!coloniesPerBody[saveGame.name].ContainsKey(int.Parse(bodyId.name)))
+                    {
+                        coloniesPerBody[saveGame.name].Add(int.Parse(bodyId.name), new Dictionary<string, Dictionary<string, Dictionary<KCFacilityBase, string>>> { });
+                    }
+
+                    foreach (ConfigNode colonyName in nodes[0].GetNode(saveGame.name).GetNode(bodyId.name).GetNodes())
+                    {
+                        if (!coloniesPerBody[saveGame.name][int.Parse(bodyId.name)].ContainsKey(colonyName.name))
+                        {
+                            coloniesPerBody[saveGame.name][int.Parse(bodyId.name)].Add(colonyName.name, new Dictionary<string, Dictionary<KCFacilityBase, string>> { });
+                        }
+
+                        foreach (ConfigNode uuid in nodes[0].GetNode(saveGame.name).GetNode(bodyId.name).GetNode(colonyName.name).GetNodes())
+                        {
+                            if (!coloniesPerBody[saveGame.name][int.Parse(bodyId.name)][colonyName.name].ContainsKey(uuid.name))
+                            {
+                                coloniesPerBody[saveGame.name][int.Parse(bodyId.name)][colonyName.name].Add(uuid.name, new Dictionary<KCFacilityBase, string> { });
+                            }
+
+                            foreach (ConfigNode KCFacilityNode in nodes[0].GetNode(saveGame.name).GetNode(bodyId.name).GetNode(colonyName.name).GetNode(uuid.name).GetNodes())
+                            {
+                                KCFacilityBase kcFacility = KCFacilityClassConverter.DeserializeObject(KCFacilityNode.name);
+
+                                if (!coloniesPerBody[saveGame.name][int.Parse(bodyId.name)][colonyName.name][uuid.name].ContainsKey(kcFacility))
+                                {
+                                    coloniesPerBody[saveGame.name][int.Parse(bodyId.name)][colonyName.name][uuid.name].Add(kcFacility, KCFacilityNode.GetValue("dataString"));
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        internal static void SaveColonies(string root)
         {
             ConfigNode[] nodes = GameDatabase.Instance.GetConfigNodes(root);
             if ((nodes == null) || (nodes.Length == 0))
@@ -78,26 +145,40 @@ namespace KerbalColonies
                 return;
             }
 
-            // coloniesPerBody
-            foreach (int bodyId in coloniesPerBody.Keys)
+            foreach (string saveGame in coloniesPerBody.Keys)
             {
-                if (!nodes[0].HasNode(bodyId.ToString()))
+                if (!nodes[0].HasNode(saveGame))
                 {
-                    nodes[0].AddNode(bodyId.ToString(), "The celestial body id");
+                    nodes[0].AddNode(saveGame, "The savegame name");
                 }
-                foreach (string colonyName in coloniesPerBody[bodyId].Keys)
+                foreach (int bodyId in coloniesPerBody[saveGame].Keys)
                 {
-                    if (!nodes[0].GetNode(bodyId.ToString()).HasNode(colonyName))
+                    if (!nodes[0].GetNode(saveGame).HasNode(bodyId.ToString()))
                     {
-                        nodes[0].GetNode(bodyId.ToString()).AddNode(colonyName, "the colony name");
+                        nodes[0].GetNode(saveGame).AddNode(bodyId.ToString(), "The celestial body id");
                     }
-                    foreach (string uuid in coloniesPerBody[bodyId][colonyName].Keys)
+                    foreach (string colonyName in coloniesPerBody[saveGame][bodyId].Keys)
                     {
-                        if (!nodes[0].GetNode(bodyId.ToString()).GetNode(colonyName).HasNode(uuid))
+                        if (!nodes[0].GetNode(saveGame).GetNode(bodyId.ToString()).HasNode(colonyName))
                         {
-                            nodes[0].GetNode(bodyId.ToString()).GetNode(colonyName).AddNode(uuid, "A uuid from a KK static");
+                            nodes[0].GetNode(saveGame).GetNode(bodyId.ToString()).AddNode(colonyName, "the colony name");
                         }
-                        nodes[0].GetNode(bodyId.ToString()).GetNode(colonyName).GetNode(uuid).SetValue("valueString", coloniesPerBody[bodyId][colonyName][uuid]);
+                        foreach (string uuid in coloniesPerBody[saveGame][bodyId][colonyName].Keys)
+                        {
+                            if (!nodes[0].GetNode(saveGame).GetNode(bodyId.ToString()).GetNode(colonyName).HasNode(uuid))
+                            {
+                                nodes[0].GetNode(saveGame).GetNode(bodyId.ToString()).GetNode(colonyName).AddNode(uuid, "A uuid from a KK static");
+                            }
+
+                            foreach (KCFacilityBase KCFacility in coloniesPerBody[saveGame][bodyId][colonyName][uuid].Keys)
+                            {
+                                string serializedKCFacility = KCFacilityClassConverter.SerializeObject(KCFacility);
+                                if (!nodes[0].GetNode(saveGame).GetNode(bodyId.ToString()).GetNode(colonyName).GetNode(uuid).HasNode(serializedKCFacility))
+                                {
+                                    nodes[0].GetNode(saveGame).GetNode(bodyId.ToString()).GetNode(colonyName).GetNode(uuid).AddNode(serializedKCFacility, "A serialized KCFacility");
+                                }
+                            }
+                        }
                     }
                 }
             }

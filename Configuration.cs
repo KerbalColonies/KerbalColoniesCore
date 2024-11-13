@@ -142,7 +142,8 @@ namespace KerbalColonies
             ConfigNode[] nodes = GameDatabase.Instance.GetConfigNodes(root);
             if ((nodes == null) || (nodes.Length == 0))
             {
-                return;
+                nodes = new ConfigNode[] { };
+                //return;
             }
 
             foreach (string saveGame in coloniesPerBody.Keys)

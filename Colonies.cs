@@ -69,7 +69,12 @@ namespace KerbalColonies
         /// </summary>
         internal static bool CreateColony()
         {
-            if (Configuration.coloniesPerBody[Configuration.gameNode.name].ContainsKey(FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody))){
+
+            if (!Configuration.coloniesPerBody.ContainsKey(Configuration.gameNode.name))
+            {
+                Configuration.coloniesPerBody.Add(Configuration.gameNode.name, new Dictionary<int, Dictionary<string, Dictionary<string, Dictionary<colonyFacilities.KCFacilityBase, string>>>> { { FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody), new Dictionary<string, Dictionary<string, Dictionary<colonyFacilities.KCFacilityBase, string>>> { { $"KC_{FlightGlobals.currentMainBody.name}_{colonyCount}", new Dictionary<string, Dictionary<colonyFacilities.KCFacilityBase, string>> { } } } } });
+            }
+            else if (Configuration.coloniesPerBody[Configuration.gameNode.name].ContainsKey(FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody))){
                 colonyCount = Configuration.coloniesPerBody[Configuration.gameNode.name][FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody)].Count;
                 Configuration.coloniesPerBody[Configuration.gameNode.name][FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody)].Add($"KC_{FlightGlobals.currentMainBody.name}_{colonyCount}", new Dictionary<string, Dictionary<colonyFacilities.KCFacilityBase, string>> { });
             }

@@ -1,5 +1,8 @@
-﻿using KerbalKonstructs.UI;
+﻿using KerbalColonies.colonyFacilities;
+using KerbalColonies.Serialization;
+using KerbalKonstructs.UI;
 using SaveUpgradePipeline;
+using System.Collections.Generic;
 using UnityEngine;
 
 // KC: Kerbal Colonies
@@ -40,8 +43,16 @@ namespace KerbalColonies
     {
         protected void Awake()
         {
+            KCFacilityTypeRegistry.RegisterType<KCStorageFacility>();
             Configuration.LoadConfiguration(Configuration.APP_NAME.ToUpper());
             Configuration.LoadColonies("KCCD");
+
+            IEnumerable<string> types = KCFacilityTypeRegistry.GetAllRegisteredTypes();
+
+            foreach (string type in types)
+            {
+                writeDebug($"{type}");
+            }
         }
 
         private string uuid;
@@ -49,8 +60,6 @@ namespace KerbalColonies
         protected void Start()
         {
             writeDebug("Starting KC");
-
-
         }
 
         /// <summary>
@@ -66,10 +75,17 @@ namespace KerbalColonies
             {
                 writeDebug(Configuration.gameNode.ToString());
                 writeDebug(Configuration.gameNode.name);
+                writeDebug(Configuration.coloniesPerBody.ContainsKey(Configuration.gameNode.name).ToString());
             }
             else if (Input.GetKeyDown(KeyCode.H))
             {
-                string uuid = KerbalKonstructs.API.PlaceStatic("Tier4VerticalAssemblyBuilding", FlightGlobals.currentMainBody.name, FlightGlobals.ship_latitude, FlightGlobals.ship_longitude, (float)FlightGlobals.ship_altitude - 2, 0f, variant: "Tier4VerticalAssemblyBuilding_NoHexBase");
+                KCStorageFacility facTest = new KCStorageFacility(true);
+                writeDebug(facTest.ToString());
+                string serialString = KCFacilityClassConverter.SerializeObject(facTest);
+                writeDebug(serialString);
+                KCFacilityBase facTest2 = KCFacilityClassConverter.DeserializeObject(serialString);
+                writeDebug(facTest2.ToString());
+                writeDebug(facTest2.GetType().ToString());
             }
         }
 

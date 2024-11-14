@@ -9,11 +9,10 @@ namespace KerbalColonies.colonyFacilities
     [System.Serializable]
     public abstract class KCFacilityBase
     {
-        public string type;
-        protected string facilityName;
-        protected int facilityID;
-        protected bool enabled;
-        protected string facilityData;
+        public string facilityName;
+        public int facilityID;
+        public bool enabled;
+        public string facilityData;
 
 
         virtual internal void EncodeString()

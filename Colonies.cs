@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using KerbalColonies.colonyFacilities;
 using KerbalKonstructs;
 using KerbalKonstructs.Core;
 using UnityEngine;
@@ -38,7 +39,7 @@ namespace KerbalColonies
         /// </summary>
         internal static void GroupSaved(KerbalKonstructs.Core.GroupCenter groupCenter)
         {
-            List<KerbalKonstructs.Core.StaticInstance> instances = KerbalKonstructs.API.GetGroupStatics(groupCenter.Group);
+            List<KerbalKonstructs.Core.StaticInstance> instances = KerbalKonstructs.API.GetGroupStatics(groupCenter.Group).ToList();
             // There was a Exception because the AddStaticToGroup changes
             // This ensure that all statics are added
             while (true)
@@ -47,13 +48,18 @@ namespace KerbalColonies
                 {
                     foreach (KerbalKonstructs.Core.StaticInstance instance in instances)
                     {
-                        Configuration.coloniesPerBody[Configuration.gameNode.name][FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody)][activeColony].Add(instance.UUID, new Dictionary<colonyFacilities.KCFacilityBase, string> { });
+                        // Doesn't work right now with a kcstoragefacility added
+                        Configuration.coloniesPerBody[Configuration.gameNode.name][FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody)][activeColony].Add(instance.UUID, new List<colonyFacilities.KCFacilityBase> {  });
+                        Configuration.coloniesPerBody[Configuration.gameNode.name][FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody)][activeColony][instance.UUID].Add(new KCStorageFacility(true));
 
                         KerbalKonstructs.API.AddStaticToGroup(instance.UUID, activeColony);
                     }
                     break;
                 }
-                catch (Exception e) { }
+                catch (Exception e) 
+                {
+                    KSPLog.print(Configuration.APP_NAME + ": " + e);
+                }
 
             }
 
@@ -72,15 +78,15 @@ namespace KerbalColonies
 
             if (!Configuration.coloniesPerBody.ContainsKey(Configuration.gameNode.name))
             {
-                Configuration.coloniesPerBody.Add(Configuration.gameNode.name, new Dictionary<int, Dictionary<string, Dictionary<string, Dictionary<colonyFacilities.KCFacilityBase, string>>>> { { FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody), new Dictionary<string, Dictionary<string, Dictionary<colonyFacilities.KCFacilityBase, string>>> { { $"KC_{FlightGlobals.currentMainBody.name}_{colonyCount}", new Dictionary<string, Dictionary<colonyFacilities.KCFacilityBase, string>> { } } } } });
+                Configuration.coloniesPerBody.Add(Configuration.gameNode.name, new Dictionary<int, Dictionary<string, Dictionary<string, List<colonyFacilities.KCFacilityBase>>>> { { FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody), new Dictionary<string, Dictionary<string, List<colonyFacilities.KCFacilityBase>>> { { $"KC_{FlightGlobals.currentMainBody.name}_{colonyCount}", new Dictionary<string, List<colonyFacilities.KCFacilityBase>> { } } } } });
             }
             else if (Configuration.coloniesPerBody[Configuration.gameNode.name].ContainsKey(FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody))){
                 colonyCount = Configuration.coloniesPerBody[Configuration.gameNode.name][FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody)].Count;
-                Configuration.coloniesPerBody[Configuration.gameNode.name][FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody)].Add($"KC_{FlightGlobals.currentMainBody.name}_{colonyCount}", new Dictionary<string, Dictionary<colonyFacilities.KCFacilityBase, string>> { });
+                Configuration.coloniesPerBody[Configuration.gameNode.name][FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody)].Add($"KC_{FlightGlobals.currentMainBody.name}_{colonyCount}", new Dictionary<string, List<colonyFacilities.KCFacilityBase>> { });
             }
             else
             {
-                Configuration.coloniesPerBody[Configuration.gameNode.name].Add(FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody), new Dictionary<string, Dictionary<string, Dictionary<colonyFacilities.KCFacilityBase, string>>> { { $"KC_{FlightGlobals.currentMainBody.name}_{colonyCount}", new Dictionary<string, Dictionary<colonyFacilities.KCFacilityBase, string>> { } } });
+                Configuration.coloniesPerBody[Configuration.gameNode.name].Add(FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody), new Dictionary<string, Dictionary<string, List<colonyFacilities.KCFacilityBase>>> { { $"KC_{FlightGlobals.currentMainBody.name}_{colonyCount}", new Dictionary<string, List<colonyFacilities.KCFacilityBase>> { } } });
             }
             activeColony = KerbalKonstructs.API.CreateGroup($"KC_{FlightGlobals.currentMainBody.name}_{colonyCount}");
             EditorGroupPlace("KC_CAB", activeColony); //CAB: Colony Assembly Hub, initial start group

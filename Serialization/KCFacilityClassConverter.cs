@@ -24,6 +24,10 @@ namespace KerbalColonies.Serialization
         {
             return _registeredTypes.TryGetValue(typeName, out var type) ? type : null;
         }
+        public static IEnumerable<string> GetAllRegisteredTypes()
+        {
+            return _registeredTypes.Keys;
+        }
     }
 
     internal class KCFacilityClassConverter

@@ -10,7 +10,6 @@ namespace KerbalColonies.colonyFacilities
     internal class KCStorageFacility : KCFacilityBase
     {
         
-
         internal KCStorageFacility(bool enabled) : base("KCStorageFacility", enabled)
         {
 

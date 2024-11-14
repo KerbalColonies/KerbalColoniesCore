@@ -1,8 +1,9 @@
-﻿using System.Collections.Generic;
-using System.Reflection;
-using System.IO;
-using KerbalColonies.colonyFacilities;
+﻿using KerbalColonies.colonyFacilities;
 using KerbalColonies.Serialization;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Reflection;
 
 // KC: Kerbal Colonies
 // This mod aimes to create a colony system with Kerbal Konstructs statics
@@ -30,6 +31,8 @@ namespace KerbalColonies
     internal static class Configuration
     {
         // configurable parameters
+        // TODO: add the spawnheight to the save/load
+        internal static float spawnHeight = 2;                  // The height the active vessel should be set above the surface, this is done to prevent the vessel getting destroyed by the statics
         internal static int maxColoniesPerBody = 3;              // Limits the amount of colonies per celestial body (planet/moon)
                                                                  // set it to zero to disable the limit
         internal static int oreRequiredPerColony = 1000;     // The required amount of ore to start a colony
@@ -43,9 +46,8 @@ namespace KerbalColonies
         // Dictionary 0: the SaveGame name (the "name" field in the GAME node) as key
         // Dictionary 1: bodyindex as key
         // Dictionary 2: colonyName as key
-        // Dictionary 3: static uuid as key
-        // Dictionary 4: A KCFacility as key and a "dataString" with all of the building params, might change later
-        internal static Dictionary<string, Dictionary<int, Dictionary<string, Dictionary<string, Dictionary<KCFacilityBase, string>>>>> coloniesPerBody = new Dictionary<string, Dictionary<int, Dictionary<string, Dictionary<string, Dictionary<KCFacilityBase, string>>>>> { };
+        // Dictionary 3: static uuid as key and a KCFacility as value
+        internal static Dictionary<string, Dictionary<int, Dictionary<string, Dictionary<string, List<KCFacilityBase>>>>> coloniesPerBody = new Dictionary<string, Dictionary<int, Dictionary<string, Dictionary<string, List<KCFacilityBase>>>>> { };
 
         // static parameters
         internal const string APP_NAME = "KerbalColonies";
@@ -98,37 +100,39 @@ namespace KerbalColonies
             {
                 if (!coloniesPerBody.ContainsKey(saveGame.name))
                 {
-                    coloniesPerBody.Add(saveGame.name, new Dictionary<int, Dictionary<string, Dictionary<string, Dictionary<KCFacilityBase, string>>>> { });
+                    coloniesPerBody.Add(saveGame.name, new Dictionary<int, Dictionary<string, Dictionary<string, List<KCFacilityBase>>>> { });
                 }
 
                 foreach (ConfigNode bodyId in nodes[0].GetNode(saveGame.name).GetNodes())
                 {
                     if (!coloniesPerBody[saveGame.name].ContainsKey(int.Parse(bodyId.name)))
                     {
-                        coloniesPerBody[saveGame.name].Add(int.Parse(bodyId.name), new Dictionary<string, Dictionary<string, Dictionary<KCFacilityBase, string>>> { });
+                        coloniesPerBody[saveGame.name].Add(int.Parse(bodyId.name), new Dictionary<string, Dictionary<string, List<KCFacilityBase>>> { });
                     }
 
                     foreach (ConfigNode colonyName in nodes[0].GetNode(saveGame.name).GetNode(bodyId.name).GetNodes())
                     {
                         if (!coloniesPerBody[saveGame.name][int.Parse(bodyId.name)].ContainsKey(colonyName.name))
                         {
-                            coloniesPerBody[saveGame.name][int.Parse(bodyId.name)].Add(colonyName.name, new Dictionary<string, Dictionary<KCFacilityBase, string>> { });
+                            coloniesPerBody[saveGame.name][int.Parse(bodyId.name)].Add(colonyName.name, new Dictionary<string, List<KCFacilityBase>> { });
                         }
 
                         foreach (ConfigNode uuid in nodes[0].GetNode(saveGame.name).GetNode(bodyId.name).GetNode(colonyName.name).GetNodes())
                         {
                             if (!coloniesPerBody[saveGame.name][int.Parse(bodyId.name)][colonyName.name].ContainsKey(uuid.name))
                             {
-                                coloniesPerBody[saveGame.name][int.Parse(bodyId.name)][colonyName.name].Add(uuid.name, new Dictionary<KCFacilityBase, string> { });
+                                coloniesPerBody[saveGame.name][int.Parse(bodyId.name)][colonyName.name].Add(uuid.name, new List<KCFacilityBase> { });
                             }
 
                             foreach (ConfigNode KCFacilityNode in nodes[0].GetNode(saveGame.name).GetNode(bodyId.name).GetNode(colonyName.name).GetNode(uuid.name).GetNodes())
                             {
-                                KCFacilityBase kcFacility = KCFacilityClassConverter.DeserializeObject(KCFacilityNode.name);
+                                string kcFacilityName = $"{KCFacilityNode.name.Split('|')[0]}|{{{KCFacilityNode.name.Split('|')[1]}}}";
+                                
+                                KCFacilityBase kcFacility = KCFacilityClassConverter.DeserializeObject(kcFacilityName);
 
-                                if (!coloniesPerBody[saveGame.name][int.Parse(bodyId.name)][colonyName.name][uuid.name].ContainsKey(kcFacility))
+                                if (!coloniesPerBody[saveGame.name][int.Parse(bodyId.name)][colonyName.name][uuid.name].Contains(kcFacility))
                                 {
-                                    coloniesPerBody[saveGame.name][int.Parse(bodyId.name)][colonyName.name][uuid.name].Add(kcFacility, KCFacilityNode.GetValue("dataString"));
+                                    coloniesPerBody[saveGame.name][int.Parse(bodyId.name)][colonyName.name][uuid.name].Add(kcFacility);
                                 }
                             }
                         }
@@ -142,8 +146,7 @@ namespace KerbalColonies
             ConfigNode[] nodes = GameDatabase.Instance.GetConfigNodes(root);
             if ((nodes == null) || (nodes.Length == 0))
             {
-                nodes = new ConfigNode[] { };
-                //return;
+                nodes = new ConfigNode[1] { new ConfigNode() };
             }
 
             foreach (string saveGame in coloniesPerBody.Keys)
@@ -166,18 +169,20 @@ namespace KerbalColonies
                         }
                         foreach (string uuid in coloniesPerBody[saveGame][bodyId][colonyName].Keys)
                         {
+
                             if (!nodes[0].GetNode(saveGame).GetNode(bodyId.ToString()).GetNode(colonyName).HasNode(uuid))
                             {
                                 nodes[0].GetNode(saveGame).GetNode(bodyId.ToString()).GetNode(colonyName).AddNode(uuid, "A uuid from a KK static");
                             }
+                            else
+                            {
+                                nodes[0].GetNode(saveGame).GetNode(bodyId.ToString()).GetNode(colonyName).GetNode(uuid).ClearNodes();
+                            }
 
-                            foreach (KCFacilityBase KCFacility in coloniesPerBody[saveGame][bodyId][colonyName][uuid].Keys)
+                            foreach (KCFacilityBase KCFacility in coloniesPerBody[saveGame][bodyId][colonyName][uuid])
                             {
                                 string serializedKCFacility = KCFacilityClassConverter.SerializeObject(KCFacility);
-                                if (!nodes[0].GetNode(saveGame).GetNode(bodyId.ToString()).GetNode(colonyName).GetNode(uuid).HasNode(serializedKCFacility))
-                                {
-                                    nodes[0].GetNode(saveGame).GetNode(bodyId.ToString()).GetNode(colonyName).GetNode(uuid).AddNode(serializedKCFacility, "A serialized KCFacility");
-                                }
+                                nodes[0].GetNode(saveGame).GetNode(bodyId.ToString()).GetNode(colonyName).GetNode(uuid).AddNode(serializedKCFacility.Replace("{", "").Replace("}", ""), "A serialized KCFacility");
                             }
                         }
                     }

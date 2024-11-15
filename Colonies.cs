@@ -50,7 +50,7 @@ namespace KerbalColonies
                     {
                         // Doesn't work right now with a kcstoragefacility added
                         Configuration.coloniesPerBody[Configuration.gameNode.name][FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody)][activeColony].Add(instance.UUID, new List<colonyFacilities.KCFacilityBase> {  });
-                        Configuration.coloniesPerBody[Configuration.gameNode.name][FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody)][activeColony][instance.UUID].Add(new KCStorageFacility(true));
+                        Configuration.coloniesPerBody[Configuration.gameNode.name][FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody)][activeColony][instance.UUID].Add(new KCStorageFacility(true, 100));
 
                         KerbalKonstructs.API.AddStaticToGroup(instance.UUID, activeColony);
                     }

@@ -46,7 +46,7 @@ namespace KerbalColonies
         // Dictionary 0: the SaveGame name (the "name" field in the GAME node) as key
         // Dictionary 1: bodyindex as key
         // Dictionary 2: colonyName as key
-        // Dictionary 3: static uuid as key and a KCFacility as value
+        // Dictionary 3: static uuid as key and a KCFacilityBase List as value
         internal static Dictionary<string, Dictionary<int, Dictionary<string, Dictionary<string, List<KCFacilityBase>>>>> coloniesPerBody = new Dictionary<string, Dictionary<int, Dictionary<string, Dictionary<string, List<KCFacilityBase>>>>> { };
 
         // static parameters
@@ -126,7 +126,7 @@ namespace KerbalColonies
 
                             foreach (ConfigNode KCFacilityNode in nodes[0].GetNode(saveGame.name).GetNode(bodyId.name).GetNode(colonyName.name).GetNode(uuid.name).GetNodes())
                             {
-                                string kcFacilityName = $"{KCFacilityNode.name.Split('|')[0]}|{{{KCFacilityNode.name.Split('|')[1]}}}";
+                                string kcFacilityName = $"{KCFacilityNode.name}|{{{KCFacilityNode.GetValue("serializedData")}}}";
                                 
                                 KCFacilityBase kcFacility = KCFacilityClassConverter.DeserializeObject(kcFacilityName);
 
@@ -182,7 +182,8 @@ namespace KerbalColonies
                             foreach (KCFacilityBase KCFacility in coloniesPerBody[saveGame][bodyId][colonyName][uuid])
                             {
                                 string serializedKCFacility = KCFacilityClassConverter.SerializeObject(KCFacility);
-                                nodes[0].GetNode(saveGame).GetNode(bodyId.ToString()).GetNode(colonyName).GetNode(uuid).AddNode(serializedKCFacility.Replace("{", "").Replace("}", ""), "A serialized KCFacility");
+                                nodes[0].GetNode(saveGame).GetNode(bodyId.ToString()).GetNode(colonyName).GetNode(uuid).AddNode(serializedKCFacility.Split('|')[0], "A serialized KCFacility");
+                                nodes[0].GetNode(saveGame).GetNode(bodyId.ToString()).GetNode(colonyName).GetNode(uuid).GetNode(serializedKCFacility.Split('|')[0]).AddValue("serializedData", serializedKCFacility.Split('|')[1].Replace("{", "").Replace("}", ""), "Serialized Data from a KC facility");
                             }
                         }
                     }

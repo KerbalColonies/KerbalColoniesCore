@@ -45,30 +45,22 @@ namespace KerbalColonies
         {
             KCFacilityTypeRegistry.RegisterType<KCStorageFacility>();
             Configuration.LoadConfiguration(Configuration.APP_NAME.ToUpper());
-            Configuration.LoadColonies("KCCD");
-
-            IEnumerable<string> types = KCFacilityTypeRegistry.GetAllRegisteredTypes();
-
-            foreach (string type in types)
-            {
-                writeDebug($"{type}");
-            }
+            KerbalKonstructs.API.RegisterOnBuildingClicked(KCFacilityBase.OnBuildingClickedHandler);
         }
 
         private string uuid;
 
         protected void Start()
         {
-            writeDebug("Starting KC");
+            Configuration.LoadColonies("KCCD");
         }
 
-        /// <summary>
-        /// </summary>
         public void FixedUpdate()
         {
             
             if (Input.GetKeyDown(KeyCode.U))
             {
+                writeDebug(Planetarium.GetUniversalTime().ToString());
                 KCUI.instance.Toggle();
             }
             else if (Input.GetKeyDown(KeyCode.Z))
@@ -79,7 +71,7 @@ namespace KerbalColonies
             }
             else if (Input.GetKeyDown(KeyCode.H))
             {
-                KCStorageFacility facTest = new KCStorageFacility(true);
+                KCStorageFacility facTest = new KCStorageFacility(true, 100);
                 writeDebug(facTest.ToString());
                 string serialString = KCFacilityClassConverter.SerializeObject(facTest);
                 writeDebug(serialString);

@@ -34,16 +34,17 @@ namespace KerbalColonies.Serialization
     {
         public static string SerializeObject(KCFacilityBase obj)
         {
+            obj.EncodeString();
             // Include the type's fully qualified name as metadata outside of the serialized JSON
             string typeName = obj.GetType().FullName;
             string json = JsonUtility.ToJson(obj);
-            return $"{typeName}|{json}";
+            return $"{typeName}/{json}";
         }
 
         public static KCFacilityBase DeserializeObject(string serializedData)
         {
             // Extract the type name and JSON content
-            string[] parts = serializedData.Split('|');
+            string[] parts = serializedData.Split('/');
             if (parts.Length != 2)
             {
                 Debug.LogError("Invalid serialized data format.");
@@ -62,7 +63,10 @@ namespace KerbalColonies.Serialization
             }
 
             // Deserialize using the correct type
-            return (KCFacilityBase)JsonUtility.FromJson(json, type);
+            KCFacilityBase obj = (KCFacilityBase)JsonUtility.FromJson(json, type);
+            obj.Initialize(obj.facilityName, obj.facilityData, obj.enabled);
+
+            return obj;
         }
     }
 }

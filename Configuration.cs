@@ -1,5 +1,6 @@
 ﻿using KerbalColonies.colonyFacilities;
 using KerbalColonies.Serialization;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -30,6 +31,23 @@ namespace KerbalColonies
     /// </summary>
     internal static class Configuration
     {
+        internal static Dictionary<int, KCFacilityBase> windowIDs = new Dictionary<int, KCFacilityBase>();
+
+        internal static int createWindowID(KCFacilityBase facility)
+        {
+            Random random = new Random();
+
+            while (true)
+            {
+                int id = random.Next(0xCC00000, 0xCCFFFFF);
+                if (!windowIDs.ContainsKey(id))
+                {
+                    windowIDs.Add(id, facility);
+                    return id;
+                }
+            }
+        }
+
         // configurable parameters
         // TODO: add the spawnheight to the save/load
         internal static float spawnHeight = 2;                  // The height the active vessel should be set above the surface, this is done to prevent the vessel getting destroyed by the statics
@@ -126,7 +144,7 @@ namespace KerbalColonies
 
                             foreach (ConfigNode KCFacilityNode in nodes[0].GetNode(saveGame.name).GetNode(bodyId.name).GetNode(colonyName.name).GetNode(uuid.name).GetNodes())
                             {
-                                string kcFacilityName = $"{KCFacilityNode.name}|{{{KCFacilityNode.GetValue("serializedData")}}}";
+                                string kcFacilityName = $"{KCFacilityNode.name}/{{{KCFacilityNode.GetValue("serializedData")}}}";
                                 
                                 KCFacilityBase kcFacility = KCFacilityClassConverter.DeserializeObject(kcFacilityName);
 
@@ -182,8 +200,8 @@ namespace KerbalColonies
                             foreach (KCFacilityBase KCFacility in coloniesPerBody[saveGame][bodyId][colonyName][uuid])
                             {
                                 string serializedKCFacility = KCFacilityClassConverter.SerializeObject(KCFacility);
-                                nodes[0].GetNode(saveGame).GetNode(bodyId.ToString()).GetNode(colonyName).GetNode(uuid).AddNode(serializedKCFacility.Split('|')[0], "A serialized KCFacility");
-                                nodes[0].GetNode(saveGame).GetNode(bodyId.ToString()).GetNode(colonyName).GetNode(uuid).GetNode(serializedKCFacility.Split('|')[0]).AddValue("serializedData", serializedKCFacility.Split('|')[1].Replace("{", "").Replace("}", ""), "Serialized Data from a KC facility");
+                                nodes[0].GetNode(saveGame).GetNode(bodyId.ToString()).GetNode(colonyName).GetNode(uuid).AddNode(serializedKCFacility.Split('/')[0], "A serialized KCFacility");
+                                nodes[0].GetNode(saveGame).GetNode(bodyId.ToString()).GetNode(colonyName).GetNode(uuid).GetNode(serializedKCFacility.Split('/')[0]).AddValue("serializedData", serializedKCFacility.Split('/')[1].Replace("{", "").Replace("}", ""), "Serialized Data from a KC facility");
                             }
                         }
                     }

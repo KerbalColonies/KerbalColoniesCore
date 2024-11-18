@@ -17,6 +17,7 @@
         public double lastUpdateTime;
         public double creationTime;
         public string facilityData;
+        protected bool initialized = false;
 
         /// <summary>
         /// This function get automatically called, do not call it manually.
@@ -35,16 +36,17 @@
 
         public static void OnBuildingClickedHandler(KerbalKonstructs.Core.StaticInstance instance)
         {
-            if (Configuration.coloniesPerBody.ContainsKey(Configuration.gameNode.name))
+            if (Configuration.coloniesPerBody.ContainsKey(Configuration.gameNode.GetValue("Seed")))
             {
-                if (Configuration.coloniesPerBody[Configuration.gameNode.name].ContainsKey(FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody)))
+                if (Configuration.coloniesPerBody[Configuration.gameNode.GetValue("Seed")].ContainsKey(FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody)))
                 {
-                    if (Configuration.coloniesPerBody[Configuration.gameNode.name][FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody)].ContainsKey(instance.Group))
+                    if (Configuration.coloniesPerBody[Configuration.gameNode.GetValue("Seed")][FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody)].ContainsKey(instance.Group))
                     {
-                        if (Configuration.coloniesPerBody[Configuration.gameNode.name][FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody)][instance.Group].ContainsKey(instance.UUID))
+                        if (Configuration.coloniesPerBody[Configuration.gameNode.GetValue("Seed")][FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody)][instance.Group].ContainsKey(instance.UUID))
                         {
-                            foreach (KCFacilityBase kcFacility in Configuration.coloniesPerBody[Configuration.gameNode.name][FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody)][instance.Group][instance.UUID])
+                            foreach (KCFacilityBase kcFacility in Configuration.coloniesPerBody[Configuration.gameNode.GetValue("Seed")][FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody)][instance.Group][instance.UUID])
                             {
+                                KSPLog.print(Configuration.APP_NAME + ": " + instance.ToString());
                                 kcFacility.Update();
                                 kcFacility.OnBuildingClicked();
                             }
@@ -54,27 +56,65 @@
             }
         }
 
+        public static string GetUUIDbyFacility(KCFacilityBase facility)
+        {
+            foreach (string saveGame in Configuration.coloniesPerBody.Keys)
+            {
+                foreach (int bodyId in Configuration.coloniesPerBody[saveGame].Keys)
+                {
+                    foreach (string colonyName in Configuration.coloniesPerBody[saveGame][bodyId].Keys)
+                    {
+                        foreach (string uuid in Configuration.coloniesPerBody[saveGame][bodyId][colonyName].Keys)
+                        {
+                            if (Configuration.coloniesPerBody[saveGame][bodyId][colonyName][uuid].Contains(facility))
+                            {
+                                return uuid;
+                            }
+                        }
+                    }
+                }
+            }
+            return "";
+        }
+
         /// <summary>
         /// This method should create the facilityData string from custom fields in derived classes, this base method returns an empty string.
         /// </summary>
-        virtual internal string EncodeString()
+        virtual internal void EncodeString()
         {
             facilityData = "";
-            return "";
         }
 
         /// <summary>
         /// This method should fill the custom fields of derived classes, this base method DOES NOTHING.
         /// </summary>
-        virtual internal void DecodeString(string facilityData) { }
+        virtual internal void DecodeString() { }
 
 
+        virtual internal void Initialize(string facilityName, string facilityData, bool enabled)
+        {
+            if (!initialized)
+            {
+                this.facilityName = facilityName;
+                this.facilityData = facilityData;
+                this.enabled = enabled;
+                lastUpdateTime = Planetarium.GetUniversalTime();
+                creationTime = Planetarium.GetUniversalTime();
+                initialized = true;
+                DecodeString();
+            }
+        }
+
+        /// <summary>
+        /// The base constructor of the kc facilities. It only calls the initialize function.
+        /// You can use a custom constructor but it should only call an overriden initialize function and not the base constructor
+        /// This is necessary because of the serialization.
+        /// </summary>
         protected KCFacilityBase(string facilityName, bool enabled, string facilityData)
         {
-            this.facilityName = facilityName;
-            this.enabled = enabled;
-            lastUpdateTime = Planetarium.GetUniversalTime();
-            creationTime = Planetarium.GetUniversalTime();
+            Initialize(facilityName, facilityData, enabled);
         }
+
+        protected KCFacilityBase() { }
     }
 }

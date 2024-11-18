@@ -24,17 +24,26 @@ using UnityEngine;
 
 namespace KerbalColonies
 {
-    [KSPAddon(KSPAddon.Startup.AllGameScenes, true)]
+    [KSPAddon(KSPAddon.Startup.AllGameScenes, false)]
     public class GameSateLoad : MonoBehaviour
     {
         public void GetGameNode(ConfigNode node)
         {
+            KSPLog.print("KC_GAMELOAD");
             Configuration.gameNode = node;
         }
 
+
         protected void Awake()
         {
+            KerbalKonstructs.API.RegisterOnBuildingClicked(KCFacilityBase.OnBuildingClickedHandler);
             GameEvents.onGameStateLoad.Add(GetGameNode);
+        }
+
+        protected void OnDestroy()
+        {
+            KerbalKonstructs.API.UnRegisterOnBuildingClicked(KCFacilityBase.OnBuildingClickedHandler);
+            Configuration.coloniesPerBody.Clear();
         }
     }
 
@@ -43,15 +52,17 @@ namespace KerbalColonies
     {
         protected void Awake()
         {
+            KSPLog.print("KC awake");
             KCFacilityTypeRegistry.RegisterType<KCStorageFacility>();
             Configuration.LoadConfiguration(Configuration.APP_NAME.ToUpper());
-            KerbalKonstructs.API.RegisterOnBuildingClicked(KCFacilityBase.OnBuildingClickedHandler);
         }
 
         private string uuid;
 
         protected void Start()
         {
+            KSPLog.print("KC start");
+            Configuration.coloniesPerBody.Clear();
             Configuration.LoadColonies("KCCD");
         }
 
@@ -61,23 +72,25 @@ namespace KerbalColonies
             if (Input.GetKeyDown(KeyCode.U))
             {
                 writeDebug(Planetarium.GetUniversalTime().ToString());
-                KCUI.instance.Toggle();
+
             }
             else if (Input.GetKeyDown(KeyCode.Z))
             {
-                writeDebug(Configuration.gameNode.ToString());
-                writeDebug(Configuration.gameNode.name);
-                writeDebug(Configuration.coloniesPerBody.ContainsKey(Configuration.gameNode.name).ToString());
+                writeDebug(Configuration.gameNode.GetValue("Seed"));
+                writeDebug(Configuration.coloniesPerBody.ContainsKey(Configuration.gameNode.GetValue("Seed")).ToString());
+                writeDebug(Configuration.coloniesPerBody.Count.ToString());
             }
             else if (Input.GetKeyDown(KeyCode.H))
             {
                 KCStorageFacility facTest = new KCStorageFacility(true, 100);
                 writeDebug(facTest.ToString());
-                string serialString = KCFacilityClassConverter.SerializeObject(facTest);
-                writeDebug(serialString);
-                KCFacilityBase facTest2 = KCFacilityClassConverter.DeserializeObject(serialString);
-                writeDebug(facTest2.ToString());
-                writeDebug(facTest2.GetType().ToString());
+                facTest.EncodeString();
+                writeDebug(facTest.facilityData);
+                //string serialString = KCFacilityClassConverter.SerializeObject(facTest);
+                //writeDebug(serialString);
+                //KCFacilityBase facTest2 = KCFacilityClassConverter.DeserializeObject(serialString);
+                //writeDebug(facTest2.ToString());
+                //writeDebug(facTest2.GetType().ToString());
             }
         }
 

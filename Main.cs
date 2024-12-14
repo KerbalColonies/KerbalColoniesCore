@@ -24,29 +24,6 @@ using UnityEngine;
 
 namespace KerbalColonies
 {
-    [KSPAddon(KSPAddon.Startup.AllGameScenes, false)]
-    public class GameSateLoad : MonoBehaviour
-    {
-        public void GetGameNode(ConfigNode node)
-        {
-            KSPLog.print("KC_GAMELOAD");
-            Configuration.gameNode = node;
-        }
-
-
-        protected void Awake()
-        {
-            KerbalKonstructs.API.RegisterOnBuildingClicked(KCFacilityBase.OnBuildingClickedHandler);
-            GameEvents.onGameStateLoad.Add(GetGameNode);
-        }
-
-        protected void OnDestroy()
-        {
-            KerbalKonstructs.API.UnRegisterOnBuildingClicked(KCFacilityBase.OnBuildingClickedHandler);
-            Configuration.coloniesPerBody.Clear();
-        }
-    }
-
     [KSPAddon(KSPAddon.Startup.Flight, false)]
     public class KerbalColonies : MonoBehaviour
     {
@@ -54,7 +31,9 @@ namespace KerbalColonies
         {
             KSPLog.print("KC awake");
             KCFacilityTypeRegistry.RegisterType<KCStorageFacility>();
+            KCFacilityTypeRegistry.RegisterType<KCKerbalTestFacility>();
             Configuration.LoadConfiguration(Configuration.APP_NAME.ToUpper());
+            KerbalKonstructs.API.RegisterOnBuildingClicked(KCFacilityBase.OnBuildingClickedHandler);
         }
 
         private string uuid;
@@ -68,16 +47,17 @@ namespace KerbalColonies
 
         public void FixedUpdate()
         {
-            
+            //HighLogic.CurrentGame.CrewRoster;
+
             if (Input.GetKeyDown(KeyCode.U))
             {
-                writeDebug(Planetarium.GetUniversalTime().ToString());
+                writeDebug(HighLogic.CurrentGame.UniversalTime.ToString());
 
             }
             else if (Input.GetKeyDown(KeyCode.Z))
             {
-                writeDebug(Configuration.gameNode.GetValue("Seed"));
-                writeDebug(Configuration.coloniesPerBody.ContainsKey(Configuration.gameNode.GetValue("Seed")).ToString());
+                writeDebug(HighLogic.CurrentGame.Seed.ToString());
+                writeDebug(Configuration.coloniesPerBody.ContainsKey(HighLogic.CurrentGame.Seed.ToString()).ToString());
                 writeDebug(Configuration.coloniesPerBody.Count.ToString());
             }
             else if (Input.GetKeyDown(KeyCode.H))
@@ -92,6 +72,11 @@ namespace KerbalColonies
                 //writeDebug(facTest2.ToString());
                 //writeDebug(facTest2.GetType().ToString());
             }
+        }
+        protected void OnDestroy()
+        {
+            KerbalKonstructs.API.UnRegisterOnBuildingClicked(KCFacilityBase.OnBuildingClickedHandler);
+            Configuration.coloniesPerBody.Clear();
         }
 
         internal void writeDebug(string text)

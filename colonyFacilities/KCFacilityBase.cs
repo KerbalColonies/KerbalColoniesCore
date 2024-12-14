@@ -1,4 +1,7 @@
-﻿namespace KerbalColonies.colonyFacilities
+﻿using KerbalKonstructs.Modules;
+using System;
+
+namespace KerbalColonies.colonyFacilities
 {
 
     /// <summary>
@@ -13,6 +16,7 @@
     public abstract class KCFacilityBase
     {
         public string facilityName;
+        public int id;
         public bool enabled;
         public double lastUpdateTime;
         public double creationTime;
@@ -25,7 +29,7 @@
         /// </summary>
         virtual internal void Update()
         {
-            lastUpdateTime = Planetarium.GetUniversalTime();
+            lastUpdateTime = HighLogic.CurrentGame.UniversalTime;
         }
 
         /// <summary>
@@ -34,17 +38,17 @@
         /// </summary>
         virtual internal void OnBuildingClicked() { }
 
-        public static void OnBuildingClickedHandler(KerbalKonstructs.Core.StaticInstance instance)
+        internal static void OnBuildingClickedHandler(KerbalKonstructs.Core.StaticInstance instance)
         {
-            if (Configuration.coloniesPerBody.ContainsKey(Configuration.gameNode.GetValue("Seed")))
+            if (Configuration.coloniesPerBody.ContainsKey(HighLogic.CurrentGame.Seed.ToString()))
             {
-                if (Configuration.coloniesPerBody[Configuration.gameNode.GetValue("Seed")].ContainsKey(FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody)))
+                if (Configuration.coloniesPerBody[HighLogic.CurrentGame.Seed.ToString()].ContainsKey(FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody)))
                 {
-                    if (Configuration.coloniesPerBody[Configuration.gameNode.GetValue("Seed")][FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody)].ContainsKey(instance.Group))
+                    if (Configuration.coloniesPerBody[HighLogic.CurrentGame.Seed.ToString()][FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody)].ContainsKey(instance.Group))
                     {
-                        if (Configuration.coloniesPerBody[Configuration.gameNode.GetValue("Seed")][FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody)][instance.Group].ContainsKey(instance.UUID))
+                        if (Configuration.coloniesPerBody[HighLogic.CurrentGame.Seed.ToString()][FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody)][instance.Group].ContainsKey(instance.UUID))
                         {
-                            foreach (KCFacilityBase kcFacility in Configuration.coloniesPerBody[Configuration.gameNode.GetValue("Seed")][FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody)][instance.Group][instance.UUID])
+                            foreach (KCFacilityBase kcFacility in Configuration.coloniesPerBody[HighLogic.CurrentGame.Seed.ToString()][FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody)][instance.Group][instance.UUID])
                             {
                                 KSPLog.print(Configuration.APP_NAME + ": " + instance.ToString());
                                 kcFacility.Update();
@@ -56,7 +60,7 @@
             }
         }
 
-        public static string GetUUIDbyFacility(KCFacilityBase facility)
+        internal static string GetUUIDbyFacility(KCFacilityBase facility)
         {
             foreach (string saveGame in Configuration.coloniesPerBody.Keys)
             {
@@ -78,9 +82,81 @@
         }
 
         /// <summary>
+        /// Returns true if the facility with the corresponding id was found
+        /// Returns false if the the id wasn't found.
+        /// </summary>
+        /// <returns>Important: if the facility wasn't found the outed facility is NULL</returns>
+        internal static bool GetFacilityByID(int id, out KCFacilityBase facility)
+        {
+            foreach (string saveGame in Configuration.coloniesPerBody.Keys)
+            {
+                foreach (int bodyId in Configuration.coloniesPerBody[saveGame].Keys)
+                {
+                    foreach (string colonyName in Configuration.coloniesPerBody[saveGame][bodyId].Keys)
+                    {
+                        foreach (string uuid in Configuration.coloniesPerBody[saveGame][bodyId][colonyName].Keys)
+                        {
+                            foreach (KCFacilityBase fac in Configuration.coloniesPerBody[saveGame][bodyId][colonyName][uuid])
+                            {
+                                if (fac.id == id)
+                                {
+                                    facility = fac;
+                                    return true;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            facility = null;
+            return false;
+        }
+
+        internal static bool IDexists(int id)
+        {
+            foreach (string saveGame in Configuration.coloniesPerBody.Keys)
+            {
+                foreach (int bodyId in Configuration.coloniesPerBody[saveGame].Keys)
+                {
+                    foreach (string colonyName in Configuration.coloniesPerBody[saveGame][bodyId].Keys)
+                    {
+                        foreach (string uuid in Configuration.coloniesPerBody[saveGame][bodyId][colonyName].Keys)
+                        {
+                            foreach (KCFacilityBase fac in Configuration.coloniesPerBody[saveGame][bodyId][colonyName][uuid])
+                            {
+                                if (fac.id == id)
+                                {
+                                    return true;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            return false;
+        }
+        internal static int createID()
+        {
+            int id = 0;
+            Random r = new Random();
+            bool hasID = false;
+
+            while (true)
+            {
+                id = r.Next();
+
+                if (!IDexists(id))
+                {
+                    return id;
+                }
+            }
+
+        }
+
+        /// <summary>
         /// This method should create the facilityData string from custom fields in derived classes, this base method returns an empty string.
         /// </summary>
-        virtual internal void EncodeString()
+        virtual public void EncodeString()
         {
             facilityData = "";
         }
@@ -88,18 +164,19 @@
         /// <summary>
         /// This method should fill the custom fields of derived classes, this base method DOES NOTHING.
         /// </summary>
-        virtual internal void DecodeString() { }
+        virtual public void DecodeString() { }
 
 
-        virtual internal void Initialize(string facilityName, string facilityData, bool enabled)
+        virtual internal void Initialize(string facilityName, int id, string facilityData, bool enabled)
         {
             if (!initialized)
             {
                 this.facilityName = facilityName;
+                this.id = id;
                 this.facilityData = facilityData;
                 this.enabled = enabled;
-                lastUpdateTime = Planetarium.GetUniversalTime();
-                creationTime = Planetarium.GetUniversalTime();
+                lastUpdateTime = HighLogic.CurrentGame.UniversalTime;
+                creationTime = HighLogic.CurrentGame.UniversalTime;
                 initialized = true;
                 DecodeString();
             }
@@ -112,7 +189,7 @@
         /// </summary>
         protected KCFacilityBase(string facilityName, bool enabled, string facilityData)
         {
-            Initialize(facilityName, facilityData, enabled);
+            Initialize(facilityName, createID(), facilityData, enabled);
         }
 
         protected KCFacilityBase() { }

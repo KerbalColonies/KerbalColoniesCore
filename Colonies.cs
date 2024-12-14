@@ -41,8 +41,8 @@ namespace KerbalColonies
             {
                 foreach (KerbalKonstructs.Core.StaticInstance instance in instances)
                 {
-                    Configuration.coloniesPerBody[Configuration.gameNode.GetValue("Seed")][FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody)][activeColony].Add(instance.UUID, new List<colonyFacilities.KCFacilityBase> { });
-                    Configuration.coloniesPerBody[Configuration.gameNode.GetValue("Seed")][FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody)][activeColony][instance.UUID].Add(new KCStorageFacility(true, 100));
+                    Configuration.coloniesPerBody[HighLogic.CurrentGame.Seed.ToString()][FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody)][activeColony].Add(instance.UUID, new List<colonyFacilities.KCFacilityBase> { });
+                    Configuration.coloniesPerBody[HighLogic.CurrentGame.Seed.ToString()][FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody)][activeColony][instance.UUID].Add(new KCKerbalTestFacility(true));
 
                     KerbalKonstructs.API.AddStaticToGroup(instance.UUID, activeColony);
                 }
@@ -65,21 +65,21 @@ namespace KerbalColonies
         internal static bool CreateColony()
         {
 
-            if (!Configuration.coloniesPerBody.ContainsKey(Configuration.gameNode.GetValue("Seed")))
+            if (!Configuration.coloniesPerBody.ContainsKey(HighLogic.CurrentGame.Seed.ToString()))
             {
-                Configuration.coloniesPerBody.Add(Configuration.gameNode.GetValue("Seed"), new Dictionary<int, Dictionary<string, Dictionary<string, List<colonyFacilities.KCFacilityBase>>>> { { FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody), new Dictionary<string, Dictionary<string, List<colonyFacilities.KCFacilityBase>>> { } } });
+                Configuration.coloniesPerBody.Add(HighLogic.CurrentGame.Seed.ToString(), new Dictionary<int, Dictionary<string, Dictionary<string, List<colonyFacilities.KCFacilityBase>>>> { { FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody), new Dictionary<string, Dictionary<string, List<colonyFacilities.KCFacilityBase>>> { } } });
             }
-            else if (!Configuration.coloniesPerBody[Configuration.gameNode.GetValue("Seed")].ContainsKey(FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody)))
+            else if (!Configuration.coloniesPerBody[HighLogic.CurrentGame.Seed.ToString()].ContainsKey(FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody)))
             {
-                Configuration.coloniesPerBody[Configuration.gameNode.GetValue("Seed")].Add(FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody), new Dictionary<string, Dictionary<string, List<KCFacilityBase>>> { });
+                Configuration.coloniesPerBody[HighLogic.CurrentGame.Seed.ToString()].Add(FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody), new Dictionary<string, Dictionary<string, List<KCFacilityBase>>> { });
             }
-            else if (Configuration.coloniesPerBody[Configuration.gameNode.GetValue("Seed")][FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody)].Count() >= Configuration.maxColoniesPerBody)
+            else if (Configuration.coloniesPerBody[HighLogic.CurrentGame.Seed.ToString()][FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody)].Count() >= Configuration.maxColoniesPerBody)
             {
                 return false;
             }
 
-            colonyCount = Configuration.coloniesPerBody[Configuration.gameNode.GetValue("Seed")][FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody)].Count();
-            Configuration.coloniesPerBody[Configuration.gameNode.GetValue("Seed")][FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody)].Add($"KC_{FlightGlobals.currentMainBody.name}_{colonyCount}", new Dictionary<string, List<colonyFacilities.KCFacilityBase>> { });
+            colonyCount = Configuration.coloniesPerBody[HighLogic.CurrentGame.Seed.ToString()][FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody)].Count();
+            Configuration.coloniesPerBody[HighLogic.CurrentGame.Seed.ToString()][FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody)].Add($"KC_{FlightGlobals.currentMainBody.name}_{colonyCount}", new Dictionary<string, List<colonyFacilities.KCFacilityBase>> { });
             activeColony = KerbalKonstructs.API.CreateGroup($"KC_{FlightGlobals.currentMainBody.name}_{colonyCount}");
             EditorGroupPlace("KC_CAB", activeColony); //CAB: Colony Assembly Hub, initial start group
             return true;

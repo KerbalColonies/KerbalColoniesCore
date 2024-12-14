@@ -13,6 +13,8 @@ namespace KerbalColonies
 
         internal Rect toolRect = new Rect(100, 100, 330, 100);
 
+        protected virtual void OnClose() { }
+
         public override void Draw()
         {
             if (!guiInitialized)
@@ -58,6 +60,7 @@ namespace KerbalColonies
 
                 if (GUILayout.Button("X", UIMain.DeadButtonRed, GUILayout.Height(21)))
                 {
+                    OnClose();
                     //KerbalKonstructs.instance.saveObjects();
                     this.Close();
                 }

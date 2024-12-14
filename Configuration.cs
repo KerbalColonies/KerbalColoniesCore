@@ -49,7 +49,6 @@ namespace KerbalColonies
         }
 
         // configurable parameters
-        // TODO: add the spawnheight to the save/load
         internal static float spawnHeight = 2;                  // The height the active vessel should be set above the surface, this is done to prevent the vessel getting destroyed by the statics
         internal static int maxColoniesPerBody = 3;              // Limits the amount of colonies per celestial body (planet/moon)
                                                                  // set it to zero to disable the limit
@@ -58,7 +57,7 @@ namespace KerbalColonies
         internal static bool enableLogging = true;            // Enable this only in debug purposes as it floods the logs very much
 
         // this is the GAME confignode (the confignode from the save file)
-        internal static ConfigNode gameNode;
+        internal static ConfigNode gameNode = HighLogic.CurrentGame.config;
 
         // saves the colonies per body with
         // Dictionary 0: the SaveGame name (the "name" field in the GAME node) as key
@@ -78,6 +77,7 @@ namespace KerbalColonies
             {
                 return;
             }
+            float.TryParse(nodes[0].GetValue("spawnHeight"), out spawnHeight);
             int.TryParse(nodes[0].GetValue("maxColoniesPerBody"), out maxColoniesPerBody);
             int.TryParse(nodes[0].GetValue("oreRequiredPerColony"), out oreRequiredPerColony);
 
@@ -93,6 +93,7 @@ namespace KerbalColonies
             }
 
             // config params
+            nodes[0].SetValue("spawnHeight", spawnHeight, "The height above the ground at which the active vessel will be set when spawning a new colony. This is done to prevent the vessel from exploding from the static meshes", createIfNotFound: true);
             nodes[0].SetValue("maxColoniesPerBody", maxColoniesPerBody, "Limits the amount of colonies per celestial body (planet/moon)\n\t// set it to zero to disable the limit", createIfNotFound: true);
             nodes[0].SetValue("oreRequiredPerColony", oreRequiredPerColony, "The required amount of ore to start a colony", createIfNotFound: true);
             nodes[0].SetValue("enableLogging", enableLogging, "Enable this only in debug purposes as it floods the logs very much", createIfNotFound: true);
@@ -148,9 +149,16 @@ namespace KerbalColonies
                                 
                                 KCFacilityBase kcFacility = KCFacilityClassConverter.DeserializeObject(kcFacilityName);
 
-                                if (!coloniesPerBody[saveGame.name][int.Parse(bodyId.name)][colonyName.name][uuid.name].Contains(kcFacility))
+                                if (KCFacilityBase.GetFacilityByID(kcFacility.id, out KCFacilityBase fac))
                                 {
-                                    coloniesPerBody[saveGame.name][int.Parse(bodyId.name)][colonyName.name][uuid.name].Add(kcFacility);
+                                    coloniesPerBody[saveGame.name][int.Parse(bodyId.name)][colonyName.name][uuid.name].Add(fac);
+                                }
+                                else
+                                {
+                                    if (!coloniesPerBody[saveGame.name][int.Parse(bodyId.name)][colonyName.name][uuid.name].Contains(kcFacility))
+                                    {
+                                        coloniesPerBody[saveGame.name][int.Parse(bodyId.name)][colonyName.name][uuid.name].Add(kcFacility);
+                                    }
                                 }
                             }
                         }
@@ -215,6 +223,17 @@ namespace KerbalColonies
             node.AddNode(nodes[0]);
             node.Save(path);
         }
+        internal static void writeDebug(string text)
+        {
+            if (Configuration.enableLogging)
+            {
+                writeLog(text);
+            }
+        }
 
+        internal static void writeLog(string text)
+        {
+            KSPLog.print(Configuration.APP_NAME + ": " + text);
+        }
     }
 }

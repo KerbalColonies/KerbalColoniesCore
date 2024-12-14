@@ -196,12 +196,12 @@ namespace KerbalColonies.colonyFacilities
 
         private KCStorageFacilityWindow StorageWindow;
 
-        internal override void EncodeString()
+        public override void EncodeString()
         {
             facilityData = $"ressource&{((resource != null) ? resource.id : -1)}|amount&{amount}|maxVolume&{maxVolume}";
         }
 
-        internal override void DecodeString()
+        public override void DecodeString()
         {
             if (facilityData != "")
             {
@@ -255,9 +255,9 @@ namespace KerbalColonies.colonyFacilities
             StorageWindow.Toggle();
         }
 
-        internal override void Initialize(string facilityName, string facilityData, bool enabled)
+        internal override void Initialize(string facilityName, int id, string facilityData, bool enabled)
         {
-            base.Initialize(facilityName, facilityData, enabled);
+            base.Initialize(facilityName, id, facilityData, enabled);
             this.StorageWindow = new KCStorageFacilityWindow(this);
             resource = PartResourceLibrary.Instance.GetDefinition("Ore");
         }
@@ -265,7 +265,7 @@ namespace KerbalColonies.colonyFacilities
         internal KCStorageFacility(bool enabled, float maxVolume = 0f)
         {
             this.maxVolume = maxVolume;
-            Initialize("KCStorageFacility", "", enabled);
+            Initialize("KCStorageFacility", createID(), "", enabled);
         }
     }
 }

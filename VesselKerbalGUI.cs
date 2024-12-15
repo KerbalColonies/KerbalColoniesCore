@@ -4,13 +4,15 @@ using UnityEngine;
 
 namespace KerbalColonies
 {
-    internal class ActiveKerbalSelectorGUI : KCWindowBase
+    internal class VesselKerbalSelectorGUI : KCWindowBase
     {
+        private KCKerbalFacilityBase fac;
         private string fromName;
         private string toName;
-        private KerbalGUI kGUI;
+        private VesselKerbalGUI kGUI;
         private List<ProtoCrewMember> fromList;
         private List<ProtoCrewMember> toList;
+        Vessel fromVessel;
         List<ProtoCrewMember> fromListModifierList = new List<ProtoCrewMember>() { }; // Kerbals to be removed from the vessel
         List<ProtoCrewMember> toListModifierList = new List<ProtoCrewMember>() { }; // Kerbals to be added to the vessel
 
@@ -24,7 +26,7 @@ namespace KerbalColonies
                 seat.part.RemoveCrewmember(member); // Remove from seat
                 member.seat = null;
 
-                foreach (Part p in FlightGlobals.ActiveVessel.Parts)
+                foreach (Part p in fromVessel.Parts)
                 {
                     if (p.protoModuleCrew.Contains(member))
                     {
@@ -39,14 +41,12 @@ namespace KerbalColonies
                     }
                 }
 
-                FlightGlobals.ActiveVessel.RemoveCrew(member);
+                fromVessel.RemoveCrew(member);
 
                 member.rosterStatus = ProtoCrewMember.RosterStatus.Available;
                 HighLogic.CurrentGame.CrewRoster.AddCrewMember(member);
 
-                Vessel active = FlightGlobals.ActiveVessel;
-
-                FlightGlobals.ActiveVessel.SpawnCrew();
+                fromVessel.SpawnCrew();
             }
             fromListModifierList.Clear();
 
@@ -54,9 +54,7 @@ namespace KerbalColonies
             {
                 kGUI.fac.RemoveKerbal(member);
 
-                Vessel active = FlightGlobals.ActiveVessel;
-
-                foreach (Part p in active.Parts)
+                foreach (Part p in fromVessel.Parts)
                 {
                     if (p.CrewCapacity > 0)
                     {
@@ -81,9 +79,10 @@ namespace KerbalColonies
                 }
 
                 member.rosterStatus = ProtoCrewMember.RosterStatus.Assigned;
-                //FlightGlobals.ActiveVessel.RebuildCrewList();
-                active.RebuildCrewList();
-                active.SpawnCrew();
+                //fromVessel.RebuildCrewList();
+                fromVessel.RebuildCrewList();
+                fromVessel.SpawnCrew();
+                Vessel.CrewWasModified(fromVessel);
                 Game currentGame = HighLogic.CurrentGame.Updated();
             }
             toListModifierList.Clear();
@@ -105,10 +104,13 @@ namespace KerbalColonies
             {
                 if (GUILayout.Button(k.name, GUILayout.Height(23)))
                 {
-                    KSPLog.print(k.name);
-                    fromListModifier = k;
-                    fromListModifierList.Add(k);
-                    toList.Add(k);
+                    if (toList.Count + 1 <= fac.MaxKerbals)
+                    {
+                        Configuration.writeDebug(k.name);
+                        fromListModifier = k;
+                        fromListModifierList.Add(k);
+                        toList.Add(k);
+                    }
                 }
             }
             GUILayout.EndScrollView();
@@ -121,11 +123,13 @@ namespace KerbalColonies
             {
                 if (GUILayout.Button(k.name, GUILayout.Height(23)))
                 {
-                    //HighLogic.CurrentGame.CrewRoster.Kerbals
-                    KSPLog.print(k.name);
-                    toListModifier = k;
-                    toListModifierList.Add(k);
-                    fromList.Add(k);
+                    if (fromList.Count + 1 <= fromVessel.GetCrewCapacity())
+                    {
+                        Configuration.writeDebug(k.name);
+                        toListModifier = k;
+                        toListModifierList.Add(k);
+                        fromList.Add(k);
+                    }
                 }
             }
             GUILayout.EndScrollView();
@@ -142,26 +146,29 @@ namespace KerbalColonies
             }
         }
 
-        internal ActiveKerbalSelectorGUI(KCFacilityBase fac, KerbalGUI kGUI, string fromName, string toName) : base(Configuration.createWindowID(fac))
+        internal VesselKerbalSelectorGUI(KCKerbalFacilityBase fac, VesselKerbalGUI kGUI, string fromName, string toName, Vessel fromVessel) : base(Configuration.createWindowID(fac))
         {
+            this.fac = fac;
             toolRect = new Rect(100, 100, 500, 500);
             this.fromName = fromName;
             this.toName = toName;
-            this.fromList = FlightGlobals.ActiveVessel.GetVesselCrew();
+            this.fromList = fromVessel.GetVesselCrew();
+            this.fromVessel = fromVessel;
             this.kGUI = kGUI;
             this.toList = new List<ProtoCrewMember>(kGUI.fac.getKerbals());
         }
     }
 
-    internal class KerbalGUI
+    internal class VesselKerbalGUI
     {
         public float fXP;
         public static GUIStyle LabelInfo;
         public static GUIStyle BoxInfo;
         public static GUIStyle ButtonSmallText;
 
-        public Vector2 scrollPos;
+        private Vector2 scrollPos;
         internal KCKerbalFacilityBase fac;
+        private bool transferWindow;
 
         public static Texture tKerbal = GameDatabase.Instance.GetTexture("KerbalKonstructs/Assets/billeted", false);
         public static Texture tNoKerbal = GameDatabase.Instance.GetTexture("KerbalKonstructs/Assets/unbilleted", false);
@@ -170,7 +177,8 @@ namespace KerbalColonies
 
         public void StaffingInterface(int maxKerbals)
         {
-            ActiveKerbalSelectorGUI ksg = new ActiveKerbalSelectorGUI(fac, this, "current ship", "facility");
+            KSPLog.print("StaffingInterface: " + this.ToString());
+            VesselKerbalSelectorGUI ksg = new VesselKerbalSelectorGUI(fac, this, "current ship", "facility", FlightGlobals.ActiveVessel);
 
             int kerbalCount = fac.getKerbals().Count;
             LabelInfo = new GUIStyle(GUI.skin.label);
@@ -202,23 +210,32 @@ namespace KerbalColonies
                 float CountCurrent = fac.getKerbals().Count;
                 float CountEmpty = maxKerbals - CountCurrent;
 
-                scrollPos = GUILayout.BeginScrollView(scrollPos, GUILayout.Height(58));
+                scrollPos = GUILayout.BeginScrollView(scrollPos, GUILayout.Width(400), GUILayout.Height(400));
                 {
-                    GUILayout.BeginHorizontal();
+                    foreach (ProtoCrewMember pcm in fac.getKerbals())
                     {
-                        while (CountCurrent > 0)
-                        {
-                            GUILayout.Box(tKerbal, GUILayout.Width(23));
-                            CountCurrent = CountCurrent - 1;
-                        }
+                        GUILayout.BeginHorizontal(GUILayout.Height(80));
+                        GUILayout.Box(tKerbal, GUILayout.Width(23), GUILayout.Height(38));
 
-                        while (CountEmpty > 0)
-                        {
-                            GUILayout.Box(tNoKerbal, GUILayout.Width(23));
-                            CountEmpty = CountEmpty - 1;
-                        }
+                        GUILayout.BeginVertical();
+                        GUILayout.Label(pcm.displayName, LabelInfo);
+                        GUILayout.Label(pcm.trait, LabelInfo);
+                        GUILayout.Label(pcm.gender.ToString(), LabelInfo);
+                        GUILayout.Label($"Experiencelevel: {pcm.experienceLevel}", LabelInfo);
+                        GUILayout.EndVertical();
+
+                        GUILayout.EndHorizontal();
                     }
-                    GUILayout.EndHorizontal();
+
+                    while (CountEmpty > 0)
+                    {
+                        GUILayout.BeginHorizontal(GUILayout.Height(80));
+
+                        GUILayout.Box(tNoKerbal, GUILayout.Width(23), GUILayout.Height(38));
+                        CountEmpty = CountEmpty - 1;
+                        GUILayout.EndHorizontal();
+
+                    }
                 }
                 GUILayout.EndScrollView();
 
@@ -235,7 +252,16 @@ namespace KerbalColonies
                 {
                     if (GUILayout.Button("Assign/Retrive Kerbals", GUILayout.Height(23)))
                     {
-                        ksg.Toggle();
+                        if (transferWindow)
+                        {
+                            ksg.Close();
+                            transferWindow = false;
+                        }
+                        else
+                        {
+                            ksg.Open();
+                            transferWindow = true;
+                        }
                     }
                 }
 
@@ -246,8 +272,9 @@ namespace KerbalColonies
             GUILayout.Space(5);
         }
 
-        public KerbalGUI(KCKerbalFacilityBase fac)
+        public VesselKerbalGUI(KCKerbalFacilityBase fac)
         {
+            transferWindow = false;
             this.fac = fac;
         }
     }

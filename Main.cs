@@ -31,7 +31,7 @@ namespace KerbalColonies
         {
             KSPLog.print("KC awake");
             KCFacilityTypeRegistry.RegisterType<KCStorageFacility>();
-            KCFacilityTypeRegistry.RegisterType<KCKerbalTestFacility>();
+            KCFacilityTypeRegistry.RegisterType<KCCrewQuarters>();
             Configuration.LoadConfiguration(Configuration.APP_NAME.ToUpper());
             KerbalKonstructs.API.RegisterOnBuildingClicked(KCFacilityBase.OnBuildingClickedHandler);
         }

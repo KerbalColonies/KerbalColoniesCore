@@ -9,6 +9,9 @@ namespace KerbalColonies.colonyFacilities
     abstract class KCKerbalFacilityBase : KCFacilityBase
     {
         protected List<ProtoCrewMember> kerbals;
+        protected int maxKerbals;
+
+        public int MaxKerbals { get { return maxKerbals; } }
 
         public List<ProtoCrewMember> getKerbals() { return kerbals; }
         public void RemoveKerbal(ProtoCrewMember member) { kerbals.Remove(member); }
@@ -57,7 +60,8 @@ namespace KerbalColonies.colonyFacilities
         /// </summary>
         public override void EncodeString()
         {
-            facilityData = CreateKerbalString(kerbals);
+            string kerbalString = CreateKerbalString(kerbals);
+            facilityData = $"maxKerbals&{maxKerbals}{((kerbalString != "") ? $"|{kerbalString}" : "")}";
         }
 
         /// <summary>
@@ -67,12 +71,18 @@ namespace KerbalColonies.colonyFacilities
         {
             if (facilityData != "")
             {
-                kerbals = CreateKerbalList(facilityData);
+                string[] facilityDatas = facilityData.Split(new[] { '|' }, 2);
+                maxKerbals = Convert.ToInt32(facilityDatas[0].Split('&')[1]);
+                if (facilityDatas.Length > 1)
+                {
+                    kerbals = CreateKerbalList(facilityDatas[1]);
+                }
             }
         }
 
         internal override void Initialize(string facilityName, int id, string facilityData, bool enabled)
         {
+            maxKerbals = 8;
             kerbals = new List<ProtoCrewMember> { };
             base.Initialize(facilityName, id, facilityData, enabled);
         }

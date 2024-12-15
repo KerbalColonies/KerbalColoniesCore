@@ -139,7 +139,6 @@ namespace KerbalColonies.colonyFacilities
         {
             int id = 0;
             Random r = new Random();
-            bool hasID = false;
 
             while (true)
             {

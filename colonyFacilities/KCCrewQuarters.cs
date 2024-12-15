@@ -4,35 +4,38 @@ using UnityEngine;
 
 namespace KerbalColonies.colonyFacilities
 {
-    internal class KCKerbalTestWindow : KCWindowBase
+    internal class KCCrewQuartersWindow : KCWindowBase
     {
-        KCKerbalTestFacility testFacility;
+        KCCrewQuarters CrewQuarterFacility;
+        VesselKerbalGUI kerbalGUI;
 
         protected override void CustomWindow()
         {
-            KerbalGUI kerbalGUI = new KerbalGUI(testFacility);
+            KSPLog.print("KCCrewQuartersWindow: " + this.ToString());
+
             GUILayout.Space(2);
             GUILayout.BeginHorizontal();
             GUI.enabled = true;
 
-            kerbalGUI.StaffingInterface(5);
+            kerbalGUI.StaffingInterface(CrewQuarterFacility.MaxKerbals);
 
             GUILayout.EndHorizontal();
 
             GUILayout.Space(2);
         }
 
-        public KCKerbalTestWindow(KCKerbalTestFacility testFacility) : base(Configuration.createWindowID(testFacility))
+        public KCCrewQuartersWindow(KCCrewQuarters CrewQuarterFacility) : base(Configuration.createWindowID(CrewQuarterFacility))
         {
-            this.testFacility = testFacility;
+            this.CrewQuarterFacility = CrewQuarterFacility;
+            this.kerbalGUI = new VesselKerbalGUI(CrewQuarterFacility);
             toolRect = new Rect(100, 100, 800, 1200);
         }
     }
 
     [System.Serializable]
-    internal class KCKerbalTestFacility : KCKerbalFacilityBase
+    internal class KCCrewQuarters : KCKerbalFacilityBase
     {
-        private KCKerbalTestWindow testWindow;
+        private KCCrewQuartersWindow testWindow;
 
         internal override void Update()
         {
@@ -41,19 +44,19 @@ namespace KerbalColonies.colonyFacilities
 
         internal override void OnBuildingClicked()
         {
-            KSPLog.print("KCKerbalTestWindow: " + testWindow.ToString());
+            KSPLog.print("KCCrewQuarters: " + this.ToString());
             testWindow.Toggle();
         }
 
         internal override void Initialize(string facilityName, int id, string facilityData, bool enabled)
         {
             base.Initialize(facilityName, id, facilityData, enabled);
-            this.testWindow = new KCKerbalTestWindow(this);
+            this.testWindow = new KCCrewQuartersWindow(this);
         }
 
-        internal KCKerbalTestFacility(bool enabled) : base()
+        internal KCCrewQuarters(bool enabled) : base()
         {
-            Initialize("KCKerbalTestFacility", createID(), "", enabled);
+            Initialize("KCCrewQuarters", createID(), "", enabled);
         }
     }
 }

@@ -42,7 +42,7 @@ namespace KerbalColonies
                 foreach (KerbalKonstructs.Core.StaticInstance instance in instances)
                 {
                     Configuration.coloniesPerBody[HighLogic.CurrentGame.Seed.ToString()][FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody)][activeColony].Add(instance.UUID, new List<colonyFacilities.KCFacilityBase> { });
-                    Configuration.coloniesPerBody[HighLogic.CurrentGame.Seed.ToString()][FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody)][activeColony][instance.UUID].Add(new KCKerbalTestFacility(true));
+                    Configuration.coloniesPerBody[HighLogic.CurrentGame.Seed.ToString()][FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody)][activeColony][instance.UUID].Add(new KCCrewQuarters(true));
 
                     KerbalKonstructs.API.AddStaticToGroup(instance.UUID, activeColony);
                 }

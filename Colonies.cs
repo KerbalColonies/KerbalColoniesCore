@@ -35,21 +35,16 @@ namespace KerbalColonies
         internal static void GroupSaved(KerbalKonstructs.Core.GroupCenter groupCenter)
         {
             List<KerbalKonstructs.Core.StaticInstance> instances = KerbalKonstructs.API.GetGroupStatics(groupCenter.Group).ToList();
+            GroupPlaceHolder gph = new GroupPlaceHolder(activeColony, groupCenter.RadialPosition, groupCenter.Orientation, groupCenter.Heading);
+            Configuration.coloniesPerBody[HighLogic.CurrentGame.Seed.ToString()][FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody)][activeColony].Add(gph, new Dictionary<string, List<KCFacilityBase>>());
             // There was a Exception because the AddStaticToGroup changes
             // This ensure that all statics are added
-            try
+            foreach (KerbalKonstructs.Core.StaticInstance instance in instances)
             {
-                foreach (KerbalKonstructs.Core.StaticInstance instance in instances)
-                {
-                    Configuration.coloniesPerBody[HighLogic.CurrentGame.Seed.ToString()][FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody)][activeColony].Add(instance.UUID, new List<colonyFacilities.KCFacilityBase> { });
-                    Configuration.coloniesPerBody[HighLogic.CurrentGame.Seed.ToString()][FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody)][activeColony][instance.UUID].Add(new KCCrewQuarters(true));
+                Configuration.coloniesPerBody[HighLogic.CurrentGame.Seed.ToString()][FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody)][activeColony][gph].Add(instance.UUID, new List<colonyFacilities.KCFacilityBase> { });
+                Configuration.coloniesPerBody[HighLogic.CurrentGame.Seed.ToString()][FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody)][activeColony][gph][instance.UUID].Add(new KCCrewQuarters(true));
 
-                    KerbalKonstructs.API.AddStaticToGroup(instance.UUID, activeColony);
-                }
-            }
-            catch (Exception e)
-            {
-                KSPLog.print(Configuration.APP_NAME + ": " + e);
+                KerbalKonstructs.API.AddStaticToGroup(instance.UUID, activeColony);
             }
 
             Configuration.SaveColonies("KCCD");
@@ -67,11 +62,11 @@ namespace KerbalColonies
 
             if (!Configuration.coloniesPerBody.ContainsKey(HighLogic.CurrentGame.Seed.ToString()))
             {
-                Configuration.coloniesPerBody.Add(HighLogic.CurrentGame.Seed.ToString(), new Dictionary<int, Dictionary<string, Dictionary<string, List<colonyFacilities.KCFacilityBase>>>> { { FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody), new Dictionary<string, Dictionary<string, List<colonyFacilities.KCFacilityBase>>> { } } });
+                Configuration.coloniesPerBody.Add(HighLogic.CurrentGame.Seed.ToString(), new Dictionary<int, Dictionary<string, Dictionary<GroupPlaceHolder, Dictionary<string, List<colonyFacilities.KCFacilityBase>>>>> { { FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody), new Dictionary<string, Dictionary<GroupPlaceHolder, Dictionary<string, List<colonyFacilities.KCFacilityBase>>>> { } } });
             }
             else if (!Configuration.coloniesPerBody[HighLogic.CurrentGame.Seed.ToString()].ContainsKey(FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody)))
             {
-                Configuration.coloniesPerBody[HighLogic.CurrentGame.Seed.ToString()].Add(FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody), new Dictionary<string, Dictionary<string, List<KCFacilityBase>>> { });
+                Configuration.coloniesPerBody[HighLogic.CurrentGame.Seed.ToString()].Add(FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody), new Dictionary<string, Dictionary<GroupPlaceHolder, Dictionary<string, List<KCFacilityBase>>>> { });
             }
             else if (Configuration.coloniesPerBody[HighLogic.CurrentGame.Seed.ToString()][FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody)].Count() >= Configuration.maxColoniesPerBody)
             {
@@ -79,7 +74,7 @@ namespace KerbalColonies
             }
 
             colonyCount = Configuration.coloniesPerBody[HighLogic.CurrentGame.Seed.ToString()][FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody)].Count();
-            Configuration.coloniesPerBody[HighLogic.CurrentGame.Seed.ToString()][FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody)].Add($"KC_{FlightGlobals.currentMainBody.name}_{colonyCount}", new Dictionary<string, List<colonyFacilities.KCFacilityBase>> { });
+            Configuration.coloniesPerBody[HighLogic.CurrentGame.Seed.ToString()][FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody)].Add($"KC_{FlightGlobals.currentMainBody.name}_{colonyCount}", new Dictionary<GroupPlaceHolder, Dictionary<string, List<KCFacilityBase>>> { });
             activeColony = KerbalKonstructs.API.CreateGroup($"KC_{FlightGlobals.currentMainBody.name}_{colonyCount}");
             EditorGroupPlace("KC_CAB", activeColony); //CAB: Colony Assembly Hub, initial start group
             return true;

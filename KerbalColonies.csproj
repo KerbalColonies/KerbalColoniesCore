@@ -41,6 +41,7 @@
     <Compile Include="colonyFacilities\KCCrewQuarters.cs" />
     <Compile Include="colonyFacilities\KCStorageFacility.cs" />
     <Compile Include="Configuration.cs" />
+    <Compile Include="GroupPlaceHolder.cs" />
     <Compile Include="KCPartModule.cs" />
     <Compile Include="KCWindow.cs" />
     <Compile Include="KCWindowManager.cs" />

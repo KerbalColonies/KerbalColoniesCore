@@ -1,5 +1,4 @@
-﻿using KerbalKonstructs.Modules;
-using System;
+﻿using System;
 
 namespace KerbalColonies.colonyFacilities
 {
@@ -46,13 +45,17 @@ namespace KerbalColonies.colonyFacilities
                 {
                     if (Configuration.coloniesPerBody[HighLogic.CurrentGame.Seed.ToString()][FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody)].ContainsKey(instance.Group))
                     {
-                        if (Configuration.coloniesPerBody[HighLogic.CurrentGame.Seed.ToString()][FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody)][instance.Group].ContainsKey(instance.UUID))
+                        if (System.Linq.Enumerable.Any(Configuration.coloniesPerBody[HighLogic.CurrentGame.Seed.ToString()][FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody)][instance.Group].Keys, g => g.GroupName == instance.Group))
                         {
-                            foreach (KCFacilityBase kcFacility in Configuration.coloniesPerBody[HighLogic.CurrentGame.Seed.ToString()][FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody)][instance.Group][instance.UUID])
+                            GroupPlaceHolder gph = System.Linq.Enumerable.FirstOrDefault(Configuration.coloniesPerBody[HighLogic.CurrentGame.Seed.ToString()][FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody)][instance.Group].Keys, g => g.GroupName == instance.Group);
+                            if (Configuration.coloniesPerBody[HighLogic.CurrentGame.Seed.ToString()][FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody)][instance.Group][gph].ContainsKey(instance.UUID))
                             {
-                                KSPLog.print(Configuration.APP_NAME + ": " + instance.ToString());
-                                kcFacility.Update();
-                                kcFacility.OnBuildingClicked();
+                                foreach (KCFacilityBase kcFacility in Configuration.coloniesPerBody[HighLogic.CurrentGame.Seed.ToString()][FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody)][instance.Group][gph][instance.UUID])
+                                {
+                                    KSPLog.print(Configuration.APP_NAME + ": " + instance.ToString());
+                                    kcFacility.Update();
+                                    kcFacility.OnBuildingClicked();
+                                }
                             }
                         }
                     }
@@ -68,11 +71,14 @@ namespace KerbalColonies.colonyFacilities
                 {
                     foreach (string colonyName in Configuration.coloniesPerBody[saveGame][bodyId].Keys)
                     {
-                        foreach (string uuid in Configuration.coloniesPerBody[saveGame][bodyId][colonyName].Keys)
+                        foreach (GroupPlaceHolder gph in Configuration.coloniesPerBody[saveGame][bodyId][colonyName].Keys)
                         {
-                            if (Configuration.coloniesPerBody[saveGame][bodyId][colonyName][uuid].Contains(facility))
+                            foreach (string uuid in Configuration.coloniesPerBody[saveGame][bodyId][colonyName][gph].Keys)
                             {
-                                return uuid;
+                                if (Configuration.coloniesPerBody[saveGame][bodyId][colonyName][gph][uuid].Contains(facility))
+                                {
+                                    return uuid;
+                                }
                             }
                         }
                     }
@@ -94,14 +100,17 @@ namespace KerbalColonies.colonyFacilities
                 {
                     foreach (string colonyName in Configuration.coloniesPerBody[saveGame][bodyId].Keys)
                     {
-                        foreach (string uuid in Configuration.coloniesPerBody[saveGame][bodyId][colonyName].Keys)
+                        foreach (GroupPlaceHolder gph in Configuration.coloniesPerBody[saveGame][bodyId][colonyName].Keys)
                         {
-                            foreach (KCFacilityBase fac in Configuration.coloniesPerBody[saveGame][bodyId][colonyName][uuid])
+                            foreach (string uuid in Configuration.coloniesPerBody[saveGame][bodyId][colonyName][gph].Keys)
                             {
-                                if (fac.id == id)
+                                foreach (KCFacilityBase fac in Configuration.coloniesPerBody[saveGame][bodyId][colonyName][gph][uuid])
                                 {
-                                    facility = fac;
-                                    return true;
+                                    if (fac.id == id)
+                                    {
+                                        facility = fac;
+                                        return true;
+                                    }
                                 }
                             }
                         }
@@ -120,13 +129,16 @@ namespace KerbalColonies.colonyFacilities
                 {
                     foreach (string colonyName in Configuration.coloniesPerBody[saveGame][bodyId].Keys)
                     {
-                        foreach (string uuid in Configuration.coloniesPerBody[saveGame][bodyId][colonyName].Keys)
+                        foreach (GroupPlaceHolder gph in Configuration.coloniesPerBody[saveGame][bodyId][colonyName].Keys)
                         {
-                            foreach (KCFacilityBase fac in Configuration.coloniesPerBody[saveGame][bodyId][colonyName][uuid])
+                            foreach (string uuid in Configuration.coloniesPerBody[saveGame][bodyId][colonyName][gph].Keys)
                             {
-                                if (fac.id == id)
+                                foreach (KCFacilityBase fac in Configuration.coloniesPerBody[saveGame][bodyId][colonyName][gph][uuid])
                                 {
-                                    return true;
+                                    if (fac.id == id)
+                                    {
+                                        return true;
+                                    }
                                 }
                             }
                         }

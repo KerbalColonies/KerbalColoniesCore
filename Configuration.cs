@@ -5,6 +5,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using UniLinq;
+using UnityEngine;
 
 // KC: Kerbal Colonies
 // This mod aimes to create a colony system with Kerbal Konstructs statics
@@ -35,7 +37,7 @@ namespace KerbalColonies
 
         internal static int createWindowID(KCFacilityBase facility)
         {
-            Random random = new Random();
+            System.Random random = new System.Random();
 
             while (true)
             {
@@ -63,8 +65,22 @@ namespace KerbalColonies
         // Dictionary 0: the SaveGame name (the "name" field in the GAME node) as key
         // Dictionary 1: bodyindex as key
         // Dictionary 2: colonyName as key
-        // Dictionary 3: static uuid as key and a KCFacilityBase List as value
-        internal static Dictionary<string, Dictionary<int, Dictionary<string, Dictionary<string, List<KCFacilityBase>>>>> coloniesPerBody = new Dictionary<string, Dictionary<int, Dictionary<string, Dictionary<string, List<KCFacilityBase>>>>> { };
+        // Dictionary 3: groupPlaceholder class as key
+        // Dictionary 4: static uuid as key and a KCFacilityBase List as value
+        internal static Dictionary<string,
+            Dictionary<int,
+                Dictionary<string,
+                    Dictionary<GroupPlaceHolder,
+                        Dictionary<string,
+                            List<KCFacilityBase>>>>>> coloniesPerBody =
+
+                                new Dictionary<string,
+                            Dictionary<int,
+                        Dictionary<string,
+                    Dictionary<GroupPlaceHolder,
+                Dictionary<string,
+            List<KCFacilityBase>>>>>>();
+
 
         // static parameters
         internal const string APP_NAME = "KerbalColonies";
@@ -119,45 +135,67 @@ namespace KerbalColonies
             {
                 if (!coloniesPerBody.ContainsKey(saveGame.name))
                 {
-                    coloniesPerBody.Add(saveGame.name, new Dictionary<int, Dictionary<string, Dictionary<string, List<KCFacilityBase>>>> { });
+                    coloniesPerBody.Add(saveGame.name, new Dictionary<int, Dictionary<string, Dictionary<GroupPlaceHolder, Dictionary<string, List<KCFacilityBase>>>>> { });
                 }
 
                 foreach (ConfigNode bodyId in nodes[0].GetNode(saveGame.name).GetNodes())
                 {
                     if (!coloniesPerBody[saveGame.name].ContainsKey(int.Parse(bodyId.name)))
                     {
-                        coloniesPerBody[saveGame.name].Add(int.Parse(bodyId.name), new Dictionary<string, Dictionary<string, List<KCFacilityBase>>> { });
+                        coloniesPerBody[saveGame.name].Add(int.Parse(bodyId.name), new Dictionary<string, Dictionary<GroupPlaceHolder, Dictionary<string, List<KCFacilityBase>>>> { });
                     }
 
                     foreach (ConfigNode colonyName in nodes[0].GetNode(saveGame.name).GetNode(bodyId.name).GetNodes())
                     {
                         if (!coloniesPerBody[saveGame.name][int.Parse(bodyId.name)].ContainsKey(colonyName.name))
                         {
-                            coloniesPerBody[saveGame.name][int.Parse(bodyId.name)].Add(colonyName.name, new Dictionary<string, List<KCFacilityBase>> { });
+                            coloniesPerBody[saveGame.name][int.Parse(bodyId.name)].Add(colonyName.name, new Dictionary<GroupPlaceHolder, Dictionary<string, List<KCFacilityBase>>> { });
                         }
 
-                        foreach (ConfigNode uuid in nodes[0].GetNode(saveGame.name).GetNode(bodyId.name).GetNode(colonyName.name).GetNodes())
+                        foreach (ConfigNode groupplaceholder in nodes[0].GetNode(saveGame.name).GetNode(bodyId.name).GetNode(colonyName.name).GetNodes())
                         {
-                            if (!coloniesPerBody[saveGame.name][int.Parse(bodyId.name)][colonyName.name].ContainsKey(uuid.name))
+                            GroupPlaceHolder gph;
+                            if (!System.Linq.Enumerable.Any(coloniesPerBody[saveGame.name][int.Parse(bodyId.name)][colonyName.name].Keys, g => g.GroupName == groupplaceholder.name))
                             {
-                                coloniesPerBody[saveGame.name][int.Parse(bodyId.name)][colonyName.name].Add(uuid.name, new List<KCFacilityBase> { });
+                                gph = new GroupPlaceHolder(groupplaceholder.name,
+                                    new Vector3(float.Parse(groupplaceholder.GetValue("positionX")), float.Parse(groupplaceholder.GetValue("positionY")), float.Parse(groupplaceholder.GetValue("positionZ"))),
+                                    new Vector3(float.Parse(groupplaceholder.GetValue("rotationX")), float.Parse(groupplaceholder.GetValue("rotationY")), float.Parse(groupplaceholder.GetValue("rotationZ"))),
+                                    float.Parse(groupplaceholder.GetValue("heading"))
+                                );
+
+                                coloniesPerBody[saveGame.name][int.Parse(bodyId.name)][colonyName.name].Add(gph, new Dictionary<string, List<KCFacilityBase>> { });
+                            }
+                            else
+                            {
+                                gph = System.Linq.Enumerable.FirstOrDefault(coloniesPerBody[saveGame.name][int.Parse(bodyId.name)][colonyName.name].Keys, g => g.GroupName == groupplaceholder.name);
+                                gph.Position = new Vector3(float.Parse(groupplaceholder.GetValue("positionX")), float.Parse(groupplaceholder.GetValue("positionY")), float.Parse(groupplaceholder.GetValue("positionZ")));
+                                gph.Orientation = new Vector3(float.Parse(groupplaceholder.GetValue("rotationX")), float.Parse(groupplaceholder.GetValue("rotationY")), float.Parse(groupplaceholder.GetValue("rotationZ")));
+                                gph.Heading = float.Parse(groupplaceholder.GetValue("heading"));
                             }
 
-                            foreach (ConfigNode KCFacilityNode in nodes[0].GetNode(saveGame.name).GetNode(bodyId.name).GetNode(colonyName.name).GetNode(uuid.name).GetNodes())
+                            foreach (ConfigNode uuid in nodes[0].GetNode(saveGame.name).GetNode(bodyId.name).GetNode(colonyName.name).GetNode(groupplaceholder.name).GetNodes())
                             {
-                                string kcFacilityName = $"{KCFacilityNode.name}/{{{KCFacilityNode.GetValue("serializedData")}}}";
-                                
-                                KCFacilityBase kcFacility = KCFacilityClassConverter.DeserializeObject(kcFacilityName);
-
-                                if (KCFacilityBase.GetFacilityByID(kcFacility.id, out KCFacilityBase fac))
+                                if (!coloniesPerBody[saveGame.name][int.Parse(bodyId.name)][colonyName.name][gph].ContainsKey(uuid.name))
                                 {
-                                    coloniesPerBody[saveGame.name][int.Parse(bodyId.name)][colonyName.name][uuid.name].Add(fac);
+                                    coloniesPerBody[saveGame.name][int.Parse(bodyId.name)][colonyName.name][gph].Add(uuid.name, new List<KCFacilityBase> { });
                                 }
-                                else
+
+                                foreach (ConfigNode KCFacilityNode in nodes[0].GetNode(saveGame.name).GetNode(bodyId.name).GetNode(colonyName.name).GetNode(groupplaceholder.name).GetNode(uuid.name).GetNodes())
                                 {
-                                    if (!coloniesPerBody[saveGame.name][int.Parse(bodyId.name)][colonyName.name][uuid.name].Contains(kcFacility))
+                                    string kcFacilityName = $"{KCFacilityNode.name}/{{{KCFacilityNode.GetValue("serializedData")}}}";
+
+                                    KCFacilityBase kcFacility = KCFacilityClassConverter.DeserializeObject(kcFacilityName);
+
+                                    if (KCFacilityBase.GetFacilityByID(kcFacility.id, out KCFacilityBase fac))
                                     {
-                                        coloniesPerBody[saveGame.name][int.Parse(bodyId.name)][colonyName.name][uuid.name].Add(kcFacility);
+                                        coloniesPerBody[saveGame.name][int.Parse(bodyId.name)][colonyName.name][gph][uuid.name].Add(fac);
+                                    }
+                                    else
+                                    {
+                                        if (!coloniesPerBody[saveGame.name][int.Parse(bodyId.name)][colonyName.name][gph][uuid.name].Contains(kcFacility))
+                                        {
+                                            coloniesPerBody[saveGame.name][int.Parse(bodyId.name)][colonyName.name][gph][uuid.name].Add(kcFacility);
+                                        }
                                     }
                                 }
                             }
@@ -193,23 +231,38 @@ namespace KerbalColonies
                         {
                             nodes[0].GetNode(saveGame).GetNode(bodyId.ToString()).AddNode(colonyName, "the colony name");
                         }
-                        foreach (string uuid in coloniesPerBody[saveGame][bodyId][colonyName].Keys)
+                        foreach (GroupPlaceHolder gph in coloniesPerBody[saveGame][bodyId][colonyName].Keys)
                         {
-
-                            if (!nodes[0].GetNode(saveGame).GetNode(bodyId.ToString()).GetNode(colonyName).HasNode(uuid))
+                            if (!nodes[0].GetNode(saveGame).GetNode(bodyId.ToString()).GetNode(colonyName).HasNode(gph.GroupName))
                             {
-                                nodes[0].GetNode(saveGame).GetNode(bodyId.ToString()).GetNode(colonyName).AddNode(uuid, "A uuid from a KK static");
+                                nodes[0].GetNode(saveGame).GetNode(bodyId.ToString()).GetNode(colonyName).AddNode(gph.GroupName, "The node for groupPlaceholders, it contains some necessary information for upgrading the facilities. DON'T CHANGE THE VALUES HERE!");
+                                nodes[0].GetNode(saveGame).GetNode(bodyId.ToString()).GetNode(colonyName).GetNode(gph.GroupName).AddValue("positionX", gph.Position.x);
+                                nodes[0].GetNode(saveGame).GetNode(bodyId.ToString()).GetNode(colonyName).GetNode(gph.GroupName).AddValue("positionY", gph.Position.y);
+                                nodes[0].GetNode(saveGame).GetNode(bodyId.ToString()).GetNode(colonyName).GetNode(gph.GroupName).AddValue("positionZ", gph.Position.z);
+                                nodes[0].GetNode(saveGame).GetNode(bodyId.ToString()).GetNode(colonyName).GetNode(gph.GroupName).AddValue("rotationX", gph.Orientation.x);
+                                nodes[0].GetNode(saveGame).GetNode(bodyId.ToString()).GetNode(colonyName).GetNode(gph.GroupName).AddValue("rotationY", gph.Orientation.y);
+                                nodes[0].GetNode(saveGame).GetNode(bodyId.ToString()).GetNode(colonyName).GetNode(gph.GroupName).AddValue("rotationZ", gph.Orientation.z);
+                                nodes[0].GetNode(saveGame).GetNode(bodyId.ToString()).GetNode(colonyName).GetNode(gph.GroupName).AddValue("heading", gph.Heading);
                             }
-                            else
-                            {
-                                nodes[0].GetNode(saveGame).GetNode(bodyId.ToString()).GetNode(colonyName).GetNode(uuid).ClearNodes();
-                            }
 
-                            foreach (KCFacilityBase KCFacility in coloniesPerBody[saveGame][bodyId][colonyName][uuid])
+                            foreach (string uuid in coloniesPerBody[saveGame][bodyId][colonyName][gph].Keys)
                             {
-                                string serializedKCFacility = KCFacilityClassConverter.SerializeObject(KCFacility);
-                                nodes[0].GetNode(saveGame).GetNode(bodyId.ToString()).GetNode(colonyName).GetNode(uuid).AddNode(serializedKCFacility.Split('/')[0], "A serialized KCFacility");
-                                nodes[0].GetNode(saveGame).GetNode(bodyId.ToString()).GetNode(colonyName).GetNode(uuid).GetNode(serializedKCFacility.Split('/')[0]).AddValue("serializedData", serializedKCFacility.Split('/')[1].Replace("{", "").Replace("}", ""), "Serialized Data from a KC facility");
+
+                                if (!nodes[0].GetNode(saveGame).GetNode(bodyId.ToString()).GetNode(colonyName).GetNode(gph.GroupName).HasNode(uuid))
+                                {
+                                    nodes[0].GetNode(saveGame).GetNode(bodyId.ToString()).GetNode(colonyName).GetNode(gph.GroupName).AddNode(uuid, "A uuid from a KK static");
+                                }
+                                else
+                                {
+                                    nodes[0].GetNode(saveGame).GetNode(bodyId.ToString()).GetNode(colonyName).GetNode(gph.GroupName).GetNode(uuid).ClearNodes();
+                                }
+
+                                foreach (KCFacilityBase KCFacility in coloniesPerBody[saveGame][bodyId][colonyName][gph][uuid])
+                                {
+                                    string serializedKCFacility = KCFacilityClassConverter.SerializeObject(KCFacility);
+                                    nodes[0].GetNode(saveGame).GetNode(bodyId.ToString()).GetNode(colonyName).GetNode(gph.GroupName).GetNode(uuid).AddNode(serializedKCFacility.Split('/')[0], "A serialized KCFacility");
+                                    nodes[0].GetNode(saveGame).GetNode(bodyId.ToString()).GetNode(colonyName).GetNode(gph.GroupName).GetNode(uuid).GetNode(serializedKCFacility.Split('/')[0]).AddValue("serializedData", serializedKCFacility.Split('/')[1].Replace("{", "").Replace("}", ""), "Serialized Data from a KC facility");
+                                }
                             }
                         }
                     }

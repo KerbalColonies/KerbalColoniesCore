@@ -30,9 +30,11 @@ namespace KerbalColonies
         protected void Awake()
         {
             KSPLog.print("KC awake");
+            Configuration.LoadConfiguration(Configuration.APP_NAME.ToUpper());
             KCFacilityTypeRegistry.RegisterType<KCStorageFacility>();
             KCFacilityTypeRegistry.RegisterType<KCCrewQuarters>();
-            Configuration.LoadConfiguration(Configuration.APP_NAME.ToUpper());
+            KCFacilityTypeRegistry.RegisterType<KC_CAB_Facility>();
+            Configuration.RegisterBuildableFacility(typeof(KCStorageFacility), new KCStorageFacilityCost());
             KerbalKonstructs.API.RegisterOnBuildingClicked(KCFacilityBase.OnBuildingClickedHandler);
         }
 
@@ -51,8 +53,7 @@ namespace KerbalColonies
 
             if (Input.GetKeyDown(KeyCode.U))
             {
-                writeDebug(HighLogic.CurrentGame.UniversalTime.ToString());
-
+                writeDebug(HighLogic.CurrentGame.UniversalTime.ToString());                
             }
             else if (Input.GetKeyDown(KeyCode.Z))
             {

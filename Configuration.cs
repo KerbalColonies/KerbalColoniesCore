@@ -50,6 +50,26 @@ namespace KerbalColonies
             }
         }
 
+        /// <summary>
+        /// Facilities that can be built from the CAB must be registered here during startup.
+        /// </summary>
+        internal static Dictionary<Type, KCFacilityCostClass> BuildableFacilities = new Dictionary<Type, KCFacilityCostClass>();
+
+        internal static bool RegisterBuildableFacility(Type t, KCFacilityCostClass cost)
+        {
+            if (!BuildableFacilities.ContainsKey(t))
+            {
+                BuildableFacilities.Add(t, cost);
+                return true;
+            }
+            return false;
+        }
+
+        internal static KCFacilityBase CreateInstance(Type t, bool enabled, string facilityData)
+        {
+            return (KCFacilityBase) Activator.CreateInstance(t, new object[] { enabled, facilityData });
+        }
+
         // configurable parameters
         internal static float spawnHeight = 2;                  // The height the active vessel should be set above the surface, this is done to prevent the vessel getting destroyed by the statics
         internal static int maxColoniesPerBody = 3;              // Limits the amount of colonies per celestial body (planet/moon)

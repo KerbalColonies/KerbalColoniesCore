@@ -54,9 +54,8 @@ namespace KerbalColonies.colonyFacilities
             this.testWindow = new KCCrewQuartersWindow(this);
         }
 
-        internal KCCrewQuarters(bool enabled) : base()
+        internal KCCrewQuarters(bool enabled, string facilityData = "") : base("KCCrewQuarters", true, 16)
         {
-            Initialize("KCCrewQuarters", createID(), "", enabled);
         }
     }
 }

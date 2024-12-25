@@ -1,9 +1,45 @@
 ﻿using KerbalKonstructs.Modules;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace KerbalColonies.colonyFacilities
 {
+    internal class KCStorageFacilityCost : KCFacilityCostClass
+    {
+        public override bool VesselHasRessources(Vessel vessel)
+        {
+            for (int i = 0; i < resourceCost.Count; i++)
+            {
+                vessel.GetConnectedResourceTotals(resourceCost.ElementAt(i).Key.id, false, out double amount, out double maxAmount);
+
+                if (amount < resourceCost.ElementAt(i).Value)
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        public override bool RemoveVesselRessources(Vessel vessel)
+        {
+            if (VesselHasRessources(vessel))
+            {
+                for (int i = 0; i < resourceCost.Count; i++)
+                {
+                    vessel.RequestResource(vessel.rootPart, resourceCost.ElementAt(i).Key.id, resourceCost.ElementAt(i).Value, true);
+                }
+                return true;
+            }
+            return false;
+        }
+
+        public KCStorageFacilityCost()
+        {
+            resourceCost = new Dictionary<PartResourceDefinition, float> { { PartResourceLibrary.Instance.GetDefinition("Ore"), 100f } };
+        }
+    }
+
     internal class KCStorageFacilityWindow : KCWindowBase
     {
         KCStorageFacility storageFacility;
@@ -174,7 +210,7 @@ namespace KerbalColonies.colonyFacilities
     internal class KCStorageFacility : KCFacilityBase
     {
         internal PartResourceDefinition resource;
-        internal float amount = 0f;
+        public float amount = 0f;
         internal float maxVolume;
         internal float currentVolume { get { return amount * ((resource != null) ? resource.volume : 0); } }
 
@@ -258,14 +294,19 @@ namespace KerbalColonies.colonyFacilities
         internal override void Initialize(string facilityName, int id, string facilityData, bool enabled)
         {
             base.Initialize(facilityName, id, facilityData, enabled);
+            this.baseGroupName = "KC_CAB";
             this.StorageWindow = new KCStorageFacilityWindow(this);
             resource = PartResourceLibrary.Instance.GetDefinition("Ore");
         }
 
-        internal KCStorageFacility(bool enabled, float maxVolume = 0f)
+        public KCStorageFacility(bool enabled, float maxVolume = 0f, string facilityData = "") : base("KCStorageFacility", enabled, facilityData)
         {
             this.maxVolume = maxVolume;
-            Initialize("KCStorageFacility", createID(), "", enabled);
+        }
+
+        public KCStorageFacility(bool enabled, string facilityData) : base("KCStorageFacility", enabled, facilityData)
+        {
+            maxVolume = 0f;
         }
     }
 }

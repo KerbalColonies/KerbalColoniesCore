@@ -37,9 +37,11 @@
   <ItemGroup>
     <Compile Include="Colonies.cs" />
     <Compile Include="colonyFacilities\KCFacilityBase.cs" />
+    <Compile Include="colonyFacilities\KCFacilityCostClass.cs" />
     <Compile Include="colonyFacilities\KCKerbalFacilityBase.cs" />
     <Compile Include="colonyFacilities\KCCrewQuarters.cs" />
     <Compile Include="colonyFacilities\KCStorageFacility.cs" />
+    <Compile Include="colonyFacilities\KC_CAB_Facility.cs" />
     <Compile Include="Configuration.cs" />
     <Compile Include="GroupPlaceHolder.cs" />
     <Compile Include="KCPartModule.cs" />

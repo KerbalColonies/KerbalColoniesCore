@@ -1,10 +1,12 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace KerbalColonies.colonyFacilities
 {
 
     /// <summary>
     /// The KCFaciltiyBase class is used to create custom KCFacilities, you must register your types in the typeregistry at startup with the AWAKE method.
+    /// If the facility can be built from the CAB it must be registered with a KCFacilityCostClass in the Configuration.BuildableFacilities dictionary via the RegisterBuildableFacility method.
     /// If you have custom fields that you want to save overwrite the encode and decode string methods and save the values of your custom fields in the facilityData string.
     /// You can encode the data however you want but you are not allowed to use "{", "}", ",", ":", "=" and "//"
     /// This is because the datastring is saved as a value in a KSP confignode and using these symbols can mess up the loading
@@ -21,6 +23,7 @@ namespace KerbalColonies.colonyFacilities
         public double creationTime;
         public string facilityData;
         protected bool initialized = false;
+        public string baseGroupName; // The KC group name that will be copied when creating a new facility
 
         /// <summary>
         /// This function get automatically called, do not call it manually.
@@ -39,29 +42,54 @@ namespace KerbalColonies.colonyFacilities
 
         internal static void OnBuildingClickedHandler(KerbalKonstructs.Core.StaticInstance instance)
         {
-            if (Configuration.coloniesPerBody.ContainsKey(HighLogic.CurrentGame.Seed.ToString()))
+            if (GetInformationByUUID(instance.UUID, out string sg, out int bI, out string cN, out GroupPlaceHolder gph, out List<KCFacilityBase> facilities))
             {
-                if (Configuration.coloniesPerBody[HighLogic.CurrentGame.Seed.ToString()].ContainsKey(FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody)))
+                foreach (KCFacilityBase kcFacility in facilities)
                 {
-                    if (Configuration.coloniesPerBody[HighLogic.CurrentGame.Seed.ToString()][FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody)].ContainsKey(instance.Group))
+                    KSPLog.print(Configuration.APP_NAME + ": " + instance.ToString());
+                    kcFacility.Update();
+                    kcFacility.OnBuildingClicked();
+                }
+            }
+        }
+
+
+        internal static bool GetInformationByUUID(string uuid, out string saveGame, out int bodyIndex, out string colonyName, out GroupPlaceHolder gph, out List<KCFacilityBase> facilities)
+        {
+            saveGame = null;
+            bodyIndex = -1;
+            colonyName = null;
+            gph = null;
+            facilities = null;
+
+            foreach (string sg in Configuration.coloniesPerBody.Keys)
+            {
+                foreach (int bI in Configuration.coloniesPerBody[sg].Keys)
+                {
+                    foreach (string cN in Configuration.coloniesPerBody[sg][bI].Keys)
                     {
-                        if (System.Linq.Enumerable.Any(Configuration.coloniesPerBody[HighLogic.CurrentGame.Seed.ToString()][FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody)][instance.Group].Keys, g => g.GroupName == instance.Group))
+                        foreach (GroupPlaceHolder gp in Configuration.coloniesPerBody[sg][bI][cN].Keys)
                         {
-                            GroupPlaceHolder gph = System.Linq.Enumerable.FirstOrDefault(Configuration.coloniesPerBody[HighLogic.CurrentGame.Seed.ToString()][FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody)][instance.Group].Keys, g => g.GroupName == instance.Group);
-                            if (Configuration.coloniesPerBody[HighLogic.CurrentGame.Seed.ToString()][FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody)][instance.Group][gph].ContainsKey(instance.UUID))
+                            foreach (string id in Configuration.coloniesPerBody[sg][bI][cN][gp].Keys)
                             {
-                                foreach (KCFacilityBase kcFacility in Configuration.coloniesPerBody[HighLogic.CurrentGame.Seed.ToString()][FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody)][instance.Group][gph][instance.UUID])
+                                if (id == uuid)
                                 {
-                                    KSPLog.print(Configuration.APP_NAME + ": " + instance.ToString());
-                                    kcFacility.Update();
-                                    kcFacility.OnBuildingClicked();
+                                    saveGame = sg;
+                                    bodyIndex = bI;
+                                    colonyName = cN;
+                                    gph = gp;
+                                    facilities = Configuration.coloniesPerBody[sg][bI][cN][gp][id];
+                                    return true;
                                 }
                             }
                         }
                     }
                 }
             }
+
+            return false;
         }
+
 
         internal static string GetUUIDbyFacility(KCFacilityBase facility)
         {
@@ -178,6 +206,10 @@ namespace KerbalColonies.colonyFacilities
         virtual public void DecodeString() { }
 
 
+        /// <summary>
+        /// This method is called when the facilty when an object is created.
+        /// During deserialization the constructor is not called, this method is used set up the facility for use during the game.
+        /// </summary>
         virtual internal void Initialize(string facilityName, int id, string facilityData, bool enabled)
         {
             if (!initialized)
@@ -186,8 +218,6 @@ namespace KerbalColonies.colonyFacilities
                 this.id = id;
                 this.facilityData = facilityData;
                 this.enabled = enabled;
-                lastUpdateTime = HighLogic.CurrentGame.UniversalTime;
-                creationTime = HighLogic.CurrentGame.UniversalTime;
                 initialized = true;
                 DecodeString();
             }
@@ -201,8 +231,8 @@ namespace KerbalColonies.colonyFacilities
         protected KCFacilityBase(string facilityName, bool enabled, string facilityData)
         {
             Initialize(facilityName, createID(), facilityData, enabled);
+            creationTime = HighLogic.CurrentGame.UniversalTime;
+            lastUpdateTime = HighLogic.CurrentGame.UniversalTime;
         }
-
-        protected KCFacilityBase() { }
     }
 }

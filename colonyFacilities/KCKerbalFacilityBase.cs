@@ -86,5 +86,11 @@ namespace KerbalColonies.colonyFacilities
             kerbals = new List<ProtoCrewMember> { };
             base.Initialize(facilityName, id, facilityData, enabled);
         }
+
+        public KCKerbalFacilityBase(string facilityName, bool enabled, int maxKerbals = 8, string facilityData = "") : base(facilityName, enabled, facilityData)
+        {
+            this.maxKerbals = maxKerbals;
+            kerbals = new List<ProtoCrewMember> { };
+        }
     }
 }

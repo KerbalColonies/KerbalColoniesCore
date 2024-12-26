@@ -74,9 +74,10 @@ namespace KerbalColonies
             GUI.DragWindow(new Rect(0, 0, 10000, 10000));
         }
 
-        public KCWindowBase(int windowID)
+        public KCWindowBase(int windowID, string title)
         {
             this.windowID = windowID;
+            this.title = title;
         }
     }
 

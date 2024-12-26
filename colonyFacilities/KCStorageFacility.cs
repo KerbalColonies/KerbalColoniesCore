@@ -1,4 +1,4 @@
-﻿using KerbalKonstructs.Modules;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -7,7 +7,7 @@ namespace KerbalColonies.colonyFacilities
 {
     internal class KCStorageFacilityCost : KCFacilityCostClass
     {
-        public override bool VesselHasRessources(Vessel vessel)
+        public override bool VesselHasRessources(Vessel vessel, int level)
         {
             for (int i = 0; i < resourceCost.Count; i++)
             {
@@ -21,9 +21,9 @@ namespace KerbalColonies.colonyFacilities
             return true;
         }
 
-        public override bool RemoveVesselRessources(Vessel vessel)
+        public override bool RemoveVesselRessources(Vessel vessel, int level)
         {
-            if (VesselHasRessources(vessel))
+            if (VesselHasRessources(vessel, 0))
             {
                 for (int i = 0; i < resourceCost.Count; i++)
                 {
@@ -141,9 +141,9 @@ namespace KerbalColonies.colonyFacilities
                     {
                         if (vesselHasSpace(FlightGlobals.ActiveVessel, storageFacility.getRessource(), i) && facilityHasRessources(-i))
                         {
-                            FlightGlobals.ActiveVessel.rootPart.RequestResource(storageFacility.getRessource().id, (double) i);
+                            FlightGlobals.ActiveVessel.rootPart.RequestResource(storageFacility.getRessource().id, (double)i);
                             storageFacility.changeAmount(i);
-                            Configuration.SaveColonies("KCCD");
+                            Configuration.SaveColonies();
                         }
                     }
                     else
@@ -152,7 +152,7 @@ namespace KerbalColonies.colonyFacilities
                         {
                             FlightGlobals.ActiveVessel.rootPart.RequestResource(storageFacility.getRessource().id, (double)i);
                             storageFacility.changeAmount(i);
-                            Configuration.SaveColonies("KCCD");
+                            Configuration.SaveColonies();
                         }
                     }
                 }
@@ -198,7 +198,7 @@ namespace KerbalColonies.colonyFacilities
             }
         }
 
-        public KCStorageFacilityWindow(KCStorageFacility storageFacility) : base(Configuration.createWindowID(storageFacility))
+        public KCStorageFacilityWindow(KCStorageFacility storageFacility) : base(Configuration.createWindowID(storageFacility), storageFacility.name)
         {
             this.storageFacility = storageFacility;
             GetVesselResources();
@@ -209,9 +209,11 @@ namespace KerbalColonies.colonyFacilities
     [System.Serializable]
     internal class KCStorageFacility : KCFacilityBase
     {
-        internal PartResourceDefinition resource;
+        [NonSerialized]
+        public PartResourceDefinition resource;
+
         public float amount = 0f;
-        internal float maxVolume;
+        public float maxVolume;
         internal float currentVolume { get { return amount * ((resource != null) ? resource.volume : 0); } }
 
         internal PartResourceDefinition getRessource() { return resource; }
@@ -234,23 +236,14 @@ namespace KerbalColonies.colonyFacilities
 
         public override void EncodeString()
         {
-            facilityData = $"ressource&{((resource != null) ? resource.id : -1)}|amount&{amount}|maxVolume&{maxVolume}";
+            facilityData = $"ressource&{((resource != null) ? resource.id : -1)}";
         }
 
         public override void DecodeString()
         {
             if (facilityData != "")
             {
-                {
-                    Dictionary<string, string> data = new Dictionary<string, string>();
-                    foreach (string s in facilityData.Split('|'))
-                    {
-                        data.Add(s.Split('&')[0], s.Split('&')[1]);
-                    }
-                    resource = (int.Parse(data["ressource"]) != -1) ? PartResourceLibrary.Instance.GetDefinition(int.Parse(data["ressource"])) : null;
-                    amount = float.Parse(data["amount"]);
-                    maxVolume = float.Parse(data["maxVolume"]);
-                }
+                resource = (int.Parse(facilityData.Split('&')[1]) != -1) ? PartResourceLibrary.Instance.GetDefinition(int.Parse(facilityData.Split('&')[1])) : null;
             }
         }
 
@@ -291,20 +284,46 @@ namespace KerbalColonies.colonyFacilities
             StorageWindow.Toggle();
         }
 
-        internal override void Initialize(string facilityName, int id, string facilityData, bool enabled)
+        internal override void Initialize(string facilityData)
         {
-            base.Initialize(facilityName, id, facilityData, enabled);
-            this.baseGroupName = "KC_CAB";
+            base.Initialize(facilityData);
             this.StorageWindow = new KCStorageFacilityWindow(this);
             resource = PartResourceLibrary.Instance.GetDefinition("Ore");
+
+            this.upgradeWithGroupChange = true;
+
+            switch (this.level)
+            {
+                default:
+                case 0:
+                    this.baseGroupName = "KC_SF_0";
+                    break;
+                case 1:
+                    this.baseGroupName = "KC_SF_1";
+                    break;
+            }
         }
 
-        public KCStorageFacility(bool enabled, float maxVolume = 0f, string facilityData = "") : base("KCStorageFacility", enabled, facilityData)
+        internal override void UpdateBaseGroupName()
+        {
+            switch (this.level)
+            {
+                default:
+                case 0:
+                    this.baseGroupName = "KC_SF_0";
+                    break;
+                case 1:
+                    this.baseGroupName = "KC_SF_1";
+                    break;
+            }
+        }
+
+        public KCStorageFacility(bool enabled, string facilityData = "", float maxVolume = 0f) : base("KCStorageFacility", enabled, facilityData, 0, 1)
         {
             this.maxVolume = maxVolume;
         }
 
-        public KCStorageFacility(bool enabled, string facilityData) : base("KCStorageFacility", enabled, facilityData)
+        public KCStorageFacility(bool enabled, string facilityData) : base("KCStorageFacility", enabled, facilityData, 0, 1)
         {
             maxVolume = 0f;
         }

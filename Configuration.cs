@@ -51,15 +51,15 @@ namespace KerbalColonies
         }
 
         /// <summary>
-        /// Facilities that can be built from the CAB must be registered here during startup.
+        /// Facilities that can be built from the CAB must be registered here during startup via the RegisterBuildableFacility method.
         /// </summary>
         internal static Dictionary<Type, KCFacilityCostClass> BuildableFacilities = new Dictionary<Type, KCFacilityCostClass>();
 
-        internal static bool RegisterBuildableFacility(Type t, KCFacilityCostClass cost)
+        internal static bool RegisterBuildableFacility(Type facilityType, KCFacilityCostClass cost)
         {
-            if (!BuildableFacilities.ContainsKey(t))
+            if (!BuildableFacilities.ContainsKey(facilityType))
             {
-                BuildableFacilities.Add(t, cost);
+                BuildableFacilities.Add(facilityType, cost);
                 return true;
             }
             return false;
@@ -68,6 +68,11 @@ namespace KerbalColonies
         internal static KCFacilityBase CreateInstance(Type t, bool enabled, string facilityData)
         {
             return (KCFacilityBase) Activator.CreateInstance(t, new object[] { enabled, facilityData });
+        }
+
+        internal static KCFacilityBase CreateInstance(Type t, bool enabled, string facilityData, int facilityLevel)
+        {
+            return (KCFacilityBase)Activator.CreateInstance(t, new object[] { enabled, facilityData, facilityLevel});
         }
 
         // configurable parameters
@@ -130,7 +135,7 @@ namespace KerbalColonies
 
             // config params
             nodes[0].SetValue("spawnHeight", spawnHeight, "The height above the ground at which the active vessel will be set when spawning a new colony. This is done to prevent the vessel from exploding from the static meshes", createIfNotFound: true);
-            nodes[0].SetValue("maxColoniesPerBody", maxColoniesPerBody, "Limits the amount of colonies per celestial body (planet/moon)\n\t// set it to zero to disable the limit", createIfNotFound: true);
+            nodes[0].SetValue("maxColoniesPerBody", maxColoniesPerBody, "Limits the amount of colonies per celestial body (planet/moon)\n\facilityType// set it to zero to disable the limit", createIfNotFound: true);
             nodes[0].SetValue("oreRequiredPerColony", oreRequiredPerColony, "The required amount of ore to start a colony", createIfNotFound: true);
             nodes[0].SetValue("enableLogging", enableLogging, "Enable this only in debug purposes as it floods the logs very much", createIfNotFound: true);
 
@@ -225,13 +230,11 @@ namespace KerbalColonies
             }
         }
 
-        internal static void SaveColonies(string root)
+        internal static void SaveColonies()
         {
-            ConfigNode[] nodes = GameDatabase.Instance.GetConfigNodes(root);
-            if ((nodes == null) || (nodes.Length == 0))
-            {
-                nodes = new ConfigNode[1] { new ConfigNode() };
-            }
+            string root = "KCCD";
+
+            ConfigNode[] nodes = new ConfigNode[1] { new ConfigNode() };
 
             foreach (string saveGame in coloniesPerBody.Keys)
             {
@@ -292,7 +295,7 @@ namespace KerbalColonies
             string path = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + "/ColonyData.cfg";
 
             ConfigNode node = new ConfigNode();
-            nodes[0].name = "KCCD";
+            nodes[0].name = root;
             node.AddNode(nodes[0]);
             node.Save(path);
         }

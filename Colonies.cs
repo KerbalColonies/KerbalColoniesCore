@@ -54,7 +54,7 @@ namespace KerbalColonies
                 Configuration.coloniesPerBody[HighLogic.CurrentGame.Seed.ToString()][FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody)][colonyName][gph][instance.UUID].Add(fac);
             }
 
-            Configuration.SaveColonies("KCCD");
+            Configuration.SaveColonies();
             KerbalKonstructs.API.UnRegisterOnGroupSaved(GroupSaved);
             KerbalKonstructs.API.Save();
         }

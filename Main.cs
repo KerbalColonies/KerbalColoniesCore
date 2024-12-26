@@ -38,8 +38,6 @@ namespace KerbalColonies
             KerbalKonstructs.API.RegisterOnBuildingClicked(KCFacilityBase.OnBuildingClickedHandler);
         }
 
-        private string uuid;
-
         protected void Start()
         {
             KSPLog.print("KC start");
@@ -63,7 +61,7 @@ namespace KerbalColonies
             }
             else if (Input.GetKeyDown(KeyCode.H))
             {
-                KCStorageFacility facTest = new KCStorageFacility(true, 100);
+                KCStorageFacility facTest = new KCStorageFacility(true, maxVolume: 100);
                 writeDebug(facTest.ToString());
                 facTest.EncodeString();
                 writeDebug(facTest.facilityData);

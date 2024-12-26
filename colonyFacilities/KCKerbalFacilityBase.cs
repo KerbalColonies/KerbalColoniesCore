@@ -80,11 +80,11 @@ namespace KerbalColonies.colonyFacilities
             }
         }
 
-        internal override void Initialize(string facilityName, int id, string facilityData, bool enabled)
+        internal override void Initialize(string facilityData)
         {
             maxKerbals = 8;
             kerbals = new List<ProtoCrewMember> { };
-            base.Initialize(facilityName, id, facilityData, enabled);
+            base.Initialize(facilityData);
         }
 
         public KCKerbalFacilityBase(string facilityName, bool enabled, int maxKerbals = 8, string facilityData = "") : base(facilityName, enabled, facilityData)

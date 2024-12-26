@@ -64,7 +64,7 @@ namespace KerbalColonies.Serialization
 
             // Deserialize using the correct type
             KCFacilityBase obj = (KCFacilityBase)JsonUtility.FromJson(json, type);
-            obj.Initialize(obj.facilityName, obj.id, obj.facilityData, obj.enabled);
+            obj.Initialize(obj.facilityData);
 
             return obj;
         }

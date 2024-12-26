@@ -87,7 +87,7 @@ namespace KerbalColonies
             }
             toListModifierList.Clear();
 
-            Configuration.SaveColonies("KCCD");
+            Configuration.SaveColonies();
         }
 
         protected override void CustomWindow()
@@ -146,7 +146,7 @@ namespace KerbalColonies
             }
         }
 
-        internal VesselKerbalSelectorGUI(KCKerbalFacilityBase fac, VesselKerbalGUI kGUI, string fromName, string toName, Vessel fromVessel) : base(Configuration.createWindowID(fac))
+        internal VesselKerbalSelectorGUI(KCKerbalFacilityBase fac, VesselKerbalGUI kGUI, string fromName, string toName, Vessel fromVessel) : base(Configuration.createWindowID(fac), fac.name)
         {
             this.fac = fac;
             toolRect = new Rect(100, 100, 500, 500);
@@ -161,7 +161,6 @@ namespace KerbalColonies
 
     internal class VesselKerbalGUI
     {
-        public float fXP;
         public static GUIStyle LabelInfo;
         public static GUIStyle BoxInfo;
         public static GUIStyle ButtonSmallText;

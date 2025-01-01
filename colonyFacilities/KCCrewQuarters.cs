@@ -59,7 +59,7 @@ namespace KerbalColonies.colonyFacilities
             GUILayout.Space(2);
         }
 
-        public KCCrewQuartersWindow(KCCrewQuarters CrewQuarterFacility) : base(Configuration.createWindowID(CrewQuarterFacility), CrewQuarterFacility.name)
+        public KCCrewQuartersWindow(KCCrewQuarters CrewQuarterFacility) : base(Configuration.createWindowID(CrewQuarterFacility), "Crewquarters")
         {
             this.CrewQuarterFacility = CrewQuarterFacility;
             this.kerbalGUI = new VesselKerbalGUI(CrewQuarterFacility);
@@ -70,23 +70,23 @@ namespace KerbalColonies.colonyFacilities
     [System.Serializable]
     internal class KCCrewQuarters : KCKerbalFacilityBase
     {
-        private KCCrewQuartersWindow testWindow;
+        private KCCrewQuartersWindow crewQuartersWindow;
 
-        internal override void Update()
+        public override void Update()
         {
             base.Update();
         }
 
-        internal override void OnBuildingClicked()
+        public override void OnBuildingClicked()
         {
             KSPLog.print("KCCrewQuarters: " + this.ToString());
-            testWindow.Toggle();
+            crewQuartersWindow.Toggle();
         }
 
-        internal override void Initialize(string facilityData)
+        public override void Initialize(string facilityData)
         {
             base.Initialize(facilityData);
-            this.testWindow = new KCCrewQuartersWindow(this);
+            this.crewQuartersWindow = new KCCrewQuartersWindow(this);
         }
 
         public KCCrewQuarters(bool enabled, string facilityData) : base("KCCrewQuarters", true, 16)

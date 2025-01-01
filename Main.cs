@@ -33,9 +33,11 @@ namespace KerbalColonies
             Configuration.LoadConfiguration(Configuration.APP_NAME.ToUpper());
             KCFacilityTypeRegistry.RegisterType<KCStorageFacility>();
             KCFacilityTypeRegistry.RegisterType<KCCrewQuarters>();
+            KCFacilityTypeRegistry.RegisterType<KCResearchFacility>();
             KCFacilityTypeRegistry.RegisterType<KC_CAB_Facility>();
             Configuration.RegisterBuildableFacility(typeof(KCStorageFacility), new KCStorageFacilityCost());
             Configuration.RegisterBuildableFacility(typeof(KCCrewQuarters), new KCCrewQuarterCost());
+            Configuration.RegisterBuildableFacility(typeof(KCResearchFacility), new KCResearchFacilityCost());
             KerbalKonstructs.API.RegisterOnBuildingClicked(KCFacilityBase.OnBuildingClickedHandler);
         }
 
@@ -44,6 +46,13 @@ namespace KerbalColonies
             KSPLog.print("KC start");
             Configuration.coloniesPerBody.Clear();
             Configuration.LoadColonies("KCCD");
+
+            
+
+            foreach (PartResourceDefinition resource in PartResourceLibrary.Instance.resourceDefinitions)
+            {
+                Configuration.writeDebug($"{resource.displayName}: {resource.name}, {resource.id}");
+            }
         }
 
         public void FixedUpdate()

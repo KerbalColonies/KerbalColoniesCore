@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 namespace KerbalColonies.colonyFacilities
 {
+    [System.Serializable]
     abstract class KCKerbalFacilityBase : KCFacilityBase
     {
 
@@ -114,9 +115,8 @@ namespace KerbalColonies.colonyFacilities
             }
         }
 
-        internal override void Initialize(string facilityData)
+        public override void Initialize(string facilityData)
         {
-            maxKerbals = 8;
             kerbals = new Dictionary<ProtoCrewMember, int> { };
             base.Initialize(facilityData);
         }

@@ -120,12 +120,12 @@ namespace KerbalColonies.colonyFacilities
     {
         private KC_CAB_Window window;
 
-        internal override void OnBuildingClicked()
+        public override void OnBuildingClicked()
         {
             window.Toggle();
         }
 
-        internal override void Initialize(string facilityData)
+        public override void Initialize(string facilityData)
         {
             base.Initialize(facilityData);
             window = new KC_CAB_Window(this);

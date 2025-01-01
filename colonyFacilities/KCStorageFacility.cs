@@ -198,7 +198,7 @@ namespace KerbalColonies.colonyFacilities
             }
         }
 
-        public KCStorageFacilityWindow(KCStorageFacility storageFacility) : base(Configuration.createWindowID(storageFacility), storageFacility.name)
+        public KCStorageFacilityWindow(KCStorageFacility storageFacility) : base(Configuration.createWindowID(storageFacility), "Storagefacility")
         {
             this.storageFacility = storageFacility;
             GetVesselResources();
@@ -263,7 +263,7 @@ namespace KerbalColonies.colonyFacilities
             }
         }
 
-        internal override void Update()
+        public override void Update()
         {
             base.Update();
 
@@ -278,13 +278,13 @@ namespace KerbalColonies.colonyFacilities
             }
         }
 
-        internal override void OnBuildingClicked()
+        public override void OnBuildingClicked()
         {
             KSPLog.print("KCStorageWindow: " + StorageWindow.ToString());
             StorageWindow.Toggle();
         }
 
-        internal override void Initialize(string facilityData)
+        public override void Initialize(string facilityData)
         {
             base.Initialize(facilityData);
             this.StorageWindow = new KCStorageFacilityWindow(this);
@@ -304,7 +304,7 @@ namespace KerbalColonies.colonyFacilities
             }
         }
 
-        internal override void UpdateBaseGroupName()
+        public override void UpdateBaseGroupName()
         {
             switch (this.level)
             {

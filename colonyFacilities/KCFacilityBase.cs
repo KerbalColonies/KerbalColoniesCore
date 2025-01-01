@@ -356,7 +356,7 @@ namespace KerbalColonies.colonyFacilities
         /// This method is called when the facilty when an object is created.
         /// During deserialization the constructor is not called, this method is used set up the facility for use during the game.
         /// </summary>
-        virtual internal void Initialize(string facilityData)
+        public virtual void Initialize(string facilityData)
         {
             if (!initialized)
             {

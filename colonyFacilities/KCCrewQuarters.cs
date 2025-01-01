@@ -1,9 +1,44 @@
-﻿using KerbalKonstructs.Modules;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace KerbalColonies.colonyFacilities
 {
+    internal class KCCrewQuarterCost : KCFacilityCostClass
+    {
+        public override bool VesselHasRessources(Vessel vessel, int level)
+        {
+            for (int i = 0; i < resourceCost.Count; i++)
+            {
+                vessel.GetConnectedResourceTotals(resourceCost.ElementAt(i).Key.id, false, out double amount, out double maxAmount);
+
+                if (amount < resourceCost.ElementAt(i).Value)
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        public override bool RemoveVesselRessources(Vessel vessel, int level)
+        {
+            if (VesselHasRessources(vessel, 0))
+            {
+                for (int i = 0; i < resourceCost.Count; i++)
+                {
+                    vessel.RequestResource(vessel.rootPart, resourceCost.ElementAt(i).Key.id, resourceCost.ElementAt(i).Value, true);
+                }
+                return true;
+            }
+            return false;
+        }
+
+        public KCCrewQuarterCost()
+        {
+            resourceCost = new Dictionary<PartResourceDefinition, float> { { PartResourceLibrary.Instance.GetDefinition("Ore"), 100f } };
+        }
+    }
+
     internal class KCCrewQuartersWindow : KCWindowBase
     {
         KCCrewQuarters CrewQuarterFacility;
@@ -54,7 +89,7 @@ namespace KerbalColonies.colonyFacilities
             this.testWindow = new KCCrewQuartersWindow(this);
         }
 
-        internal KCCrewQuarters(bool enabled, string facilityData = "") : base("KCCrewQuarters", true, 16)
+        public KCCrewQuarters(bool enabled, string facilityData) : base("KCCrewQuarters", true, 16)
         {
         }
     }

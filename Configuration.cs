@@ -76,6 +76,10 @@ namespace KerbalColonies
         }
 
         // configurable parameters
+        private static Type crewQuarterType = typeof(KCCrewQuarters); // The default type for crew quarters, I want that other mods can change this. The only restriction is that it must be derived from KCCrewQuarters
+        internal static Type CrewQuarterType { get { return crewQuarterType; } set { if (value == typeof(KCCrewQuarters)) { crewQuarterType = value; } } }
+
+
         internal static float spawnHeight = 2;                  // The height the active vessel should be set above the surface, this is done to prevent the vessel getting destroyed by the statics
         internal static int maxColoniesPerBody = 3;              // Limits the amount of colonies per celestial body (planet/moon)
                                                                  // set it to zero to disable the limit

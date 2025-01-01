@@ -323,7 +323,7 @@ namespace KerbalColonies.colonyFacilities
             this.maxVolume = maxVolume;
         }
 
-        public KCStorageFacility(bool enabled, string facilityData) : base("KCStorageFacility", enabled, facilityData, 0, 1)
+        public KCStorageFacility(bool enabled, string facilityData = "") : base("KCStorageFacility", enabled, facilityData, 0, 1)
         {
             maxVolume = 0f;
         }

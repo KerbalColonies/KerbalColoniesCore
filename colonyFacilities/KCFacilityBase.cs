@@ -37,12 +37,12 @@ namespace KerbalColonies.colonyFacilities
         /// This function get automatically called, do not call it manually.
         /// The OnBuildingClicked method function should be used for custom windows.
         /// </summary>
-        virtual internal void Update()
+        public virtual void Update()
         {
             lastUpdateTime = HighLogic.CurrentGame.UniversalTime;
         }
 
-        virtual internal void UpdateBaseGroupName()
+        public virtual void UpdateBaseGroupName()
         {
         }
 
@@ -50,7 +50,7 @@ namespace KerbalColonies.colonyFacilities
         /// This function gets automatically called when the building is clicked, it might get used for custom windows.
         /// <para>The update function will be called BEFORE this one, you don't need to do it manually</para>
         /// </summary>
-        virtual internal void OnBuildingClicked() { }
+        public virtual void OnBuildingClicked() { }
 
         internal static void OnBuildingClickedHandler(KerbalKonstructs.Core.StaticInstance instance)
         {

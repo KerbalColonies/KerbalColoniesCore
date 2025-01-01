@@ -35,6 +35,7 @@ namespace KerbalColonies
             KCFacilityTypeRegistry.RegisterType<KCCrewQuarters>();
             KCFacilityTypeRegistry.RegisterType<KC_CAB_Facility>();
             Configuration.RegisterBuildableFacility(typeof(KCStorageFacility), new KCStorageFacilityCost());
+            Configuration.RegisterBuildableFacility(typeof(KCCrewQuarters), new KCCrewQuarterCost());
             KerbalKonstructs.API.RegisterOnBuildingClicked(KCFacilityBase.OnBuildingClickedHandler);
         }
 

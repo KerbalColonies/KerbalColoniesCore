@@ -8,27 +8,65 @@ namespace KerbalColonies.colonyFacilities
 {
     abstract class KCKerbalFacilityBase : KCFacilityBase
     {
-        protected List<ProtoCrewMember> kerbals;
-        protected int maxKerbals;
+
+        /// <summary>
+        /// Returns a list of all kerbals in the colony that are registered in a crew quarter
+        /// </summary>
+        /// <returns>An empty dictionary if any of the parameters are invalid, no KCCrewQuarter facilities exist or no KCCrewQuarter has any kerbals assigned</returns>
+        public static Dictionary<ProtoCrewMember, int> GetAllKerbalsInColony(string saveGame, int bodyIndex, string colonyName)
+        {
+            if (!Configuration.coloniesPerBody.ContainsKey(saveGame)) { return new Dictionary<ProtoCrewMember, int> { }; }
+            else if (!Configuration.coloniesPerBody[saveGame].ContainsKey(bodyIndex)) { return new Dictionary<ProtoCrewMember, int> { }; }
+            else if (!Configuration.coloniesPerBody[saveGame][bodyIndex].ContainsKey(colonyName)) { return new Dictionary<ProtoCrewMember, int> { }; }
+
+            Dictionary<ProtoCrewMember, int> kerbals = new Dictionary<ProtoCrewMember, int> { };
+            Configuration.coloniesPerBody[saveGame][bodyIndex][colonyName].Values.ToList().ForEach(UUIDdict =>
+            {
+                UUIDdict.Values.ToList().ForEach(colonyFacilitys =>
+                {
+                    colonyFacilitys.ForEach(colonyFacility =>
+                    {
+                        if (Configuration.CrewQuarterType.IsAssignableFrom(colonyFacility.GetType()))
+                        {
+                            KCKerbalFacilityBase kerbalFacility = (KCKerbalFacilityBase)colonyFacility;
+                            kerbalFacility.kerbals.Keys.ToList().ForEach(k =>
+                            {
+                                kerbals.Add(k, kerbalFacility.kerbals[k]);
+                            });
+                        }
+                    });
+                });
+            });
+            return kerbals;
+        }
+
+
+        /// <summary>
+        /// A list of kerbals in the facility and their current status
+        /// <para>Value: 0 means unassigned, the other values are custom</para>
+        /// <para>Kerbals with value 0 can get removed from the facility, e.g. to add them to a different facility or retrive them</para>
+        /// </summary>
+        public int maxKerbals;
+        protected Dictionary<ProtoCrewMember, int> kerbals;
 
         public int MaxKerbals { get { return maxKerbals; } }
 
-        public List<ProtoCrewMember> getKerbals() { return kerbals; }
+        public List<ProtoCrewMember> getKerbals() { return kerbals.Keys.ToList(); }
         public void RemoveKerbal(ProtoCrewMember member) { kerbals.Remove(member); }
-        public void AddKerbal(ProtoCrewMember member) { kerbals.Add(member); }
+        public virtual void AddKerbal(ProtoCrewMember member) { kerbals.Add(member, 0); }
 
         /// <summary>
         /// Returns an encoded string with the kerbal ids
         /// </summary>
-        public static string CreateKerbalString(List<ProtoCrewMember> kerbals)
+        public static string CreateKerbalString(Dictionary<ProtoCrewMember, int> kerbals)
         {
             string s = "";
             if (kerbals.Count > 0)
             {
-                s = $"k{0}&{kerbals[0].name}";
+                s = $"k{0}&{kerbals.Keys.ToList()[0].name}&{kerbals.Values.ToList()[0]}";
                 for (int i = 1; i < kerbals.Count; i++)
                 {
-                    s = $"{s}|k{i}&{kerbals[i].name}";
+                    s = $"{s}|k{i}&{kerbals.Keys.ToList()[i].name}&{kerbals.Values.ToList()[i]}";
                 }
             }
             return s;
@@ -37,17 +75,18 @@ namespace KerbalColonies.colonyFacilities
         /// <summary>
         /// Expects the part from the datastring with the kerbal persistent ids. Don't pass other data to it.
         /// </summary>
-        public static List<ProtoCrewMember> CreateKerbalList(string kerbalString)
+        public static Dictionary<ProtoCrewMember, int> CreateKerbalList(string kerbalString)
         {
-            List<ProtoCrewMember> kerbals = new List<ProtoCrewMember>();
+            Dictionary<ProtoCrewMember, int> kerbals = new Dictionary<ProtoCrewMember, int>();
             foreach (string s in kerbalString.Split('|'))
             {
                 string kName = s.Split('&')[1];
+                int kStatus = Convert.ToInt32(s.Split('&')[2]);
                 foreach (ProtoCrewMember k in HighLogic.CurrentGame.CrewRoster.Crew)
                 {
                     if (k.name == kName)
                     {
-                        kerbals.Add(k);
+                        kerbals.Add(k, kStatus);
                         break;
                     }
                 }
@@ -61,7 +100,7 @@ namespace KerbalColonies.colonyFacilities
         public override void EncodeString()
         {
             string kerbalString = CreateKerbalString(kerbals);
-            facilityData = $"maxKerbals&{maxKerbals}{((kerbalString != "") ? $"|{kerbalString}" : "")}";
+            facilityData = (kerbalString != "") ? $"{kerbalString}" : "";
         }
 
         /// <summary>
@@ -71,26 +110,21 @@ namespace KerbalColonies.colonyFacilities
         {
             if (facilityData != "")
             {
-                string[] facilityDatas = facilityData.Split(new[] { '|' }, 2);
-                maxKerbals = Convert.ToInt32(facilityDatas[0].Split('&')[1]);
-                if (facilityDatas.Length > 1)
-                {
-                    kerbals = CreateKerbalList(facilityDatas[1]);
-                }
+                kerbals = CreateKerbalList(facilityData);
             }
         }
 
         internal override void Initialize(string facilityData)
         {
             maxKerbals = 8;
-            kerbals = new List<ProtoCrewMember> { };
+            kerbals = new Dictionary<ProtoCrewMember, int> { };
             base.Initialize(facilityData);
         }
 
         public KCKerbalFacilityBase(string facilityName, bool enabled, int maxKerbals = 8, string facilityData = "") : base(facilityName, enabled, facilityData)
         {
             this.maxKerbals = maxKerbals;
-            kerbals = new List<ProtoCrewMember> { };
+            kerbals = new Dictionary<ProtoCrewMember, int> { };
         }
     }
 }

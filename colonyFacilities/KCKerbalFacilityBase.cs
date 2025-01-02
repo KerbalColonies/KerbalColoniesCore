@@ -41,6 +41,37 @@ namespace KerbalColonies.colonyFacilities
             return kerbals;
         }
 
+        /// <summary>
+        /// Returns a list of all facilities that the kerbal is assigned to
+        /// </summary>
+        /// <returns>Returns an empty list if any of the parameters are invalid or the kerbal wasn't found</returns>
+        public static List<KCKerbalFacilityBase> findKerbal(string saveGame, int bodyIndex, string colonyName, ProtoCrewMember kerbal)
+        {
+            if (!Configuration.coloniesPerBody.ContainsKey(saveGame)) { return new List<KCKerbalFacilityBase>(); }
+            else if (!Configuration.coloniesPerBody[saveGame].ContainsKey(bodyIndex)) { return new List<KCKerbalFacilityBase>(); }
+            else if (!Configuration.coloniesPerBody[saveGame][bodyIndex].ContainsKey(colonyName)) { return new List<KCKerbalFacilityBase>(); }
+
+            List<KCKerbalFacilityBase> facilities = new List<KCKerbalFacilityBase>();
+            Configuration.coloniesPerBody[saveGame][bodyIndex][colonyName].Values.ToList().ForEach(UUIDdict =>
+            {
+                UUIDdict.Values.ToList().ForEach(colonyFacilitys =>
+                {
+                    colonyFacilitys.ForEach(colonyFacility =>
+                    {
+                        KCKerbalFacilityBase kCKerbalFacilityBase = colonyFacility as KCKerbalFacilityBase;
+                        if (kCKerbalFacilityBase != null)
+                        {
+                            if (kCKerbalFacilityBase.kerbals.ContainsKey(kerbal))
+                            {
+                                facilities.Add(kCKerbalFacilityBase);
+                            }
+                        }
+                    });
+                });
+            });
+
+            return facilities;
+        }
 
         /// <summary>
         /// A list of kerbals in the facility and their current status
@@ -53,7 +84,7 @@ namespace KerbalColonies.colonyFacilities
         public int MaxKerbals { get { return maxKerbals; } }
 
         public List<ProtoCrewMember> getKerbals() { return kerbals.Keys.ToList(); }
-        public void RemoveKerbal(ProtoCrewMember member) { kerbals.Remove(member); }
+        public virtual void RemoveKerbal(ProtoCrewMember member) { kerbals.Remove(member); }
         public virtual void AddKerbal(ProtoCrewMember member) { kerbals.Add(member, 0); }
 
         /// <summary>
@@ -95,6 +126,11 @@ namespace KerbalColonies.colonyFacilities
             return kerbals;
         }
 
+        public virtual List<ProtoCrewMember> filterKerbals(List<ProtoCrewMember> kerbals)
+        {
+            return kerbals;
+        }
+
         /// <summary>
         /// Default method for the kerbalFacilities, only saves the kerbal list
         /// </summary>
@@ -121,7 +157,7 @@ namespace KerbalColonies.colonyFacilities
             base.Initialize(facilityData);
         }
 
-        public KCKerbalFacilityBase(string facilityName, bool enabled, int maxKerbals = 8, string facilityData = "") : base(facilityName, enabled, facilityData)
+        public KCKerbalFacilityBase(string facilityName, bool enabled, int maxKerbals = 8, string facilityData = "", int level = 0, int maxLevel = 0) : base(facilityName, enabled, facilityData, level, maxLevel)
         {
             this.maxKerbals = maxKerbals;
             kerbals = new Dictionary<ProtoCrewMember, int> { };

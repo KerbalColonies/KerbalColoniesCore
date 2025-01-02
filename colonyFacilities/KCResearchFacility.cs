@@ -43,27 +43,31 @@ namespace KerbalColonies.colonyFacilities
 
     internal class KCResearchFacilityWindow : KCWindowBase
     {
-        KCResearchFacility facility;
+        KCResearchFacility researchFacility;
+        VesselKerbalGUI kerbalGUI;
 
         protected override void CustomWindow()
         {
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Science Points: " + facility.SciencePoints);
-            GUILayout.Label("Max Science Points: " + facility.MaxSciencePoints);
+            GUILayout.Label("Science Points: " + researchFacility.SciencePoints);
+            GUILayout.Label("Max Science Points: " + researchFacility.MaxSciencePoints);
             GUILayout.EndHorizontal();
+
+            kerbalGUI.StaffingInterface();
 
             GUILayout.BeginHorizontal();
             if (GUILayout.Button("Retrieve Science Points"))
             {
-                facility.RetrieveSciencePoints();
+                researchFacility.RetrieveSciencePoints();
             }
             GUILayout.EndHorizontal();
         }
 
-        public KCResearchFacilityWindow(KCResearchFacility facility) : base(Configuration.createWindowID(facility), "Researchfacility")
+        public KCResearchFacilityWindow(KCResearchFacility researchFacility) : base(Configuration.createWindowID(researchFacility), "Researchfacility")
         {
-            this.facility = facility;
-            toolRect = new Rect(100, 100, 400, 400);
+            this.researchFacility = researchFacility;
+            this.kerbalGUI = new VesselKerbalGUI(researchFacility);
+            toolRect = new Rect(100, 100, 400, 800);
         }
     }
 
@@ -79,15 +83,22 @@ namespace KerbalColonies.colonyFacilities
         public float SciencePoints { get { return sciencePoints; } }
 
         private List<float> maxSciencePointList = new List<float> { 50, 100, 200, 400 };
-        private List<float> researchpointsPerDayperResearcher = new List<float> { 0.1f, 0.15f, 0.2f, 0.25f };
+        private List<float> researchpointsPerDayperResearcher = new List<float> { 0.25f, 0.3f, 0.35f, 0.4f };
+        private List<int> maxKerbalsPerLevel = new List<int> { 4, 6, 8, 12 };
+
+        public override List<ProtoCrewMember> filterKerbals(List<ProtoCrewMember> kerbals)
+        {
+            return kerbals.Where(k => k.experienceTrait.Title == "Scientist").ToList();
+        }
 
         public override void Update()
         {
             double deltaTime = Planetarium.GetUniversalTime() - lastUpdateTime;
 
             lastUpdateTime = Planetarium.GetUniversalTime();
-            sciencePoints = Math.Min(maxSciencePointList[level], sciencePoints + (float)(researchpointsPerDayperResearcher[level] / 24 / 60 / 60 * deltaTime)); //  * kerbals.Count
+            sciencePoints = Math.Min(maxSciencePointList[level], sciencePoints + (float)((researchpointsPerDayperResearcher[level] / 24 / 60 / 60) * deltaTime) * kerbals.Count);
             //ResearchAndDevelopment.Instance.AddScience((float) (researchpointsPerDayperResearcher[level] / 24 / 60 / 60 * deltaTime) * kerbals.Count, TransactionReasons.Cheating);
+            Configuration.SaveColonies();
         }
 
         public override void OnBuildingClicked()
@@ -106,6 +117,13 @@ namespace KerbalColonies.colonyFacilities
             return false;
         }
 
+        public override bool UpgradeFacility(int level)
+        {
+            base.UpgradeFacility(level);
+            maxKerbals = maxKerbalsPerLevel[level];
+            return true;
+        }
+
         public override void Initialize(string facilityData)
         {
             base.Initialize(facilityData);
@@ -113,10 +131,13 @@ namespace KerbalColonies.colonyFacilities
             this.baseGroupName = "KC_CAB";
 
             maxSciencePointList = new List<float> { 50, 100, 200, 400 };
-            researchpointsPerDayperResearcher = new List<float> { 0.05f, 0.1f, 0.15f, 0.2f };
+            researchpointsPerDayperResearcher = new List<float> { 0.25f, 0.3f, 0.35f, 0.4f };
+            maxKerbalsPerLevel = new List<int> { 4, 6, 8, 12 };
+
+            this.maxKerbals = maxKerbalsPerLevel[level];
         }
 
-        public KCResearchFacility(bool enabled, string facilityData = "") : base("KCResearchFacility", true, 8) {
+        public KCResearchFacility(bool enabled, string facilityData = "") : base("KCResearchFacility", true, 8, "", 0, 3) {
             sciencePoints = 0;
         }
     }

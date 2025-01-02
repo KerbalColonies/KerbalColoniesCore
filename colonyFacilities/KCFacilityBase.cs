@@ -39,7 +39,7 @@ namespace KerbalColonies.colonyFacilities
         /// </summary>
         public virtual void Update()
         {
-            lastUpdateTime = HighLogic.CurrentGame.UniversalTime;
+            lastUpdateTime = Planetarium.GetUniversalTime();
         }
 
         public virtual void UpdateBaseGroupName()
@@ -56,6 +56,8 @@ namespace KerbalColonies.colonyFacilities
         {
             if (GetInformationByUUID(instance.UUID, out string sg, out int bI, out string cN, out GroupPlaceHolder gph, out List<KCFacilityBase> facilities))
             {
+                if (sg != HighLogic.CurrentGame.Seed.ToString() || bI != FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody)) { return; }
+
                 foreach (KCFacilityBase kcFacility in facilities)
                 {
                     KSPLog.print(Configuration.APP_NAME + ": " + instance.ToString());
@@ -69,20 +71,31 @@ namespace KerbalColonies.colonyFacilities
         {
             if (!facility.upgradeWithGroupChange || !facility.upgradeable) { return false; }
 
-            if (GetInformationByFacilty(facility, out List<string> saveGame, out List<int> bodyIndex, out List<string> colonyName, out List<GroupPlaceHolder> gph, out List<string> UUIDs))
+            if (GetInformationByFacilty(facility, out List<string> saveGames, out List<int> bodyIndexes, out List<string> colonyNames, out List<GroupPlaceHolder> gphs, out List<string> UUIDs))
             {
-                facility.UpgradeFacility(facility.level + 1);
-
-                Configuration.coloniesPerBody[saveGame[0]][bodyIndex[0]][colonyName[0]][gph[0]] = new Dictionary<string, List<KCFacilityBase>>();
-                KerbalKonstructs.API.GetGroupStatics(gph[0].GroupName).ToList().ForEach(x => KerbalKonstructs.API.RemoveStatic(x.UUID));
-
-                KerbalKonstructs.API.CopyGroup(gph[0].GroupName, facility.baseGroupName);
-
-                foreach (KerbalKonstructs.Core.StaticInstance staticInstance in KerbalKonstructs.API.GetGroupStatics(gph[0].GroupName))
+                foreach (string saveGame in saveGames)
                 {
-                    Configuration.coloniesPerBody[saveGame[0]][bodyIndex[0]][colonyName[0]][gph[0]].Add(staticInstance.UUID, new List<KCFacilityBase> { facility });
-                }
+                    foreach (int bodyIndex in bodyIndexes)
+                    {
+                        foreach (string colonyName in colonyNames)
+                        {
+                            foreach (GroupPlaceHolder gph in gphs)
+                            {
+                                facility.UpgradeFacility(facility.level + 1);
 
+                                Configuration.coloniesPerBody[saveGame][bodyIndex][colonyName][gph] = new Dictionary<string, List<KCFacilityBase>>();
+                                KerbalKonstructs.API.GetGroupStatics(gph.GroupName).ToList().ForEach(x => KerbalKonstructs.API.RemoveStatic(x.UUID));
+
+                                KerbalKonstructs.API.CopyGroup(gph.GroupName, facility.baseGroupName);
+
+                                foreach (KerbalKonstructs.Core.StaticInstance staticInstance in KerbalKonstructs.API.GetGroupStatics(gph.GroupName))
+                                {
+                                    Configuration.coloniesPerBody[saveGame][bodyIndex][colonyName][gph].Add(staticInstance.UUID, new List<KCFacilityBase> { facility });
+                                }
+                            }
+                        }
+                    }
+                }
                 Configuration.SaveColonies();
                 return true;
             }
@@ -93,7 +106,7 @@ namespace KerbalColonies.colonyFacilities
         {
             if ( facility.upgradeWithGroupChange || !facility.upgradeable || facility.level >= facility.maxLevel) { return false; }
 
-            if (GetInformationByFacilty(facility, out List<string> saveGame, out List<int> bodyIndex, out List<string> colonyName, out List<GroupPlaceHolder> gph, out List<string> UUIDs))
+            if (GetInformationByFacilty(facility, out List<string> saveGames, out List<int> bodyIndexes, out List<string> colonyNames, out List<GroupPlaceHolder> gphs, out List<string> UUIDs))
             {
                 facility.UpgradeFacility(facility.level + 1);
                 Configuration.SaveColonies();
@@ -387,8 +400,8 @@ namespace KerbalColonies.colonyFacilities
             this.id = createID();
             this.level = level;
             this.maxLevel = maxLevel;
-            creationTime = HighLogic.CurrentGame.UniversalTime;
-            lastUpdateTime = HighLogic.CurrentGame.UniversalTime;
+            creationTime = Planetarium.GetUniversalTime();
+            lastUpdateTime = Planetarium.GetUniversalTime();
             Initialize(facilityData);
         }
     }

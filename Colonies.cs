@@ -42,11 +42,20 @@ namespace KerbalColonies
             GroupPlaceHolder gph = new GroupPlaceHolder(groupName, groupCenter.RadialPosition, groupCenter.Orientation, groupCenter.Heading);
             Configuration.coloniesPerBody[HighLogic.CurrentGame.Seed.ToString()][FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody)][colonyName].Add(gph, new Dictionary<string, List<KCFacilityBase>>());
 
+            KCFacilityBase fac = null;
+
             if (FacilityType == null)
             {
                 throw new Exception("Invalid facility type");
             }
-            KCFacilityBase fac = Configuration.CreateInstance(FacilityType, true, "");
+            else if (FacilityType == typeof(KC_CAB_Facility))
+            {
+                fac = new KC_CAB_Facility();
+            }
+            else
+            {
+                fac = Configuration.CreateInstance(FacilityType, true, "");
+            }
 
             foreach (KerbalKonstructs.Core.StaticInstance instance in instances)
             {

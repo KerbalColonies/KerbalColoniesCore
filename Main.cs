@@ -1,8 +1,5 @@
 ﻿using KerbalColonies.colonyFacilities;
 using KerbalColonies.Serialization;
-using KerbalKonstructs.UI;
-using SaveUpgradePipeline;
-using System.Collections.Generic;
 using UnityEngine;
 
 // KC: Kerbal Colonies
@@ -47,12 +44,29 @@ namespace KerbalColonies
             Configuration.coloniesPerBody.Clear();
             Configuration.LoadColonies("KCCD");
 
-            
-
             foreach (PartResourceDefinition resource in PartResourceLibrary.Instance.resourceDefinitions)
             {
                 Configuration.writeDebug($"{resource.displayName}: {resource.name}, {resource.id}");
             }
+
+            //foreach (string saveGame in Configuration.coloniesPerBody.Keys)
+            //{
+            //    if (saveGame == HighLogic.CurrentGame.Seed.ToString()) { continue; }
+
+            //    foreach (int bodyIndex in Configuration.coloniesPerBody[saveGame].Keys)
+            //    {
+            //        foreach (string colonyName in Configuration.coloniesPerBody[saveGame][bodyIndex].Keys)
+            //        {
+            //            foreach (GroupPlaceHolder gph in Configuration.coloniesPerBody[saveGame][bodyIndex][colonyName].Keys)
+            //            {
+            //                foreach (string UUID in Configuration.coloniesPerBody[saveGame][bodyIndex][colonyName][gph].Keys)
+            //                {
+            //                    KerbalKonstructs.API.DeactivateStatic(UUID);
+            //                }
+            //            }
+            //        }
+            //    }
+            //}
         }
 
         public void FixedUpdate()
@@ -61,7 +75,7 @@ namespace KerbalColonies
 
             if (Input.GetKeyDown(KeyCode.U))
             {
-                writeDebug(HighLogic.CurrentGame.UniversalTime.ToString());                
+                writeDebug(Planetarium.GetUniversalTime().ToString());
             }
             else if (Input.GetKeyDown(KeyCode.Z))
             {

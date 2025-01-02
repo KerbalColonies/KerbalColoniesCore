@@ -87,6 +87,8 @@ namespace KerbalColonies
             }
             toListModifierList.Clear();
 
+            kGUI.transferWindow = false;
+
             Configuration.SaveColonies();
         }
 
@@ -152,7 +154,7 @@ namespace KerbalColonies
             toolRect = new Rect(100, 100, 500, 500);
             this.fromName = fromName;
             this.toName = toName;
-            this.fromList = fromVessel.GetVesselCrew();
+            this.fromList = fac.filterKerbals(fromVessel.GetVesselCrew());
             this.fromVessel = fromVessel;
             this.kGUI = kGUI;
             this.toList = new List<ProtoCrewMember>(kGUI.fac.getKerbals());
@@ -167,17 +169,17 @@ namespace KerbalColonies
 
         private Vector2 scrollPos;
         internal KCKerbalFacilityBase fac;
-        private bool transferWindow;
+        public bool transferWindow;
 
         public static Texture tKerbal = GameDatabase.Instance.GetTexture("KerbalKonstructs/Assets/billeted", false);
         public static Texture tNoKerbal = GameDatabase.Instance.GetTexture("KerbalKonstructs/Assets/unbilleted", false);
         public static Texture tXPGained = GameDatabase.Instance.GetTexture("KerbalKonstructs/Assets/xpgained", false);
         public static Texture tXPUngained = GameDatabase.Instance.GetTexture("KerbalKonstructs/Assets/xpungained", false);
+        VesselKerbalSelectorGUI ksg;
 
-        public void StaffingInterface(int maxKerbals)
+        public void StaffingInterface()
         {
             KSPLog.print("StaffingInterface: " + this.ToString());
-            VesselKerbalSelectorGUI ksg = new VesselKerbalSelectorGUI(fac, this, "current ship", "facility", FlightGlobals.ActiveVessel);
 
             int kerbalCount = fac.getKerbals().Count;
             LabelInfo = new GUIStyle(GUI.skin.label);
@@ -202,12 +204,12 @@ namespace KerbalColonies
             ButtonSmallText.fontSize = 12;
             ButtonSmallText.fontStyle = FontStyle.Normal;
 
-            if (maxKerbals > 0)
+            if (fac.maxKerbals > 0)
             {
                 GUILayout.Space(5);
 
                 float CountCurrent = fac.getKerbals().Count;
-                float CountEmpty = maxKerbals - CountCurrent;
+                float CountEmpty = fac.maxKerbals - CountCurrent;
 
                 scrollPos = GUILayout.BeginScrollView(scrollPos, GUILayout.Width(400), GUILayout.Height(400));
                 {
@@ -241,7 +243,7 @@ namespace KerbalColonies
                 GUI.enabled = true;
 
                 GUILayout.BeginHorizontal();
-                GUILayout.Label("Staff: " + kerbalCount.ToString("#0") + "/" + maxKerbals.ToString("#0"), LabelInfo);
+                GUILayout.Label("Staff: " + kerbalCount.ToString("#0") + "/" + fac.maxKerbals.ToString("#0"), LabelInfo);
                 GUILayout.FlexibleSpace();
                 GUILayout.EndHorizontal();
 
@@ -275,6 +277,8 @@ namespace KerbalColonies
         {
             transferWindow = false;
             this.fac = fac;
+
+            this.ksg = new VesselKerbalSelectorGUI(fac, this, "current ship", fac.name, FlightGlobals.ActiveVessel);
         }
     }
 }

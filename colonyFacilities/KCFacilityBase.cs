@@ -11,7 +11,8 @@ namespace KerbalColonies.colonyFacilities
     /// <para>The KCFaciltiyBase class is used to create custom KCFacilities, you must register your types in the typeregistry at startup with the AWAKE method.</para>
     /// <para>If the facility can be built from the CAB it must be registered with a KCFacilityCostClass in the Configuration.BuildableFacilities dictionary via the RegisterBuildableFacility method.</para>
     /// <para>If the faciltiy can be upgraded from the CAB it must be registered with the inclusive maximum level in the Configuration. UpgradeableFacilities Dictionary</para>
-    /// <para>If you have custom fields that you want to save you can either set them to public/use [SerializeField], however this uses the unityengine jsonutility which has some limits so you can also overwrite the encode and decode string methods and save the values of your custom fields in the facilityData string for better control.</para>
+    /// <para>If you have custom fields that you want to save overwrite the encode and decode string methods and save the values of your custom fields in the facilityData string.</para>
+    /// <para>Public fields are saved during the serialization but they are NOT loaded.</para>
     /// <para>You can encode the data however you want but you are not allowed to use "{", "}", ",", ":", "=" and "//"</para>
     /// <para>This is because the datastring is saved as a value in a KSP confignode and using these symbols can mess up the loading<para>
     /// <para>I recommend using "|" as seperator and "&" instead of "="</para>
@@ -176,11 +177,11 @@ namespace KerbalColonies.colonyFacilities
                             {
                                 if (Configuration.coloniesPerBody[sg][bI][cN][gp][id].Contains(facility))
                                 {
-                                    saveGame.Add(sg);
-                                    bodyIndex.Add(bI);
-                                    colonyName.Add(cN);
-                                    gph.Add(gp);
-                                    UUIDs.Add(id);
+                                    if (!saveGame.Contains(sg)) { saveGame.Add(sg); }
+                                    if (!bodyIndex.Contains(bI)) { bodyIndex.Add(bI); }
+                                    if (!colonyName.Contains(cN)) { colonyName.Add(cN); }
+                                    if (!gph.Contains(gp)) { gph.Add(gp); }
+                                    if (!UUIDs.Contains(id)) { UUIDs.Add(id); }
                                 }
                             }
                         }

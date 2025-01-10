@@ -44,10 +44,16 @@ namespace KerbalColonies.colonyFacilities
     internal class KCResearchFacilityWindow : KCWindowBase
     {
         KCResearchFacility researchFacility;
-        VesselKerbalGUI kerbalGUI;
+        KerbalGUI kerbalGUI;
 
         protected override void CustomWindow()
         {
+            if (kerbalGUI == null)
+            {
+                KCFacilityBase.GetInformationByFacilty(researchFacility, out List<string> saveGame, out List<int> bodyIndex, out List<string> colonyName, out List<GroupPlaceHolder> gph, out List<string> UUIDs);
+                kerbalGUI = new KerbalGUI(researchFacility, saveGame[0], bodyIndex[0], colonyName[0]);
+            }
+
             GUILayout.BeginHorizontal();
             GUILayout.Label("Science Points: " + researchFacility.SciencePoints);
             GUILayout.Label("Max Science Points: " + researchFacility.MaxSciencePoints);
@@ -66,8 +72,8 @@ namespace KerbalColonies.colonyFacilities
         public KCResearchFacilityWindow(KCResearchFacility researchFacility) : base(Configuration.createWindowID(researchFacility), "Researchfacility")
         {
             this.researchFacility = researchFacility;
-            this.kerbalGUI = new VesselKerbalGUI(researchFacility);
             toolRect = new Rect(100, 100, 400, 800);
+            this.kerbalGUI = null;
         }
     }
 
@@ -77,7 +83,7 @@ namespace KerbalColonies.colonyFacilities
     {
         private KCResearchFacilityWindow researchFacilityWindow;
 
-        public float sciencePoints;
+        private float sciencePoints;
 
         public float MaxSciencePoints { get { return maxSciencePointList[level]; } }
         public float SciencePoints { get { return sciencePoints; } }
@@ -110,6 +116,11 @@ namespace KerbalColonies.colonyFacilities
         {
             if (sciencePoints > 0)
             {
+                if (ResearchAndDevelopment.Instance == null)
+                {
+                    sciencePoints = 0;
+                    return false;
+                }
                 ResearchAndDevelopment.Instance.AddScience(sciencePoints, TransactionReasons.Cheating);
                 sciencePoints = 0;
                 return true;
@@ -122,6 +133,26 @@ namespace KerbalColonies.colonyFacilities
             base.UpgradeFacility(level);
             maxKerbals = maxKerbalsPerLevel[level];
             return true;
+        }
+
+        public override void EncodeString()
+        {
+            string kerbalString = CreateKerbalString(kerbals);
+            facilityData = $"sciencePoints&{sciencePoints}|maxKerbals&{maxKerbals}{((kerbalString != "") ? $"|{kerbalString}" : "")}";
+        }
+
+        public override void DecodeString()
+        {
+            if (facilityData != "")
+            {
+                string[] facilityDatas = facilityData.Split(new[] { '|' }, 3);
+                sciencePoints = float.Parse(facilityDatas[0].Split('&')[1]);
+                maxKerbals = Convert.ToInt32(facilityDatas[1].Split('&')[1]);
+                if (facilityDatas.Length > 2)
+                {
+                    kerbals = CreateKerbalList(facilityDatas[2]);
+                }
+            }
         }
 
         public override void Initialize(string facilityData)

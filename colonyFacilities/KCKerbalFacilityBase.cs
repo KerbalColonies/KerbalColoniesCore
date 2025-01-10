@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace KerbalColonies.colonyFacilities
 {
@@ -21,23 +19,17 @@ namespace KerbalColonies.colonyFacilities
             else if (!Configuration.coloniesPerBody[saveGame][bodyIndex].ContainsKey(colonyName)) { return new Dictionary<ProtoCrewMember, int> { }; }
 
             Dictionary<ProtoCrewMember, int> kerbals = new Dictionary<ProtoCrewMember, int> { };
-            Configuration.coloniesPerBody[saveGame][bodyIndex][colonyName].Values.ToList().ForEach(UUIDdict =>
+            KCCrewQuarters.CrewQuartersInColony(saveGame, bodyIndex, colonyName).ForEach(crewQuarter =>
             {
-                UUIDdict.Values.ToList().ForEach(colonyFacilitys =>
+                crewQuarter.kerbals.Keys.ToList().ForEach(k =>
                 {
-                    colonyFacilitys.ForEach(colonyFacility =>
+                    if (!kerbals.ContainsKey(k))
                     {
-                        if (Configuration.CrewQuarterType.IsAssignableFrom(colonyFacility.GetType()))
-                        {
-                            KCKerbalFacilityBase kerbalFacility = (KCKerbalFacilityBase)colonyFacility;
-                            kerbalFacility.kerbals.Keys.ToList().ForEach(k =>
-                            {
-                                kerbals.Add(k, kerbalFacility.kerbals[k]);
-                            });
-                        }
-                    });
+                        kerbals.Add(k, crewQuarter.kerbals[k]);
+                    }
                 });
             });
+
             return kerbals;
         }
 
@@ -77,11 +69,22 @@ namespace KerbalColonies.colonyFacilities
         /// A list of kerbals in the facility and their current status
         /// <para>Value: 0 means unassigned, the other values are custom</para>
         /// <para>Kerbals with value 0 can get removed from the facility, e.g. to add them to a different facility or retrive them</para>
+        /// <para>Don't remove the kerbals from the crewquarters to assign them, only change the availability in the crewquarters</para>
         /// </summary>
         public int maxKerbals;
         protected Dictionary<ProtoCrewMember, int> kerbals;
 
         public int MaxKerbals { get { return maxKerbals; } }
+
+        public bool modifyKerbal(ProtoCrewMember kerbal, int status)
+        {
+            if (kerbals.ContainsKey(kerbal))
+            {
+                kerbals[kerbal] = status;
+                return true;
+            }
+            return false;
+        }
 
         public List<ProtoCrewMember> getKerbals() { return kerbals.Keys.ToList(); }
         public virtual void RemoveKerbal(ProtoCrewMember member) { kerbals.Remove(member); }
@@ -137,7 +140,7 @@ namespace KerbalColonies.colonyFacilities
         public override void EncodeString()
         {
             string kerbalString = CreateKerbalString(kerbals);
-            facilityData = (kerbalString != "") ? $"{kerbalString}" : "";
+            facilityData = $"maxKerbals&{maxKerbals}{((kerbalString != "") ? $"|{kerbalString}" : "")}";
         }
 
         /// <summary>
@@ -147,7 +150,12 @@ namespace KerbalColonies.colonyFacilities
         {
             if (facilityData != "")
             {
-                kerbals = CreateKerbalList(facilityData);
+                string[] facilityDatas = facilityData.Split(new[] { '|' }, 2);
+                maxKerbals = Convert.ToInt32(facilityDatas[0].Split('&')[1]);
+                if (facilityDatas.Length > 1)
+                {
+                    kerbals = CreateKerbalList(facilityDatas[1]);
+                }
             }
         }
 

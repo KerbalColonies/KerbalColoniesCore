@@ -90,7 +90,7 @@ namespace KerbalColonies
 
             colonyCount = Configuration.coloniesPerBody[HighLogic.CurrentGame.Seed.ToString()][FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody)].Count();
 
-            string colonyName = $"KC_{FlightGlobals.currentMainBody.name}_{colonyCount}";
+            string colonyName = $"KC_{HighLogic.CurrentGame.Seed.ToString()}_{FlightGlobals.currentMainBody.name}_{colonyCount}";
             string groupName = $"{colonyName}_CAB";
 
             groupName = KerbalKonstructs.API.CreateGroup(groupName);

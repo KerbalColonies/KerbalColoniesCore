@@ -49,24 +49,24 @@ namespace KerbalColonies
                 Configuration.writeDebug($"{resource.displayName}: {resource.name}, {resource.id}");
             }
 
-            //foreach (string saveGame in Configuration.coloniesPerBody.Keys)
-            //{
-            //    if (saveGame == HighLogic.CurrentGame.Seed.ToString()) { continue; }
+            foreach (string saveGame in Configuration.coloniesPerBody.Keys)
+            {
+                if (saveGame == HighLogic.CurrentGame.Seed.ToString()) { continue; }
 
-            //    foreach (int bodyIndex in Configuration.coloniesPerBody[saveGame].Keys)
-            //    {
-            //        foreach (string colonyName in Configuration.coloniesPerBody[saveGame][bodyIndex].Keys)
-            //        {
-            //            foreach (GroupPlaceHolder gph in Configuration.coloniesPerBody[saveGame][bodyIndex][colonyName].Keys)
-            //            {
-            //                foreach (string UUID in Configuration.coloniesPerBody[saveGame][bodyIndex][colonyName][gph].Keys)
-            //                {
-            //                    KerbalKonstructs.API.DeactivateStatic(UUID);
-            //                }
-            //            }
-            //        }
-            //    }
-            //}
+                foreach (int bodyIndex in Configuration.coloniesPerBody[saveGame].Keys)
+                {
+                    foreach (string colonyName in Configuration.coloniesPerBody[saveGame][bodyIndex].Keys)
+                    {
+                        foreach (GroupPlaceHolder gph in Configuration.coloniesPerBody[saveGame][bodyIndex][colonyName].Keys)
+                        {
+                            foreach (string UUID in Configuration.coloniesPerBody[saveGame][bodyIndex][colonyName][gph].Keys)
+                            {
+                                KerbalKonstructs.API.DeactivateStatic(UUID);
+                            }
+                        }
+                    }
+                }
+            }
         }
 
         public void FixedUpdate()

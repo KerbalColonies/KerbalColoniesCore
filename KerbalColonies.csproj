@@ -48,7 +48,7 @@
     <Compile Include="KCPartModule.cs" />
     <Compile Include="KCWindow.cs" />
     <Compile Include="KCWindowManager.cs" />
-    <Compile Include="VesselKerbalGUI.cs" />
+    <Compile Include="KerbalGUI.cs" />
     <Compile Include="Main.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="KCUI.cs" />
@@ -63,7 +63,6 @@
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
-  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>

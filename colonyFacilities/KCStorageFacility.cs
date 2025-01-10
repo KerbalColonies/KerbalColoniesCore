@@ -236,14 +236,23 @@ namespace KerbalColonies.colonyFacilities
 
         public override void EncodeString()
         {
-            facilityData = $"ressource&{((resource != null) ? resource.id : -1)}";
+            facilityData = $"ressource&{((resource != null) ? resource.id : -1)}|amount&{amount}|maxVolume&{maxVolume}";
         }
 
         public override void DecodeString()
         {
             if (facilityData != "")
             {
-                resource = (int.Parse(facilityData.Split('&')[1]) != -1) ? PartResourceLibrary.Instance.GetDefinition(int.Parse(facilityData.Split('&')[1])) : null;
+                {
+                    Dictionary<string, string> data = new Dictionary<string, string>();
+                    foreach (string s in facilityData.Split('|'))
+                    {
+                        data.Add(s.Split('&')[0], s.Split('&')[1]);
+                    }
+                    resource = (int.Parse(data["ressource"]) != -1) ? PartResourceLibrary.Instance.GetDefinition(int.Parse(data["ressource"])) : null;
+                    amount = float.Parse(data["amount"]);
+                    maxVolume = float.Parse(data["maxVolume"]);
+                }
             }
         }
 

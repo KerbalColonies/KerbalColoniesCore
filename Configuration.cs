@@ -151,14 +151,20 @@ namespace KerbalColonies
             node.Save(path);
         }
 
+        // TODO: fix the broken loading
         internal static void LoadColonies(string root)
         {
-            ConfigNode[] nodes = GameDatabase.Instance.GetConfigNodes(root);
+            string path = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + "/ColonyData.cfg";
 
-            if ((nodes == null) || (nodes.Length == 0))
+            ConfigNode node = ConfigNode.Load(path);
+
+            if ((node == null) || (node.GetNodes().Length == 0))
             {
                 return;
             }
+            ConfigNode[] nodes = node.GetNodes();
+
+            coloniesPerBody = new Dictionary<string, Dictionary<int, Dictionary<string, Dictionary<GroupPlaceHolder, Dictionary<string, List<KCFacilityBase>>>>>> { };
 
             foreach (ConfigNode saveGame in nodes[0].GetNodes())
             {

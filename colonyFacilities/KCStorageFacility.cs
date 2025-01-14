@@ -9,11 +9,11 @@ namespace KerbalColonies.colonyFacilities
     {
         public override bool VesselHasRessources(Vessel vessel, int level)
         {
-            for (int i = 0; i < resourceCost.Count; i++)
+            for (int i = 0; i < resourceCost[level].Count; i++)
             {
-                vessel.GetConnectedResourceTotals(resourceCost.ElementAt(i).Key.id, false, out double amount, out double maxAmount);
+                vessel.GetConnectedResourceTotals(resourceCost[level].ElementAt(i).Key.id, false, out double amount, out double maxAmount);
 
-                if (amount < resourceCost.ElementAt(i).Value)
+                if (amount < resourceCost[level].ElementAt(i).Value)
                 {
                     return false;
                 }
@@ -25,9 +25,9 @@ namespace KerbalColonies.colonyFacilities
         {
             if (VesselHasRessources(vessel, 0))
             {
-                for (int i = 0; i < resourceCost.Count; i++)
+                for (int i = 0; i < resourceCost[level].Count; i++)
                 {
-                    vessel.RequestResource(vessel.rootPart, resourceCost.ElementAt(i).Key.id, resourceCost.ElementAt(i).Value, true);
+                    vessel.RequestResource(vessel.rootPart, resourceCost[level].ElementAt(i).Key.id, resourceCost[level].ElementAt(i).Value, true);
                 }
                 return true;
             }
@@ -36,7 +36,10 @@ namespace KerbalColonies.colonyFacilities
 
         public KCStorageFacilityCost()
         {
-            resourceCost = new Dictionary<PartResourceDefinition, float> { { PartResourceLibrary.Instance.GetDefinition("Ore"), 100f } };
+            resourceCost = new Dictionary<int, Dictionary<PartResourceDefinition, float>> { 
+                { 0, new Dictionary<PartResourceDefinition, float> { { PartResourceLibrary.Instance.GetDefinition("Ore"), 200f } } },
+                { 1, new Dictionary<PartResourceDefinition, float> { { PartResourceLibrary.Instance.GetDefinition("Ore"), 200f } } }
+            };
         }
     }
 

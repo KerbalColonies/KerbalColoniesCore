@@ -1,5 +1,5 @@
-﻿using System.Collections.Generic;
-using System;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
@@ -10,11 +10,11 @@ namespace KerbalColonies.colonyFacilities
     {
         public override bool VesselHasRessources(Vessel vessel, int level)
         {
-            for (int i = 0; i < resourceCost.Count; i++)
+            for (int i = 0; i < resourceCost[level].Count; i++)
             {
-                vessel.GetConnectedResourceTotals(resourceCost.ElementAt(i).Key.id, false, out double amount, out double maxAmount);
+                vessel.GetConnectedResourceTotals(resourceCost[level].ElementAt(i).Key.id, false, out double amount, out double maxAmount);
 
-                if (amount < resourceCost.ElementAt(i).Value)
+                if (amount < resourceCost[level].ElementAt(i).Value)
                 {
                     return false;
                 }
@@ -26,9 +26,9 @@ namespace KerbalColonies.colonyFacilities
         {
             if (VesselHasRessources(vessel, 0))
             {
-                for (int i = 0; i < resourceCost.Count; i++)
+                for (int i = 0; i < resourceCost[level].Count; i++)
                 {
-                    vessel.RequestResource(vessel.rootPart, resourceCost.ElementAt(i).Key.id, resourceCost.ElementAt(i).Value, true);
+                    vessel.RequestResource(vessel.rootPart, resourceCost[level].ElementAt(i).Key.id, resourceCost[level].ElementAt(i).Value, true);
                 }
                 return true;
             }
@@ -37,14 +37,31 @@ namespace KerbalColonies.colonyFacilities
 
         public KCResearchFacilityCost()
         {
-            resourceCost = new Dictionary<PartResourceDefinition, float> { { PartResourceLibrary.Instance.GetDefinition("Ore"), 200f }, { PartResourceLibrary.Instance.GetDefinition("MonoPropellant"), 100f } };
+            resourceCost = new Dictionary<int, Dictionary<PartResourceDefinition, float>>{ 
+                { 0, new Dictionary<PartResourceDefinition, float> { 
+                    { PartResourceLibrary.Instance.GetDefinition("Ore"), 200f }, 
+                    { PartResourceLibrary.Instance.GetDefinition("MonoPropellant"), 100f } } 
+                }, 
+                { 1, new Dictionary<PartResourceDefinition, float> { 
+                    { PartResourceLibrary.Instance.GetDefinition("Ore"), 400f }, 
+                    { PartResourceLibrary.Instance.GetDefinition("MonoPropellant"), 200f } }
+                },
+                { 2, new Dictionary<PartResourceDefinition, float> {
+                    { PartResourceLibrary.Instance.GetDefinition("Ore"), 600f },
+                    { PartResourceLibrary.Instance.GetDefinition("MonoPropellant"), 400f } }
+                },
+                { 3, new Dictionary<PartResourceDefinition, float> {
+                    { PartResourceLibrary.Instance.GetDefinition("Ore"), 800f },
+                    { PartResourceLibrary.Instance.GetDefinition("MonoPropellant"), 600f } }
+                },
+            };
         }
     }
 
     internal class KCResearchFacilityWindow : KCWindowBase
     {
         KCResearchFacility researchFacility;
-        KerbalGUI kerbalGUI;
+        public KerbalGUI kerbalGUI;
 
         protected override void CustomWindow()
         {
@@ -67,6 +84,12 @@ namespace KerbalColonies.colonyFacilities
                 researchFacility.RetrieveSciencePoints();
             }
             GUILayout.EndHorizontal();
+        }
+
+        protected override void OnClose()
+        {
+            kerbalGUI.ksg.Close();
+            kerbalGUI.transferWindow = false;
         }
 
         public KCResearchFacilityWindow(KCResearchFacility researchFacility) : base(Configuration.createWindowID(researchFacility), "Researchfacility")
@@ -103,13 +126,21 @@ namespace KerbalColonies.colonyFacilities
 
             lastUpdateTime = Planetarium.GetUniversalTime();
             sciencePoints = Math.Min(maxSciencePointList[level], sciencePoints + (float)((researchpointsPerDayperResearcher[level] / 24 / 60 / 60) * deltaTime) * kerbals.Count);
-            //ResearchAndDevelopment.Instance.AddScience((float) (researchpointsPerDayperResearcher[level] / 24 / 60 / 60 * deltaTime) * kerbals.Count, TransactionReasons.Cheating);
             Configuration.SaveColonies();
         }
 
         public override void OnBuildingClicked()
         {
-            researchFacilityWindow.Toggle();
+            if (researchFacilityWindow.IsOpen())
+            {
+                researchFacilityWindow.Close();
+                researchFacilityWindow.kerbalGUI.ksg.Close();
+                researchFacilityWindow.kerbalGUI.transferWindow = false;
+            }
+            else
+            {
+                researchFacilityWindow.Open();
+            }
         }
 
         public bool RetrieveSciencePoints()
@@ -168,7 +199,8 @@ namespace KerbalColonies.colonyFacilities
             this.maxKerbals = maxKerbalsPerLevel[level];
         }
 
-        public KCResearchFacility(bool enabled, string facilityData = "") : base("KCResearchFacility", true, 8, "", 0, 3) {
+        public KCResearchFacility(bool enabled, string facilityData = "") : base("KCResearchFacility", enabled, 8, "", 0, 3)
+        {
             sciencePoints = 0;
         }
     }

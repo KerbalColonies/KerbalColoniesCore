@@ -32,9 +32,11 @@ namespace KerbalColonies
             KCFacilityTypeRegistry.RegisterType<KCCrewQuarters>();
             KCFacilityTypeRegistry.RegisterType<KCResearchFacility>();
             KCFacilityTypeRegistry.RegisterType<KC_CAB_Facility>();
+            KCFacilityTypeRegistry.RegisterType<KCMiningFacility>();
             Configuration.RegisterBuildableFacility(typeof(KCStorageFacility), new KCStorageFacilityCost());
             Configuration.RegisterBuildableFacility(typeof(KCCrewQuarters), new KCCrewQuarterCost());
             Configuration.RegisterBuildableFacility(typeof(KCResearchFacility), new KCResearchFacilityCost());
+            Configuration.RegisterBuildableFacility(typeof(KCMiningFacility), new KCMiningFacilityCost());
             KerbalKonstructs.API.RegisterOnBuildingClicked(KCFacilityBase.OnBuildingClickedHandler);
         }
 

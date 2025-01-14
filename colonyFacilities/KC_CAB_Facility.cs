@@ -21,9 +21,9 @@ namespace KerbalColonies.colonyFacilities
                     GUILayout.Label(t.Name);
                     GUILayout.BeginVertical();
                     {
-                        for (int i = 0; i < Configuration.BuildableFacilities[t].resourceCost.Count; i++)
+                        for (int i = 0; i < Configuration.BuildableFacilities[t].resourceCost[0].Count; i++)
                         {
-                            GUILayout.Label($"{Configuration.BuildableFacilities[t].resourceCost.ElementAt(i).Key.displayName}: {Configuration.BuildableFacilities[t].resourceCost.ElementAt(i).Value}");
+                            GUILayout.Label($"{Configuration.BuildableFacilities[t].resourceCost[0].ElementAt(i).Key.displayName}: {Configuration.BuildableFacilities[t].resourceCost[0].ElementAt(i).Value}");
                         }
                     }
                     GUILayout.EndVertical();
@@ -79,7 +79,7 @@ namespace KerbalColonies.colonyFacilities
                         {
                             GUILayout.BeginVertical();
                             {
-                                Configuration.BuildableFacilities[colonyFacility.GetType()].resourceCost.ToList().ForEach(pair =>
+                                Configuration.BuildableFacilities[colonyFacility.GetType()].resourceCost[colonyFacility.level].ToList().ForEach(pair =>
                                 {
                                     GUILayout.Label($"{pair.Key.displayName}: {pair.Value}");
                                 });

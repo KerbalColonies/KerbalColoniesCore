@@ -12,7 +12,7 @@ namespace KerbalColonies.colonyFacilities
     /// </summary>
     public abstract class KCFacilityCostClass
     {
-        public Dictionary<PartResourceDefinition, float> resourceCost;
+        public Dictionary<int, Dictionary<PartResourceDefinition, float>> resourceCost;
 
         public virtual string GetRessourceCostString(int level) { return ""; }
 

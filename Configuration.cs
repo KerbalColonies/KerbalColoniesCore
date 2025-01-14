@@ -150,8 +150,6 @@ namespace KerbalColonies
             node.AddNode(nodes[0]);
             node.Save(path);
         }
-
-        // TODO: fix the broken loading
         internal static void LoadColonies(string root)
         {
             string path = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + "/ColonyData.cfg";

@@ -212,27 +212,95 @@ namespace KerbalColonies.colonyFacilities
     [System.Serializable]
     internal class KCStorageFacility : KCFacilityBase
     {
+        public static List<KCStorageFacility> findFacilityWithResourceType(PartResourceDefinition resource, string saveGame, int bodyIndex, string colonyName)
+        {
+            if (!Configuration.coloniesPerBody.ContainsKey(saveGame)) { return new List<KCStorageFacility> { }; }
+            else if (!Configuration.coloniesPerBody[saveGame].ContainsKey(bodyIndex)) { return new List<KCStorageFacility> { }; }
+            else if (!Configuration.coloniesPerBody[saveGame][bodyIndex].ContainsKey(colonyName)) { return new List<KCStorageFacility> { }; }
+
+            List<KCStorageFacility> storages = new List<KCStorageFacility>();
+
+            Configuration.coloniesPerBody[saveGame][bodyIndex][colonyName].Values.ToList().ForEach(UUIDdict =>
+            {
+                UUIDdict.Values.ToList().ForEach(colonyFacilitys =>
+                {
+                    colonyFacilitys.ForEach(colonyFacility =>
+                    {
+                        if (Configuration.CrewQuarterType.IsAssignableFrom(colonyFacility.GetType()))
+                        {
+                            KCStorageFacility fac = (KCStorageFacility) colonyFacility;
+                            if (fac.getRessource() == resource)
+                            {
+                                if (!storages.Contains((KCStorageFacility)colonyFacility))
+                                {
+                                    storages.Add((KCStorageFacility)colonyFacility);
+                                }
+                            }
+                        }
+                    });
+                });
+            });
+            return storages;
+        }
+        public static List<KCStorageFacility> findEmptyStorageFacilities(string saveGame, int bodyIndex, string colonyName)
+        {
+            if (!Configuration.coloniesPerBody.ContainsKey(saveGame)) { return new List<KCStorageFacility> { }; }
+            else if (!Configuration.coloniesPerBody[saveGame].ContainsKey(bodyIndex)) { return new List<KCStorageFacility> { }; }
+            else if (!Configuration.coloniesPerBody[saveGame][bodyIndex].ContainsKey(colonyName)) { return new List<KCStorageFacility> { }; }
+
+            List<KCStorageFacility> storages = new List<KCStorageFacility>();
+
+            Configuration.coloniesPerBody[saveGame][bodyIndex][colonyName].Values.ToList().ForEach(UUIDdict =>
+            {
+                UUIDdict.Values.ToList().ForEach(colonyFacilitys =>
+                {
+                    colonyFacilitys.ForEach(colonyFacility =>
+                    {
+                        if (Configuration.CrewQuarterType.IsAssignableFrom(colonyFacility.GetType()))
+                        {
+                            KCStorageFacility fac = (KCStorageFacility)colonyFacility;
+                            if (fac.getAmount() <= 0)
+                            {
+                                if (!storages.Contains((KCStorageFacility)colonyFacility))
+                                {
+                                    storages.Add((KCStorageFacility)colonyFacility);
+                                }
+                            }
+                        }
+                    });
+                });
+            });
+            return storages;
+        }
+
         [NonSerialized]
         public PartResourceDefinition resource;
 
         public float amount = 0f;
         public float maxVolume;
-        internal float currentVolume { get { return amount * ((resource != null) ? resource.volume : 0); } }
+        public float currentVolume { get { return amount * ((resource != null) ? resource.volume : 0); } }
 
-        internal PartResourceDefinition getRessource() { return resource; }
-        internal void setRessource(PartResourceDefinition r) { resource = r; }
+        public PartResourceDefinition getRessource() { return resource; }
+        public void setRessource(PartResourceDefinition r) { resource = r; }
 
-        internal float getAmount()
+        public float getAmount()
         {
             return amount;
         }
-        internal float getCurrentVolume()
+        public float getCurrentVolume()
         {
             return currentVolume;
         }
-        internal float getMaxVolume()
+        public float getMaxVolume()
         {
             return maxVolume;
+        }
+
+        public float getVolumeForAmount(float amount) { return amount * resource.volume; }
+
+        public float getEmptyAmount()
+        {
+            return (maxVolume - currentVolume) / resource.volume;
         }
 
         private KCStorageFacilityWindow StorageWindow;
@@ -270,8 +338,12 @@ namespace KerbalColonies.colonyFacilities
             }
             else
             {
-                this.amount += amount;
-                return true;
+                if (this.currentVolume + getVolumeForAmount(amount) < this.maxVolume)
+                {
+                    this.amount += amount;
+                    return true;
+                }
+                return false;
             }
         }
 

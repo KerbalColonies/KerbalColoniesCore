@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using UnityEngine;
 
 namespace KerbalColonies.colonyFacilities
@@ -132,13 +130,22 @@ namespace KerbalColonies.colonyFacilities
                 miningFacilityWindow.Open();
             }
         }
-        
+
         public bool RetrieveOre()
         {
             if (ore > 0)
             {
-                // TODO: add the ore to any storageFacility that has either ore as ressource or has 0 ressources saved
-                ore = 0;
+                KCFacilityBase.GetInformationByFacilty(this, out List<string> saveGame, out List<int> bodyIndex, out List<string> colonyName, out List<GroupPlaceHolder> gph, out List<string> UUIDs);
+                List<KCStorageFacility> storages = KCStorageFacility.findFacilityWithResourceType(PartResourceLibrary.Instance.GetDefinition("Ore"), saveGame[0], bodyIndex[0], colonyName[0]);
+
+                foreach (KCStorageFacility storage in storages)
+                {
+                    double tempAmount = ore - storage.getEmptyAmount();
+                    storage.changeAmount((float) tempAmount);
+                    ore -= tempAmount;
+                }
+
+                if (ore > 0) { return false; }
                 return true;
             }
             return false;

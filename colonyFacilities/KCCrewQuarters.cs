@@ -139,8 +139,8 @@ namespace KerbalColonies.colonyFacilities
         /// <param name="kerbal"></param>
         public override void AddKerbal(ProtoCrewMember kerbal)
         {
-            KCFacilityBase.GetInformationByFacilty(this, out List<string> saveGame, out List<int> bodyIndex, out List<string> colonyName, out List<GroupPlaceHolder> gph, out List<string> UUIDs);
-            KCCrewQuarters oldCrewQuarter = FindKerbalInCrewQuarters(saveGame[0], bodyIndex[0], colonyName[0], kerbal);
+            KCFacilityBase.GetInformationByFacilty(this, out string saveGame, out int bodyIndex, out string colonyName, out List<GroupPlaceHolder> gph, out List<string> UUIDs);
+            KCCrewQuarters oldCrewQuarter = FindKerbalInCrewQuarters(saveGame, bodyIndex, colonyName, kerbal);
 
             if (oldCrewQuarter != null)
             {
@@ -161,9 +161,9 @@ namespace KerbalColonies.colonyFacilities
         {
             if (kerbals.ContainsKey(kerbal))
             {
-                KCFacilityBase.GetInformationByFacilty(this, out List<string> saveGame, out List<int> bodyIndex, out List<string> colonyName, out List<GroupPlaceHolder> gph, out List<string> UUIDs);
+                KCFacilityBase.GetInformationByFacilty(this, out string saveGame, out int bodyIndex, out string colonyName, out List<GroupPlaceHolder> gph, out List<string> UUIDs);
 
-                List<KCKerbalFacilityBase> facilities = KCKerbalFacilityBase.findKerbal(saveGame[0], bodyIndex[0], colonyName[0], kerbal).Where(x => !typeof(KCCrewQuarters).IsAssignableFrom(x.GetType())).ToList();
+                List<KCKerbalFacilityBase> facilities = KCKerbalFacilityBase.findKerbal(saveGame, bodyIndex, colonyName, kerbal).Where(x => !typeof(KCCrewQuarters).IsAssignableFrom(x.GetType())).ToList();
 
                 facilities.ForEach(facility =>
                 {

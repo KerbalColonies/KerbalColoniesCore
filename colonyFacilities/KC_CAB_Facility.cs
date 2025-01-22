@@ -35,10 +35,10 @@ namespace KerbalColonies.colonyFacilities
                         KCFacilityBase KCFac = Configuration.CreateInstance(t, true, "");
 
                         KCFacilityBase.CountFacilityType(t, saveGame, bodyIndex, colonyName, out int count);
-                        string groupName = $"{colonyName}_{t.Name}_{count}";
+                        string groupName = $"{colonyName}_{t.Name}_0_{count}";
 
                         KerbalKonstructs.API.CreateGroup(groupName);
-                        Colonies.EditorGroupPlace(t, KCFac.baseGroupName, groupName, colonyName);
+                        Colonies.PlaceNewGroup(t, KCFac.baseGroupName, groupName, colonyName);
                     }
                     GUI.enabled = true;
                     GUILayout.EndHorizontal();
@@ -87,13 +87,17 @@ namespace KerbalColonies.colonyFacilities
                                 if (GUILayout.Button("Upgrade"))
                                 {
                                     Configuration.BuildableFacilities[colonyFacility.GetType()].RemoveVesselRessources(FlightGlobals.ActiveVessel, colonyFacility.level + 1);
-                                    if (colonyFacility.upgradeWithGroupChange)
+                                    if (colonyFacility.upgradeType == UpgradeType.withGroupChange)
                                     {
                                         KCFacilityBase.UpgradeFacilityWithGroupChange(colonyFacility);
                                     }
-                                    else
+                                    else if (colonyFacility.upgradeType == UpgradeType.withoutGroupChange)
                                     {
-                                        KCFacilityBase.UpgradeFacility(colonyFacility);
+                                        KCFacilityBase.UpgradeFacilityWithoutGroupChange(colonyFacility);
+                                    }
+                                    else if (colonyFacility.upgradeType == UpgradeType.withAdditionalGroup)
+                                    {
+                                        KCFacilityBase.UpgradeFacilityWithAdditionalGroup(colonyFacility);
                                     }
                                 }
                             }
@@ -119,6 +123,12 @@ namespace KerbalColonies.colonyFacilities
     internal class KC_CAB_Facility : KCFacilityBase
     {
         private KC_CAB_Window window;
+
+        /// <summary>
+        /// A dictionary containg all finished upgrades for facilities that only need to be placed
+        /// <para>The key is the facility id</para>
+        /// </summary>
+        private Dictionary<int, KCFacilityBase> upgradeableFacilities = new Dictionary<int, KCFacilityBase>();
 
         public override void OnBuildingClicked()
         {

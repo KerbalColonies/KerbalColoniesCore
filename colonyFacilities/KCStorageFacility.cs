@@ -37,8 +37,8 @@ namespace KerbalColonies.colonyFacilities
         public KCStorageFacilityCost()
         {
             resourceCost = new Dictionary<int, Dictionary<PartResourceDefinition, float>> { 
-                { 0, new Dictionary<PartResourceDefinition, float> { { PartResourceLibrary.Instance.GetDefinition("Ore"), 200f } } },
-                { 1, new Dictionary<PartResourceDefinition, float> { { PartResourceLibrary.Instance.GetDefinition("Ore"), 200f } } }
+                { 0, new Dictionary<PartResourceDefinition, float> { { PartResourceLibrary.Instance.GetDefinition("RocketParts"), 500f } } },
+                { 1, new Dictionary<PartResourceDefinition, float> { { PartResourceLibrary.Instance.GetDefinition("RocketParts"), 500f } } }
             };
         }
     }
@@ -125,6 +125,8 @@ namespace KerbalColonies.colonyFacilities
 
         protected override void CustomWindow()
         {
+            storageFacility.Update();
+
             //int maxVolume = (int)Math.Round(KCStorageFacility.maxVolume, 0);
             GUILayout.BeginHorizontal();
             GUILayout.Label($"MaxVolume: {storageFacility.maxVolume}", LabelGreen, GUILayout.Height(18));
@@ -374,7 +376,7 @@ namespace KerbalColonies.colonyFacilities
             this.StorageWindow = new KCStorageFacilityWindow(this);
             resource = PartResourceLibrary.Instance.GetDefinition("Ore");
 
-            this.upgradeWithGroupChange = true;
+            this.upgradeType = UpgradeType.withAdditionalGroup;
 
             switch (this.level)
             {

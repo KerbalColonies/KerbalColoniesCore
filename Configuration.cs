@@ -93,7 +93,7 @@ namespace KerbalColonies
         // saves the colonies per body with
         // Dictionary 0: the SaveGame name (the "name" field in the GAME node) as key
         // Dictionary 1: bodyindex as key
-        // Dictionary 2: colonyName as key
+        // Dictionary 2: ColonyName as key
         // Dictionary 3: groupPlaceholder class as key
         // Dictionary 4: static uuid as key and a KCFacilityBase List as value
         internal static Dictionary<string,

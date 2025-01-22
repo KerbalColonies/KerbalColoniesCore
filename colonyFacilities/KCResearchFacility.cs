@@ -39,20 +39,20 @@ namespace KerbalColonies.colonyFacilities
         {
             resourceCost = new Dictionary<int, Dictionary<PartResourceDefinition, float>>{ 
                 { 0, new Dictionary<PartResourceDefinition, float> { 
-                    { PartResourceLibrary.Instance.GetDefinition("Ore"), 200f }, 
-                    { PartResourceLibrary.Instance.GetDefinition("MonoPropellant"), 100f } } 
-                }, 
-                { 1, new Dictionary<PartResourceDefinition, float> { 
-                    { PartResourceLibrary.Instance.GetDefinition("Ore"), 400f }, 
-                    { PartResourceLibrary.Instance.GetDefinition("MonoPropellant"), 200f } }
+                    { PartResourceLibrary.Instance.GetDefinition("RocketParts"), 1000f },
+                    { PartResourceLibrary.Instance.GetDefinition("Xenon"), 100f } }
+                },
+                { 1, new Dictionary<PartResourceDefinition, float> {
+                    { PartResourceLibrary.Instance.GetDefinition("RocketParts"), 1200f },
+                    { PartResourceLibrary.Instance.GetDefinition("Xenon"), 200f } }
                 },
                 { 2, new Dictionary<PartResourceDefinition, float> {
-                    { PartResourceLibrary.Instance.GetDefinition("Ore"), 600f },
-                    { PartResourceLibrary.Instance.GetDefinition("MonoPropellant"), 400f } }
+                    { PartResourceLibrary.Instance.GetDefinition("RocketParts"), 1400f },
+                    { PartResourceLibrary.Instance.GetDefinition("Xenon"), 400f } }
                 },
                 { 3, new Dictionary<PartResourceDefinition, float> {
-                    { PartResourceLibrary.Instance.GetDefinition("Ore"), 800f },
-                    { PartResourceLibrary.Instance.GetDefinition("MonoPropellant"), 600f } }
+                    { PartResourceLibrary.Instance.GetDefinition("RocketParts"), 1600f },
+                    { PartResourceLibrary.Instance.GetDefinition("Xenon"), 600f } }
                 },
             };
         }
@@ -65,10 +65,12 @@ namespace KerbalColonies.colonyFacilities
 
         protected override void CustomWindow()
         {
+            researchFacility.Update();
+
             if (kerbalGUI == null)
             {
-                KCFacilityBase.GetInformationByFacilty(researchFacility, out List<string> saveGame, out List<int> bodyIndex, out List<string> colonyName, out List<GroupPlaceHolder> gph, out List<string> UUIDs);
-                kerbalGUI = new KerbalGUI(researchFacility, saveGame[0], bodyIndex[0], colonyName[0]);
+                KCFacilityBase.GetInformationByFacilty(researchFacility, out string saveGame, out int bodyIndex, out string colonyName, out List<GroupPlaceHolder> gph, out List<string> UUIDs);
+                kerbalGUI = new KerbalGUI(researchFacility, saveGame, bodyIndex, colonyName);
             }
 
             GUILayout.BeginHorizontal();

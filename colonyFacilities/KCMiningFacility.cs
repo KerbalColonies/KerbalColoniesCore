@@ -38,9 +38,9 @@ namespace KerbalColonies.colonyFacilities
         {
             resourceCost = new Dictionary<int, Dictionary<PartResourceDefinition, float>> {
                 { 0, new Dictionary<PartResourceDefinition, float> {
-                    { PartResourceLibrary.Instance.GetDefinition("Ore"), 200f } } },
+                    { PartResourceLibrary.Instance.GetDefinition("RocketParts"), 500f } } },
                 { 1, new Dictionary<PartResourceDefinition, float> {
-                    { PartResourceLibrary.Instance.GetDefinition("Ore"), 500f } }
+                    { PartResourceLibrary.Instance.GetDefinition("RocketParts"), 1000f } }
                 }
             };
         }
@@ -53,10 +53,12 @@ namespace KerbalColonies.colonyFacilities
 
         protected override void CustomWindow()
         {
+            miningFacility.Update();
+
             if (kerbalGUI == null)
             {
-                KCFacilityBase.GetInformationByFacilty(miningFacility, out List<string> saveGame, out List<int> bodyIndex, out List<string> colonyName, out List<GroupPlaceHolder> gph, out List<string> UUIDs);
-                kerbalGUI = new KerbalGUI(miningFacility, saveGame[0], bodyIndex[0], colonyName[0]);
+                KCFacilityBase.GetInformationByFacilty(miningFacility, out string saveGame, out int bodyIndex, out string colonyName, out List<GroupPlaceHolder> gph, out List<string> UUIDs);
+                kerbalGUI = new KerbalGUI(miningFacility, saveGame, bodyIndex, colonyName);
             }
 
             GUILayout.BeginHorizontal();
@@ -69,7 +71,7 @@ namespace KerbalColonies.colonyFacilities
             GUILayout.BeginHorizontal();
             if (GUILayout.Button("Retrieve Ore"))
             {
-                miningFacility.RetrieveOre();
+                miningFacility.RetrieveResources();
             }
             GUILayout.EndHorizontal();
         }
@@ -95,12 +97,17 @@ namespace KerbalColonies.colonyFacilities
         private KCMiningFacilityWindow miningFacilityWindow;
 
         double ore;
+        double metalOre;
 
         public double Ore { get { return ore; } }
+        public double MetalOre { get { return metalOre; } }
         public double MaxOre { get { return maxOretList[level]; } }
+        public double MaxMetalOre { get { return maxMetalOretList[level]; } }
 
-        private List<float> maxOretList = new List<float> { 200f, 400f };
-        private List<float> OrePerDayperEngineer = new List<float> { 10f, 12f };
+        private List<float> maxOretList = new List<float> { 2000f, 4000f };
+        private List<float> maxMetalOretList = new List<float> { 400f, 800f };
+        private List<float> OrePerDayperEngineer = new List<float> { 20f, 20f };
+        private List<float> MetalOrePerDayperEngineer = new List<float> { 6f, 8f };
         private List<int> maxKerbalsPerLevel = new List<int> { 8, 12 };
 
         public override List<ProtoCrewMember> filterKerbals(List<ProtoCrewMember> kerbals)
@@ -114,6 +121,7 @@ namespace KerbalColonies.colonyFacilities
 
             lastUpdateTime = Planetarium.GetUniversalTime();
             ore = Math.Min(maxOretList[level], ore + (float)((OrePerDayperEngineer[level] / 24 / 60 / 60) * deltaTime) * kerbals.Count);
+            metalOre = Math.Min(maxMetalOretList[level], metalOre + (float)((MetalOrePerDayperEngineer[level] / 24 / 60 / 60) * deltaTime) * kerbals.Count);
             Configuration.SaveColonies();
         }
 
@@ -131,12 +139,13 @@ namespace KerbalColonies.colonyFacilities
             }
         }
 
-        public bool RetrieveOre()
+        // TODO: test this function
+        public bool RetrieveResources()
         {
+            KCFacilityBase.GetInformationByFacilty(this, out string saveGame, out int bodyIndex, out string colonyName, out List<GroupPlaceHolder> gph, out List<string> UUIDs);
             if (ore > 0)
             {
-                KCFacilityBase.GetInformationByFacilty(this, out List<string> saveGame, out List<int> bodyIndex, out List<string> colonyName, out List<GroupPlaceHolder> gph, out List<string> UUIDs);
-                List<KCStorageFacility> storages = KCStorageFacility.findFacilityWithResourceType(PartResourceLibrary.Instance.GetDefinition("Ore"), saveGame[0], bodyIndex[0], colonyName[0]);
+                List<KCStorageFacility> storages = KCStorageFacility.findFacilityWithResourceType(PartResourceLibrary.Instance.GetDefinition("Ore"), saveGame, bodyIndex, colonyName);
 
                 foreach (KCStorageFacility storage in storages)
                 {
@@ -144,11 +153,19 @@ namespace KerbalColonies.colonyFacilities
                     storage.changeAmount((float) tempAmount);
                     ore -= tempAmount;
                 }
-
-                if (ore > 0) { return false; }
-                return true;
             }
-            return false;
+
+            if (metalOre > 0)
+            {
+                List<KCStorageFacility> storages = KCStorageFacility.findFacilityWithResourceType(PartResourceLibrary.Instance.GetDefinition("MetalOre"), saveGame, bodyIndex, colonyName);
+                foreach (KCStorageFacility storage in storages)
+                {
+                    double tempAmount = metalOre - storage.getEmptyAmount();
+                    storage.changeAmount((float)tempAmount);
+                    metalOre -= tempAmount;
+                }
+            }
+            return true;
         }
 
         public override bool UpgradeFacility(int level)
@@ -161,16 +178,17 @@ namespace KerbalColonies.colonyFacilities
         public override void EncodeString()
         {
             string kerbalString = CreateKerbalString(kerbals);
-            facilityData = $"ore&{ore}|maxKerbals&{maxKerbals}{((kerbalString != "") ? $"|{kerbalString}" : "")}";
+            facilityData = $"ore&{ore}|metalOre&{metalOre}|maxKerbals&{maxKerbals}{((kerbalString != "") ? $"|{kerbalString}" : "")}";
         }
 
         public override void DecodeString()
         {
             if (facilityData != "")
             {
-                string[] facilityDatas = facilityData.Split(new[] { '|' }, 3);
+                string[] facilityDatas = facilityData.Split(new[] { '|' }, 4);
                 ore = float.Parse(facilityDatas[0].Split('&')[1]);
-                maxKerbals = Convert.ToInt32(facilityDatas[1].Split('&')[1]);
+                ore = float.Parse(facilityDatas[1].Split('&')[1]);
+                maxKerbals = Convert.ToInt32(facilityDatas[2].Split('&')[1]);
                 if (facilityDatas.Length > 2)
                 {
                     kerbals = CreateKerbalList(facilityDatas[2]);

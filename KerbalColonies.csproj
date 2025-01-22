@@ -60,6 +60,9 @@
     <Reference Include="KerbalKonstructs">
       <HintPath>D:\KSP-Test\GameData\KerbalKonstructs\KerbalKonstructs.dll</HintPath>
     </Reference>
+    <Reference Include="Launchpad">
+      <HintPath>D:\KSP-Test\GameData\ExtraplanetaryLaunchpads\Plugins\Launchpad.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

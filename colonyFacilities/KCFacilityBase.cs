@@ -1,11 +1,15 @@
-﻿using KerbalKonstructs.Modules;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.CompilerServices;
 
 namespace KerbalColonies.colonyFacilities
 {
+    public enum UpgradeType
+    {
+        withoutGroupChange,
+        withGroupChange,
+        withAdditionalGroup,
+    }
 
     /// <summary>
     /// <para>The KCFaciltiyBase class is used to create custom KCFacilities, you must register your types in the typeregistry at startup with the AWAKE method.</para>
@@ -32,7 +36,7 @@ namespace KerbalColonies.colonyFacilities
         public int level = 0;
         public int maxLevel = 0;
         public bool upgradeable = false;
-        public bool upgradeWithGroupChange = false;
+        public UpgradeType upgradeType = UpgradeType.withoutGroupChange;
 
         /// <summary>
         /// This function get automatically called, do not call it manually.
@@ -70,47 +74,54 @@ namespace KerbalColonies.colonyFacilities
 
         internal static bool UpgradeFacilityWithGroupChange(KCFacilityBase facility)
         {
-            if (!facility.upgradeWithGroupChange || !facility.upgradeable) { return false; }
+            if (facility.upgradeType != UpgradeType.withGroupChange || !facility.upgradeable) { return false; }
 
-            if (GetInformationByFacilty(facility, out List<string> saveGames, out List<int> bodyIndexes, out List<string> colonyNames, out List<GroupPlaceHolder> gphs, out List<string> UUIDs))
+            if (GetInformationByFacilty(facility, out string saveGame, out int bodyIndex, out string colonyName, out List<GroupPlaceHolder> gphs, out List<string> UUIDs))
             {
-                foreach (string saveGame in saveGames)
+                foreach (GroupPlaceHolder gph in gphs)
                 {
-                    foreach (int bodyIndex in bodyIndexes)
+                    facility.UpgradeFacility(facility.level + 1);
+
+                    Configuration.coloniesPerBody[saveGame][bodyIndex][colonyName][gph] = new Dictionary<string, List<KCFacilityBase>>();
+                    KerbalKonstructs.API.GetGroupStatics(gph.GroupName).ToList().ForEach(x => KerbalKonstructs.API.RemoveStatic(x.UUID));
+
+                    KerbalKonstructs.API.CopyGroup(gph.GroupName, facility.baseGroupName);
+
+                    foreach (KerbalKonstructs.Core.StaticInstance staticInstance in KerbalKonstructs.API.GetGroupStatics(gph.GroupName))
                     {
-                        foreach (string colonyName in colonyNames)
-                        {
-                            foreach (GroupPlaceHolder gph in gphs)
-                            {
-                                facility.UpgradeFacility(facility.level + 1);
-
-                                Configuration.coloniesPerBody[saveGame][bodyIndex][colonyName][gph] = new Dictionary<string, List<KCFacilityBase>>();
-                                KerbalKonstructs.API.GetGroupStatics(gph.GroupName).ToList().ForEach(x => KerbalKonstructs.API.RemoveStatic(x.UUID));
-
-                                KerbalKonstructs.API.CopyGroup(gph.GroupName, facility.baseGroupName);
-
-                                foreach (KerbalKonstructs.Core.StaticInstance staticInstance in KerbalKonstructs.API.GetGroupStatics(gph.GroupName))
-                                {
-                                    Configuration.coloniesPerBody[saveGame][bodyIndex][colonyName][gph].Add(staticInstance.UUID, new List<KCFacilityBase> { facility });
-                                }
-                            }
-                        }
+                        Configuration.coloniesPerBody[saveGame][bodyIndex][colonyName][gph].Add(staticInstance.UUID, new List<KCFacilityBase> { facility });
                     }
                 }
+
                 Configuration.SaveColonies();
                 return true;
             }
             return false;
         }
 
-        internal static bool UpgradeFacility(KCFacilityBase facility)
+        internal static bool UpgradeFacilityWithoutGroupChange(KCFacilityBase facility)
         {
-            if ( facility.upgradeWithGroupChange || !facility.upgradeable || facility.level >= facility.maxLevel) { return false; }
+            if (facility.upgradeType != UpgradeType.withGroupChange || !facility.upgradeable || facility.level >= facility.maxLevel) { return false; }
 
-            if (GetInformationByFacilty(facility, out List<string> saveGames, out List<int> bodyIndexes, out List<string> colonyNames, out List<GroupPlaceHolder> gphs, out List<string> UUIDs))
+            if (GetInformationByFacilty(facility, out string saveGames, out int bodyIndexes, out string colonyNames, out List<GroupPlaceHolder> gphs, out List<string> UUIDs))
             {
                 facility.UpgradeFacility(facility.level + 1);
                 Configuration.SaveColonies();
+                return true;
+            }
+            return false;
+        }
+
+        internal static bool UpgradeFacilityWithAdditionalGroup(KCFacilityBase facility)
+        {
+            if (facility.upgradeType != UpgradeType.withAdditionalGroup || !facility.upgradeable || facility.level >= facility.maxLevel) { return false; }
+
+            if (GetInformationByFacilty(facility, out string saveGame, out int bodyIndex, out string colonyName, out List<GroupPlaceHolder> gphs, out List<string> UUIDs))
+            {
+                facility.UpgradeFacility(facility.level + 1);
+
+                KCFacilityBase.CountFacilityType(facility.GetType(), saveGame, bodyIndex, colonyName, out int count);
+                Colonies.AddGroupUpdate(facility, facility.baseGroupName, $"{colonyName}_{facility.GetType().Name}_{facility.level}_{count}", colonyName);
                 return true;
             }
             return false;
@@ -157,11 +168,11 @@ namespace KerbalColonies.colonyFacilities
             return true;
         }
 
-        internal static bool GetInformationByFacilty(KCFacilityBase facility, out List<string> saveGame, out List<int> bodyIndex, out List<string> colonyName, out List<GroupPlaceHolder> gph, out List<string> UUIDs)
+        internal static bool GetInformationByFacilty(KCFacilityBase facility, out string saveGame, out int bodyIndex, out string colonyName, out List<GroupPlaceHolder> gph, out List<string> UUIDs)
         {
-            saveGame = new List<string>();
-            bodyIndex = new List<int>();
-            colonyName = new List<string>();
+            saveGame = "";
+            bodyIndex = -1;
+            colonyName = "";
             gph = new List<GroupPlaceHolder>();
             UUIDs = new List<string>();
 
@@ -177,9 +188,9 @@ namespace KerbalColonies.colonyFacilities
                             {
                                 if (Configuration.coloniesPerBody[sg][bI][cN][gp][id].Contains(facility))
                                 {
-                                    if (!saveGame.Contains(sg)) { saveGame.Add(sg); }
-                                    if (!bodyIndex.Contains(bI)) { bodyIndex.Add(bI); }
-                                    if (!colonyName.Contains(cN)) { colonyName.Add(cN); }
+                                    saveGame = sg;
+                                    bodyIndex = bI;
+                                    colonyName = cN;
                                     if (!gph.Contains(gp)) { gph.Add(gp); }
                                     if (!UUIDs.Contains(id)) { UUIDs.Add(id); }
                                 }

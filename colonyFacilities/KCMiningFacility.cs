@@ -149,6 +149,9 @@ namespace KerbalColonies.colonyFacilities
 
                 foreach (KCStorageFacility storage in storages)
                 {
+// this won't work, need additional checks
+// ore <= empty: add ore, exit loop
+// empty < ore: add empty amount, reduce ore by empty amount and continue
                     double tempAmount = ore - storage.getEmptyAmount();
                     storage.changeAmount((float) tempAmount);
                     ore -= tempAmount;

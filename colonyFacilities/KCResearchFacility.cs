@@ -40,19 +40,19 @@ namespace KerbalColonies.colonyFacilities
             resourceCost = new Dictionary<int, Dictionary<PartResourceDefinition, float>>{ 
                 { 0, new Dictionary<PartResourceDefinition, float> { 
                     { PartResourceLibrary.Instance.GetDefinition("RocketParts"), 1000f },
-                    { PartResourceLibrary.Instance.GetDefinition("Xenon"), 100f } }
+                    { PartResourceLibrary.Instance.GetDefinition("XenonGas"), 100f } }
                 },
                 { 1, new Dictionary<PartResourceDefinition, float> {
                     { PartResourceLibrary.Instance.GetDefinition("RocketParts"), 1200f },
-                    { PartResourceLibrary.Instance.GetDefinition("Xenon"), 200f } }
+                    { PartResourceLibrary.Instance.GetDefinition("XenonGas"), 200f } }
                 },
                 { 2, new Dictionary<PartResourceDefinition, float> {
                     { PartResourceLibrary.Instance.GetDefinition("RocketParts"), 1400f },
-                    { PartResourceLibrary.Instance.GetDefinition("Xenon"), 400f } }
+                    { PartResourceLibrary.Instance.GetDefinition("XenonGas"), 400f } }
                 },
                 { 3, new Dictionary<PartResourceDefinition, float> {
                     { PartResourceLibrary.Instance.GetDefinition("RocketParts"), 1600f },
-                    { PartResourceLibrary.Instance.GetDefinition("Xenon"), 600f } }
+                    { PartResourceLibrary.Instance.GetDefinition("XenonGas"), 600f } }
                 },
             };
         }

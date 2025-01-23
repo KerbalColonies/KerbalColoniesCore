@@ -152,8 +152,8 @@ namespace KerbalColonies.colonyFacilities
 // this won't work, need additional checks
 // ore <= empty: add ore, exit loop
 // empty < ore: add empty amount, reduce ore by empty amount and continue
-                    double tempAmount = ore - storage.getEmptyAmount();
-                    storage.changeAmount((float) tempAmount);
+                    double tempAmount = ore - storage.getEmptyAmount(PartResourceLibrary.Instance.GetDefinition("Ore"));
+                    storage.changeAmount(PartResourceLibrary.Instance.GetDefinition("Ore"), (float) tempAmount);
                     ore -= tempAmount;
                 }
             }
@@ -163,8 +163,8 @@ namespace KerbalColonies.colonyFacilities
                 List<KCStorageFacility> storages = KCStorageFacility.findFacilityWithResourceType(PartResourceLibrary.Instance.GetDefinition("MetalOre"), saveGame, bodyIndex, colonyName);
                 foreach (KCStorageFacility storage in storages)
                 {
-                    double tempAmount = metalOre - storage.getEmptyAmount();
-                    storage.changeAmount((float)tempAmount);
+                    double tempAmount = metalOre - storage.getEmptyAmount(PartResourceLibrary.Instance.GetDefinition("MetalOre"));
+                    storage.changeAmount(PartResourceLibrary.Instance.GetDefinition("MetalOre"), (float)tempAmount);
                     metalOre -= tempAmount;
                 }
             }
@@ -190,7 +190,7 @@ namespace KerbalColonies.colonyFacilities
             {
                 string[] facilityDatas = facilityData.Split(new[] { '|' }, 4);
                 ore = float.Parse(facilityDatas[0].Split('&')[1]);
-                ore = float.Parse(facilityDatas[1].Split('&')[1]);
+                metalOre = float.Parse(facilityDatas[1].Split('&')[1]);
                 maxKerbals = Convert.ToInt32(facilityDatas[2].Split('&')[1]);
                 if (facilityDatas.Length > 2)
                 {

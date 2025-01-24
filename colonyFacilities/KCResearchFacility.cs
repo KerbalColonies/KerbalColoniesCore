@@ -199,6 +199,7 @@ namespace KerbalColonies.colonyFacilities
             maxKerbalsPerLevel = new List<int> { 4, 6, 8, 12 };
 
             this.maxKerbals = maxKerbalsPerLevel[level];
+            this.upgradeType = UpgradeType.withoutGroupChange;
         }
 
         public KCResearchFacility(bool enabled, string facilityData = "") : base("KCResearchFacility", enabled, 8, "", 0, 3)

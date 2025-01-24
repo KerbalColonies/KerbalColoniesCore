@@ -56,6 +56,7 @@ namespace KerbalColonies.colonyFacilities
             double maxAmount = 0;
             foreach (PartResourceDefinition availableResource in PartResourceLibrary.Instance.resourceDefinitions)
             {
+                if (blackListedResources.Contains(availableResource.name)) { continue; }
                 foreach (var partSet in FlightGlobals.ActiveVessel.crossfeedSets)
                 {
                     partSet.GetConnectedResourceTotals(availableResource.id, out amount, out maxAmount, true);
@@ -307,7 +308,7 @@ namespace KerbalColonies.colonyFacilities
             string resourceString = "";
             foreach (KeyValuePair<PartResourceDefinition, float> entry in resources)
             {
-                resourceString += $"|{entry.Key.id}&{entry.Value}";
+                resourceString += $"|{entry.Key.name}&{entry.Value}";
             }
 
             facilityData = $"maxVolume&{maxVolume}{resourceString}";
@@ -326,7 +327,7 @@ namespace KerbalColonies.colonyFacilities
 
                 for (int i = 1; i < data.Count; i++)
                 {
-                    resources.Add(PartResourceLibrary.Instance.GetDefinition(int.Parse(data.ElementAt(i).Key)), float.Parse(data.ElementAt(i).Value));
+                    resources.Add(PartResourceLibrary.Instance.GetDefinition(data.ElementAt(i).Key), float.Parse(data.ElementAt(i).Value));
                 }
             }
         }
@@ -389,8 +390,8 @@ namespace KerbalColonies.colonyFacilities
 
         public override void Initialize(string facilityData)
         {
-            base.Initialize(facilityData);
             resources = new Dictionary<PartResourceDefinition, float>();
+            base.Initialize(facilityData);
             this.StorageWindow = new KCStorageFacilityWindow(this);
 
             this.upgradeType = UpgradeType.withAdditionalGroup;

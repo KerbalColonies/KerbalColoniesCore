@@ -124,6 +124,7 @@ namespace KerbalColonies
             KerbalKonstructs.API.CopyGroup(newGroupName, fromGroupName);
             KerbalKonstructs.API.OpenGroupEditor(newGroupName);
             KerbalKonstructs.API.RegisterOnGroupSaved(AddGroupUpdateSave);
+            Configuration.SaveColonies();
             return true;
         }
 

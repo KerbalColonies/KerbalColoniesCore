@@ -101,7 +101,7 @@ namespace KerbalColonies.colonyFacilities
 
         internal static bool UpgradeFacilityWithoutGroupChange(KCFacilityBase facility)
         {
-            if (facility.upgradeType != UpgradeType.withGroupChange || !facility.upgradeable || facility.level >= facility.maxLevel) { return false; }
+            if (facility.upgradeType != UpgradeType.withoutGroupChange || !facility.upgradeable || facility.level >= facility.maxLevel) { return false; }
 
             if (GetInformationByFacilty(facility, out string saveGames, out int bodyIndexes, out string colonyNames, out List<GroupPlaceHolder> gphs, out List<string> UUIDs))
             {
@@ -122,6 +122,7 @@ namespace KerbalColonies.colonyFacilities
 
                 KCFacilityBase.CountFacilityType(facility.GetType(), saveGame, bodyIndex, colonyName, out int count);
                 Colonies.AddGroupUpdate(facility, facility.baseGroupName, $"{colonyName}_{facility.GetType().Name}_{facility.level}_{count}", colonyName);
+                Configuration.SaveColonies();
                 return true;
             }
             return false;

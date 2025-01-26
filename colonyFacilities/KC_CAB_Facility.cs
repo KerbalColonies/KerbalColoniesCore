@@ -35,7 +35,7 @@ namespace KerbalColonies.colonyFacilities
                         KCFacilityBase KCFac = Configuration.CreateInstance(t, true, "");
 
                         KCFacilityBase.CountFacilityType(t, saveGame, bodyIndex, colonyName, out int count);
-                        string groupName = $"{colonyName}_{t.Name}_0_{count}";
+                        string groupName = $"{colonyName}_{t.Name}_0_{count + 1}";
 
                         KerbalKonstructs.API.CreateGroup(groupName);
                         Colonies.PlaceNewGroup(t, KCFac.baseGroupName, groupName, colonyName);

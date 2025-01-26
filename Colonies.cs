@@ -121,6 +121,7 @@ namespace KerbalColonies
             KerbalKonstructs.API.SetEditorRange(range);
             ColonyName = colonyName;
             groupName = newGroupName;
+            groupName = KerbalKonstructs.API.CreateGroup(newGroupName);
             KerbalKonstructs.API.CopyGroup(newGroupName, fromGroupName);
             KerbalKonstructs.API.OpenGroupEditor(newGroupName);
             KerbalKonstructs.API.RegisterOnGroupSaved(AddGroupUpdateSave);

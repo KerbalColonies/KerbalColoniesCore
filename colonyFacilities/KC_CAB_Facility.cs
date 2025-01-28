@@ -97,7 +97,9 @@ namespace KerbalColonies.colonyFacilities
                                     }
                                     else if (colonyFacility.upgradeType == UpgradeType.withAdditionalGroup)
                                     {
-                                        KCFacilityBase.UpgradeFacilityWithAdditionalGroup(colonyFacility);
+                                        facility.AddUpgradeableFacility(colonyFacility);
+
+                                        //KCFacilityBase.UpgradeFacilityWithAdditionalGroup(colonyFacility);
                                     }
                                 }
                             }
@@ -106,6 +108,29 @@ namespace KerbalColonies.colonyFacilities
                     }
                     GUILayout.EndHorizontal();
                 });
+
+                GUILayout.Label("Upgrading Facilities:");
+                facility.UpgradingFacilities.ToList().ForEach(pair =>
+                {
+                    GUILayout.BeginHorizontal();
+                    GUILayout.Label(pair.Key.name);
+                    double max = pair.Key.GetUpgradeTime();
+                    GUILayout.Label($"{max - pair.Value}/{max}");
+                    GUILayout.EndHorizontal();
+                });
+
+                GUILayout.Label("Upgraded Facilities:");
+                facility.UpgradedFacilities.ToList().ForEach(facilityUpgrade =>
+                {
+                    GUILayout.Label(facilityUpgrade.name);
+
+                    if (GUILayout.Button("Place upgrade"))
+                    {
+                        KCFacilityBase.UpgradeFacilityWithAdditionalGroup(facilityUpgrade);
+                        facility.UpgradedFacilities.Remove(facilityUpgrade);
+                    }
+                });
+
                 GUILayout.EndVertical();
             }
             GUILayout.EndScrollView();
@@ -125,10 +150,79 @@ namespace KerbalColonies.colonyFacilities
         private KC_CAB_Window window;
 
         /// <summary>
-        /// A dictionary containg all finished upgrades for facilities that only need to be placed
-        /// <para>The key is the facility id</para>
+        /// A dictionary containg all additional group upgrades for facilities.
+        /// <para>The additional groups can be placed when the </para>
+        /// <para>The key is the facilityUpgrade id</para>
         /// </summary>
-        private Dictionary<int, KCFacilityBase> upgradeableFacilities = new Dictionary<int, KCFacilityBase>();
+        private Dictionary<KCFacilityBase, double> upgradingFacilities = new Dictionary<KCFacilityBase, double>();
+        private List<KCFacilityBase> upgradedFacilities = new List<KCFacilityBase>();
+
+        public Dictionary<KCFacilityBase, double> UpgradingFacilities
+        {
+            get { return upgradingFacilities; }
+        }
+
+        public List<KCFacilityBase> UpgradedFacilities
+        {
+            get { return upgradedFacilities; }
+            set { upgradedFacilities = value; }
+        }
+
+        public override void Update()
+        {
+            double deltaTime = Planetarium.GetUniversalTime() - lastUpdateTime;
+
+            if (upgradingFacilities.Count > 0)
+            {
+                double totalProduction = 0;
+                KCFacilityBase.GetInformationByFacilty(this, out string saveGame, out int bodyIndex, out string colonyName, out List<GroupPlaceHolder> gphs, out List<string> UUIDs);
+
+                List<KCFacilityBase> colonyFacilities = KCFacilityBase.GetFacilitiesInColony(saveGame, bodyIndex, colonyName);
+                colonyFacilities.ForEach(facility =>
+                {
+                    if (typeof(KCBuildingProductionFacility).IsAssignableFrom(facility.GetType()))
+                    {
+                        totalProduction += ((KCBuildingProductionFacility)facility).dailyProduction() * deltaTime / 24 / 60 / 60;
+                    }
+                });
+
+                while (totalProduction > 0)
+                {
+
+                    if (upgradingFacilities.ElementAt(0).Value > totalProduction)
+                    {
+                        upgradingFacilities[upgradingFacilities.ElementAt(0).Key] -= totalProduction;
+                        totalProduction = 0;
+                        break;
+                    }
+                    else
+                    {
+                        totalProduction -= upgradingFacilities.ElementAt(0).Value;
+                        upgradedFacilities.Add(upgradingFacilities.ElementAt(0).Key);
+                        upgradingFacilities.Remove(upgradingFacilities.ElementAt(0).Key);
+
+                        if (upgradingFacilities.Count == 0)
+                        {
+                            break;
+                        }
+                    }
+                }
+            }
+
+            base.Update();
+        }
+
+        public void AddUpgradeableFacility(KCFacilityBase facility)
+        {
+            if (facility.GetUpgradeTime() == 0)
+            {
+                upgradedFacilities.Add(facility);
+            }
+            else
+            {
+                upgradingFacilities.Add(facility, facility.GetUpgradeTime());
+            }
+        }
 
         public override void OnBuildingClicked()
         {

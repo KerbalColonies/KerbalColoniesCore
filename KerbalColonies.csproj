@@ -36,6 +36,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Colonies.cs" />
+    <Compile Include="colonyFacilities\KCBuildingProductionFacility.cs" />
     <Compile Include="colonyFacilities\KCFacilityBase.cs" />
     <Compile Include="colonyFacilities\KCFacilityCostClass.cs" />
     <Compile Include="colonyFacilities\KCKerbalFacilityBase.cs" />

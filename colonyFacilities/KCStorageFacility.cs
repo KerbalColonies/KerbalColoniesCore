@@ -303,6 +303,11 @@ namespace KerbalColonies.colonyFacilities
 
         private KCStorageFacilityWindow StorageWindow;
 
+        public override int GetUpgradeTime()
+        {
+            return 100;
+        }
+
         public override void EncodeString()
         {
             string resourceString = "";

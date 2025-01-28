@@ -5,7 +5,7 @@ using System.Linq;
 namespace KerbalColonies.colonyFacilities
 {
     [System.Serializable]
-    abstract class KCKerbalFacilityBase : KCFacilityBase
+    public abstract class KCKerbalFacilityBase : KCFacilityBase
     {
 
         /// <summary>

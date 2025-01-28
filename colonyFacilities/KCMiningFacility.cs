@@ -214,7 +214,7 @@ namespace KerbalColonies.colonyFacilities
             this.upgradeType = UpgradeType.withoutGroupChange;
         }
 
-        public KCMiningFacility(bool enabled, string facilityData = "") : base("KCMiningFacility", enabled, 8, "", 0, 1)
+        public KCMiningFacility(bool enabled, string facilityData = "") : base("KCMiningFacility", enabled, 8, facilityData, 0, 1)
         {
             ore = 0;
         }

@@ -1,5 +1,6 @@
 ﻿using KerbalColonies.colonyFacilities;
 using KerbalColonies.Serialization;
+using System.Collections.Generic;
 using UnityEngine;
 
 // KC: Kerbal Colonies
@@ -24,6 +25,8 @@ namespace KerbalColonies
     [KSPAddon(KSPAddon.Startup.Flight, false)]
     public class KerbalColonies : MonoBehaviour
     {
+        double lastTime = 0;
+
         protected void Awake()
         {
             KSPLog.print("KC awake");
@@ -33,10 +36,12 @@ namespace KerbalColonies
             KCFacilityTypeRegistry.RegisterType<KCResearchFacility>();
             KCFacilityTypeRegistry.RegisterType<KC_CAB_Facility>();
             KCFacilityTypeRegistry.RegisterType<KCMiningFacility>();
+            KCFacilityTypeRegistry.RegisterType<KCBuildingProductionFacility>();
             Configuration.RegisterBuildableFacility(typeof(KCStorageFacility), new KCStorageFacilityCost());
             Configuration.RegisterBuildableFacility(typeof(KCCrewQuarters), new KCCrewQuarterCost());
             Configuration.RegisterBuildableFacility(typeof(KCResearchFacility), new KCResearchFacilityCost());
             Configuration.RegisterBuildableFacility(typeof(KCMiningFacility), new KCMiningFacilityCost());
+            Configuration.RegisterBuildableFacility(typeof(KCBuildingProductionFacility), new KCBuildingProductionFacilityCost());
             KerbalKonstructs.API.RegisterOnBuildingClicked(KCFacilityBase.OnBuildingClickedHandler);
         }
 
@@ -73,6 +78,24 @@ namespace KerbalColonies
 
         public void FixedUpdate()
         {
+            if (lastTime - Planetarium.GetUniversalTime() >= 10)
+            {
+                lastTime = Planetarium.GetUniversalTime();
+                string saveGame = HighLogic.CurrentGame.Seed.ToString();
+                foreach (int bodyIndex in Configuration.coloniesPerBody[saveGame].Keys)
+                {
+                    foreach (string colonyName in Configuration.coloniesPerBody[saveGame][bodyIndex].Keys)
+                    {
+                        List<KCFacilityBase> colonyFacilities = KCFacilityBase.GetFacilitiesInColony(saveGame, bodyIndex, colonyName);
+                        colonyFacilities.ForEach(facility => facility.Update());
+                    }
+                }
+            }
+            else
+            {
+                lastTime += Planetarium.GetUniversalTime();
+            }
+
             //HighLogic.CurrentGame.CrewRoster;
 
             if (Input.GetKeyDown(KeyCode.U))

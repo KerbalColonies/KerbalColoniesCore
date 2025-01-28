@@ -39,19 +39,6 @@ namespace KerbalColonies.colonyFacilities
         public UpgradeType upgradeType = UpgradeType.withoutGroupChange;
 
         /// <summary>
-        /// This function get automatically called, do not call it manually.
-        /// The OnBuildingClicked method function should be used for custom windows.
-        /// </summary>
-        public virtual void Update()
-        {
-            lastUpdateTime = Planetarium.GetUniversalTime();
-        }
-
-        public virtual void UpdateBaseGroupName()
-        {
-        }
-
-        /// <summary>
         /// This function gets automatically called when the building is clicked, it might get used for custom windows.
         /// <para>The update function will be called BEFORE this one, you don't need to do it manually</para>
         /// </summary>
@@ -167,6 +154,25 @@ namespace KerbalColonies.colonyFacilities
             }
             count = facList.Count;
             return true;
+        }
+
+        internal static List<KCFacilityBase> GetFacilitiesInColony(string saveGame, int bodyIndex, string colonyName)
+        {
+            List<KCFacilityBase> facList = new List<KCFacilityBase>();
+            foreach (GroupPlaceHolder gph in Configuration.coloniesPerBody[saveGame][bodyIndex][colonyName].Keys)
+            {
+                foreach (string uuid in Configuration.coloniesPerBody[saveGame][bodyIndex][colonyName][gph].Keys)
+                {
+                    foreach (KCFacilityBase fac in Configuration.coloniesPerBody[saveGame][bodyIndex][colonyName][gph][uuid])
+                    {
+                        if (!facList.Contains(fac))
+                        {
+                            facList.Add(fac);
+                        }
+                    }
+                }
+            }
+            return facList;
         }
 
         internal static bool GetInformationByFacilty(KCFacilityBase facility, out string saveGame, out int bodyIndex, out string colonyName, out List<GroupPlaceHolder> gph, out List<string> UUIDs)
@@ -347,6 +353,26 @@ namespace KerbalColonies.colonyFacilities
                 }
             }
 
+        }
+
+        /// <summary>
+        /// This method should return the upgrade time for the next level if the upgradetype is withAdditionalGroup.
+        /// <para>Each engineer reduces the upgrade time by 100 + 5 * (engineer level - 1) * facility bonus / day. If the upgrade time reaches 0 then the upgrade can be placed</para>
+        /// </summary>
+        /// <returns></returns>
+        public virtual int GetUpgradeTime() { return 0; }
+
+        /// <summary>
+        /// This function get automatically called, do not call it manually.
+        /// The OnBuildingClicked method function should be used for custom windows.
+        /// </summary>
+        public virtual void Update()
+        {
+            lastUpdateTime = Planetarium.GetUniversalTime();
+        }
+
+        public virtual void UpdateBaseGroupName()
+        {
         }
 
         /// <summary>

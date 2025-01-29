@@ -122,7 +122,7 @@ namespace KerbalColonies.colonyFacilities
             lastUpdateTime = Planetarium.GetUniversalTime();
             ore = Math.Min(maxOretList[level], ore + (float)((OrePerDayperEngineer[level] / 24 / 60 / 60) * deltaTime) * kerbals.Count);
             metalOre = Math.Min(maxMetalOretList[level], metalOre + (float)((MetalOrePerDayperEngineer[level] / 24 / 60 / 60) * deltaTime) * kerbals.Count);
-            Configuration.SaveColonies();
+            Configuration.saveColonies = true;
         }
 
         public override void OnBuildingClicked()
@@ -171,6 +171,19 @@ namespace KerbalColonies.colonyFacilities
             return true;
         }
 
+        public override int GetUpgradeTime(int level)
+        {
+            // 1 Kerbin day = 0.25 days
+            // 100 per day * 5 engineers = 500 per day
+            // 500 per day * 4 kerbin days = 500
+
+            // 1 Kerbin day = 0.25 days
+            // 100 per day * 5 engineers = 500 per day
+            // 500 per day * 2 kerbin days = 250
+            int[] buildTimes = { 500, 250 };
+            return buildTimes[level];
+        }
+
         public override bool UpgradeFacility(int level)
         {
             base.UpgradeFacility(level);
@@ -192,9 +205,9 @@ namespace KerbalColonies.colonyFacilities
                 ore = float.Parse(facilityDatas[0].Split('&')[1]);
                 metalOre = float.Parse(facilityDatas[1].Split('&')[1]);
                 maxKerbals = Convert.ToInt32(facilityDatas[2].Split('&')[1]);
-                if (facilityDatas.Length > 2)
+                if (facilityDatas.Length > 3)
                 {
-                    kerbals = CreateKerbalList(facilityDatas[2]);
+                    kerbals = CreateKerbalList(facilityDatas[3]);
                 }
             }
         }
@@ -205,8 +218,10 @@ namespace KerbalColonies.colonyFacilities
             miningFacilityWindow = new KCMiningFacilityWindow(this);
             this.baseGroupName = "KC_CAB";
 
-            maxOretList = new List<float> { 200f, 400f };
+            maxOretList = new List<float> { 2000f, 4000f };
+            maxMetalOretList = new List<float> { 400f, 800f };
             OrePerDayperEngineer = new List<float> { 10f, 12f };
+            MetalOrePerDayperEngineer = new List<float> { 6f, 8f };
             maxKerbalsPerLevel = new List<int> { 8, 12 };
 
             this.maxKerbals = maxKerbalsPerLevel[level];

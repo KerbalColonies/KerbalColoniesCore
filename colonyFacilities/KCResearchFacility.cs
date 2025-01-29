@@ -128,7 +128,7 @@ namespace KerbalColonies.colonyFacilities
 
             lastUpdateTime = Planetarium.GetUniversalTime();
             sciencePoints = Math.Min(maxSciencePointList[level], sciencePoints + (float)((researchpointsPerDayperResearcher[level] / 24 / 60 / 60) * deltaTime) * kerbals.Count);
-            Configuration.SaveColonies();
+            Configuration.saveColonies = true;
         }
 
         public override void OnBuildingClicked()

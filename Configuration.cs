@@ -238,6 +238,7 @@ namespace KerbalColonies
             }
         }
 
+        internal static bool saveColonies = false;
         internal static void SaveColonies()
         {
             string root = "KCCD";

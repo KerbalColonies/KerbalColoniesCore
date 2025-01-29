@@ -121,8 +121,14 @@ namespace KerbalColonies
                 //writeDebug(facTest2.GetType().ToString());
             }
         }
+
+        public void LateUpdate()
+        {
+        }
+
         protected void OnDestroy()
         {
+            Configuration.SaveColonies();
             KerbalKonstructs.API.UnRegisterOnBuildingClicked(KCFacilityBase.OnBuildingClickedHandler);
             Configuration.coloniesPerBody.Clear();
         }

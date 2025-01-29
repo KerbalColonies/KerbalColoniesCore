@@ -121,11 +121,24 @@ namespace KerbalColonies
 
             kGUI.transferWindow = false;
 
-            Configuration.SaveColonies();
+            Configuration.saveColonies = true;
         }
 
         protected override void CustomWindow()
         {
+            switch (mode)
+            {
+                case SwitchModes.ActiveVessel:
+                    this.fromList = fromFac.filterKerbals(toVessel.GetVesselCrew());
+                    this.toList = new List<ProtoCrewMember>(fromFac.getKerbals());
+                    break;
+                case SwitchModes.Colony:
+                    this.fromList = fromFac.filterKerbals(KCKerbalFacilityBase.GetAllKerbalsInColony(saveGame, bodyIndex, colonyName).Where(kvp => kvp.Value == 0).ToDictionary(i => i.Key, i => i.Value).Keys.ToList());
+                    this.toList = fromFac.getKerbals();
+                    break;
+            }
+
+
             ProtoCrewMember fromListModifier = null;
             ProtoCrewMember toListModifier = null;
 

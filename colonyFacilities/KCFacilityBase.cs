@@ -80,7 +80,7 @@ namespace KerbalColonies.colonyFacilities
                     }
                 }
 
-                Configuration.SaveColonies();
+                Configuration.saveColonies = true;
                 return true;
             }
             return false;
@@ -93,7 +93,7 @@ namespace KerbalColonies.colonyFacilities
             if (GetInformationByFacilty(facility, out string saveGames, out int bodyIndexes, out string colonyNames, out List<GroupPlaceHolder> gphs, out List<string> UUIDs))
             {
                 facility.UpgradeFacility(facility.level + 1);
-                Configuration.SaveColonies();
+                Configuration.saveColonies = true;
                 return true;
             }
             return false;
@@ -109,7 +109,7 @@ namespace KerbalColonies.colonyFacilities
 
                 KCFacilityBase.CountFacilityType(facility.GetType(), saveGame, bodyIndex, colonyName, out int count);
                 Colonies.AddGroupUpdate(facility, facility.baseGroupName, $"{colonyName}_{facility.GetType().Name}_{facility.level}_{count}", colonyName);
-                Configuration.SaveColonies();
+                Configuration.saveColonies = true;
                 return true;
             }
             return false;
@@ -356,11 +356,11 @@ namespace KerbalColonies.colonyFacilities
         }
 
         /// <summary>
-        /// This method should return the upgrade time for the next level if the upgradetype is withAdditionalGroup.
+        /// This method should return the upgrade time for the specified level
         /// <para>Each engineer reduces the upgrade time by 100 + 5 * (engineer level - 1) * facility bonus / day. If the upgrade time reaches 0 then the upgrade can be placed</para>
         /// </summary>
         /// <returns></returns>
-        public virtual int GetUpgradeTime() { return 0; }
+        public virtual int GetUpgradeTime(int level) { return 0; }
 
         /// <summary>
         /// This function get automatically called, do not call it manually.

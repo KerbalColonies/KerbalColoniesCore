@@ -155,7 +155,7 @@ namespace KerbalColonies.colonyFacilities
                             {
                                 FlightGlobals.ActiveVessel.rootPart.RequestResource(kvp.Key.id, (double)i);
                                 storageFacility.changeAmount(kvp.Key, i);
-                                Configuration.SaveColonies();
+                                Configuration.saveColonies = true;
                             }
                         }
                         else
@@ -164,7 +164,7 @@ namespace KerbalColonies.colonyFacilities
                             {
                                 FlightGlobals.ActiveVessel.rootPart.RequestResource(kvp.Key.id, (double)i);
                                 storageFacility.changeAmount(kvp.Key, i);
-                                Configuration.SaveColonies();
+                                Configuration.saveColonies = true;
                             }
                         }
                     }
@@ -303,9 +303,17 @@ namespace KerbalColonies.colonyFacilities
 
         private KCStorageFacilityWindow StorageWindow;
 
-        public override int GetUpgradeTime()
+        public override int GetUpgradeTime(int level)
         {
-            return 100;
+            // 1 Kerbin day = 0.25 days
+            // 100 per day * 5 engineers = 500 per day
+            // 500 per day * 4 kerbin days = 500
+
+            // 1 Kerbin day = 0.25 days
+            // 100 per day * 5 engineers = 500 per day
+            // 500 per day * 2 kerbin days = 250
+            int[] buildTimes = { 500, 250 };
+            return buildTimes[level];
         }
 
         public override void EncodeString()

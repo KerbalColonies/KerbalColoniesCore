@@ -1,15 +1,12 @@
-﻿using System;
+﻿using KerbalColonies.colonyFacilities;
+using KerbalKonstructs.Modules;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using KerbalKonstructs;
-using KerbalKonstructs.Core;
-using UnityEngine;
 
 // KC: Kerbal Colonies
 // This mod aimes to create a colony system with Kerbal Konstructs statics
-//Copyright (C) 2024 AMPW, Halengar
+// Copyright (C) 2024 AMPW, Halengar
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -28,36 +25,99 @@ namespace KerbalColonies
 {
     internal static class Colonies
     {
-        internal static string activeColony = "";
-
+        internal static Type FacilityType = null;
+        internal static KCFacilityBase Facility = null;
+        internal static string ColonyName = "";
+        internal static string groupName = "";
+        internal static int colonyCount = 0;
 
         /// <summary>
         /// This function is called after a group is saved.
         /// All statics from the temporary group (activeColony_temp) get copied to activeColony.
         /// The temporary group gets deleted, the function unregisters itself from the KK groupSave and runs the save function.
         /// </summary>
-        internal static void GroupSaved(KerbalKonstructs.Core.GroupCenter groupCenter)
+        internal static void PlaceNewGroupSave(KerbalKonstructs.Core.GroupCenter groupCenter)
         {
-            List<KerbalKonstructs.Core.StaticInstance> instances = KerbalKonstructs.API.GetGroupStatics(groupCenter.Group);
-            // There was a Exception because the AddStaticToGroup changes
-            // This ensure that all statics are added
-            while (true)
-            {
-                try
-                {
-                    foreach (KerbalKonstructs.Core.StaticInstance instance in instances)
-                    {
-                        KerbalKonstructs.API.AddStaticToGroup(instance.UUID, activeColony);
-                    }
-                    break;
-                }
-                catch (Exception e) { }
+            if (groupCenter.Group != groupName) { return; }
 
+            List<KerbalKonstructs.Core.StaticInstance> instances = KerbalKonstructs.API.GetGroupStatics(groupName).ToList();
+            GroupPlaceHolder gph = new GroupPlaceHolder(groupName, groupCenter.RadialPosition, groupCenter.Orientation, groupCenter.Heading);
+            Configuration.coloniesPerBody[HighLogic.CurrentGame.Seed.ToString()][FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody)][ColonyName].Add(gph, new Dictionary<string, List<KCFacilityBase>>());
+
+            if (Facility == null)
+            {
+                throw new Exception("No facility found");
             }
 
-            KerbalKonstructs.API.RemoveGroup($"{activeColony}_temp");
-            KerbalKonstructs.API.UnRegisterOnGroupSaved(GroupSaved);
+            foreach (KerbalKonstructs.Core.StaticInstance instance in instances)
+            {
+                Configuration.coloniesPerBody[HighLogic.CurrentGame.Seed.ToString()][FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody)][ColonyName][gph].Add(instance.UUID, new List<colonyFacilities.KCFacilityBase> { });
+                Configuration.coloniesPerBody[HighLogic.CurrentGame.Seed.ToString()][FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody)][ColonyName][gph][instance.UUID].Add(Facility);
+            }
+
+            Configuration.saveColonies = true;
+            KerbalKonstructs.API.UnRegisterOnGroupSaved(PlaceNewGroupSave);
             KerbalKonstructs.API.Save();
+        }
+
+        /// <summary>
+        /// This function opens the groupeditor and lets the player position the group where they want.
+        /// Therefore it creates a temporary group so the entire group can be moved together.
+        /// It adds the PlaceNewGroupSave method to the KK groupsave to transfer the statics over to the main group.
+        /// </summary>
+        internal static bool PlaceNewGroup(KCFacilityBase facilityType, string fromGroupName, string newGroupName, string colonyName, int range = int.MaxValue)
+        {
+            Facility = facilityType;
+            // range isn't working
+            KerbalKonstructs.API.SetEditorRange(range);
+            Colonies.ColonyName = colonyName;
+            groupName = newGroupName;
+            KerbalKonstructs.API.CopyGroup(newGroupName, fromGroupName);
+            KerbalKonstructs.API.OpenGroupEditor(newGroupName);
+            KerbalKonstructs.API.RegisterOnGroupSaved(PlaceNewGroupSave);
+            return true;
+        }
+
+        /// <summary>
+        /// This function is called after a group from a facility upgrade is saved.
+        /// <para>The function unregisters itself from the KK groupSave and runs the save function.</para>
+        /// </summary>
+        internal static void AddGroupUpdateSave(KerbalKonstructs.Core.GroupCenter groupCenter)
+        {
+            if (groupCenter.Group != groupName) { return; }
+
+            List<KerbalKonstructs.Core.StaticInstance> instances = KerbalKonstructs.API.GetGroupStatics(groupName).ToList();
+            GroupPlaceHolder gph = new GroupPlaceHolder(groupName, groupCenter.RadialPosition, groupCenter.Orientation, groupCenter.Heading);
+            Configuration.coloniesPerBody[HighLogic.CurrentGame.Seed.ToString()][FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody)][ColonyName].Add(gph, new Dictionary<string, List<KCFacilityBase>>());
+
+            foreach (KerbalKonstructs.Core.StaticInstance instance in instances)
+            {
+                Configuration.coloniesPerBody[HighLogic.CurrentGame.Seed.ToString()][FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody)][ColonyName][gph].Add(instance.UUID, new List<colonyFacilities.KCFacilityBase> { Facility });
+            }
+
+            Configuration.saveColonies = true;
+            KerbalKonstructs.API.UnRegisterOnGroupSaved(AddGroupUpdateSave);
+            KerbalKonstructs.API.Save();
+        }
+
+        /// <summary>
+        /// This function opens the groupeditor and lets the player position the group where they want.
+        /// Therefore it creates a temporary group so the entire group can be moved together.
+        /// It adds the PlaceNewGroupSave method to the KK groupsave to transfer the statics over to the main group.
+        /// </summary>
+        internal static bool AddGroupUpdate(KCFacilityBase facility, string fromGroupName, string newGroupName, string colonyName, int range = int.MaxValue)
+        {
+            Facility = facility;
+            // range isn't working
+            KerbalKonstructs.API.SetEditorRange(range);
+            ColonyName = colonyName;
+            groupName = newGroupName;
+            groupName = KerbalKonstructs.API.CreateGroup(newGroupName);
+            KerbalKonstructs.API.CopyGroup(newGroupName, fromGroupName);
+            KerbalKonstructs.API.OpenGroupEditor(newGroupName);
+            KerbalKonstructs.API.RegisterOnGroupSaved(AddGroupUpdateSave);
+            Configuration.saveColonies = true;
+            return true;
         }
 
         /// <summary>
@@ -66,36 +126,28 @@ namespace KerbalColonies
         /// </summary>
         internal static bool CreateColony()
         {
-            FlightGlobals.fetch.SetVesselPosition(FlightGlobals.GetBodyIndex(FlightGlobals.currentMainBody), FlightGlobals.ship_latitude, FlightGlobals.ship_longitude, FlightGlobals.ship_altitude + 2, FlightGlobals.ActiveVessel.ReferenceTransform.eulerAngles, false, easeToSurface: true, 0.01);
-            FloatingOrigin.ResetTerrainShaderOffset();
-            int colonyCount = 1;
-            if (Configuration.coloniesPerBody.ContainsKey(FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody))){
-                Configuration.coloniesPerBody[FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody)] += 1;
-                colonyCount = Configuration.coloniesPerBody[FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody)];
-            }
-            else
-            {
-                Configuration.coloniesPerBody.Add(FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody), 1);
-            }
-                activeColony = KerbalKonstructs.API.CreateGroup($"KC_{FlightGlobals.currentMainBody.name}_{colonyCount}");
-            Vessel vessel = FlightGlobals.ActiveVessel;
-            EditorGroupPlace("KC_CAB", activeColony); //CAB: Colony Assembly Hub, initial start group
-            return true;
-        }
 
-        /// <summary>
-        /// This function opens the groupeditor and lets the player position the group where they want.
-        /// Therefore it creates a temporary group so the entire group can be moved together.
-        /// It adds the GroupSaved method to the KK groupsave to transfer the statics over to the main group.
-        /// </summary>
-        internal static bool EditorGroupPlace(string groupName, string colonyName, int range = int.MaxValue)
-        {
-            KerbalKonstructs.API.SetEditorRange(range);
-            activeColony = colonyName;
-            KerbalKonstructs.API.CreateGroup($"{colonyName}_temp");
-            KerbalKonstructs.API.CopyGroup($"{colonyName}_temp", groupName);
-            KerbalKonstructs.API.OpenGroupEditor($"{colonyName}_temp");
-            KerbalKonstructs.API.RegisterOnGroupSaved(GroupSaved);
+            if (!Configuration.coloniesPerBody.ContainsKey(HighLogic.CurrentGame.Seed.ToString()))
+            {
+                Configuration.coloniesPerBody.Add(HighLogic.CurrentGame.Seed.ToString(), new Dictionary<int, Dictionary<string, Dictionary<GroupPlaceHolder, Dictionary<string, List<colonyFacilities.KCFacilityBase>>>>> { { FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody), new Dictionary<string, Dictionary<GroupPlaceHolder, Dictionary<string, List<colonyFacilities.KCFacilityBase>>>> { } } });
+            }
+            else if (!Configuration.coloniesPerBody[HighLogic.CurrentGame.Seed.ToString()].ContainsKey(FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody)))
+            {
+                Configuration.coloniesPerBody[HighLogic.CurrentGame.Seed.ToString()].Add(FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody), new Dictionary<string, Dictionary<GroupPlaceHolder, Dictionary<string, List<KCFacilityBase>>>> { });
+            }
+            else if (Configuration.coloniesPerBody[HighLogic.CurrentGame.Seed.ToString()][FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody)].Count() >= Configuration.maxColoniesPerBody)
+            {
+                return false;
+            }
+
+            colonyCount = Configuration.coloniesPerBody[HighLogic.CurrentGame.Seed.ToString()][FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody)].Count();
+
+            string colonyName = $"KC_{HighLogic.CurrentGame.Seed.ToString()}_{FlightGlobals.currentMainBody.name}_{colonyCount}";
+            string groupName = $"{colonyName}_CAB";
+
+            groupName = KerbalKonstructs.API.CreateGroup(groupName);
+            Configuration.coloniesPerBody[HighLogic.CurrentGame.Seed.ToString()][FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody)].Add(colonyName, new Dictionary<GroupPlaceHolder, Dictionary<string, List<KCFacilityBase>>> { });
+            PlaceNewGroup(new KC_CAB_Facility(), "KC_CAB", groupName, colonyName); //CAB: Colony Assembly Hub, initial start group
             return true;
         }
     }

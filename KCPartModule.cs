@@ -9,7 +9,7 @@ using static UnityEngine.GraphicsBuffer;
 
 // KC: Kerbal Colonies
 // This mod aimes to create a colony system with Kerbal Konstructs statics
-//Copyright (C) 2024 AMPW, Halengar
+// Copyright (C) 2024 AMPW, Halengar
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -44,17 +44,21 @@ namespace KerbalColonies
             PartResourceDefinition oreResource = PartResourceLibrary.Instance.GetDefinition("Ore");
 
             part.vessel.GetConnectedResourceTotals(oreResource.id, false, out double amount, out double maxAmount);
-            if (amount >= Configuration.OreRequiredPerColony)
+            if (amount >= Configuration.oreRequiredPerColony)
             {
-                part.RequestResource("Ore", (double) Configuration.OreRequiredPerColony);
-                writeLog("Creating colony");
-                ScreenMessages.PostScreenMessage($"Creating a colony on {part.vessel.mainBody.name}", 10f, ScreenMessageStyle.UPPER_RIGHT);
-                Colonies.CreateColony();
-                part.Die();
+                if (Colonies.CreateColony())
+                {
+                    part.RequestResource("Ore", (double)Configuration.oreRequiredPerColony);
+                    writeLog("Creating colony");
+                    ScreenMessages.PostScreenMessage($"Creating a colony on {part.vessel.mainBody.name}", 10f, ScreenMessageStyle.UPPER_RIGHT);
+                    FlightGlobals.fetch.SetVesselPosition(FlightGlobals.GetBodyIndex(FlightGlobals.currentMainBody), FlightGlobals.ship_latitude, FlightGlobals.ship_longitude, FlightGlobals.ship_altitude + Configuration.spawnHeight, FlightGlobals.ActiveVessel.ReferenceTransform.eulerAngles, false, easeToSurface: true, 0.01);
+                    FloatingOrigin.ResetTerrainShaderOffset();
+                    part.Die();
+                }
             }
             else
             {
-                ScreenMessages.PostScreenMessage($"Not enough ore: {amount}/{Configuration.OreRequiredPerColony}", 10f, ScreenMessageStyle.UPPER_RIGHT);
+                ScreenMessages.PostScreenMessage($"Not enough ore: {amount}/{Configuration.oreRequiredPerColony}", 10f, ScreenMessageStyle.UPPER_RIGHT);
             }
         }
 

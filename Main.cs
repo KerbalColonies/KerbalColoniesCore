@@ -26,6 +26,7 @@ namespace KerbalColonies
     public class KerbalColonies : MonoBehaviour
     {
         double lastTime = 0;
+        bool despawned = false;
 
         protected void Awake()
         {
@@ -42,6 +43,11 @@ namespace KerbalColonies
             Configuration.RegisterBuildableFacility(typeof(KCResearchFacility), new KCResearchFacilityCost());
             Configuration.RegisterBuildableFacility(typeof(KCMiningFacility), new KCMiningFacilityCost());
             Configuration.RegisterBuildableFacility(typeof(KCBuildingProductionFacility), new KCBuildingProductionFacilityCost());
+
+            KC_CAB_Facility.addDefaultFacility(typeof(KCStorageFacility), 1);
+            KC_CAB_Facility.addDefaultFacility(typeof(KCCrewQuarters), 1);
+            KC_CAB_Facility.addDefaultFacility(typeof(KCBuildingProductionFacility), 1);
+
             KerbalKonstructs.API.RegisterOnBuildingClicked(KCFacilityBase.OnBuildingClickedHandler);
         }
 
@@ -55,25 +61,6 @@ namespace KerbalColonies
             {
                 Configuration.writeDebug($"{resource.displayName}: {resource.name}, {resource.id}");
             }
-
-            foreach (string saveGame in Configuration.coloniesPerBody.Keys)
-            {
-                if (saveGame == HighLogic.CurrentGame.Seed.ToString()) { continue; }
-
-                foreach (int bodyIndex in Configuration.coloniesPerBody[saveGame].Keys)
-                {
-                    foreach (string colonyName in Configuration.coloniesPerBody[saveGame][bodyIndex].Keys)
-                    {
-                        foreach (GroupPlaceHolder gph in Configuration.coloniesPerBody[saveGame][bodyIndex][colonyName].Keys)
-                        {
-                            foreach (string UUID in Configuration.coloniesPerBody[saveGame][bodyIndex][colonyName][gph].Keys)
-                            {
-                                KerbalKonstructs.API.DeactivateStatic(UUID);
-                            }
-                        }
-                    }
-                }
-            }
         }
 
         public void FixedUpdate()
@@ -82,12 +69,15 @@ namespace KerbalColonies
             {
                 lastTime = Planetarium.GetUniversalTime();
                 string saveGame = HighLogic.CurrentGame.Seed.ToString();
-                foreach (int bodyIndex in Configuration.coloniesPerBody[saveGame].Keys)
+                if (Configuration.coloniesPerBody.ContainsKey(saveGame))
                 {
-                    foreach (string colonyName in Configuration.coloniesPerBody[saveGame][bodyIndex].Keys)
+                    foreach (int bodyIndex in Configuration.coloniesPerBody[saveGame].Keys)
                     {
-                        List<KCFacilityBase> colonyFacilities = KCFacilityBase.GetFacilitiesInColony(saveGame, bodyIndex, colonyName);
-                        colonyFacilities.ForEach(facility => facility.Update());
+                        foreach (string colonyName in Configuration.coloniesPerBody[saveGame][bodyIndex].Keys)
+                        {
+                            List<KCFacilityBase> colonyFacilities = KCFacilityBase.GetFacilitiesInColony(saveGame, bodyIndex, colonyName);
+                            colonyFacilities.ForEach(facility => facility.Update());
+                        }
                     }
                 }
             }
@@ -96,11 +86,33 @@ namespace KerbalColonies
                 lastTime += Planetarium.GetUniversalTime();
             }
 
-            //HighLogic.CurrentGame.CrewRoster;
+            if (!despawned)
+            {
+                foreach (string saveGame in Configuration.coloniesPerBody.Keys)
+                {
+                    if (saveGame == HighLogic.CurrentGame.Seed.ToString()) { continue; }
+
+                    foreach (int bodyIndex in Configuration.coloniesPerBody[saveGame].Keys)
+                    {
+                        foreach (string colonyName in Configuration.coloniesPerBody[saveGame][bodyIndex].Keys)
+                        {
+                            foreach (GroupPlaceHolder gph in Configuration.coloniesPerBody[saveGame][bodyIndex][colonyName].Keys)
+                            {
+                                foreach (string UUID in Configuration.coloniesPerBody[saveGame][bodyIndex][colonyName][gph].Keys)
+                                {
+                                    KerbalKonstructs.API.DeactivateStatic(UUID);
+                                }
+                            }
+                        }
+                    }
+                }
+
+                despawned = true;
+            }
 
             if (Input.GetKeyDown(KeyCode.U))
             {
-                writeDebug(Planetarium.GetUniversalTime().ToString());
+
             }
             else if (Input.GetKeyDown(KeyCode.Z))
             {

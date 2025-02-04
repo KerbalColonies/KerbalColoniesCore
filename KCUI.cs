@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace KerbalColonies
 {
-    abstract class KCWindowBase : KCWindow
+    public abstract class KCWindowBase : KCWindow
     {
         protected GUIStyle LabelGreen;
 
@@ -12,8 +12,6 @@ namespace KerbalColonies
         private bool guiInitialized;
 
         internal Rect toolRect = new Rect(100, 100, 330, 100);
-
-        protected virtual void OnClose() { }
 
         public override void Draw()
         {
@@ -60,7 +58,6 @@ namespace KerbalColonies
 
                 if (GUILayout.Button("X", UIMain.DeadButtonRed, GUILayout.Height(21)))
                 {
-                    OnClose();
                     //KerbalKonstructs.instance.saveObjects();
                     this.Close();
                 }

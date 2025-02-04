@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace KerbalColonies
 {
-    internal class KerbalSelectorGUI : KCWindowBase
+    public class KerbalSelectorGUI : KCWindowBase
     {
         public enum SwitchModes
         {
@@ -31,6 +31,21 @@ namespace KerbalColonies
         string saveGame;
         int bodyIndex;
         string colonyName;
+
+        protected override void OnOpen()
+        {            
+            switch (mode)
+            {
+                case SwitchModes.ActiveVessel:
+                    this.fromList = fromFac.filterKerbals(toVessel.GetVesselCrew());
+                    this.toList = new List<ProtoCrewMember>(fromFac.getKerbals());
+                    break;
+                case SwitchModes.Colony:
+                    this.fromList = fromFac.filterKerbals(KCKerbalFacilityBase.GetAllKerbalsInColony(saveGame, bodyIndex, colonyName).Where(kvp => kvp.Value == 0).ToDictionary(i => i.Key, i => i.Value).Keys.ToList());
+                    this.toList = fromFac.getKerbals();
+                    break;
+            }
+        }
 
         protected override void OnClose()
         {
@@ -62,7 +77,7 @@ namespace KerbalColonies
 
                     toVessel.RemoveCrew(member);
 
-                    member.rosterStatus = ProtoCrewMember.RosterStatus.Available;
+                    member.rosterStatus = ProtoCrewMember.RosterStatus.Missing;
                     HighLogic.CurrentGame.CrewRoster.AddCrewMember(member);
 
                     toVessel.SpawnCrew();
@@ -126,17 +141,7 @@ namespace KerbalColonies
 
         protected override void CustomWindow()
         {
-            switch (mode)
-            {
-                case SwitchModes.ActiveVessel:
-                    this.fromList = fromFac.filterKerbals(toVessel.GetVesselCrew());
-                    this.toList = new List<ProtoCrewMember>(fromFac.getKerbals());
-                    break;
-                case SwitchModes.Colony:
-                    this.fromList = fromFac.filterKerbals(KCKerbalFacilityBase.GetAllKerbalsInColony(saveGame, bodyIndex, colonyName).Where(kvp => kvp.Value == 0).ToDictionary(i => i.Key, i => i.Value).Keys.ToList());
-                    this.toList = fromFac.getKerbals();
-                    break;
-            }
+
 
 
             ProtoCrewMember fromListModifier = null;
@@ -226,7 +231,7 @@ namespace KerbalColonies
         }
     }
 
-    internal class KerbalGUI
+    public class KerbalGUI
     {
         public static GUIStyle LabelInfo;
         public static GUIStyle BoxInfo;

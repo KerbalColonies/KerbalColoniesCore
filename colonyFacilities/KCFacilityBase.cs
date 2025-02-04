@@ -32,6 +32,7 @@ namespace KerbalColonies.colonyFacilities
         public double creationTime;
         public string facilityData;
         protected bool initialized = false;
+        internal bool Initialized { get { return initialized; } set { initialized = value; } }
         public string baseGroupName; // The KC group name that will be copied when creating a new facility
         public int level = 0;
         public int maxLevel = 0;

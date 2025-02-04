@@ -66,10 +66,19 @@ namespace KerbalColonies.colonyFacilities
             GUILayout.Label("Max ore: " + miningFacility.MaxOre);
             GUILayout.EndHorizontal();
 
+            GUILayout.Space(10);
+
+            GUILayout.BeginHorizontal();
+            GUILayout.Label("Stored metalore: " + miningFacility.MetalOre);
+            GUILayout.Label("Max metalore: " + miningFacility.MaxMetalOre);
+            GUILayout.EndHorizontal();
+
+            GUILayout.Space(10);
+
             kerbalGUI.StaffingInterface();
 
             GUILayout.BeginHorizontal();
-            if (GUILayout.Button("Retrieve Ore"))
+            if (GUILayout.Button("Retrieve resources"))
             {
                 miningFacility.RetrieveResources();
             }
@@ -149,23 +158,50 @@ namespace KerbalColonies.colonyFacilities
 
                 foreach (KCStorageFacility storage in storages)
                 {
-// this won't work, need additional checks
-// ore <= empty: add ore, exit loop
-// empty < ore: add empty amount, reduce ore by empty amount and continue
-                    double tempAmount = ore - storage.getEmptyAmount(PartResourceLibrary.Instance.GetDefinition("Ore"));
-                    storage.changeAmount(PartResourceLibrary.Instance.GetDefinition("Ore"), (float) tempAmount);
-                    ore -= tempAmount;
+                    if (ore <= storage.getEmptyAmount(PartResourceLibrary.Instance.GetDefinition("Ore")))
+                    {
+                        storage.changeAmount(PartResourceLibrary.Instance.GetDefinition("Ore"), (float)ore);
+                        ore = 0;
+                        break;
+                    }
+                    else
+                    {
+                        double tempAmount = storage.getEmptyAmount(PartResourceLibrary.Instance.GetDefinition("Ore"));
+                        storage.changeAmount(PartResourceLibrary.Instance.GetDefinition("Ore"), (float)tempAmount);
+                        ore -= tempAmount;
+                    }
                 }
             }
 
             if (metalOre > 0)
             {
                 List<KCStorageFacility> storages = KCStorageFacility.findFacilityWithResourceType(PartResourceLibrary.Instance.GetDefinition("MetalOre"), saveGame, bodyIndex, colonyName);
+                if (storages.Count == 0)
+                {
+                    List<KCFacilityBase> facilities = KCFacilityBase.GetFacilitiesInColony(saveGame, bodyIndex, colonyName).Where(obj => typeof(KCStorageFacility).IsAssignableFrom(obj.GetType())).ToList();
+
+                    foreach (KCFacilityBase facility in facilities)
+                    {
+                        KCStorageFacility storageFacility = (KCStorageFacility)facility;
+                        storageFacility.addRessource(PartResourceLibrary.Instance.GetDefinition("MetalOre"));
+                        storages.Add(storageFacility);
+                    }
+                }
+
                 foreach (KCStorageFacility storage in storages)
                 {
-                    double tempAmount = metalOre - storage.getEmptyAmount(PartResourceLibrary.Instance.GetDefinition("MetalOre"));
-                    storage.changeAmount(PartResourceLibrary.Instance.GetDefinition("MetalOre"), (float)tempAmount);
-                    metalOre -= tempAmount;
+                    if (metalOre <= storage.getEmptyAmount(PartResourceLibrary.Instance.GetDefinition("MetalOre")))
+                    {
+                        storage.changeAmount(PartResourceLibrary.Instance.GetDefinition("MetalOre"), (float)metalOre);
+                        metalOre = 0;
+                        break;
+                    }
+                    else
+                    {
+                        double tempAmount = storage.getEmptyAmount(PartResourceLibrary.Instance.GetDefinition("MetalOre"));
+                        storage.changeAmount(PartResourceLibrary.Instance.GetDefinition("MetalOre"), (float)tempAmount);
+                        metalOre -= tempAmount;
+                    }
                 }
             }
             return true;

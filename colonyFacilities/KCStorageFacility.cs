@@ -83,6 +83,12 @@ namespace KerbalColonies.colonyFacilities
             }
         }
 
+        private double getVesselRessources(Vessel v, PartResourceDefinition resource)
+        {
+            v.GetConnectedResourceTotals(resource.id, false, out double vesselAmount, out double vesselMaxAmount);
+            return vesselAmount;
+        }
+
         private bool facilityHasRessources(PartResourceDefinition resouce, float amount)
         {
             if (storageFacility.getRessources()[resouce] >= amount)
@@ -93,6 +99,16 @@ namespace KerbalColonies.colonyFacilities
             {
                 return false;
             }
+        }
+
+        private double getFacilityResource(PartResourceDefinition resource)
+        {
+            return storageFacility.getRessources()[resource];
+        }
+
+        private double getFacilitySpace(PartResourceDefinition resource)
+        {
+            return storageFacility.getEmptyAmount(resource);
         }
 
         /// <summary>
@@ -110,6 +126,12 @@ namespace KerbalColonies.colonyFacilities
                 return false;
             }
         }
+        private double getVesselSpace(Vessel v, PartResourceDefinition r)
+        {
+            v.GetConnectedResourceTotals(r.id, false, out double vesselAmount, out double vesselMaxAmount);
+            return vesselMaxAmount - vesselAmount;
+        }
+
         private bool facilityHasSpace(PartResourceDefinition resource, float amount)
         {
             if (storageFacility.getMaxVolume() - storageFacility.getCurrentVolume() >= storageFacility.getVolumeForAmount(resource, amount))
@@ -151,20 +173,75 @@ namespace KerbalColonies.colonyFacilities
                     {
                         if (i < 0)
                         {
-                            if (vesselHasSpace(FlightGlobals.ActiveVessel, kvp.Key, i) && facilityHasRessources(kvp.Key, -i))
+                            if (vesselHasSpace(FlightGlobals.ActiveVessel, kvp.Key, i))
                             {
-                                FlightGlobals.ActiveVessel.rootPart.RequestResource(kvp.Key.id, (double)i);
-                                storageFacility.changeAmount(kvp.Key, i);
-                                Configuration.saveColonies = true;
+                                if (facilityHasRessources(kvp.Key, -i))
+                                {
+                                    FlightGlobals.ActiveVessel.rootPart.RequestResource(kvp.Key.id, (double) i);
+                                    storageFacility.changeAmount(kvp.Key, i);
+                                    Configuration.saveColonies = true;
+                                }
+                                else
+                                {
+                                    double amount = getFacilityResource(kvp.Key);
+                                    storageFacility.changeAmount(kvp.Key, (float) -amount);
+                                    FlightGlobals.ActiveVessel.rootPart.RequestResource(kvp.Key.id, -amount);
+                                    Configuration.saveColonies = true;
+                                }
+                            }
+                            else
+                            {
+                                double amount = getVesselSpace(FlightGlobals.ActiveVessel, kvp.Key);
+
+                                if (facilityHasRessources(kvp.Key, (float) -amount))
+                                {
+                                    FlightGlobals.ActiveVessel.rootPart.RequestResource(kvp.Key.id, (double)amount);
+                                    storageFacility.changeAmount(kvp.Key, (float)-amount);
+                                    Configuration.saveColonies = true;
+                                }
+                                else
+                                {
+                                    amount = getFacilityResource(kvp.Key);
+                                    storageFacility.changeAmount(kvp.Key, (float)-amount);
+                                    FlightGlobals.ActiveVessel.rootPart.RequestResource(kvp.Key.id, -amount);
+                                    Configuration.saveColonies = true;
+                                }
                             }
                         }
                         else
                         {
-                            if (facilityHasSpace(kvp.Key, i) && vesselHasRessources(FlightGlobals.ActiveVessel, kvp.Key, i))
+                            if (facilityHasSpace(kvp.Key, i))
                             {
-                                FlightGlobals.ActiveVessel.rootPart.RequestResource(kvp.Key.id, (double)i);
-                                storageFacility.changeAmount(kvp.Key, i);
-                                Configuration.saveColonies = true;
+                                if (vesselHasRessources(FlightGlobals.ActiveVessel, kvp.Key, i))
+                                {
+                                    FlightGlobals.ActiveVessel.rootPart.RequestResource(kvp.Key.id, (double)i);
+                                    storageFacility.changeAmount(kvp.Key, i);
+                                    Configuration.saveColonies = true;
+                                }
+                                else
+                                {
+                                    double amount = getVesselRessources(FlightGlobals.ActiveVessel, kvp.Key);
+                                    FlightGlobals.ActiveVessel.rootPart.RequestResource(kvp.Key.id, amount);
+                                    storageFacility.changeAmount(kvp.Key, (float) amount);
+                                    Configuration.saveColonies = true;
+                                }
+                            }
+                            else
+                            {
+                                double amount = getFacilitySpace(kvp.Key);
+                                if (vesselHasRessources(FlightGlobals.ActiveVessel, kvp.Key, (float) amount))
+                                {
+                                    FlightGlobals.ActiveVessel.rootPart.RequestResource(kvp.Key.id, (double)amount);
+                                    storageFacility.changeAmount(kvp.Key, (float) amount);
+                                    Configuration.saveColonies = true;
+                                }
+                                else
+                                {
+                                    amount = getVesselRessources(FlightGlobals.ActiveVessel, kvp.Key);
+                                    FlightGlobals.ActiveVessel.rootPart.RequestResource(kvp.Key.id, amount);
+                                    storageFacility.changeAmount(kvp.Key, (float)amount);
+                                    Configuration.saveColonies = true;
+                                }
                             }
                         }
                     }
@@ -435,6 +512,13 @@ namespace KerbalColonies.colonyFacilities
             }
         }
 
+        public override bool UpgradeFacility(int level)
+        {
+            float[] maxVolumes = { 2000f, 4000f };
+            maxVolume = maxVolumes[level];
+            return base.UpgradeFacility(level);
+        }
+
         public KCStorageFacility(bool enabled, string facilityData = "", float maxVolume = 0f) : base("KCStorageFacility", enabled, facilityData, 0, 1)
         {
             this.maxVolume = maxVolume;
@@ -442,7 +526,7 @@ namespace KerbalColonies.colonyFacilities
 
         public KCStorageFacility(bool enabled, string facilityData = "") : base("KCStorageFacility", enabled, facilityData, 0, 1)
         {
-            maxVolume = 0f;
+            maxVolume = 2000f;
         }
     }
 }

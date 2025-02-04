@@ -1,5 +1,4 @@
 ﻿using KerbalColonies.colonyFacilities;
-using KerbalKonstructs.Modules;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -147,7 +146,19 @@ namespace KerbalColonies
 
             groupName = KerbalKonstructs.API.CreateGroup(groupName);
             Configuration.coloniesPerBody[HighLogic.CurrentGame.Seed.ToString()][FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody)].Add(colonyName, new Dictionary<GroupPlaceHolder, Dictionary<string, List<KCFacilityBase>>> { });
-            PlaceNewGroup(new KC_CAB_Facility(), "KC_CAB", groupName, colonyName); //CAB: Colony Assembly Hub, initial start group
+
+            KC_CAB_Facility cab = new KC_CAB_Facility();
+
+            foreach (KeyValuePair<Type, int> kvp in KC_CAB_Facility.defaultFacilities)
+            {
+                for (int i = 0; i < kvp.Value; i++)
+                {
+                    KCFacilityBase KCFac = Configuration.CreateInstance(kvp.Key, false, "");
+                    cab.addConstructedFacility(KCFac);
+                }
+            }
+
+            PlaceNewGroup(cab, "KC_CAB", groupName, colonyName); //CAB: Colony Assembly Hub, initial start group
             return true;
         }
     }

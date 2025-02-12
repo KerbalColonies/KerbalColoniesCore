@@ -45,7 +45,7 @@
     <Compile Include="colonyFacilities\KCResearchFacility.cs" />
     <Compile Include="colonyFacilities\KCStorageFacility.cs" />
     <Compile Include="colonyFacilities\KC_CAB_Facility.cs" />
-    <Compile Include="colonyFacilities\ResourceConverter.cs" />
+    <Compile Include="colonyFacilities\KCResourceConverterFacility.cs" />
     <Compile Include="Configuration.cs" />
     <Compile Include="GroupPlaceHolder.cs" />
     <Compile Include="KCPartModule.cs" />

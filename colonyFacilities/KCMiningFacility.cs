@@ -110,13 +110,13 @@ namespace KerbalColonies.colonyFacilities
 
         public double Ore { get { return ore; } }
         public double MetalOre { get { return metalOre; } }
-        public double MaxOre { get { return maxOretList[level]; } }
+        public double MaxOre { get { return maxOreList[level]; } }
         public double MaxMetalOre { get { return maxMetalOretList[level]; } }
 
-        private List<float> maxOretList = new List<float> { 2000f, 4000f };
-        private List<float> maxMetalOretList = new List<float> { 400f, 800f };
-        private List<float> OrePerDayperEngineer = new List<float> { 20f, 20f };
-        private List<float> MetalOrePerDayperEngineer = new List<float> { 6f, 8f };
+        private List<float> maxOreList = new List<float> { 10000f, 12000f };
+        private List<float> maxMetalOretList = new List<float> { 4000f, 5000f };
+        private List<float> OrePerDayperEngineer = new List<float> { 1000f, 1200f };
+        private List<float> MetalOrePerDayperEngineer = new List<float> { 400f, 500f };
         private List<int> maxKerbalsPerLevel = new List<int> { 8, 12 };
 
         public override List<ProtoCrewMember> filterKerbals(List<ProtoCrewMember> kerbals)
@@ -129,7 +129,7 @@ namespace KerbalColonies.colonyFacilities
             double deltaTime = Planetarium.GetUniversalTime() - lastUpdateTime;
 
             lastUpdateTime = Planetarium.GetUniversalTime();
-            ore = Math.Min(maxOretList[level], ore + (float)((OrePerDayperEngineer[level] / 24 / 60 / 60) * deltaTime) * kerbals.Count);
+            ore = Math.Min(maxOreList[level], ore + (float)((OrePerDayperEngineer[level] / 24 / 60 / 60) * deltaTime) * kerbals.Count);
             metalOre = Math.Min(maxMetalOretList[level], metalOre + (float)((MetalOrePerDayperEngineer[level] / 24 / 60 / 60) * deltaTime) * kerbals.Count);
             Configuration.saveColonies = true;
         }
@@ -148,7 +148,6 @@ namespace KerbalColonies.colonyFacilities
             }
         }
 
-        // TODO: test this function
         public bool RetrieveResources()
         {
             KCFacilityBase.GetInformationByFacilty(this, out string saveGame, out int bodyIndex, out string colonyName, out List<GroupPlaceHolder> gph, out List<string> UUIDs);
@@ -254,10 +253,10 @@ namespace KerbalColonies.colonyFacilities
             miningFacilityWindow = new KCMiningFacilityWindow(this);
             this.baseGroupName = "KC_CAB";
 
-            maxOretList = new List<float> { 2000f, 4000f };
+            maxOreList = new List<float> { 2000f, 4000f };
             maxMetalOretList = new List<float> { 400f, 800f };
-            OrePerDayperEngineer = new List<float> { 10f, 12f };
-            MetalOrePerDayperEngineer = new List<float> { 6f, 8f };
+            OrePerDayperEngineer = new List<float> { 200f, 400f };
+            MetalOrePerDayperEngineer = new List<float> { 40f, 80f };
             maxKerbalsPerLevel = new List<int> { 8, 12 };
 
             this.maxKerbals = maxKerbalsPerLevel[level];

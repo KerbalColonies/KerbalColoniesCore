@@ -53,7 +53,6 @@ namespace KerbalColonies
                     ScreenMessages.PostScreenMessage($"Creating a colony on {part.vessel.mainBody.name}", 10f, ScreenMessageStyle.UPPER_RIGHT);
                     FlightGlobals.fetch.SetVesselPosition(FlightGlobals.GetBodyIndex(FlightGlobals.currentMainBody), FlightGlobals.ship_latitude, FlightGlobals.ship_longitude, FlightGlobals.ship_altitude + Configuration.spawnHeight, FlightGlobals.ActiveVessel.ReferenceTransform.eulerAngles, false, easeToSurface: true, 0.01);
                     FloatingOrigin.ResetTerrainShaderOffset();
-                    part.Die();
                 }
             }
             else

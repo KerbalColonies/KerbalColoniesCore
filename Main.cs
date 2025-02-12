@@ -1,6 +1,7 @@
 ﻿using KerbalColonies.colonyFacilities;
 using KerbalColonies.Serialization;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 // KC: Kerbal Colonies
@@ -38,11 +39,13 @@ namespace KerbalColonies
             KCFacilityTypeRegistry.RegisterType<KC_CAB_Facility>();
             KCFacilityTypeRegistry.RegisterType<KCMiningFacility>();
             KCFacilityTypeRegistry.RegisterType<KCBuildingProductionFacility>();
+            KCFacilityTypeRegistry.RegisterType<KCResourceConverterFacility>();
             Configuration.RegisterBuildableFacility(typeof(KCStorageFacility), new KCStorageFacilityCost());
             Configuration.RegisterBuildableFacility(typeof(KCCrewQuarters), new KCCrewQuarterCost());
             Configuration.RegisterBuildableFacility(typeof(KCResearchFacility), new KCResearchFacilityCost());
             Configuration.RegisterBuildableFacility(typeof(KCMiningFacility), new KCMiningFacilityCost());
             Configuration.RegisterBuildableFacility(typeof(KCBuildingProductionFacility), new KCBuildingProductionFacilityCost());
+            Configuration.RegisterBuildableFacility(typeof(KCResourceConverterFacility), new KCResourceConverterFacilityCost());
 
             KC_CAB_Facility.addDefaultFacility(typeof(KCStorageFacility), 1);
             KC_CAB_Facility.addDefaultFacility(typeof(KCCrewQuarters), 1);
@@ -53,6 +56,8 @@ namespace KerbalColonies
 
         protected void Start()
         {
+            GameEvents.onGamePause.Add(onPause);
+
             KSPLog.print("KC start");
             Configuration.coloniesPerBody.Clear();
             Configuration.LoadColonies("KCCD");
@@ -112,7 +117,7 @@ namespace KerbalColonies
 
             if (Input.GetKeyDown(KeyCode.U))
             {
-
+                KCResourceConverterFacility.resourceTypes.ToString();
             }
             else if (Input.GetKeyDown(KeyCode.Z))
             {
@@ -132,6 +137,11 @@ namespace KerbalColonies
                 //writeDebug(facTest2.ToString());
                 //writeDebug(facTest2.GetType().ToString());
             }
+        }
+
+        void onPause()
+        {
+            Configuration.SaveColonies();
         }
 
         public void LateUpdate()

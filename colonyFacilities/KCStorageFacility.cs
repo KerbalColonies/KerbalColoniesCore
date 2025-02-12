@@ -173,7 +173,7 @@ namespace KerbalColonies.colonyFacilities
                     {
                         if (i < 0)
                         {
-                            if (vesselHasSpace(FlightGlobals.ActiveVessel, kvp.Key, i))
+                            if (vesselHasSpace(FlightGlobals.ActiveVessel, kvp.Key, -i))
                             {
                                 if (facilityHasRessources(kvp.Key, -i))
                                 {
@@ -440,7 +440,7 @@ namespace KerbalColonies.colonyFacilities
             }
             else
             {
-                if (this.currentVolume + getVolumeForAmount(resource, amount) < this.maxVolume)
+                if (this.currentVolume + getVolumeForAmount(resource, amount) <= this.maxVolume)
                 {
                     if (this.resources.ContainsKey(resource))
                     {
@@ -514,7 +514,7 @@ namespace KerbalColonies.colonyFacilities
 
         public override bool UpgradeFacility(int level)
         {
-            float[] maxVolumes = { 2000f, 4000f };
+            float[] maxVolumes = { 80000f, 100000f };
             maxVolume = maxVolumes[level];
             return base.UpgradeFacility(level);
         }

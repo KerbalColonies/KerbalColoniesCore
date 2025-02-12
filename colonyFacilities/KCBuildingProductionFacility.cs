@@ -75,9 +75,6 @@ namespace KerbalColonies.colonyFacilities
         }
     }
 
-    /// <summary>
-    /// TODO: Finish this class
-    /// </summary>
     [System.Serializable]
     public class KCBuildingProductionFacility : KCKerbalFacilityBase
     {

@@ -339,6 +339,8 @@ namespace KerbalColonies.colonyFacilities
             }
             return false;
         }
+
+        // TODO: find out why the default facilities have the same id as the cab facility
         internal static int createID()
         {
             int id = 0;
@@ -374,6 +376,22 @@ namespace KerbalColonies.colonyFacilities
 
         public virtual void UpdateBaseGroupName()
         {
+        }
+
+        /// <summary>
+        /// A new way of storing custom data, the loadCustomNode will recive the node from this method
+        /// </summary>
+        public virtual ConfigNode getCustomNode()
+        {
+            return null;
+        }
+
+        /// <summary>
+        /// A new way of storing custom data, this method recieves the node from the getCustomNode method
+        /// </summary>
+        public virtual void loadCustomNode(ConfigNode customNode)
+        {
+
         }
 
         /// <summary>

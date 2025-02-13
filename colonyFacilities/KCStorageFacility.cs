@@ -159,10 +159,10 @@ namespace KerbalColonies.colonyFacilities
             List<int> valueList = new List<int> { -100, -10, -1, 1, 10, 100 };
 
             GUILayout.BeginScrollView(new Vector2());
-            Dictionary<PartResourceDefinition, float> resourceCopy = storageFacility.getRessources();
+            Dictionary<PartResourceDefinition, double> resourceCopy = storageFacility.getRessources();
             for (int r = 0; r < resourceCopy.Count; r++)
             {
-                KeyValuePair<PartResourceDefinition, float> kvp = resourceCopy.ElementAt(r);
+                KeyValuePair<PartResourceDefinition, double> kvp = resourceCopy.ElementAt(r);
                 GUILayout.BeginVertical();
                 GUILayout.Label($"{kvp.Key.displayName}: {kvp.Value}", GUILayout.Height(18));
 
@@ -177,14 +177,14 @@ namespace KerbalColonies.colonyFacilities
                             {
                                 if (facilityHasRessources(kvp.Key, -i))
                                 {
-                                    FlightGlobals.ActiveVessel.rootPart.RequestResource(kvp.Key.id, (double) i);
+                                    FlightGlobals.ActiveVessel.rootPart.RequestResource(kvp.Key.id, (double)i);
                                     storageFacility.changeAmount(kvp.Key, i);
                                     Configuration.saveColonies = true;
                                 }
                                 else
                                 {
                                     double amount = getFacilityResource(kvp.Key);
-                                    storageFacility.changeAmount(kvp.Key, (float) -amount);
+                                    storageFacility.changeAmount(kvp.Key, (float)-amount);
                                     FlightGlobals.ActiveVessel.rootPart.RequestResource(kvp.Key.id, -amount);
                                     Configuration.saveColonies = true;
                                 }
@@ -193,7 +193,7 @@ namespace KerbalColonies.colonyFacilities
                             {
                                 double amount = getVesselSpace(FlightGlobals.ActiveVessel, kvp.Key);
 
-                                if (facilityHasRessources(kvp.Key, (float) -amount))
+                                if (facilityHasRessources(kvp.Key, (float)-amount))
                                 {
                                     FlightGlobals.ActiveVessel.rootPart.RequestResource(kvp.Key.id, (double)amount);
                                     storageFacility.changeAmount(kvp.Key, (float)-amount);
@@ -222,17 +222,17 @@ namespace KerbalColonies.colonyFacilities
                                 {
                                     double amount = getVesselRessources(FlightGlobals.ActiveVessel, kvp.Key);
                                     FlightGlobals.ActiveVessel.rootPart.RequestResource(kvp.Key.id, amount);
-                                    storageFacility.changeAmount(kvp.Key, (float) amount);
+                                    storageFacility.changeAmount(kvp.Key, (float)amount);
                                     Configuration.saveColonies = true;
                                 }
                             }
                             else
                             {
                                 double amount = getFacilitySpace(kvp.Key);
-                                if (vesselHasRessources(FlightGlobals.ActiveVessel, kvp.Key, (float) amount))
+                                if (vesselHasRessources(FlightGlobals.ActiveVessel, kvp.Key, (float)amount))
                                 {
                                     FlightGlobals.ActiveVessel.rootPart.RequestResource(kvp.Key.id, (double)amount);
-                                    storageFacility.changeAmount(kvp.Key, (float) amount);
+                                    storageFacility.changeAmount(kvp.Key, (float)amount);
                                     Configuration.saveColonies = true;
                                 }
                                 else
@@ -331,15 +331,15 @@ namespace KerbalColonies.colonyFacilities
         }
 
         [NonSerialized]
-        public Dictionary<PartResourceDefinition, float> resources;
+        public Dictionary<PartResourceDefinition, double> resources;
 
-        public float maxVolume;
-        public float currentVolume
+        public double maxVolume;
+        public double currentVolume
         {
             get
             {
-                float amount = 0;
-                foreach (KeyValuePair<PartResourceDefinition, float> entry in resources)
+                double amount = 0;
+                foreach (KeyValuePair<PartResourceDefinition, double> entry in resources)
                 {
                     amount += entry.Key.volume * entry.Value;
                 }
@@ -347,7 +347,7 @@ namespace KerbalColonies.colonyFacilities
             }
         }
 
-        public Dictionary<PartResourceDefinition, float> getRessources() { return resources; }
+        public Dictionary<PartResourceDefinition, double> getRessources() { return resources; }
         public void addRessource(PartResourceDefinition r) { resources.TryAdd(r, 0); }
 
         public void setAmount(PartResourceDefinition resource, float amount)
@@ -362,18 +362,18 @@ namespace KerbalColonies.colonyFacilities
             }
         }
 
-        public float getCurrentVolume()
+        public double getCurrentVolume()
         {
             return currentVolume;
         }
-        public float getMaxVolume()
+        public double getMaxVolume()
         {
             return maxVolume;
         }
 
-        public float getVolumeForAmount(PartResourceDefinition resource, float amount) { return amount * resource.volume; }
+        public double getVolumeForAmount(PartResourceDefinition resource, double amount) { return amount * resource.volume; }
 
-        public float getEmptyAmount(PartResourceDefinition resource)
+        public double getEmptyAmount(PartResourceDefinition resource)
         {
             return (maxVolume - currentVolume) / resource.volume;
         }
@@ -393,31 +393,39 @@ namespace KerbalColonies.colonyFacilities
             return buildTimes[level];
         }
 
-        public override void EncodeString()
+        public override ConfigNode getCustomNode()
         {
-            string resourceString = "";
-            foreach (KeyValuePair<PartResourceDefinition, float> entry in resources)
+            ConfigNode node = new ConfigNode("resources");
+
+            node.AddValue("maxVolume", maxVolume);
+
+            foreach (KeyValuePair<PartResourceDefinition, double> entry in resources)
             {
-                resourceString += $"|{entry.Key.name}&{entry.Value}";
+                node.AddValue(entry.Key.name, entry.Value);
             }
 
-            facilityData = $"maxVolume&{maxVolume}{resourceString}";
+            return node;
         }
 
-        public override void DecodeString()
+        public override void loadCustomNode(ConfigNode customNode)
         {
-            if (facilityData != "")
+            if (customNode != null)
             {
-                Dictionary<string, string> data = new Dictionary<string, string>();
-                foreach (string s in facilityData.Split('|'))
-                {
-                    data.Add(s.Split('&')[0], s.Split('&')[1]);
-                }
-                maxVolume = float.Parse(data["maxVolume"]);
+                maxVolume = double.Parse(customNode.GetValue("maxVolume"));
+                customNode.RemoveValue("maxVolume");
 
-                for (int i = 1; i < data.Count; i++)
+
+                foreach (ConfigNode.Value value in customNode.values)
                 {
-                    resources.Add(PartResourceLibrary.Instance.GetDefinition(data.ElementAt(i).Key), float.Parse(data.ElementAt(i).Value));
+                    PartResourceDefinition prd = PartResourceLibrary.Instance.GetDefinition(value.name);
+                    if (!resources.ContainsKey(prd))
+                    {
+                        resources.Add(prd, double.Parse(value.value));
+                    }
+                    else
+                    {
+                        resources[prd] = double.Parse(value.value);
+                    }
                 }
             }
         }
@@ -425,7 +433,7 @@ namespace KerbalColonies.colonyFacilities
         /// <summary>
         /// changes the stored amount by a given value. Returns false if more is pulled out than stored.
         /// </summary>
-        internal bool changeAmount(PartResourceDefinition resource, float amount)
+        internal bool changeAmount(PartResourceDefinition resource, double amount)
         {
             if (amount < 0)
             {
@@ -480,7 +488,7 @@ namespace KerbalColonies.colonyFacilities
 
         public override void Initialize(string facilityData)
         {
-            resources = new Dictionary<PartResourceDefinition, float>();
+            resources = new Dictionary<PartResourceDefinition, double>();
             base.Initialize(facilityData);
             this.StorageWindow = new KCStorageFacilityWindow(this);
 
@@ -511,6 +519,7 @@ namespace KerbalColonies.colonyFacilities
                     break;
             }
         }
+
 
         public override bool UpgradeFacility(int level)
         {

@@ -345,11 +345,11 @@ namespace KerbalColonies.colonyFacilities
 
                 foreach (KCStorageFacility facility in facilitiesWithResource)
                 {
-                    Dictionary<PartResourceDefinition, float> facilityResources = facility.getRessources();
+                    Dictionary<PartResourceDefinition, double> facilityResources = facility.getRessources();
 
                     if (remainingResource < facilityResources[kvp.Key])
                     {
-                        facility.changeAmount(kvp.Key, -(float)remainingResource);
+                        facility.changeAmount(kvp.Key, -remainingResource);
                         break;
                     }
                     else
@@ -401,7 +401,7 @@ namespace KerbalColonies.colonyFacilities
 
                 foreach (KCStorageFacility facility in facilitiesWithResource)
                 {
-                    Dictionary<PartResourceDefinition, float> facilityResources = facility.getRessources();
+                    Dictionary<PartResourceDefinition, double> facilityResources = facility.getRessources();
                     remainingResource -= facilityResources[kvp.Key];
                     if (remainingResource < 0) { break; }
                 }
@@ -446,6 +446,19 @@ namespace KerbalColonies.colonyFacilities
         public override List<ProtoCrewMember> filterKerbals(List<ProtoCrewMember> kerbals)
         {
             return kerbals.Where(k => k.experienceTrait.Title == "Engineer").ToList();
+        }
+
+        public override int GetUpgradeTime(int level)
+        {
+            // 1 Kerbin day = 0.25 days
+            // 100 per day * 5 engineers = 500 per day
+            // 500 per day * 4 kerbin days = 500
+
+            // 1 Kerbin day = 0.25 days
+            // 100 per day * 5 engineers = 500 per day
+            // 500 per day * 2 kerbin days = 250
+            int[] buildTimes = { 500, 500 };
+            return buildTimes[level];
         }
 
         public override void Update()

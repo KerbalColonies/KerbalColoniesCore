@@ -226,6 +226,19 @@ namespace KerbalColonies.colonyFacilities
             return true;
         }
 
+        public override ConfigNode getCustomNode()
+        {
+            ConfigNode node = new ConfigNode("test");
+
+            node.AddValue("testValue", 200);
+
+            return node;
+        }
+
+        public override void loadCustomNode(ConfigNode customNode)
+        {
+        }
+
         public override void EncodeString()
         {
             string kerbalString = CreateKerbalString(kerbals);

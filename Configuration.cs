@@ -80,7 +80,7 @@ namespace KerbalColonies
         internal static Type CrewQuarterType { get { return crewQuarterType; } set { if (typeof(KCCrewQuarters).IsAssignableFrom(value)) { crewQuarterType = value; } } }
 
 
-        internal static float spawnHeight = 1;                  // The height the active vessel should be set above the surface, this is done to prevent the vessel getting destroyed by the statics
+        internal static float spawnHeight = -5;                  // The height the active vessel should be set above the surface, this is done to prevent the vessel getting destroyed by the statics
         internal static int maxColoniesPerBody = 3;              // Limits the amount of colonies per celestial body (planet/moon)
                                                                  // set it to zero to disable the limit
         internal static int oreRequiredPerColony = 1000;     // The required amount of ore to start a colony
@@ -219,6 +219,11 @@ namespace KerbalColonies
 
                                     KCFacilityBase kcFacility = KCFacilityClassConverter.DeserializeObject(kcFacilityName);
 
+                                    if (KCFacilityNode.HasNode("CustomNode"))
+                                    {
+                                        kcFacility.loadCustomNode(KCFacilityNode.GetNode("CustomNode").GetNodes()[0]);
+                                    }
+
                                     if (KCFacilityBase.GetFacilityByID(kcFacility.id, out KCFacilityBase fac))
                                     {
                                         coloniesPerBody[saveGame.name][int.Parse(bodyId.name)][colonyName.name][gph][uuid.name].Add(fac);
@@ -294,6 +299,14 @@ namespace KerbalColonies
                                     string serializedKCFacility = KCFacilityClassConverter.SerializeObject(KCFacility);
                                     nodes[0].GetNode(saveGame).GetNode(bodyId.ToString()).GetNode(colonyName).GetNode(gph.GroupName).GetNode(uuid).AddNode(serializedKCFacility.Split('/')[0], "A serialized KCFacility");
                                     nodes[0].GetNode(saveGame).GetNode(bodyId.ToString()).GetNode(colonyName).GetNode(gph.GroupName).GetNode(uuid).GetNode(serializedKCFacility.Split('/')[0]).AddValue("serializedData", serializedKCFacility.Split('/')[1].Replace("{", "").Replace("}", ""), "Serialized Data from a KC facility");
+
+                                    ConfigNode customNodes = KCFacility.getCustomNode();
+                                    if (customNodes != null)
+                                    {
+                                        ConfigNode wrapperNode = new ConfigNode("CustomNode");
+                                        wrapperNode.AddNode(customNodes);
+                                        nodes[0].GetNode(saveGame).GetNode(bodyId.ToString()).GetNode(colonyName).GetNode(gph.GroupName).GetNode(uuid).GetNode(serializedKCFacility.Split('/')[0]).AddNode(wrapperNode);
+                                    }
                                 }
                             }
                         }

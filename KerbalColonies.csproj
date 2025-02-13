@@ -39,6 +39,7 @@
     <Compile Include="colonyFacilities\KCBuildingProductionFacility.cs" />
     <Compile Include="colonyFacilities\KCFacilityBase.cs" />
     <Compile Include="colonyFacilities\KCFacilityCostClass.cs" />
+    <Compile Include="colonyFacilities\KCHangarFacility.cs" />
     <Compile Include="colonyFacilities\KCKerbalFacilityBase.cs" />
     <Compile Include="colonyFacilities\KCCrewQuarters.cs" />
     <Compile Include="colonyFacilities\KCMiningFacility.cs" />

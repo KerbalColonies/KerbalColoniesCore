@@ -123,7 +123,9 @@ namespace KerbalColonies
                         }
                     }
 
-                    member.rosterStatus = ProtoCrewMember.RosterStatus.Assigned;
+                    member.rosterStatus = ProtoCrewMember.RosterStatus.Missing;
+                    member.SetInactive(double.MaxValue);
+                    member.SetTimeForRespawn(double.MaxValue);
                     //toVessel.RebuildCrewList();
                     toVessel.RebuildCrewList();
                     toVessel.SpawnCrew();

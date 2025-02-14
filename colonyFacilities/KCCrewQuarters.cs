@@ -194,15 +194,15 @@ namespace KerbalColonies.colonyFacilities
             }
         }
 
-        public override void Initialize(string facilityData)
+        public override void Initialize()
         {
             this.maxKerbals = 16;
-            base.Initialize(facilityData);
+            base.Initialize();
             this.baseGroupName = "KC_CAB";
             this.crewQuartersWindow = new KCCrewQuartersWindow(this);
         }
 
-        public KCCrewQuarters(bool enabled, string facilityData) : base("KCCrewQuarters", true, 16)
+        public KCCrewQuarters(bool enabled) : base("KCCrewQuarters", true, 16)
         {
         }
     }

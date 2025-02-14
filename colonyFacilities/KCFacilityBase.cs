@@ -30,7 +30,6 @@ namespace KerbalColonies.colonyFacilities
         public bool enabled;
         public double lastUpdateTime;
         public double creationTime;
-        public string facilityData;
         protected bool initialized = false;
         internal bool Initialized { get { return initialized; } set { initialized = value; } }
         public string baseGroupName; // The KC group name that will be copied when creating a new facility
@@ -340,17 +339,21 @@ namespace KerbalColonies.colonyFacilities
             return false;
         }
 
+
+        private static Random random = new Random();
         // TODO: find out why the default facilities have the same id as the cab facility
         internal static int createID()
         {
             int id = 0;
-            Random r = new Random();
 
             while (true)
             {
-                id = r.Next();
+                for (int i = 0; i < random.Next(10); i++)
+                {
+                    id = random.Next();
+                }
 
-                if (!IDexists(id))
+                if (!IDexists(id) && id != 0)
                 {
                     return id;
                 }
@@ -394,19 +397,6 @@ namespace KerbalColonies.colonyFacilities
 
         }
 
-        /// <summary>
-        /// This method should create the facilityData string from custom fields in derived classes, this base method returns an empty string.
-        /// </summary>
-        public virtual void EncodeString()
-        {
-            facilityData = "";
-        }
-
-        /// <summary>
-        /// This method should fill the custom fields of derived classes, this base method DOES NOTHING.
-        /// </summary>
-        public virtual void DecodeString() { }
-
 
         public virtual bool UpgradeFacility(int level)
         {
@@ -427,7 +417,7 @@ namespace KerbalColonies.colonyFacilities
         /// This method is called when the facilty when an object is created.
         /// During deserialization the constructor is not called, this method is used set up the facility for use during the game.
         /// </summary>
-        public virtual void Initialize(string facilityData)
+        public virtual void Initialize()
         {
             if (!initialized)
             {
@@ -440,9 +430,7 @@ namespace KerbalColonies.colonyFacilities
                     this.upgradeable = false;
                 }
 
-                this.facilityData = facilityData;
                 initialized = true;
-                DecodeString();
             }
         }
 
@@ -451,7 +439,7 @@ namespace KerbalColonies.colonyFacilities
         /// You can use a custom constructor but it should only call an overriden initialize function and not the base constructor
         /// This is necessary because of the serialization.
         /// </summary>
-        protected KCFacilityBase(string facilityName, bool enabled, string facilityData, int level = 0, int maxLevel = 0)
+        protected KCFacilityBase(string facilityName, bool enabled, int level = 0, int maxLevel = 0)
         {
             this.name = facilityName;
             this.enabled = enabled;
@@ -460,7 +448,7 @@ namespace KerbalColonies.colonyFacilities
             this.maxLevel = maxLevel;
             creationTime = Planetarium.GetUniversalTime();
             lastUpdateTime = Planetarium.GetUniversalTime();
-            Initialize(facilityData);
+            Initialize();
         }
     }
 }

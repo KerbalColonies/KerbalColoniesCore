@@ -486,10 +486,10 @@ namespace KerbalColonies.colonyFacilities
             StorageWindow.Toggle();
         }
 
-        public override void Initialize(string facilityData)
+        public override void Initialize()
         {
             resources = new Dictionary<PartResourceDefinition, double>();
-            base.Initialize(facilityData);
+            base.Initialize();
             this.StorageWindow = new KCStorageFacilityWindow(this);
 
             this.upgradeType = UpgradeType.withAdditionalGroup;
@@ -528,12 +528,7 @@ namespace KerbalColonies.colonyFacilities
             return base.UpgradeFacility(level);
         }
 
-        public KCStorageFacility(bool enabled, string facilityData = "", float maxVolume = 0f) : base("KCStorageFacility", enabled, facilityData, 0, 1)
-        {
-            this.maxVolume = maxVolume;
-        }
-
-        public KCStorageFacility(bool enabled, string facilityData = "") : base("KCStorageFacility", enabled, facilityData, 0, 1)
+        public KCStorageFacility(bool enabled) : base("KCStorageFacility", enabled, 0, 1)
         {
             maxVolume = 2000f;
         }

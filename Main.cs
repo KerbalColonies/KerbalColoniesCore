@@ -127,10 +127,6 @@ namespace KerbalColonies
             }
             else if (Input.GetKeyDown(KeyCode.H))
             {
-                KCStorageFacility facTest = new KCStorageFacility(true, maxVolume: 100);
-                writeDebug(facTest.ToString());
-                facTest.EncodeString();
-                writeDebug(facTest.facilityData);
                 //string serialString = KCFacilityClassConverter.SerializeObject(facTest);
                 //writeDebug(serialString);
                 //KCFacilityBase facTest2 = KCFacilityClassConverter.DeserializeObject(serialString);

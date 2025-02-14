@@ -11,7 +11,7 @@ namespace KerbalColonies.colonyFacilities
     {
         
 
-        public KCHangarFacility(bool enabled, string facilityData = "") : base("KCHangarFacility", enabled, facilityData, 0, 1)
+        public KCHangarFacility(bool enabled) : base("KCHangarFacility", enabled, 0, 1)
         {
 
         }

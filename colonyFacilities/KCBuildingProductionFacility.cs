@@ -121,16 +121,16 @@ namespace KerbalColonies.colonyFacilities
             baseGroupName = "KC_CAB";
         }
 
-        public override void Initialize(string facilityData)
+        public override void Initialize()
         {
-            base.Initialize(facilityData);
+            base.Initialize();
             baseGroupName = "KC_CAB";
             upgradeType = UpgradeType.withGroupChange;
             maxKerbalsPerLevel = new List<int> { 8, 12, 16 };
             prdWindow = new KCBuildingProductionWindow(this);
         }
 
-        public KCBuildingProductionFacility(bool enabled, string facilityData = "") : base("KCBuildingProductionFacility", enabled, 4, facilityData, 0, 2)
+        public KCBuildingProductionFacility(bool enabled) : base("KCBuildingProductionFacility", enabled, 4, 0, 2)
         {
 
         }

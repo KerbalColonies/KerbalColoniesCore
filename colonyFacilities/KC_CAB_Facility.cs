@@ -34,7 +34,7 @@ namespace KerbalColonies.colonyFacilities
                     if (GUILayout.Button("Build"))
                     {
                         Configuration.BuildableFacilities[t].RemoveVesselRessources(FlightGlobals.ActiveVessel, 0);
-                        KCFacilityBase KCFac = Configuration.CreateInstance(t, false, "");
+                        KCFacilityBase KCFac = Configuration.CreateInstance(t, false);
 
                         facility.AddconstructingFacility(KCFac);
                     }
@@ -384,86 +384,176 @@ namespace KerbalColonies.colonyFacilities
             window.Toggle();
         }
 
-        public override void EncodeString()
+        public override ConfigNode getCustomNode()
         {
-            string data = "";
-            List<string> serializedFacilities = new List<string>();
+            ConfigNode node = new ConfigNode("cabNode");
 
-            foreach (KCFacilityBase facility in constructingFacilities.Keys)
+            ConfigNode constructing = new ConfigNode("constructingFacilities");
+
+            foreach (KeyValuePair<KCFacilityBase, double> facility in constructingFacilities)
             {
-                string serializedFacility = KCFacilityClassConverter.SerializeObject(facility);
-                data += $"<<>>{serializedFacility}<0>constr<0>{constructingFacilities[facility]}";
+                ConfigNode facilityNode = new ConfigNode("facilityNode");
+
+                string serializedFacility = KCFacilityClassConverter.SerializeObject(facility.Key).Replace("{", "<<>").Replace("}", "<>>");
+
+                facilityNode.AddValue("facilityString", serializedFacility);
+                facilityNode.AddValue("remainingTime", facility.Value);
+
+                ConfigNode customNode = facility.Key.getCustomNode();
+                if (customNode != null)
+                {
+                    facilityNode.AddNode(customNode);
+                }
+
+                constructing.AddNode(facilityNode);
             }
+
+            ConfigNode constructed = new ConfigNode("constructedFacilities");
 
             foreach (KCFacilityBase facility in constructedFacilities)
             {
-                string serializedFacility = KCFacilityClassConverter.SerializeObject(facility);
-                data += $"<<>>{serializedFacility}<0>constrDone";
+                ConfigNode facilityNode = new ConfigNode("facilityNode");
+
+                string serializedFacility = KCFacilityClassConverter.SerializeObject(facility).Replace("{", "<<>").Replace("}", "<>>");
+
+                facilityNode.AddValue("facilityString", serializedFacility);
+
+                ConfigNode customNode = facility.getCustomNode();
+                if (customNode != null)
+                {
+                    facilityNode.AddNode(facility.getCustomNode());
+                }
+
+                constructed.AddNode(facilityNode);
             }
 
-            foreach (KCFacilityBase facility in upgradingFacilities.Keys)
+            ConfigNode upgrading = new ConfigNode("upgradingFacilities");
+
+            foreach (KeyValuePair<KCFacilityBase, double> facility in upgradingFacilities)
             {
-                string serializedFacility = KCFacilityClassConverter.SerializeObject(facility);
-                data += $"<<>>{serializedFacility}<0>upgr<0>{upgradingFacilities[facility]}";
+                ConfigNode facilityNode = new ConfigNode("facilityNode");
+
+                string serializedFacility = KCFacilityClassConverter.SerializeObject(facility.Key).Replace("{", "<<>").Replace("}", "<>>");
+
+                facilityNode.AddValue("facilityString", serializedFacility);
+                facilityNode.AddValue("remainingTime", facility.Value);
+
+                ConfigNode customNode = facility.Key.getCustomNode();
+                if (customNode != null)
+                {
+                    facilityNode.AddNode(customNode);
+                }
+
+                upgrading.AddNode(facilityNode);
             }
+
+            ConfigNode upgraded = new ConfigNode("upgradedFacilities");
 
             foreach (KCFacilityBase facility in upgradedFacilities)
             {
-                string serializedFacility = KCFacilityClassConverter.SerializeObject(facility);
-                data += $"<<>>{serializedFacility}<0>upgrDone";
+                ConfigNode facilityNode = new ConfigNode("facilityNode");
+
+                string serializedFacility = KCFacilityClassConverter.SerializeObject(facility).Replace("{", "<<>").Replace("}", "<>>");
+
+                facilityNode.AddValue("facilityString", serializedFacility);
+
+                ConfigNode customNode = facility.getCustomNode();
+                if (customNode != null)
+                {
+                    facilityNode.AddNode(facility.getCustomNode());
+                }
+
+                upgraded.AddNode(facilityNode);
             }
 
-            facilityData = data.Replace("/{", "<#>").Replace("}", ">#<").Replace(":", "<##>").Replace(",", "<###>");
+            node.AddNode(constructing);
+            node.AddNode(constructed);
+            node.AddNode(upgrading);
+            node.AddNode(upgraded);
+
+            return node;
         }
 
-        public override void DecodeString()
+        public override void loadCustomNode(ConfigNode customNode)
         {
-            if (!string.IsNullOrEmpty(facilityData))
+            if (customNode != null)
             {
-                facilityData = facilityData.Replace("<#>", "/{").Replace(">#<", "}").Replace("<##>", ":").Replace("<###>", ",");
-
-                string[] serializedFacilities = facilityData.Split(new[] { "<<>>" }, StringSplitOptions.RemoveEmptyEntries);
-
-                foreach (string serializedFacility in serializedFacilities)
+                if (customNode.HasNode("constructingFacilities"))
                 {
-                    if (string.IsNullOrEmpty(serializedFacility))
+                    foreach (ConfigNode facilityNode in customNode.GetNode("constructingFacilities").GetNodes())
                     {
-                        continue;
+                        KCFacilityBase facility = KCFacilityClassConverter.DeserializeObject(facilityNode.GetValue("facilityString").Replace("<<>", "{").Replace("<>>", "}"));
+
+                        if (facilityNode.GetNodes().Length == 1)
+                        {
+                            facility.loadCustomNode(facilityNode.GetNodes()[0]);
+                        }
+
+                        double time = double.Parse(facilityNode.GetValue("remainingTime"));
+
+                        constructingFacilities.Add(facility, time);
                     }
+                }
 
-                    string[] data = serializedFacility.Split(new[] { "<0>" }, StringSplitOptions.RemoveEmptyEntries);
-
-                    KCFacilityBase facility = KCFacilityClassConverter.DeserializeObject(data[0]);
-
-                    switch (data[1])
+                if (customNode.HasNode("constructedFacilities"))
+                {
+                    foreach (ConfigNode facilityNode in customNode.GetNode("constructedFacilities").GetNodes())
                     {
-                        case "constr":
-                            constructingFacilities.Add(facility, double.Parse(data[2]));
-                            break;
-                        case "constrDone":
-                            constructedFacilities.Add(facility);
-                            break;
-                        case "upgr":
-                            upgradingFacilities.Add(facility, double.Parse(data[2]));
-                            break;
-                        case "upgrDone":
-                            upgradedFacilities.Add(facility);
-                            break;
+                        KCFacilityBase facility = KCFacilityClassConverter.DeserializeObject(facilityNode.GetValue("facilityString").Replace("<<>", "{").Replace("<>>", "}"));
+
+                        if (facilityNode.GetNodes().Length == 1)
+                        {
+                            facility.loadCustomNode(facilityNode.GetNodes()[0]);
+                        }
+
+                        constructedFacilities.Add(facility);
+                    }
+                }
+
+                if (customNode.HasNode("upgradingFacilities"))
+                {
+                    foreach (ConfigNode facilityNode in customNode.GetNode("upgradingFacilities").GetNodes())
+                    {
+                        KCFacilityBase facility = KCFacilityClassConverter.DeserializeObject(facilityNode.GetValue("facilityString").Replace("<<>", "{").Replace("<>>", "}"));
+
+                        if (facilityNode.GetNodes().Length == 1)
+                        {
+                            facility.loadCustomNode(facilityNode.GetNodes()[0]);
+                        }
+
+                        double time = double.Parse(facilityNode.GetValue("remainingTime"));
+
+                        upgradingFacilities.Add(facility, time);
+                    }
+                }
+
+                if (customNode.HasNode("upgradedFacilities"))
+                {
+                    foreach (ConfigNode facilityNode in customNode.GetNode("upgradedFacilities").GetNodes())
+                    {
+                        KCFacilityBase facility = KCFacilityClassConverter.DeserializeObject(facilityNode.GetValue("facilityString").Replace("<<>", "{").Replace("<>>", "}"));
+
+                        if (facilityNode.GetNodes().Length == 1)
+                        {
+                            facility.loadCustomNode(facilityNode.GetNodes()[0]);
+                        }
+
+                        upgradedFacilities.Add(facility);
                     }
                 }
             }
         }
 
-        public override void Initialize(string facilityData)
+        public override void Initialize()
         {
-            base.Initialize(facilityData);
+            base.Initialize();
             window = new KC_CAB_Window(this);
             enabled = true;
         }
 
-        public KC_CAB_Facility(bool enabled, string facilityData = "") : base("KCCABFacility", enabled, facilityData, 0, 0) { }
+        public KC_CAB_Facility(bool enabled) : base("KCCABFacility", enabled, 0, 0) { }
 
-        public KC_CAB_Facility() : base("KCCABFacility", true, "")
+        public KC_CAB_Facility() : base("KCCABFacility", true)
         {
 
         }

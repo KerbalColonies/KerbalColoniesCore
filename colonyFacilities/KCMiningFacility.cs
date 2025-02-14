@@ -228,41 +228,28 @@ namespace KerbalColonies.colonyFacilities
 
         public override ConfigNode getCustomNode()
         {
-            ConfigNode node = new ConfigNode("test");
+            ConfigNode node = new ConfigNode();
+            node.AddValue("ore", ore);
+            node.AddValue("metalOre", metalOre);
 
-            node.AddValue("testValue", 200);
+            ConfigNode wrapperNode = new ConfigNode("wrapper");
+            wrapperNode.AddNode(base.getCustomNode());
+            node.AddNode(wrapperNode);
 
             return node;
         }
 
         public override void loadCustomNode(ConfigNode customNode)
         {
+            ore = double.Parse(customNode.GetValue("ore"));
+            metalOre = double.Parse(customNode.GetValue("metalOre"));
+
+            base.loadCustomNode(customNode.GetNode("wrapper").GetNodes()[0]);
         }
 
-        public override void EncodeString()
+        public override void Initialize()
         {
-            string kerbalString = CreateKerbalString(kerbals);
-            facilityData = $"ore&{ore}|metalOre&{metalOre}|maxKerbals&{maxKerbals}{((kerbalString != "") ? $"|{kerbalString}" : "")}";
-        }
-
-        public override void DecodeString()
-        {
-            if (facilityData != "")
-            {
-                string[] facilityDatas = facilityData.Split(new[] { '|' }, 4);
-                ore = float.Parse(facilityDatas[0].Split('&')[1]);
-                metalOre = float.Parse(facilityDatas[1].Split('&')[1]);
-                maxKerbals = Convert.ToInt32(facilityDatas[2].Split('&')[1]);
-                if (facilityDatas.Length > 3)
-                {
-                    kerbals = CreateKerbalList(facilityDatas[3]);
-                }
-            }
-        }
-
-        public override void Initialize(string facilityData)
-        {
-            base.Initialize(facilityData);
+            base.Initialize();
             miningFacilityWindow = new KCMiningFacilityWindow(this);
             this.baseGroupName = "KC_CAB";
 
@@ -277,7 +264,7 @@ namespace KerbalColonies.colonyFacilities
             this.upgradeType = UpgradeType.withoutGroupChange;
         }
 
-        public KCMiningFacility(bool enabled, string facilityData = "") : base("KCMiningFacility", enabled, 8, facilityData, 0, 1)
+        public KCMiningFacility(bool enabled) : base("KCMiningFacility", enabled, 8, 0, 1)
         {
             ore = 0;
         }

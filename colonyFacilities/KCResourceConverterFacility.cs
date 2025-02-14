@@ -488,35 +488,34 @@ namespace KerbalColonies.colonyFacilities
             kCResourceConverterWindow.Toggle();
         }
 
-        public override void EncodeString()
+        public override ConfigNode getCustomNode()
         {
-            string kerbalString = CreateKerbalString(kerbals);
-            facilityData = $"recipt&{activeRecipe.ReciptName}|maxKerbals&{maxKerbals}{((kerbalString != "") ? $"|{kerbalString}" : "")}";
+            ConfigNode node = new ConfigNode();
+            node.AddValue("recipt", activeRecipe.ReciptName);
+
+            ConfigNode wrapperNode = new ConfigNode("wrapper");
+            wrapperNode.AddNode(base.getCustomNode());
+            node.AddNode(wrapperNode);
+
+            return node;
         }
 
-        public override void DecodeString()
+        public override void loadCustomNode(ConfigNode customNode)
         {
-            if (facilityData != "")
-            {
-                string[] facilityDatas = facilityData.Split(new[] { '|' }, 3);
-                activeRecipe = conversionRates.Where(recipt => { return recipt.Key.ReciptName == facilityDatas[0].Split('&')[1]; }).First().Key;
-                maxKerbals = Convert.ToInt32(facilityDatas[1].Split('&')[1]);
-                if (facilityDatas.Length > 1)
-                {
-                    kerbals = CreateKerbalList(facilityDatas[2]);
-                }
-            }
+            activeRecipe = conversionRates.Where(recipt => { return recipt.Key.ReciptName == customNode.GetValue("recipt"); }).First().Key;
+
+            base.loadCustomNode(customNode.GetNode("wrapper").GetNodes()[0]);
         }
 
-        public override void Initialize(string facilityData)
+        public override void Initialize()
         {
-            base.Initialize(facilityData);
+            base.Initialize();
             this.baseGroupName = "KC_CAB";
             ISRUcount = new int[2] { 2, 4 }[level];
             kCResourceConverterWindow = new KCResourceConverterWindow(this);
         }
 
-        public KCResourceConverterFacility(bool enabled, string facilityData = "") : base("KCResourceConverterFacility", enabled, 4, facilityData, 0, 1)
+        public KCResourceConverterFacility(bool enabled) : base("KCResourceConverterFacility", enabled, 4, 0, 1)
         {
             this.activeRecipe = conversionRates.ElementAt(0).Key;
         }

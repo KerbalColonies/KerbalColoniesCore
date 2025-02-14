@@ -65,14 +65,14 @@ namespace KerbalColonies
             return false;
         }
 
-        internal static KCFacilityBase CreateInstance(Type t, bool enabled, string facilityData)
+        internal static KCFacilityBase CreateInstance(Type t, bool enabled)
         {
-            return (KCFacilityBase) Activator.CreateInstance(t, new object[] { enabled, facilityData });
+            return (KCFacilityBase) Activator.CreateInstance(t, new object[] { enabled });
         }
 
-        internal static KCFacilityBase CreateInstance(Type t, bool enabled, string facilityData, int facilityLevel)
+        internal static KCFacilityBase CreateInstance(Type t, bool enabled, int facilityLevel)
         {
-            return (KCFacilityBase)Activator.CreateInstance(t, new object[] { enabled, facilityData, facilityLevel});
+            return (KCFacilityBase)Activator.CreateInstance(t, new object[] { enabled, facilityLevel});
         }
 
         // configurable parameters
@@ -244,8 +244,15 @@ namespace KerbalColonies
         }
 
         internal static bool saveColonies = false;
+
+        // TODO: check saving when directly exiting to the menu
         internal static void SaveColonies()
         {
+            if (coloniesPerBody.Count == 0)
+            {
+                return;
+            }
+
             string root = "KCCD";
 
             ConfigNode[] nodes = new ConfigNode[1] { new ConfigNode() };

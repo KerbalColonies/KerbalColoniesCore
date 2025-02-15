@@ -34,7 +34,6 @@ namespace KerbalColonies.Serialization
     {
         public static string SerializeObject(KCFacilityBase obj)
         {
-            obj.EncodeString();
             // Include the type's fully qualified name as metadata outside of the serialized JSON
             string typeName = obj.GetType().FullName;
             string json = JsonUtility.ToJson(obj);
@@ -64,7 +63,8 @@ namespace KerbalColonies.Serialization
 
             // Deserialize using the correct type
             KCFacilityBase obj = (KCFacilityBase)JsonUtility.FromJson(json, type);
-            obj.Initialize(obj.facilityData);
+            obj.Initialized = false;
+            obj.Initialize();
 
             return obj;
         }

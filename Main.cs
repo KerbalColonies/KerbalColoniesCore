@@ -1,6 +1,7 @@
 ﻿using KerbalColonies.colonyFacilities;
 using KerbalColonies.Serialization;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 // KC: Kerbal Colonies
@@ -22,10 +23,11 @@ using UnityEngine;
 
 namespace KerbalColonies
 {
-    [KSPAddon(KSPAddon.Startup.Flight, false)]
+    [KSPAddon(KSPAddon.Startup.FlightAndKSC, false)]
     public class KerbalColonies : MonoBehaviour
     {
         double lastTime = 0;
+        bool despawned = false;
 
         protected void Awake()
         {
@@ -36,17 +38,28 @@ namespace KerbalColonies
             KCFacilityTypeRegistry.RegisterType<KCResearchFacility>();
             KCFacilityTypeRegistry.RegisterType<KC_CAB_Facility>();
             KCFacilityTypeRegistry.RegisterType<KCMiningFacility>();
-            KCFacilityTypeRegistry.RegisterType<KCBuildingProductionFacility>();
+            KCFacilityTypeRegistry.RegisterType<KCProductionFacility>();
+            KCFacilityTypeRegistry.RegisterType<KCResourceConverterFacility>();
+            KCFacilityTypeRegistry.RegisterType<KCHangarFacility>();
             Configuration.RegisterBuildableFacility(typeof(KCStorageFacility), new KCStorageFacilityCost());
             Configuration.RegisterBuildableFacility(typeof(KCCrewQuarters), new KCCrewQuarterCost());
             Configuration.RegisterBuildableFacility(typeof(KCResearchFacility), new KCResearchFacilityCost());
             Configuration.RegisterBuildableFacility(typeof(KCMiningFacility), new KCMiningFacilityCost());
-            Configuration.RegisterBuildableFacility(typeof(KCBuildingProductionFacility), new KCBuildingProductionFacilityCost());
+            Configuration.RegisterBuildableFacility(typeof(KCProductionFacility), new KCProductionFacilityCost());
+            Configuration.RegisterBuildableFacility(typeof(KCResourceConverterFacility), new KCResourceConverterFacilityCost());
+            Configuration.RegisterBuildableFacility(typeof(KCHangarFacility), new KCHangarFacilityCost());
+
+            KC_CAB_Facility.addDefaultFacility(typeof(KCStorageFacility), 1);
+            KC_CAB_Facility.addDefaultFacility(typeof(KCCrewQuarters), 1);
+            KC_CAB_Facility.addDefaultFacility(typeof(KCProductionFacility), 1);
+
             KerbalKonstructs.API.RegisterOnBuildingClicked(KCFacilityBase.OnBuildingClickedHandler);
         }
 
         protected void Start()
         {
+            GameEvents.onGamePause.Add(onPause);
+
             KSPLog.print("KC start");
             Configuration.coloniesPerBody.Clear();
             Configuration.LoadColonies("KCCD");
@@ -54,25 +67,6 @@ namespace KerbalColonies
             foreach (PartResourceDefinition resource in PartResourceLibrary.Instance.resourceDefinitions)
             {
                 Configuration.writeDebug($"{resource.displayName}: {resource.name}, {resource.id}");
-            }
-
-            foreach (string saveGame in Configuration.coloniesPerBody.Keys)
-            {
-                if (saveGame == HighLogic.CurrentGame.Seed.ToString()) { continue; }
-
-                foreach (int bodyIndex in Configuration.coloniesPerBody[saveGame].Keys)
-                {
-                    foreach (string colonyName in Configuration.coloniesPerBody[saveGame][bodyIndex].Keys)
-                    {
-                        foreach (GroupPlaceHolder gph in Configuration.coloniesPerBody[saveGame][bodyIndex][colonyName].Keys)
-                        {
-                            foreach (string UUID in Configuration.coloniesPerBody[saveGame][bodyIndex][colonyName][gph].Keys)
-                            {
-                                KerbalKonstructs.API.DeactivateStatic(UUID);
-                            }
-                        }
-                    }
-                }
             }
         }
 
@@ -82,12 +76,15 @@ namespace KerbalColonies
             {
                 lastTime = Planetarium.GetUniversalTime();
                 string saveGame = HighLogic.CurrentGame.Seed.ToString();
-                foreach (int bodyIndex in Configuration.coloniesPerBody[saveGame].Keys)
+                if (Configuration.coloniesPerBody.ContainsKey(saveGame))
                 {
-                    foreach (string colonyName in Configuration.coloniesPerBody[saveGame][bodyIndex].Keys)
+                    foreach (int bodyIndex in Configuration.coloniesPerBody[saveGame].Keys)
                     {
-                        List<KCFacilityBase> colonyFacilities = KCFacilityBase.GetFacilitiesInColony(saveGame, bodyIndex, colonyName);
-                        colonyFacilities.ForEach(facility => facility.Update());
+                        foreach (string colonyName in Configuration.coloniesPerBody[saveGame][bodyIndex].Keys)
+                        {
+                            List<KCFacilityBase> colonyFacilities = KCFacilityBase.GetFacilitiesInColony(saveGame, bodyIndex, colonyName);
+                            colonyFacilities.ForEach(facility => facility.Update());
+                        }
                     }
                 }
             }
@@ -96,11 +93,33 @@ namespace KerbalColonies
                 lastTime += Planetarium.GetUniversalTime();
             }
 
-            //HighLogic.CurrentGame.CrewRoster;
+            if (!despawned)
+            {
+                foreach (string saveGame in Configuration.coloniesPerBody.Keys)
+                {
+                    if (saveGame == HighLogic.CurrentGame.Seed.ToString()) { continue; }
+
+                    foreach (int bodyIndex in Configuration.coloniesPerBody[saveGame].Keys)
+                    {
+                        foreach (string colonyName in Configuration.coloniesPerBody[saveGame][bodyIndex].Keys)
+                        {
+                            foreach (GroupPlaceHolder gph in Configuration.coloniesPerBody[saveGame][bodyIndex][colonyName].Keys)
+                            {
+                                foreach (string UUID in Configuration.coloniesPerBody[saveGame][bodyIndex][colonyName][gph].Keys)
+                                {
+                                    KerbalKonstructs.API.DeactivateStatic(UUID);
+                                }
+                            }
+                        }
+                    }
+                }
+
+                despawned = true;
+            }
 
             if (Input.GetKeyDown(KeyCode.U))
             {
-                writeDebug(Planetarium.GetUniversalTime().ToString());
+                KCResourceConverterFacility.resourceTypes.ToString();
             }
             else if (Input.GetKeyDown(KeyCode.Z))
             {
@@ -110,16 +129,17 @@ namespace KerbalColonies
             }
             else if (Input.GetKeyDown(KeyCode.H))
             {
-                KCStorageFacility facTest = new KCStorageFacility(true, maxVolume: 100);
-                writeDebug(facTest.ToString());
-                facTest.EncodeString();
-                writeDebug(facTest.facilityData);
                 //string serialString = KCFacilityClassConverter.SerializeObject(facTest);
                 //writeDebug(serialString);
                 //KCFacilityBase facTest2 = KCFacilityClassConverter.DeserializeObject(serialString);
                 //writeDebug(facTest2.ToString());
                 //writeDebug(facTest2.GetType().ToString());
             }
+        }
+
+        void onPause()
+        {
+            Configuration.SaveColonies();
         }
 
         public void LateUpdate()

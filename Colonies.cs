@@ -1,5 +1,4 @@
 ﻿using KerbalColonies.colonyFacilities;
-using KerbalKonstructs.Modules;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -47,6 +46,20 @@ namespace KerbalColonies
             if (Facility == null)
             {
                 throw new Exception("No facility found");
+            }
+
+            if (typeof(KC_CAB_Facility).IsAssignableFrom(Facility.GetType()))
+            {
+                KC_CAB_Facility kC_CAB_Facility = (KC_CAB_Facility)Facility;
+
+                foreach (KeyValuePair<Type, int> kvp in KC_CAB_Facility.defaultFacilities)
+                {
+                    for (int i = 0; i < kvp.Value; i++)
+                    {
+                        KCFacilityBase KCFac = Configuration.CreateInstance(kvp.Key, false);
+                        kC_CAB_Facility.addConstructedFacility(KCFac);
+                    }
+                }
             }
 
             foreach (KerbalKonstructs.Core.StaticInstance instance in instances)
@@ -147,7 +160,10 @@ namespace KerbalColonies
 
             groupName = KerbalKonstructs.API.CreateGroup(groupName);
             Configuration.coloniesPerBody[HighLogic.CurrentGame.Seed.ToString()][FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody)].Add(colonyName, new Dictionary<GroupPlaceHolder, Dictionary<string, List<KCFacilityBase>>> { });
-            PlaceNewGroup(new KC_CAB_Facility(), "KC_CAB", groupName, colonyName); //CAB: Colony Assembly Hub, initial start group
+
+            KC_CAB_Facility cab = new KC_CAB_Facility();
+
+            PlaceNewGroup(cab, "KC_CAB", groupName, colonyName); //CAB: Colony Assembly Hub, initial start group
             return true;
         }
     }

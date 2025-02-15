@@ -36,15 +36,17 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Colonies.cs" />
-    <Compile Include="colonyFacilities\KCBuildingProductionFacility.cs" />
+    <Compile Include="colonyFacilities\KCProductionFacility.cs" />
     <Compile Include="colonyFacilities\KCFacilityBase.cs" />
     <Compile Include="colonyFacilities\KCFacilityCostClass.cs" />
+    <Compile Include="colonyFacilities\KCHangarFacility.cs" />
     <Compile Include="colonyFacilities\KCKerbalFacilityBase.cs" />
     <Compile Include="colonyFacilities\KCCrewQuarters.cs" />
     <Compile Include="colonyFacilities\KCMiningFacility.cs" />
     <Compile Include="colonyFacilities\KCResearchFacility.cs" />
     <Compile Include="colonyFacilities\KCStorageFacility.cs" />
     <Compile Include="colonyFacilities\KC_CAB_Facility.cs" />
+    <Compile Include="colonyFacilities\KCResourceConverterFacility.cs" />
     <Compile Include="Configuration.cs" />
     <Compile Include="GroupPlaceHolder.cs" />
     <Compile Include="KCPartModule.cs" />

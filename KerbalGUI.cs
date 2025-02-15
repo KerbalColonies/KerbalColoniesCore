@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace KerbalColonies
 {
-    internal class KerbalSelectorGUI : KCWindowBase
+    public class KerbalSelectorGUI : KCWindowBase
     {
         public enum SwitchModes
         {
@@ -28,9 +28,27 @@ namespace KerbalColonies
         List<ProtoCrewMember> fromListModifierList = new List<ProtoCrewMember>() { }; // Kerbals to be removed from the vessel
         List<ProtoCrewMember> toListModifierList = new List<ProtoCrewMember>() { }; // Kerbals to be added to the vessel
 
+        Vector2 fromScrollPos;
+        Vector2 toScrollPos;
+
         string saveGame;
         int bodyIndex;
         string colonyName;
+
+        protected override void OnOpen()
+        {
+            switch (mode)
+            {
+                case SwitchModes.ActiveVessel:
+                    this.fromList = fromFac.filterKerbals(toVessel.GetVesselCrew());
+                    this.toList = new List<ProtoCrewMember>(fromFac.getKerbals());
+                    break;
+                case SwitchModes.Colony:
+                    this.fromList = fromFac.filterKerbals(KCKerbalFacilityBase.GetAllKerbalsInColony(saveGame, bodyIndex, colonyName).Where(kvp => kvp.Value == 0).ToDictionary(i => i.Key, i => i.Value).Keys.ToList());
+                    this.toList = fromFac.getKerbals();
+                    break;
+            }
+        }
 
         protected override void OnClose()
         {
@@ -62,7 +80,7 @@ namespace KerbalColonies
 
                     toVessel.RemoveCrew(member);
 
-                    member.rosterStatus = ProtoCrewMember.RosterStatus.Available;
+                    member.rosterStatus = ProtoCrewMember.RosterStatus.Assigned;
                     HighLogic.CurrentGame.CrewRoster.AddCrewMember(member);
 
                     toVessel.SpawnCrew();
@@ -105,7 +123,9 @@ namespace KerbalColonies
                         }
                     }
 
-                    member.rosterStatus = ProtoCrewMember.RosterStatus.Assigned;
+                    member.rosterStatus = ProtoCrewMember.RosterStatus.Missing;
+                    member.SetInactive(double.MaxValue);
+                    member.SetTimeForRespawn(double.MaxValue);
                     //toVessel.RebuildCrewList();
                     toVessel.RebuildCrewList();
                     toVessel.SpawnCrew();
@@ -126,19 +146,6 @@ namespace KerbalColonies
 
         protected override void CustomWindow()
         {
-            switch (mode)
-            {
-                case SwitchModes.ActiveVessel:
-                    this.fromList = fromFac.filterKerbals(toVessel.GetVesselCrew());
-                    this.toList = new List<ProtoCrewMember>(fromFac.getKerbals());
-                    break;
-                case SwitchModes.Colony:
-                    this.fromList = fromFac.filterKerbals(KCKerbalFacilityBase.GetAllKerbalsInColony(saveGame, bodyIndex, colonyName).Where(kvp => kvp.Value == 0).ToDictionary(i => i.Key, i => i.Value).Keys.ToList());
-                    this.toList = fromFac.getKerbals();
-                    break;
-            }
-
-
             ProtoCrewMember fromListModifier = null;
             ProtoCrewMember toListModifier = null;
 
@@ -146,12 +153,12 @@ namespace KerbalColonies
 
             GUILayout.BeginVertical();
             GUILayout.Label(fromName, LabelGreen);
-            GUILayout.BeginScrollView(new Vector2());
+            fromScrollPos = GUILayout.BeginScrollView(fromScrollPos);
             foreach (ProtoCrewMember k in fromList)
             {
                 if (GUILayout.Button(k.name, GUILayout.Height(23)))
                 {
-                    if (toList.Count + 1 <= fromCapacity)
+                    if (toList.Count + 1 <= toCapacity)
                     {
                         Configuration.writeDebug(k.name);
                         fromListModifier = k;
@@ -165,12 +172,12 @@ namespace KerbalColonies
 
             GUILayout.BeginVertical();
             GUILayout.Label(toName, LabelGreen);
-            GUILayout.BeginScrollView(new Vector2());
+            toScrollPos = GUILayout.BeginScrollView(toScrollPos);
             foreach (ProtoCrewMember k in toList)
             {
                 if (GUILayout.Button(k.name, GUILayout.Height(23)))
                 {
-                    if (fromList.Count + 1 <= toCapacity)
+                    if (fromList.Count + 1 <= fromCapacity)
                     {
                         Configuration.writeDebug(k.name);
                         toListModifier = k;
@@ -204,8 +211,8 @@ namespace KerbalColonies
             this.kGUI = kGUI;
             this.toList = new List<ProtoCrewMember>(fromFac.getKerbals());
             this.mode = SwitchModes.ActiveVessel;
-            this.fromCapacity = fac.maxKerbals;
-            this.toCapacity = fromVessel.GetCrewCapacity();
+            this.fromCapacity = fromVessel.GetCrewCapacity();
+            this.toCapacity = fac.maxKerbals;
         }
 
         internal KerbalSelectorGUI(KCKerbalFacilityBase fac, KerbalGUI kGUI, string saveGame, int bodyIndex, string colonyName, string fromName, string toName) : base(Configuration.createWindowID(fac), fac.name)
@@ -226,7 +233,7 @@ namespace KerbalColonies
         }
     }
 
-    internal class KerbalGUI
+    public class KerbalGUI
     {
         public static GUIStyle LabelInfo;
         public static GUIStyle BoxInfo;

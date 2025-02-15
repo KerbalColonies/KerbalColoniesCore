@@ -90,82 +90,68 @@ namespace KerbalColonies.colonyFacilities
         public virtual void RemoveKerbal(ProtoCrewMember member) { kerbals.Remove(member); }
         public virtual void AddKerbal(ProtoCrewMember member) { kerbals.Add(member, 0); }
 
-        /// <summary>
-        /// Returns an encoded string with the kerbal ids
-        /// </summary>
-        public static string CreateKerbalString(Dictionary<ProtoCrewMember, int> kerbals)
-        {
-            string s = "";
-            if (kerbals.Count > 0)
-            {
-                s = $"k{0}&{kerbals.Keys.ToList()[0].name}&{kerbals.Values.ToList()[0]}";
-                for (int i = 1; i < kerbals.Count; i++)
-                {
-                    s = $"{s}|k{i}&{kerbals.Keys.ToList()[i].name}&{kerbals.Values.ToList()[i]}";
-                }
-            }
-            return s;
-        }
-
-        /// <summary>
-        /// Expects the part from the datastring with the kerbal persistent ids. Don't pass other data to it.
-        /// </summary>
-        public static Dictionary<ProtoCrewMember, int> CreateKerbalList(string kerbalString)
-        {
-            Dictionary<ProtoCrewMember, int> kerbals = new Dictionary<ProtoCrewMember, int>();
-            foreach (string s in kerbalString.Split('|'))
-            {
-                string kName = s.Split('&')[1];
-                int kStatus = Convert.ToInt32(s.Split('&')[2]);
-                foreach (ProtoCrewMember k in HighLogic.CurrentGame.CrewRoster.Crew)
-                {
-                    if (k.name == kName)
-                    {
-                        kerbals.Add(k, kStatus);
-                        break;
-                    }
-                }
-            }
-            return kerbals;
-        }
-
         public virtual List<ProtoCrewMember> filterKerbals(List<ProtoCrewMember> kerbals)
         {
             return kerbals;
         }
 
-        /// <summary>
-        /// Default method for the kerbalFacilities, only saves the kerbal list
-        /// </summary>
-        public override void EncodeString()
+        public ConfigNode createKerbalNode()
         {
-            string kerbalString = CreateKerbalString(kerbals);
-            facilityData = $"maxKerbals&{maxKerbals}{((kerbalString != "") ? $"|{kerbalString}" : "")}";
+            ConfigNode kerbalsNode = new ConfigNode("KerbalNode");
+            kerbalsNode.AddValue("maxKerbals", maxKerbals);
+
+            foreach (KeyValuePair<ProtoCrewMember, int> kerbal in kerbals)
+            {
+                ConfigNode kerbalNode = new ConfigNode("Kerbal");
+
+                kerbalNode.AddValue("name", kerbal.Key.name);
+                kerbalNode.AddValue("status", kerbal.Value);
+
+                kerbalsNode.AddNode(kerbalNode);
+            }
+
+            return kerbalsNode;
         }
 
-        /// <summary>
-        /// This only works if no other custom fields are saved in the facilityData
-        /// </summary>
-        public override void DecodeString()
+        public void loadKerbalNode(ConfigNode kerbalNode)
         {
-            if (facilityData != "")
+            if (kerbalNode != null)
             {
-                string[] facilityDatas = facilityData.Split(new[] { '|' }, 2);
-                maxKerbals = Convert.ToInt32(facilityDatas[0].Split('&')[1]);
-                if (facilityDatas.Length > 1)
+                maxKerbals = int.Parse(kerbalNode.GetValue("maxKerbals"));
+
+                foreach (ConfigNode kerbal in kerbalNode.GetNodes())
                 {
-                    kerbals = CreateKerbalList(facilityDatas[1]);
+                    string kName = kerbal.GetValue("name");
+                    int kStatus = Convert.ToInt32(kerbal.GetValue("status"));
+                    foreach (ProtoCrewMember k in HighLogic.CurrentGame.CrewRoster.Crew)
+                    {
+                        if (k.name == kName)
+                        {
+                            kerbals.Add(k, kStatus);
+                            break;
+                        }
+                    }
                 }
             }
         }
 
-        public override void Initialize(string facilityData)
+        public override ConfigNode getCustomNode()
         {
-            kerbals = new Dictionary<ProtoCrewMember, int> { };
-            base.Initialize(facilityData);
+            return createKerbalNode();
         }
 
-        public KCKerbalFacilityBase(string facilityName, bool enabled, int maxKerbals = 8, string facilityData = "", int level = 0, int maxLevel = 0) : base(facilityName, enabled, facilityData, level, maxLevel)
+        public override void loadCustomNode(ConfigNode customNode)
+        {
+            loadKerbalNode(customNode);
+        }
+
+        public override void Initialize()
+        {
+            kerbals = new Dictionary<ProtoCrewMember, int> { };
+            base.Initialize();
+        }
+
+        public KCKerbalFacilityBase(string facilityName, bool enabled, int maxKerbals = 8, int level = 0, int maxLevel = 0) : base(facilityName, enabled, level, maxLevel)
         {
             this.maxKerbals = maxKerbals;
             kerbals = new Dictionary<ProtoCrewMember, int> { };

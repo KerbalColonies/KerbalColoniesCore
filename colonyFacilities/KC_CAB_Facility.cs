@@ -34,7 +34,7 @@ namespace KerbalColonies.colonyFacilities
                     if (GUILayout.Button("Build"))
                     {
                         Configuration.BuildableFacilities[t].RemoveVesselRessources(FlightGlobals.ActiveVessel, 0);
-                        KCFacilityBase KCFac = Configuration.CreateInstance(t, true, "");
+                        KCFacilityBase KCFac = Configuration.CreateInstance(t, false);
 
                         facility.AddconstructingFacility(KCFac);
                     }
@@ -82,22 +82,25 @@ namespace KerbalColonies.colonyFacilities
                                     GUILayout.Label($"{pair.Key.displayName}: {pair.Value}");
                                 });
 
-                                if (GUILayout.Button("Upgrade"))
+                                if (!(facility.UpgradingFacilities.ContainsKey(colonyFacility) || facility.UpgradedFacilities.Contains(colonyFacility)))
                                 {
-                                    Configuration.BuildableFacilities[colonyFacility.GetType()].RemoveVesselRessources(FlightGlobals.ActiveVessel, colonyFacility.level + 1);
-                                    if (colonyFacility.upgradeType == UpgradeType.withGroupChange)
+                                    if (GUILayout.Button("Upgrade"))
                                     {
-                                        KCFacilityBase.UpgradeFacilityWithGroupChange(colonyFacility);
-                                    }
-                                    else if (colonyFacility.upgradeType == UpgradeType.withoutGroupChange)
-                                    {
-                                        KCFacilityBase.UpgradeFacilityWithoutGroupChange(colonyFacility);
-                                    }
-                                    else if (colonyFacility.upgradeType == UpgradeType.withAdditionalGroup)
-                                    {
-                                        facility.AddUpgradeableFacility(colonyFacility);
+                                        Configuration.BuildableFacilities[colonyFacility.GetType()].RemoveVesselRessources(FlightGlobals.ActiveVessel, colonyFacility.level + 1);
+                                        if (colonyFacility.upgradeType == UpgradeType.withGroupChange)
+                                        {
+                                            KCFacilityBase.UpgradeFacilityWithGroupChange(colonyFacility);
+                                        }
+                                        else if (colonyFacility.upgradeType == UpgradeType.withoutGroupChange)
+                                        {
+                                            KCFacilityBase.UpgradeFacilityWithoutGroupChange(colonyFacility);
+                                        }
+                                        else if (colonyFacility.upgradeType == UpgradeType.withAdditionalGroup)
+                                        {
+                                            facility.AddUpgradeableFacility(colonyFacility);
 
-                                        //KCFacilityBase.UpgradeFacilityWithAdditionalGroup(colonyFacility);
+                                            //KCFacilityBase.UpgradeFacilityWithAdditionalGroup(colonyFacility);
+                                        }
                                     }
                                 }
                             }
@@ -107,6 +110,20 @@ namespace KerbalColonies.colonyFacilities
                     GUILayout.EndHorizontal();
                 });
 
+                GUILayout.Space(10);
+
+                GUILayout.Label("Facilities under construction:");
+                facility.ConstructingFacilities.ToList().ForEach(pair =>
+                {
+                    GUILayout.BeginHorizontal();
+                    GUILayout.Label(pair.Key.name);
+                    double max = pair.Key.GetUpgradeTime(0);
+                    GUILayout.Label($"{Math.Round(max - pair.Value, 2)}/{Math.Round(max, 2)}");
+                    GUILayout.EndHorizontal();
+                });
+
+                GUILayout.Space(10);
+
                 GUILayout.Label("Facilities waiting to be placed:");
                 facility.ConstructedFacilities.ToList().ForEach(newFacility =>
                 {
@@ -114,8 +131,10 @@ namespace KerbalColonies.colonyFacilities
                     GUILayout.Label(newFacility.name);
                     if (GUILayout.Button("Place"))
                     {
+                        newFacility.enabled = true;
+
                         facility.ConstructedFacilities.Remove(newFacility);
-                        
+
                         KCFacilityBase.CountFacilityType(newFacility.GetType(), saveGame, bodyIndex, colonyName, out int count);
                         string groupName = $"{colonyName}_{newFacility.GetType().Name}_0_{count + 1}";
 
@@ -125,15 +144,7 @@ namespace KerbalColonies.colonyFacilities
                     GUILayout.EndHorizontal();
                 });
 
-                GUILayout.Label("Facilities under construction:");
-                facility.ConstructingFacilities.ToList().ForEach(pair =>
-                {
-                    GUILayout.BeginHorizontal();
-                    GUILayout.Label(pair.Key.name);
-                    double max = pair.Key.GetUpgradeTime(0);
-                    GUILayout.Label($"{max - pair.Value}/{max}");
-                    GUILayout.EndHorizontal();
-                });
+                GUILayout.Space(10);
 
                 GUILayout.Label("Upgrading Facilities:");
                 facility.UpgradingFacilities.ToList().ForEach(pair =>
@@ -141,9 +152,11 @@ namespace KerbalColonies.colonyFacilities
                     GUILayout.BeginHorizontal();
                     GUILayout.Label(pair.Key.name);
                     double max = pair.Key.GetUpgradeTime(pair.Key.level + 1);
-                    GUILayout.Label($"{max - pair.Value}/{max}");
+                    GUILayout.Label($"{Math.Round(max - pair.Value, 2)}/{Math.Round(max, 2)}");
                     GUILayout.EndHorizontal();
                 });
+
+                GUILayout.Space(10);
 
                 GUILayout.Label("Upgraded Facilities:");
                 facility.UpgradedFacilities.ToList().ForEach(facilityUpgrade =>
@@ -173,10 +186,40 @@ namespace KerbalColonies.colonyFacilities
     [System.Serializable]
     internal class KC_CAB_Facility : KCFacilityBase
     {
+        public static Dictionary<Type, int> defaultFacilities = new Dictionary<Type, int>();
+        public static void addDefaultFacility(Type facilityType, int amount)
+        {
+            if (typeof(KCFacilityBase).IsAssignableFrom(facilityType))
+            {
+                if (!defaultFacilities.ContainsKey(facilityType))
+                {
+                    defaultFacilities.Add(facilityType, amount);
+                }
+            }
+        }
+
         private KC_CAB_Window window;
 
         private Dictionary<KCFacilityBase, double> constructingFacilities = new Dictionary<KCFacilityBase, double>();
         private List<KCFacilityBase> constructedFacilities = new List<KCFacilityBase>();
+        internal void addConstructingFacility(KCFacilityBase facility, double time)
+        {
+            if (!(constructingFacilities.ContainsKey(facility) || constructedFacilities.Contains(facility)))
+            {
+                constructingFacilities.Add(facility, time);
+            }
+        }
+        internal void addConstructedFacility(KCFacilityBase facility)
+        {
+            if (constructingFacilities.ContainsKey(facility))
+            {
+                constructingFacilities.Remove(facility);
+            }
+            if (!constructedFacilities.Contains(facility))
+            {
+                constructedFacilities.Add(facility);
+            }
+        }
 
         /// <summary>
         /// A dictionary containg all additional group upgrades for facilities.
@@ -185,6 +228,25 @@ namespace KerbalColonies.colonyFacilities
         /// </summary>
         private Dictionary<KCFacilityBase, double> upgradingFacilities = new Dictionary<KCFacilityBase, double>();
         private List<KCFacilityBase> upgradedFacilities = new List<KCFacilityBase>();
+        internal void addUpgradingFacility(KCFacilityBase facility, double time)
+        {
+            if (!(upgradingFacilities.ContainsKey(facility) || upgradedFacilities.Contains(facility)))
+            {
+                upgradingFacilities.Add(facility, time);
+            }
+        }
+        internal void addUpgradedFacility(KCFacilityBase facility)
+        {
+            if (upgradingFacilities.ContainsKey(facility))
+            {
+                upgradingFacilities.Remove(facility);
+            }
+
+            if (!upgradedFacilities.Contains(facility))
+            {
+                upgradedFacilities.Add(facility);
+            }
+        }
 
         public Dictionary<KCFacilityBase, double> UpgradingFacilities
         {
@@ -219,9 +281,9 @@ namespace KerbalColonies.colonyFacilities
                 List<KCFacilityBase> colonyFacilities = KCFacilityBase.GetFacilitiesInColony(saveGame, bodyIndex, colonyName);
                 colonyFacilities.ForEach(facility =>
                 {
-                    if (typeof(KCBuildingProductionFacility).IsAssignableFrom(facility.GetType()))
+                    if (typeof(KCProductionFacility).IsAssignableFrom(facility.GetType()))
                     {
-                        totalProduction += ((KCBuildingProductionFacility)facility).dailyProduction() * deltaTime / 24 / 60 / 60;
+                        totalProduction += ((KCProductionFacility)facility).dailyProduction() * deltaTime / 24 / 60 / 60;
                     }
                 });
 
@@ -240,7 +302,6 @@ namespace KerbalColonies.colonyFacilities
                         {
                             KCFacilityBase facility = upgradingFacilities.ElementAt(0).Key;
                             totalProduction -= upgradingFacilities.ElementAt(0).Value;
-                            upgradedFacilities.Add(facility);
                             upgradingFacilities.Remove(facility);
 
                             switch (facility.upgradeType)
@@ -252,7 +313,7 @@ namespace KerbalColonies.colonyFacilities
                                     KCFacilityBase.UpgradeFacilityWithoutGroupChange(facility);
                                     break;
                                 case UpgradeType.withAdditionalGroup:
-                                    upgradedFacilities.Add(facility);
+                                    addUpgradedFacility(facility);
                                     break;
                             }
                         }
@@ -269,8 +330,8 @@ namespace KerbalColonies.colonyFacilities
                         {
                             KCFacilityBase facility = constructingFacilities.ElementAt(0).Key;
                             totalProduction -= constructingFacilities.ElementAt(0).Value;
-                            constructedFacilities.Add(facility);
                             constructingFacilities.Remove(facility);
+                            addConstructedFacility(facility);
                         }
                     }
                     else
@@ -296,13 +357,13 @@ namespace KerbalColonies.colonyFacilities
                         KCFacilityBase.UpgradeFacilityWithoutGroupChange(facility);
                         break;
                     case UpgradeType.withAdditionalGroup:
-                        upgradedFacilities.Add(facility);
+                        addUpgradedFacility(facility);
                         break;
                 }
             }
             else
             {
-                upgradingFacilities.Add(facility, facility.GetUpgradeTime(facility.level + 1));
+                addUpgradingFacility(facility, facility.GetUpgradeTime(facility.level + 1));
             }
         }
 
@@ -310,11 +371,11 @@ namespace KerbalColonies.colonyFacilities
         {
             if (facility.GetUpgradeTime(0) == 0)
             {
-                constructedFacilities.Add(facility);
+                addConstructedFacility(facility);
             }
             else
             {
-                constructingFacilities.Add(facility, facility.GetUpgradeTime(0));
+                addConstructingFacility(facility, facility.GetUpgradeTime(0));
             }
         }
 
@@ -323,62 +384,176 @@ namespace KerbalColonies.colonyFacilities
             window.Toggle();
         }
 
-        public override void EncodeString()
+        public override ConfigNode getCustomNode()
         {
-            List<string> serializedFacilities = new List<string>();
+            ConfigNode node = new ConfigNode("cabNode");
 
-            foreach (var facility in constructingFacilities.Keys)
+            ConfigNode constructing = new ConfigNode("constructingFacilities");
+
+            foreach (KeyValuePair<KCFacilityBase, double> facility in constructingFacilities)
             {
-                string serializedFacility = KCFacilityClassConverter.SerializeObject(facility);
-                serializedFacilities.Add(serializedFacility);
+                ConfigNode facilityNode = new ConfigNode("facilityNode");
+
+                string serializedFacility = KCFacilityClassConverter.SerializeObject(facility.Key).Replace("{", "<<>").Replace("}", "<>>");
+
+                facilityNode.AddValue("facilityString", serializedFacility);
+                facilityNode.AddValue("remainingTime", facility.Value);
+
+                ConfigNode customNode = facility.Key.getCustomNode();
+                if (customNode != null)
+                {
+                    facilityNode.AddNode(customNode);
+                }
+
+                constructing.AddNode(facilityNode);
             }
 
-            foreach (var facility in constructedFacilities)
+            ConfigNode constructed = new ConfigNode("constructedFacilities");
+
+            foreach (KCFacilityBase facility in constructedFacilities)
             {
-                string serializedFacility = KCFacilityClassConverter.SerializeObject(facility);
-                serializedFacilities.Add(serializedFacility);
+                ConfigNode facilityNode = new ConfigNode("facilityNode");
+
+                string serializedFacility = KCFacilityClassConverter.SerializeObject(facility).Replace("{", "<<>").Replace("}", "<>>");
+
+                facilityNode.AddValue("facilityString", serializedFacility);
+
+                ConfigNode customNode = facility.getCustomNode();
+                if (customNode != null)
+                {
+                    facilityNode.AddNode(facility.getCustomNode());
+                }
+
+                constructed.AddNode(facilityNode);
             }
 
-            facilityData = string.Join("|", serializedFacilities);
+            ConfigNode upgrading = new ConfigNode("upgradingFacilities");
+
+            foreach (KeyValuePair<KCFacilityBase, double> facility in upgradingFacilities)
+            {
+                ConfigNode facilityNode = new ConfigNode("facilityNode");
+
+                string serializedFacility = KCFacilityClassConverter.SerializeObject(facility.Key).Replace("{", "<<>").Replace("}", "<>>");
+
+                facilityNode.AddValue("facilityString", serializedFacility);
+                facilityNode.AddValue("remainingTime", facility.Value);
+
+                ConfigNode customNode = facility.Key.getCustomNode();
+                if (customNode != null)
+                {
+                    facilityNode.AddNode(customNode);
+                }
+
+                upgrading.AddNode(facilityNode);
+            }
+
+            ConfigNode upgraded = new ConfigNode("upgradedFacilities");
+
+            foreach (KCFacilityBase facility in upgradedFacilities)
+            {
+                ConfigNode facilityNode = new ConfigNode("facilityNode");
+
+                string serializedFacility = KCFacilityClassConverter.SerializeObject(facility).Replace("{", "<<>").Replace("}", "<>>");
+
+                facilityNode.AddValue("facilityString", serializedFacility);
+
+                ConfigNode customNode = facility.getCustomNode();
+                if (customNode != null)
+                {
+                    facilityNode.AddNode(facility.getCustomNode());
+                }
+
+                upgraded.AddNode(facilityNode);
+            }
+
+            node.AddNode(constructing);
+            node.AddNode(constructed);
+            node.AddNode(upgrading);
+            node.AddNode(upgraded);
+
+            return node;
         }
 
-        public override void DecodeString()
+        public override void loadCustomNode(ConfigNode customNode)
         {
-            if (!string.IsNullOrEmpty(facilityData))
+            if (customNode != null)
             {
-                string[] serializedFacilities = facilityData.Split('|');
-
-                foreach (string serializedFacility in serializedFacilities)
+                if (customNode.HasNode("constructingFacilities"))
                 {
-                    KCFacilityBase facility = KCFacilityClassConverter.DeserializeObject(serializedFacility);
-                    if (facility != null)
+                    foreach (ConfigNode facilityNode in customNode.GetNode("constructingFacilities").GetNodes())
                     {
-                        if (KCFacilityBase.GetFacilityByID(facility.id, out KCFacilityBase fac))
+                        KCFacilityBase facility = KCFacilityClassConverter.DeserializeObject(facilityNode.GetValue("facilityString").Replace("<<>", "{").Replace("<>>", "}"));
+
+                        if (facilityNode.GetNodes().Length == 1)
                         {
-                            facility = fac;
+                            facility.loadCustomNode(facilityNode.GetNodes()[0]);
                         }
 
-                        if (facility.GetUpgradeTime(0) > 0)
+                        double time = double.Parse(facilityNode.GetValue("remainingTime"));
+
+                        constructingFacilities.Add(facility, time);
+                    }
+                }
+
+                if (customNode.HasNode("constructedFacilities"))
+                {
+                    foreach (ConfigNode facilityNode in customNode.GetNode("constructedFacilities").GetNodes())
+                    {
+                        KCFacilityBase facility = KCFacilityClassConverter.DeserializeObject(facilityNode.GetValue("facilityString").Replace("<<>", "{").Replace("<>>", "}"));
+
+                        if (facilityNode.GetNodes().Length == 1)
                         {
-                            constructingFacilities.Add(facility, facility.GetUpgradeTime(0));
+                            facility.loadCustomNode(facilityNode.GetNodes()[0]);
                         }
-                        else
+
+                        constructedFacilities.Add(facility);
+                    }
+                }
+
+                if (customNode.HasNode("upgradingFacilities"))
+                {
+                    foreach (ConfigNode facilityNode in customNode.GetNode("upgradingFacilities").GetNodes())
+                    {
+                        KCFacilityBase facility = KCFacilityClassConverter.DeserializeObject(facilityNode.GetValue("facilityString").Replace("<<>", "{").Replace("<>>", "}"));
+
+                        if (facilityNode.GetNodes().Length == 1)
                         {
-                            constructedFacilities.Add(facility);
+                            facility.loadCustomNode(facilityNode.GetNodes()[0]);
                         }
+
+                        double time = double.Parse(facilityNode.GetValue("remainingTime"));
+
+                        upgradingFacilities.Add(facility, time);
+                    }
+                }
+
+                if (customNode.HasNode("upgradedFacilities"))
+                {
+                    foreach (ConfigNode facilityNode in customNode.GetNode("upgradedFacilities").GetNodes())
+                    {
+                        KCFacilityBase facility = KCFacilityClassConverter.DeserializeObject(facilityNode.GetValue("facilityString").Replace("<<>", "{").Replace("<>>", "}"));
+
+                        if (facilityNode.GetNodes().Length == 1)
+                        {
+                            facility.loadCustomNode(facilityNode.GetNodes()[0]);
+                        }
+
+                        upgradedFacilities.Add(facility);
                     }
                 }
             }
         }
 
-        public override void Initialize(string facilityData)
+        public override void Initialize()
         {
-            base.Initialize(facilityData);
+            base.Initialize();
             window = new KC_CAB_Window(this);
             enabled = true;
         }
 
-        public KC_CAB_Facility() : base("KCCABFacility", true, "")
+        public KC_CAB_Facility(bool enabled) : base("KCCABFacility", enabled, 0, 0) { }
+
+        public KC_CAB_Facility() : base("KCCABFacility", true)
         {
 
         }

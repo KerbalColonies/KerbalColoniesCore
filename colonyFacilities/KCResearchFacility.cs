@@ -168,29 +168,28 @@ namespace KerbalColonies.colonyFacilities
             return true;
         }
 
-        public override void EncodeString()
+        public override ConfigNode getCustomNode()
         {
-            string kerbalString = CreateKerbalString(kerbals);
-            facilityData = $"sciencePoints&{sciencePoints}|maxKerbals&{maxKerbals}{((kerbalString != "") ? $"|{kerbalString}" : "")}";
+            ConfigNode node = new ConfigNode();
+            node.AddValue("sciencePoints", sciencePoints);
+
+            ConfigNode wrapperNode = new ConfigNode("wrapper");
+            wrapperNode.AddNode(base.getCustomNode());
+            node.AddNode(wrapperNode);
+
+            return node;
         }
 
-        public override void DecodeString()
+        public override void loadCustomNode(ConfigNode customNode)
         {
-            if (facilityData != "")
-            {
-                string[] facilityDatas = facilityData.Split(new[] { '|' }, 3);
-                sciencePoints = float.Parse(facilityDatas[0].Split('&')[1]);
-                maxKerbals = Convert.ToInt32(facilityDatas[1].Split('&')[1]);
-                if (facilityDatas.Length > 2)
-                {
-                    kerbals = CreateKerbalList(facilityDatas[2]);
-                }
-            }
+            sciencePoints = float.Parse(customNode.GetValue("sciencePoints"));
+
+            base.loadCustomNode(customNode.GetNode("wrapper").GetNodes()[0]);
         }
 
-        public override void Initialize(string facilityData)
+        public override void Initialize()
         {
-            base.Initialize(facilityData);
+            base.Initialize();
             this.researchFacilityWindow = new KCResearchFacilityWindow(this);
             this.baseGroupName = "KC_CAB";
 
@@ -202,7 +201,7 @@ namespace KerbalColonies.colonyFacilities
             this.upgradeType = UpgradeType.withoutGroupChange;
         }
 
-        public KCResearchFacility(bool enabled, string facilityData = "") : base("KCResearchFacility", enabled, 8, "", 0, 3)
+        public KCResearchFacility(bool enabled) : base("KCResearchFacility", enabled, 8, 0, 3)
         {
             sciencePoints = 0;
         }

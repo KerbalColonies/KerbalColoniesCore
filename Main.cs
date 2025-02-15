@@ -23,7 +23,7 @@ using UnityEngine;
 
 namespace KerbalColonies
 {
-    [KSPAddon(KSPAddon.Startup.Flight, false)]
+    [KSPAddon(KSPAddon.Startup.FlightAndKSC, false)]
     public class KerbalColonies : MonoBehaviour
     {
         double lastTime = 0;
@@ -38,18 +38,20 @@ namespace KerbalColonies
             KCFacilityTypeRegistry.RegisterType<KCResearchFacility>();
             KCFacilityTypeRegistry.RegisterType<KC_CAB_Facility>();
             KCFacilityTypeRegistry.RegisterType<KCMiningFacility>();
-            KCFacilityTypeRegistry.RegisterType<KCBuildingProductionFacility>();
+            KCFacilityTypeRegistry.RegisterType<KCProductionFacility>();
             KCFacilityTypeRegistry.RegisterType<KCResourceConverterFacility>();
+            KCFacilityTypeRegistry.RegisterType<KCHangarFacility>();
             Configuration.RegisterBuildableFacility(typeof(KCStorageFacility), new KCStorageFacilityCost());
             Configuration.RegisterBuildableFacility(typeof(KCCrewQuarters), new KCCrewQuarterCost());
             Configuration.RegisterBuildableFacility(typeof(KCResearchFacility), new KCResearchFacilityCost());
             Configuration.RegisterBuildableFacility(typeof(KCMiningFacility), new KCMiningFacilityCost());
-            Configuration.RegisterBuildableFacility(typeof(KCBuildingProductionFacility), new KCBuildingProductionFacilityCost());
+            Configuration.RegisterBuildableFacility(typeof(KCProductionFacility), new KCProductionFacilityCost());
             Configuration.RegisterBuildableFacility(typeof(KCResourceConverterFacility), new KCResourceConverterFacilityCost());
+            Configuration.RegisterBuildableFacility(typeof(KCHangarFacility), new KCHangarFacilityCost());
 
             KC_CAB_Facility.addDefaultFacility(typeof(KCStorageFacility), 1);
             KC_CAB_Facility.addDefaultFacility(typeof(KCCrewQuarters), 1);
-            KC_CAB_Facility.addDefaultFacility(typeof(KCBuildingProductionFacility), 1);
+            KC_CAB_Facility.addDefaultFacility(typeof(KCProductionFacility), 1);
 
             KerbalKonstructs.API.RegisterOnBuildingClicked(KCFacilityBase.OnBuildingClickedHandler);
         }

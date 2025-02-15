@@ -281,9 +281,9 @@ namespace KerbalColonies.colonyFacilities
                 List<KCFacilityBase> colonyFacilities = KCFacilityBase.GetFacilitiesInColony(saveGame, bodyIndex, colonyName);
                 colonyFacilities.ForEach(facility =>
                 {
-                    if (typeof(KCBuildingProductionFacility).IsAssignableFrom(facility.GetType()))
+                    if (typeof(KCProductionFacility).IsAssignableFrom(facility.GetType()))
                     {
-                        totalProduction += ((KCBuildingProductionFacility)facility).dailyProduction() * deltaTime / 24 / 60 / 60;
+                        totalProduction += ((KCProductionFacility)facility).dailyProduction() * deltaTime / 24 / 60 / 60;
                     }
                 });
 

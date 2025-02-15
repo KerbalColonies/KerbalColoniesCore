@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace KerbalColonies.colonyFacilities
 {
-    public class KCBuildingProductionFacilityCost : KCFacilityCostClass
+    public class KCProductionFacilityCost : KCFacilityCostClass
     {
         public override bool VesselHasRessources(Vessel vessel, int level)
         {
@@ -31,7 +31,7 @@ namespace KerbalColonies.colonyFacilities
             }
             return false;
         }
-        public KCBuildingProductionFacilityCost()
+        public KCProductionFacilityCost()
         {
             resourceCost = new Dictionary<int, Dictionary<PartResourceDefinition, float>> {
                 { 0, new Dictionary<PartResourceDefinition, float> {
@@ -44,9 +44,9 @@ namespace KerbalColonies.colonyFacilities
         }
     }
 
-    public class KCBuildingProductionWindow : KCWindowBase
+    public class KCProductionWindow : KCWindowBase
     {
-        KCBuildingProductionFacility facility;
+        KCProductionFacility facility;
         public KerbalGUI kerbalGUI;
 
         protected override void CustomWindow()
@@ -66,7 +66,7 @@ namespace KerbalColonies.colonyFacilities
             GUILayout.EndVertical();
         }
 
-        public KCBuildingProductionWindow(KCBuildingProductionFacility facility) : base(Configuration.createWindowID(facility), "Production Facility")
+        public KCProductionWindow(KCProductionFacility facility) : base(Configuration.createWindowID(facility), "Production Facility")
         {
             this.facility = facility;
             this.kerbalGUI = null;
@@ -76,9 +76,9 @@ namespace KerbalColonies.colonyFacilities
     }
 
     [System.Serializable]
-    public class KCBuildingProductionFacility : KCKerbalFacilityBase
+    public class KCProductionFacility : KCKerbalFacilityBase
     {
-        KCBuildingProductionWindow prdWindow;
+        KCProductionWindow prdWindow;
 
         private List<int> maxKerbalsPerLevel = new List<int> { 8, 12, 16 };
 
@@ -127,10 +127,10 @@ namespace KerbalColonies.colonyFacilities
             baseGroupName = "KC_CAB";
             upgradeType = UpgradeType.withGroupChange;
             maxKerbalsPerLevel = new List<int> { 8, 12, 16 };
-            prdWindow = new KCBuildingProductionWindow(this);
+            prdWindow = new KCProductionWindow(this);
         }
 
-        public KCBuildingProductionFacility(bool enabled) : base("KCBuildingProductionFacility", enabled, 4, 0, 2)
+        public KCProductionFacility(bool enabled) : base("KCProductionFacility", enabled, 4, 0, 2)
         {
 
         }

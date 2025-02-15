@@ -48,7 +48,7 @@ namespace KerbalColonies.colonyFacilities
         KCStorageFacility storageFacility;
         private static HashSet<PartResourceDefinition> allResources = new HashSet<PartResourceDefinition>();
         private static HashSet<string> blackListedResources = new HashSet<string> { "ElectricCharge", "IntakeAir" };
-
+        private Vector2 scrollPos;
 
         internal static void GetVesselResources()
         {
@@ -158,7 +158,7 @@ namespace KerbalColonies.colonyFacilities
             GUI.enabled = true;
             List<int> valueList = new List<int> { -100, -10, -1, 1, 10, 100 };
 
-            GUILayout.BeginScrollView(new Vector2());
+            scrollPos = GUILayout.BeginScrollView(scrollPos);
             Dictionary<PartResourceDefinition, double> resourceCopy = storageFacility.getRessources();
             for (int r = 0; r < resourceCopy.Count; r++)
             {

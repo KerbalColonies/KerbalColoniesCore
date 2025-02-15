@@ -421,6 +421,8 @@ namespace KerbalColonies.colonyFacilities
         {
             if (!initialized)
             {
+                baseGroupName = "KC_CAB";
+
                 if (this.level < this.maxLevel)
                 {
                     this.upgradeable = true;

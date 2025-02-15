@@ -114,7 +114,7 @@ namespace KerbalColonies.colonyFacilities
             int i = 0;
             CrewQuartersInColony(saveGame, bodyIndex, colonyName).ForEach(crewQuarter =>
             {
-                i += crewQuarter.kerbals.Count;
+                i += crewQuarter.maxKerbals;
             });
             return i;
         }
@@ -132,6 +132,26 @@ namespace KerbalColonies.colonyFacilities
             return null;
         }
         private KCCrewQuartersWindow crewQuartersWindow;
+
+        public static bool AddKerbalToColony(string saveGame, int bodyIndex, string colonyName, ProtoCrewMember kerbal)
+        {
+            if (!Configuration.coloniesPerBody.ContainsKey(saveGame)) { return false; }
+            else if (!Configuration.coloniesPerBody[saveGame].ContainsKey(bodyIndex)) { return false; }
+            else if (!Configuration.coloniesPerBody[saveGame][bodyIndex].ContainsKey(colonyName)) { return false; }
+
+            if (FindKerbalInCrewQuarters(saveGame, bodyIndex, colonyName, kerbal) != null) { return false; }
+
+            foreach(KCCrewQuarters crewQuarter in CrewQuartersInColony(saveGame, bodyIndex, colonyName))
+            {
+                if (crewQuarter.kerbals.Count < crewQuarter.maxKerbals)
+                {
+                    crewQuarter.AddKerbal(kerbal);
+                    return true;
+                }
+            }
+
+            return false;
+        }
 
         /// <summary>
         /// Adds the kerbal to this crew quarrter or moves it from another crew quarter over to this one if the kerbal is already assigned to a crew quarter in this colony

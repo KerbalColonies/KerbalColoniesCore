@@ -41,6 +41,7 @@ namespace KerbalColonies
             KCFacilityTypeRegistry.RegisterType<KCProductionFacility>();
             KCFacilityTypeRegistry.RegisterType<KCResourceConverterFacility>();
             KCFacilityTypeRegistry.RegisterType<KCHangarFacility>();
+            KCFacilityTypeRegistry.RegisterType<KCLaunchpadFacility>();
             Configuration.RegisterBuildableFacility(typeof(KCStorageFacility), new KCStorageFacilityCost());
             Configuration.RegisterBuildableFacility(typeof(KCCrewQuarters), new KCCrewQuarterCost());
             Configuration.RegisterBuildableFacility(typeof(KCResearchFacility), new KCResearchFacilityCost());
@@ -48,6 +49,7 @@ namespace KerbalColonies
             Configuration.RegisterBuildableFacility(typeof(KCProductionFacility), new KCProductionFacilityCost());
             Configuration.RegisterBuildableFacility(typeof(KCResourceConverterFacility), new KCResourceConverterFacilityCost());
             Configuration.RegisterBuildableFacility(typeof(KCHangarFacility), new KCHangarFacilityCost());
+            Configuration.RegisterBuildableFacility(typeof(KCLaunchpadFacility), new KCLaunchPadCost());
 
             KC_CAB_Facility.addDefaultFacility(typeof(KCStorageFacility), 1);
             KC_CAB_Facility.addDefaultFacility(typeof(KCCrewQuarters), 1);
@@ -148,6 +150,8 @@ namespace KerbalColonies
 
         protected void OnDestroy()
         {
+            GameEvents.onGamePause.Remove(onPause);
+
             Configuration.SaveColonies();
             KerbalKonstructs.API.UnRegisterOnBuildingClicked(KCFacilityBase.OnBuildingClickedHandler);
             Configuration.coloniesPerBody.Clear();

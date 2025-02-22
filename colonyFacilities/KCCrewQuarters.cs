@@ -35,7 +35,7 @@ namespace KerbalColonies.colonyFacilities
 
         public KCCrewQuarterCost()
         {
-            resourceCost = new Dictionary<int, Dictionary<PartResourceDefinition, float>> { 
+            resourceCost = new Dictionary<int, Dictionary<PartResourceDefinition, float>> {
                 { 0, new Dictionary<PartResourceDefinition, float> { { PartResourceLibrary.Instance.GetDefinition("Ore"), 100f } } }
             };
 
@@ -49,17 +49,17 @@ namespace KerbalColonies.colonyFacilities
 
         protected override void CustomWindow()
         {
-            KSPLog.print("KCCrewQuartersWindow: " + this.ToString());
+            if (FlightGlobals.ActiveVessel != null)
+            {
+                GUILayout.Space(2);
+                GUILayout.BeginHorizontal();
+                GUI.enabled = true;
 
-            GUILayout.Space(2);
-            GUILayout.BeginHorizontal();
-            GUI.enabled = true;
+                kerbalGUI.StaffingInterface();
 
-            kerbalGUI.StaffingInterface();
+                GUILayout.EndHorizontal();
+            }
 
-            GUILayout.EndHorizontal();
-
-            GUILayout.Space(2);
         }
 
         protected override void OnClose()
@@ -141,7 +141,7 @@ namespace KerbalColonies.colonyFacilities
 
             if (FindKerbalInCrewQuarters(saveGame, bodyIndex, colonyName, kerbal) != null) { return false; }
 
-            foreach(KCCrewQuarters crewQuarter in CrewQuartersInColony(saveGame, bodyIndex, colonyName))
+            foreach (KCCrewQuarters crewQuarter in CrewQuartersInColony(saveGame, bodyIndex, colonyName))
             {
                 if (crewQuarter.kerbals.Count < crewQuarter.maxKerbals)
                 {

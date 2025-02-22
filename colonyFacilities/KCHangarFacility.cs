@@ -89,29 +89,34 @@ namespace KerbalColonies.colonyFacilities
             {
                 GUILayout.BeginHorizontal();
                 GUILayout.Label(vessel.vesselName);
+
                 if (GUILayout.Button("Load"))
                 {
-                    hangar.RollOutVessel(vessel);
+                    Vessel v = hangar.RollOutVessel(vessel).vesselRef;
                 }
                 GUILayout.EndHorizontal();
             });
             GUILayout.EndVertical();
             GUILayout.EndScrollView();
 
-            GUILayout.Space(10);
-            if (hangar.CanStoreVessel(FlightGlobals.ActiveVessel))
+            if (FlightGlobals.ActiveVessel != null)
             {
-                GUI.enabled = true;
-            }
-            else
-            {
-                GUI.enabled = false;
+                GUILayout.Space(10);
+                if (hangar.CanStoreVessel(FlightGlobals.ActiveVessel))
+                {
+                    GUI.enabled = true;
+                }
+                else
+                {
+                    GUI.enabled = false;
+                }
+
+                if (GUILayout.Button("Store vessel"))
+                {
+                    hangar.StoreVessel(FlightGlobals.ActiveVessel);
+                }
             }
 
-            if (GUILayout.Button("Store vessel"))
-            {
-                hangar.StoreVessel(FlightGlobals.ActiveVessel);
-            }
             GUI.enabled = true;
         }
 
@@ -219,10 +224,6 @@ namespace KerbalColonies.colonyFacilities
 
                             // remove the crew from the ship
                             part.RemoveCrewmember(crewList[i]);
-
-                            crewList[i].rosterStatus = ProtoCrewMember.RosterStatus.Missing;
-                            crewList[i].SetInactive(double.MaxValue);
-                            crewList[i].SetTimeForRespawn(double.MaxValue);
                             KCCrewQuarters.AddKerbalToColony(saveGame, bodyIndex, colonyName, crewList[i]);
                         }
                     }
@@ -257,26 +258,28 @@ namespace KerbalColonies.colonyFacilities
             return false;
         }
 
-        public bool RollOutVessel(StoredVessel storedVessel)
+
+        public ProtoVessel RollOutVessel(StoredVessel storedVessel)
         {
             if (!storedVessels.Contains(storedVessel))
             {
                 Configuration.writeLog("no Stored Vessel found:" + storedVessel.vesselName);
-                return false;
+                return null;
             }
-            storedVessels.Remove(storedVessel);
 
             ProtoVessel protoVessel = new ProtoVessel(storedVessel.vesselNode, HighLogic.CurrentGame);
-
-
             protoVessel.Load(HighLogic.CurrentGame.flightState);
 
-            Vessel vessel = protoVessel.vesselRef;
+            KCFacilityBase.GetInformationByFacilty(this, out string saveGame, out int bodyIndex, out string colonyName, out List<GroupPlaceHolder> gph, out List<string> UUIDs);
 
-            vessel.Load();
-            vessel.MakeActive();
+            List<KCLaunchpadFacility> launchpads = KCLaunchpadFacility.getLaunchPadsInColony(saveGame, bodyIndex, colonyName);
+            if (launchpads.Count > 0)
+            {
+                storedVessels.Remove(storedVessel);
+                launchpads[0].LaunchVessel(protoVessel);
+            }
 
-            return true;
+            return protoVessel;
         }
 
         public override ConfigNode getCustomNode()

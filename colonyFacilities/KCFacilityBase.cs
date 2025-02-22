@@ -254,8 +254,10 @@ namespace KerbalColonies.colonyFacilities
         }
 
 
-        internal static string GetUUIDbyFacility(KCFacilityBase facility)
+        internal static string[] GetUUIDbyFacility(KCFacilityBase facility)
         {
+            List<string> uuids = new List<string>();
+
             foreach (string saveGame in Configuration.coloniesPerBody.Keys)
             {
                 foreach (int bodyId in Configuration.coloniesPerBody[saveGame].Keys)
@@ -268,14 +270,15 @@ namespace KerbalColonies.colonyFacilities
                             {
                                 if (Configuration.coloniesPerBody[saveGame][bodyId][colonyName][gph][uuid].Contains(facility))
                                 {
-                                    return uuid;
+                                    uuids.Add(uuid);
                                 }
                             }
                         }
                     }
                 }
             }
-            return "";
+
+            return uuids.ToArray();
         }
 
         /// <summary>
@@ -360,6 +363,11 @@ namespace KerbalColonies.colonyFacilities
             }
 
         }
+
+        /// <summary>
+        /// This method gets called when the KK group is placed and saved
+        /// </summary>
+        public virtual void OnGroupPlaced() { }
 
         /// <summary>
         /// This method should return the upgrade time for the specified level

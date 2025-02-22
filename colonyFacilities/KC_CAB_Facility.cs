@@ -12,8 +12,10 @@ namespace KerbalColonies.colonyFacilities
 
         protected override void CustomWindow()
         {
+            if (FlightGlobals.ActiveVessel == null) { return; }
+
             facility.Update();
-            KCFacilityBase.GetInformationByUUID(KCFacilityBase.GetUUIDbyFacility(facility), out string saveGame, out int bodyIndex, out string colonyName, out GroupPlaceHolder gph, out List<KCFacilityBase> facilities);
+            KCFacilityBase.GetInformationByFacilty(facility, out string saveGame, out int bodyIndex, out string colonyName, out List<GroupPlaceHolder> gph, out List<string> UUIDs);
 
             GUILayout.BeginScrollView(new Vector2());
             {

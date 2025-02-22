@@ -68,6 +68,8 @@ namespace KerbalColonies
                 Configuration.coloniesPerBody[HighLogic.CurrentGame.Seed.ToString()][FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody)][ColonyName][gph][instance.UUID].Add(Facility);
             }
 
+            Facility.OnGroupPlaced();
+
             Configuration.saveColonies = true;
             KerbalKonstructs.API.UnRegisterOnGroupSaved(PlaceNewGroupSave);
             KerbalKonstructs.API.Save();

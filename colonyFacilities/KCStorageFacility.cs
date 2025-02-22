@@ -52,6 +52,8 @@ namespace KerbalColonies.colonyFacilities
 
         internal static void GetVesselResources()
         {
+            if (FlightGlobals.ActiveVessel == null) { return; }
+
             double amount = 0;
             double maxAmount = 0;
             foreach (PartResourceDefinition availableResource in PartResourceLibrary.Instance.resourceDefinitions)
@@ -147,6 +149,8 @@ namespace KerbalColonies.colonyFacilities
         protected override void CustomWindow()
         {
             storageFacility.Update();
+
+            if (FlightGlobals.ActiveVessel == null) { return; }
 
             //int maxVolume = (int)Math.Round(KCStorageFacility.maxVolume, 0);
             GUILayout.BeginHorizontal();
@@ -465,21 +469,6 @@ namespace KerbalColonies.colonyFacilities
             return false;
         }
 
-        public override void Update()
-        {
-            base.Update();
-
-            if (maxVolume == 0f)
-            {
-                GameObject instace = KerbalKonstructs.API.GetGameObject(KCFacilityBase.GetUUIDbyFacility(this));
-                if (instace != null)
-                {
-                    Vector3 size = instace.GetRendererBounds().extents;
-                    maxVolume = (size.x * size.y * size.z);
-                }
-            }
-        }
-
         public override void OnBuildingClicked()
         {
             KSPLog.print("KCStorageWindow: " + StorageWindow.ToString());
@@ -494,16 +483,11 @@ namespace KerbalColonies.colonyFacilities
 
             this.upgradeType = UpgradeType.withAdditionalGroup;
 
-            switch (this.level)
-            {
-                default:
-                case 0:
-                    this.baseGroupName = "KC_SF_0";
-                    break;
-                case 1:
-                    this.baseGroupName = "KC_SF_1";
-                    break;
-            }
+            float[] maxVolumes = { 80000f, 100000f };
+            maxVolume = maxVolumes[level];
+
+            string[] baseGroupNames = { "KC_SF_0", "KC_SF_1" };
+            baseGroupName = baseGroupNames[level];
         }
 
         public override void UpdateBaseGroupName()

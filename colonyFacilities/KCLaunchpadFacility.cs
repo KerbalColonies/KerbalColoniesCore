@@ -47,19 +47,11 @@ namespace KerbalColonies.colonyFacilities
     {
         public string launchSiteUUID;
 
-        private ProtoVessel launchingVessel = null;
-        private bool nextFrame = false;
-
-        public void onUpdate()
-        {
-
-        }
-
         public override void OnGroupPlaced()
         {
             KCFacilityBase.GetInformationByFacilty(this, out string saveGame, out int bodyIndex, out string colonyName, out List<GroupPlaceHolder> gph, out List<string> UUIDs);
 
-            KerbalKonstructs.Core.StaticInstance baseInstance = KerbalKonstructs.API.GetGroupStatics(baseGroupName).Where(s => s.hasLauchSites).First();
+            KerbalKonstructs.Core.StaticInstance baseInstance = KerbalKonstructs.API.GetGroupStatics(baseGroupName, "Kerbin").Where(s => s.hasLauchSites).First();
             string uuid = GetUUIDbyFacility(this).Where(s => KerbalKonstructs.API.GetModelTitel(s) == KerbalKonstructs.API.GetModelTitel(baseInstance.UUID)).First();
 
             KerbalKonstructs.Core.StaticInstance targetInstance = KerbalKonstructs.API.getStaticInstanceByUUID(uuid);

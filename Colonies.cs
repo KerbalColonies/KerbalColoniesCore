@@ -87,7 +87,7 @@ namespace KerbalColonies
             KerbalKonstructs.API.SetEditorRange(range);
             Colonies.ColonyName = colonyName;
             groupName = newGroupName;
-            KerbalKonstructs.API.CopyGroup(newGroupName, fromGroupName);
+            KerbalKonstructs.API.CopyGroup(newGroupName, fromGroupName, fromBodyName: "Kerbin");
             KerbalKonstructs.API.OpenGroupEditor(newGroupName);
             KerbalKonstructs.API.RegisterOnGroupSaved(PlaceNewGroupSave);
             return true;
@@ -128,7 +128,7 @@ namespace KerbalColonies
             ColonyName = colonyName;
             groupName = newGroupName;
             groupName = KerbalKonstructs.API.CreateGroup(newGroupName);
-            KerbalKonstructs.API.CopyGroup(newGroupName, fromGroupName);
+            KerbalKonstructs.API.CopyGroup(newGroupName, fromGroupName, fromBodyName: "Kerbin");
             KerbalKonstructs.API.OpenGroupEditor(newGroupName);
             KerbalKonstructs.API.RegisterOnGroupSaved(AddGroupUpdateSave);
             Configuration.saveColonies = true;

@@ -72,7 +72,7 @@ namespace KerbalColonies.colonyFacilities
                     Configuration.coloniesPerBody[saveGame][bodyIndex][colonyName][gph] = new Dictionary<string, List<KCFacilityBase>>();
                     KerbalKonstructs.API.GetGroupStatics(gph.GroupName).ToList().ForEach(x => KerbalKonstructs.API.RemoveStatic(x.UUID));
 
-                    KerbalKonstructs.API.CopyGroup(gph.GroupName, facility.baseGroupName);
+                    KerbalKonstructs.API.CopyGroup(gph.GroupName, facility.baseGroupName, fromBodyName: "Kerbin");
 
                     foreach (KerbalKonstructs.Core.StaticInstance staticInstance in KerbalKonstructs.API.GetGroupStatics(gph.GroupName))
                     {

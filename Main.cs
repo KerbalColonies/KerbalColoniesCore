@@ -42,6 +42,7 @@ namespace KerbalColonies
             KCFacilityTypeRegistry.RegisterType<KCResourceConverterFacility>();
             KCFacilityTypeRegistry.RegisterType<KCHangarFacility>();
             KCFacilityTypeRegistry.RegisterType<KCLaunchpadFacility>();
+            KCFacilityTypeRegistry.RegisterType<KCCommNetFacility>();
             Configuration.RegisterBuildableFacility(typeof(KCStorageFacility), new KCStorageFacilityCost());
             Configuration.RegisterBuildableFacility(typeof(KCCrewQuarters), new KCCrewQuarterCost());
             Configuration.RegisterBuildableFacility(typeof(KCResearchFacility), new KCResearchFacilityCost());
@@ -50,6 +51,7 @@ namespace KerbalColonies
             Configuration.RegisterBuildableFacility(typeof(KCResourceConverterFacility), new KCResourceConverterFacilityCost());
             Configuration.RegisterBuildableFacility(typeof(KCHangarFacility), new KCHangarFacilityCost());
             Configuration.RegisterBuildableFacility(typeof(KCLaunchpadFacility), new KCLaunchPadCost());
+            Configuration.RegisterBuildableFacility(typeof(KCCommNetFacility), new KCCommNetCost());
 
             KC_CAB_Facility.addDefaultFacility(typeof(KCStorageFacility), 1);
             KC_CAB_Facility.addDefaultFacility(typeof(KCCrewQuarters), 1);

@@ -322,6 +322,7 @@ namespace KerbalColonies
 
                 if (ksg != null)
                 {
+                    if (ksg.mode == KerbalSelectorGUI.SwitchModes.ActiveVessel && FlightGlobals.ActiveVessel == null) { GUI.enabled = false; }
                     GUILayout.BeginHorizontal();
                     {
                         if (GUILayout.Button("Assign/Retrive Kerbals", GUILayout.Height(23)))
@@ -338,11 +339,9 @@ namespace KerbalColonies
                             }
                         }
                     }
+                    GUI.enabled = true;
+                    GUILayout.EndHorizontal();
                 }
-
-
-                GUI.enabled = true;
-                GUILayout.EndHorizontal();
             }
 
             GUILayout.Space(5);

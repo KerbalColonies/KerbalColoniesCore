@@ -7,40 +7,13 @@ namespace KerbalColonies.colonyFacilities
 {
     internal class KCResourceConverterFacilityCost : KCFacilityCostClass
     {
-        public override bool VesselHasRessources(Vessel vessel, int level)
-        {
-            for (int i = 0; i < resourceCost[level].Count; i++)
-            {
-                vessel.GetConnectedResourceTotals(resourceCost[level].ElementAt(i).Key.id, false, out double amount, out double maxAmount);
-
-                if (amount < resourceCost[level].ElementAt(i).Value)
-                {
-                    return false;
-                }
-            }
-            return true;
-        }
-
-        public override bool RemoveVesselRessources(Vessel vessel, int level)
-        {
-            if (VesselHasRessources(vessel, 0))
-            {
-                for (int i = 0; i < resourceCost[level].Count; i++)
-                {
-                    vessel.RequestResource(vessel.rootPart, resourceCost[level].ElementAt(i).Key.id, resourceCost[level].ElementAt(i).Value, true);
-                }
-                return true;
-            }
-            return false;
-        }
-
         public KCResourceConverterFacilityCost()
         {
-            resourceCost = new Dictionary<int, Dictionary<PartResourceDefinition, float>> {
-                { 0, new Dictionary<PartResourceDefinition, float> {
-                    { PartResourceLibrary.Instance.GetDefinition("RocketParts"), 500f } } },
-                { 1, new Dictionary<PartResourceDefinition, float> {
-                    { PartResourceLibrary.Instance.GetDefinition("RocketParts"), 1000f } }
+            resourceCost = new Dictionary<int, Dictionary<PartResourceDefinition, double>> {
+                { 0, new Dictionary<PartResourceDefinition, double> {
+                    { PartResourceLibrary.Instance.GetDefinition("RocketParts"), 500 } } },
+                { 1, new Dictionary<PartResourceDefinition, double> {
+                    { PartResourceLibrary.Instance.GetDefinition("RocketParts"), 1000 } }
                 }
             };
         }

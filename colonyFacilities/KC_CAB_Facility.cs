@@ -12,8 +12,6 @@ namespace KerbalColonies.colonyFacilities
 
         protected override void CustomWindow()
         {
-            if (FlightGlobals.ActiveVessel == null) { return; }
-
             facility.Update();
             KCFacilityBase.GetInformationByFacilty(facility, out string saveGame, out int bodyIndex, out string colonyName, out List<GroupPlaceHolder> gph, out List<string> UUIDs);
 
@@ -32,10 +30,10 @@ namespace KerbalColonies.colonyFacilities
                     }
                     GUILayout.EndVertical();
 
-                    if (!Configuration.BuildableFacilities[t].VesselHasRessources(FlightGlobals.ActiveVessel, 0)) { GUI.enabled = false; }
+                    if (!KCFacilityCostClass.checkResources(Configuration.BuildableFacilities[t], 0, saveGame, bodyIndex, colonyName)) { GUI.enabled = false; }
                     if (GUILayout.Button("Build"))
                     {
-                        Configuration.BuildableFacilities[t].RemoveVesselRessources(FlightGlobals.ActiveVessel, 0);
+                        KCFacilityCostClass.removeResources(Configuration.BuildableFacilities[t], 0, saveGame, bodyIndex, colonyName);
                         KCFacilityBase KCFac = Configuration.CreateInstance(t, false);
 
                         facility.AddconstructingFacility(KCFac);
@@ -75,39 +73,41 @@ namespace KerbalColonies.colonyFacilities
 
                     if (colonyFacility.upgradeable && colonyFacility.level < colonyFacility.maxLevel)
                     {
-                        if (Configuration.BuildableFacilities[colonyFacility.GetType()].VesselHasRessources(FlightGlobals.ActiveVessel, colonyFacility.level + 1))
+                        if (!KCFacilityCostClass.checkResources(Configuration.BuildableFacilities[colonyFacility.GetType()], colonyFacility.level + 1, saveGame, bodyIndex, colonyName))
                         {
-                            GUILayout.BeginVertical();
+                            GUI.enabled = false;
+                        }
+                        GUILayout.BeginVertical();
+                        {
+                            Configuration.BuildableFacilities[colonyFacility.GetType()].resourceCost[colonyFacility.level].ToList().ForEach(pair =>
                             {
-                                Configuration.BuildableFacilities[colonyFacility.GetType()].resourceCost[colonyFacility.level].ToList().ForEach(pair =>
-                                {
-                                    GUILayout.Label($"{pair.Key.displayName}: {pair.Value}");
-                                });
+                                GUILayout.Label($"{pair.Key.displayName}: {pair.Value}");
+                            });
 
-                                if (!(facility.UpgradingFacilities.ContainsKey(colonyFacility) || facility.UpgradedFacilities.Contains(colonyFacility)))
+                            if (!(facility.UpgradingFacilities.ContainsKey(colonyFacility) || facility.UpgradedFacilities.Contains(colonyFacility)))
+                            {
+                                if (GUILayout.Button("Upgrade"))
                                 {
-                                    if (GUILayout.Button("Upgrade"))
+                                    KCFacilityCostClass.removeResources(Configuration.BuildableFacilities[colonyFacility.GetType()], colonyFacility.level + 1, saveGame, bodyIndex, colonyName);
+                                    if (colonyFacility.upgradeType == UpgradeType.withGroupChange)
                                     {
-                                        Configuration.BuildableFacilities[colonyFacility.GetType()].RemoveVesselRessources(FlightGlobals.ActiveVessel, colonyFacility.level + 1);
-                                        if (colonyFacility.upgradeType == UpgradeType.withGroupChange)
-                                        {
-                                            KCFacilityBase.UpgradeFacilityWithGroupChange(colonyFacility);
-                                        }
-                                        else if (colonyFacility.upgradeType == UpgradeType.withoutGroupChange)
-                                        {
-                                            KCFacilityBase.UpgradeFacilityWithoutGroupChange(colonyFacility);
-                                        }
-                                        else if (colonyFacility.upgradeType == UpgradeType.withAdditionalGroup)
-                                        {
-                                            facility.AddUpgradeableFacility(colonyFacility);
+                                        KCFacilityBase.UpgradeFacilityWithGroupChange(colonyFacility);
+                                    }
+                                    else if (colonyFacility.upgradeType == UpgradeType.withoutGroupChange)
+                                    {
+                                        KCFacilityBase.UpgradeFacilityWithoutGroupChange(colonyFacility);
+                                    }
+                                    else if (colonyFacility.upgradeType == UpgradeType.withAdditionalGroup)
+                                    {
+                                        facility.AddUpgradeableFacility(colonyFacility);
 
-                                            //KCFacilityBase.UpgradeFacilityWithAdditionalGroup(colonyFacility);
-                                        }
+                                        //KCFacilityBase.UpgradeFacilityWithAdditionalGroup(colonyFacility);
                                     }
                                 }
                             }
-                            GUILayout.EndVertical();
                         }
+                        GUI.enabled = true;
+                        GUILayout.EndVertical();
                     }
                     GUILayout.EndHorizontal();
                 });
@@ -131,6 +131,7 @@ namespace KerbalColonies.colonyFacilities
                 {
                     GUILayout.BeginHorizontal();
                     GUILayout.Label(newFacility.name);
+                    if (FlightGlobals.ActiveVessel == null) { GUI.enabled = false; }
                     if (GUILayout.Button("Place"))
                     {
                         newFacility.enabled = true;
@@ -143,6 +144,7 @@ namespace KerbalColonies.colonyFacilities
                         KerbalKonstructs.API.CreateGroup(groupName);
                         Colonies.PlaceNewGroup(newFacility, newFacility.baseGroupName, groupName, colonyName);
                     }
+                    GUI.enabled = true;
                     GUILayout.EndHorizontal();
                 });
 
@@ -165,11 +167,13 @@ namespace KerbalColonies.colonyFacilities
                 {
                     GUILayout.Label(facilityUpgrade.name);
 
+                    if (FlightGlobals.ActiveVessel == null) { GUI.enabled = false; }
                     if (GUILayout.Button("Place upgrade"))
                     {
                         KCFacilityBase.UpgradeFacilityWithAdditionalGroup(facilityUpgrade);
                         facility.UpgradedFacilities.Remove(facilityUpgrade);
                     }
+                    GUI.enabled = true;
                 });
 
                 GUILayout.EndVertical();

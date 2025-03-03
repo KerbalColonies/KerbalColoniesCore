@@ -12,12 +12,109 @@ namespace KerbalColonies.colonyFacilities
     /// </summary>
     public abstract class KCFacilityCostClass
     {
-        public Dictionary<int, Dictionary<PartResourceDefinition, float>> resourceCost;
+        /// <summary>
+        /// Level, Resource, Amount
+        /// </summary>
+        public Dictionary<int, Dictionary<PartResourceDefinition, double>> resourceCost;
+        /// <summary>
+        /// currently unused
+        /// </summary>
+        public double electricity;
+        public double funds;
 
-        public virtual string GetRessourceCostString(int level) { return ""; }
+        /// <summary>
+        /// Used for custom checks, returns true if the facility can be built or upgraded.
+        /// </summary>
+        public virtual bool customCheck(int level, string saveGame, int bodyIndex, string colonyName)
+        {
+            return true;
+        }
 
-        public abstract bool VesselHasRessources(Vessel vessel, int level);
+        public static bool checkResources(KCFacilityCostClass facilityCost, int level, string saveGame, int bodyIndex, string colonyName)
+        {
+            if (!facilityCost.customCheck(level, saveGame, bodyIndex, colonyName))
+            {
+                return false;
+            }
 
-        public abstract bool RemoveVesselRessources(Vessel vessel, int level);
+            foreach (KeyValuePair<PartResourceDefinition, double> resource in facilityCost.resourceCost[level])
+            {
+                double vesselAmount = 0;
+                double colonyAmount = KCStorageFacility.colonyResources(resource.Key, saveGame, bodyIndex, colonyName);
+
+                if (FlightGlobals.ActiveVessel != null)
+                {
+                    FlightGlobals.ActiveVessel.GetConnectedResourceTotals(resource.Key.id, out double amount, out double maxAmount);
+                    if (amount >= resource.Value)
+                    {
+                        continue;
+                    }
+                    vesselAmount = amount;
+                }
+
+                else if (resource.Value <= colonyAmount)
+                {
+                    continue;
+                }
+
+                else
+                {
+                    if (vesselAmount + colonyAmount < resource.Value)
+                    {
+                        return false;
+                    }
+                }
+            }
+
+            if (Funding.Instance != null)
+            {
+                if (Funding.Instance.Funds < facilityCost.funds)
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        public static bool removeResources(KCFacilityCostClass facilityCost, int level, string saveGame, int bodyIndex, string colonyName)
+        {
+            if (checkResources(facilityCost, level, saveGame, bodyIndex, colonyName))
+            {
+                foreach (KeyValuePair<PartResourceDefinition, double> resource in facilityCost.resourceCost[level])
+                {
+                    double remainingAmount = resource.Value;
+
+                    double vesselAmount = 0;
+                    double colonyAmount = KCStorageFacility.colonyResources(resource.Key, saveGame, bodyIndex, colonyName);
+                    if (FlightGlobals.ActiveVessel != null)
+                    {
+                        FlightGlobals.ActiveVessel.GetConnectedResourceTotals(resource.Key.id, out double amount, out double maxAmount);
+                        vesselAmount = amount;
+                    }
+
+                    if (vesselAmount >= resource.Value)
+                    {
+                        FlightGlobals.ActiveVessel.RequestResource(FlightGlobals.ActiveVessel.rootPart, resource.Key.id, resource.Value, true);
+                    }
+                    else
+                    {
+                        if (FlightGlobals.ActiveVessel != null)
+                        {
+                            FlightGlobals.ActiveVessel.RequestResource(FlightGlobals.ActiveVessel.rootPart, resource.Key.id, resource.Value, true);
+                        }
+                        remainingAmount -= vesselAmount;
+
+                        KCStorageFacility.addResourceToColony(resource.Key, -remainingAmount, saveGame, bodyIndex, colonyName);
+                    }
+                }
+                if (Funding.Instance != null)
+                {
+                    Funding.Instance.AddFunds(-facilityCost.funds, TransactionReasons.None);
+                }
+                return true;
+            }
+            return false;
+        }
     }
 }

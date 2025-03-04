@@ -222,6 +222,14 @@ namespace KerbalColonies.colonyFacilities
                     vessel.protoVessel.Clean();
                 }
 
+                List<KCLaunchpadFacility> facilities = KCLaunchpadFacility.getLaunchPadsInColony(saveGame, bodyIndex, colonyName);
+
+                if (facilities.Count > 0)
+                {
+                    KerbalKonstructs.Core.CameraController.SetSpaceCenterCam(KerbalKonstructs.API.getStaticInstanceByUUID(facilities[0].launchSiteUUID).launchSite);
+                }
+                KerbalKonstructs.KerbalKonstructs.instance.UpdateCache();
+
                 GamePersistence.SaveGame("persistent", HighLogic.SaveFolder, SaveMode.OVERWRITE);
                 HighLogic.LoadScene(GameScenes.SPACECENTER);
 

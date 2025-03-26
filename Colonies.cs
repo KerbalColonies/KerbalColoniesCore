@@ -64,6 +64,7 @@ namespace KerbalColonies
 
             foreach (KerbalKonstructs.Core.StaticInstance instance in instances)
             {
+                instance.ToggleAllColliders(true);
                 Configuration.coloniesPerBody[HighLogic.CurrentGame.Seed.ToString()][FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody)][ColonyName][gph].Add(instance.UUID, new List<colonyFacilities.KCFacilityBase> { });
                 Configuration.coloniesPerBody[HighLogic.CurrentGame.Seed.ToString()][FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody)][ColonyName][gph][instance.UUID].Add(Facility);
             }
@@ -88,6 +89,7 @@ namespace KerbalColonies
             Colonies.ColonyName = colonyName;
             groupName = newGroupName;
             KerbalKonstructs.API.CopyGroup(newGroupName, fromGroupName, fromBodyName: "Kerbin");
+            KerbalKonstructs.API.GetGroupStatics(newGroupName).ForEach(instance => instance.ToggleAllColliders(false));
             KerbalKonstructs.API.OpenGroupEditor(newGroupName);
             KerbalKonstructs.API.RegisterOnGroupSaved(PlaceNewGroupSave);
             return true;
@@ -107,6 +109,7 @@ namespace KerbalColonies
 
             foreach (KerbalKonstructs.Core.StaticInstance instance in instances)
             {
+                instance.ToggleAllColliders(true);
                 Configuration.coloniesPerBody[HighLogic.CurrentGame.Seed.ToString()][FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody)][ColonyName][gph].Add(instance.UUID, new List<colonyFacilities.KCFacilityBase> { Facility });
             }
 
@@ -129,6 +132,7 @@ namespace KerbalColonies
             groupName = newGroupName;
             groupName = KerbalKonstructs.API.CreateGroup(newGroupName);
             KerbalKonstructs.API.CopyGroup(newGroupName, fromGroupName, fromBodyName: "Kerbin");
+            KerbalKonstructs.API.GetGroupStatics(newGroupName).ForEach(instance => instance.ToggleAllColliders(false));
             KerbalKonstructs.API.OpenGroupEditor(newGroupName);
             KerbalKonstructs.API.RegisterOnGroupSaved(AddGroupUpdateSave);
             Configuration.saveColonies = true;

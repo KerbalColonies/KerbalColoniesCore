@@ -7,40 +7,13 @@ namespace KerbalColonies.colonyFacilities
 {
     internal class KCMiningFacilityCost : KCFacilityCostClass
     {
-        public override bool VesselHasRessources(Vessel vessel, int level)
-        {
-            for (int i = 0; i < resourceCost[level].Count; i++)
-            {
-                vessel.GetConnectedResourceTotals(resourceCost[level].ElementAt(i).Key.id, false, out double amount, out double maxAmount);
-
-                if (amount < resourceCost[level].ElementAt(i).Value)
-                {
-                    return false;
-                }
-            }
-            return true;
-        }
-
-        public override bool RemoveVesselRessources(Vessel vessel, int level)
-        {
-            if (VesselHasRessources(vessel, 0))
-            {
-                for (int i = 0; i < resourceCost[level].Count; i++)
-                {
-                    vessel.RequestResource(vessel.rootPart, resourceCost[level].ElementAt(i).Key.id, resourceCost[level].ElementAt(i).Value, true);
-                }
-                return true;
-            }
-            return false;
-        }
-
         public KCMiningFacilityCost()
         {
-            resourceCost = new Dictionary<int, Dictionary<PartResourceDefinition, float>> {
-                { 0, new Dictionary<PartResourceDefinition, float> {
-                    { PartResourceLibrary.Instance.GetDefinition("RocketParts"), 500f } } },
-                { 1, new Dictionary<PartResourceDefinition, float> {
-                    { PartResourceLibrary.Instance.GetDefinition("RocketParts"), 1000f } }
+            resourceCost = new Dictionary<int, Dictionary<PartResourceDefinition, double>> {
+                { 0, new Dictionary<PartResourceDefinition, double> {
+                    { PartResourceLibrary.Instance.GetDefinition("RocketParts"), 500 } } },
+                { 1, new Dictionary<PartResourceDefinition, double> {
+                    { PartResourceLibrary.Instance.GetDefinition("RocketParts"), 1000 } }
                 }
             };
         }
@@ -153,55 +126,12 @@ namespace KerbalColonies.colonyFacilities
             KCFacilityBase.GetInformationByFacilty(this, out string saveGame, out int bodyIndex, out string colonyName, out List<GroupPlaceHolder> gph, out List<string> UUIDs);
             if (ore > 0)
             {
-                List<KCStorageFacility> storages = KCStorageFacility.findFacilityWithResourceType(PartResourceLibrary.Instance.GetDefinition("Ore"), saveGame, bodyIndex, colonyName);
-
-                foreach (KCStorageFacility storage in storages)
-                {
-                    if (ore <= storage.getEmptyAmount(PartResourceLibrary.Instance.GetDefinition("Ore")))
-                    {
-                        storage.changeAmount(PartResourceLibrary.Instance.GetDefinition("Ore"), (float)ore);
-                        ore = 0;
-                        break;
-                    }
-                    else
-                    {
-                        double tempAmount = storage.getEmptyAmount(PartResourceLibrary.Instance.GetDefinition("Ore"));
-                        storage.changeAmount(PartResourceLibrary.Instance.GetDefinition("Ore"), (float)tempAmount);
-                        ore -= tempAmount;
-                    }
-                }
+                ore = KCStorageFacility.addResourceToColony(PartResourceLibrary.Instance.GetDefinition("Ore"), ore, saveGame, bodyIndex, colonyName);
             }
 
             if (metalOre > 0)
             {
-                List<KCStorageFacility> storages = KCStorageFacility.findFacilityWithResourceType(PartResourceLibrary.Instance.GetDefinition("MetalOre"), saveGame, bodyIndex, colonyName);
-                if (storages.Count == 0)
-                {
-                    List<KCFacilityBase> facilities = KCFacilityBase.GetFacilitiesInColony(saveGame, bodyIndex, colonyName).Where(obj => typeof(KCStorageFacility).IsAssignableFrom(obj.GetType())).ToList();
-
-                    foreach (KCFacilityBase facility in facilities)
-                    {
-                        KCStorageFacility storageFacility = (KCStorageFacility)facility;
-                        storageFacility.addRessource(PartResourceLibrary.Instance.GetDefinition("MetalOre"));
-                        storages.Add(storageFacility);
-                    }
-                }
-
-                foreach (KCStorageFacility storage in storages)
-                {
-                    if (metalOre <= storage.getEmptyAmount(PartResourceLibrary.Instance.GetDefinition("MetalOre")))
-                    {
-                        storage.changeAmount(PartResourceLibrary.Instance.GetDefinition("MetalOre"), (float)metalOre);
-                        metalOre = 0;
-                        break;
-                    }
-                    else
-                    {
-                        double tempAmount = storage.getEmptyAmount(PartResourceLibrary.Instance.GetDefinition("MetalOre"));
-                        storage.changeAmount(PartResourceLibrary.Instance.GetDefinition("MetalOre"), (float)tempAmount);
-                        metalOre -= tempAmount;
-                    }
-                }
+                metalOre = KCStorageFacility.addResourceToColony(PartResourceLibrary.Instance.GetDefinition("MetalOre"), metalOre, saveGame, bodyIndex, colonyName);
             }
             return true;
         }

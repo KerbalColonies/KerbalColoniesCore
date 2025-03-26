@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Contracts.Parameters;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -7,38 +8,11 @@ namespace KerbalColonies.colonyFacilities
 {
     internal class KCStorageFacilityCost : KCFacilityCostClass
     {
-        public override bool VesselHasRessources(Vessel vessel, int level)
-        {
-            for (int i = 0; i < resourceCost[level].Count; i++)
-            {
-                vessel.GetConnectedResourceTotals(resourceCost[level].ElementAt(i).Key.id, false, out double amount, out double maxAmount);
-
-                if (amount < resourceCost[level].ElementAt(i).Value)
-                {
-                    return false;
-                }
-            }
-            return true;
-        }
-
-        public override bool RemoveVesselRessources(Vessel vessel, int level)
-        {
-            if (VesselHasRessources(vessel, 0))
-            {
-                for (int i = 0; i < resourceCost[level].Count; i++)
-                {
-                    vessel.RequestResource(vessel.rootPart, resourceCost[level].ElementAt(i).Key.id, resourceCost[level].ElementAt(i).Value, true);
-                }
-                return true;
-            }
-            return false;
-        }
-
         public KCStorageFacilityCost()
         {
-            resourceCost = new Dictionary<int, Dictionary<PartResourceDefinition, float>> {
-                { 0, new Dictionary<PartResourceDefinition, float> { { PartResourceLibrary.Instance.GetDefinition("RocketParts"), 500f } } },
-                { 1, new Dictionary<PartResourceDefinition, float> { { PartResourceLibrary.Instance.GetDefinition("RocketParts"), 500f } } }
+            resourceCost = new Dictionary<int, Dictionary<PartResourceDefinition, double>> {
+                { 0, new Dictionary<PartResourceDefinition, double> { { PartResourceLibrary.Instance.GetDefinition("RocketParts"), 500 } } },
+                { 1, new Dictionary<PartResourceDefinition, double> { { PartResourceLibrary.Instance.GetDefinition("RocketParts"), 500 } } }
             };
         }
     }
@@ -52,6 +26,8 @@ namespace KerbalColonies.colonyFacilities
 
         internal static void GetVesselResources()
         {
+            if (FlightGlobals.ActiveVessel == null) { return; }
+
             double amount = 0;
             double maxAmount = 0;
             foreach (PartResourceDefinition availableResource in PartResourceLibrary.Instance.resourceDefinitions)
@@ -147,7 +123,6 @@ namespace KerbalColonies.colonyFacilities
         protected override void CustomWindow()
         {
             storageFacility.Update();
-
             //int maxVolume = (int)Math.Round(KCStorageFacility.maxVolume, 0);
             GUILayout.BeginHorizontal();
             GUILayout.Label($"MaxVolume: {storageFacility.maxVolume}", LabelGreen, GUILayout.Height(18));
@@ -166,6 +141,7 @@ namespace KerbalColonies.colonyFacilities
                 GUILayout.BeginVertical();
                 GUILayout.Label($"{kvp.Key.displayName}: {kvp.Value}", GUILayout.Height(18));
 
+                if (FlightGlobals.ActiveVessel == null) { GUI.enabled = false; }
                 GUILayout.BeginHorizontal();
                 foreach (int i in valueList)
                 {
@@ -246,6 +222,7 @@ namespace KerbalColonies.colonyFacilities
                         }
                     }
                 }
+                GUI.enabled = true;
                 GUILayout.EndHorizontal();
                 GUILayout.EndVertical();
             }
@@ -269,6 +246,73 @@ namespace KerbalColonies.colonyFacilities
     [System.Serializable]
     internal class KCStorageFacility : KCFacilityBase
     {
+        public static double colonyResources(PartResourceDefinition resource, string saveGame, int bodyIndex, string colonyName)
+        {
+            double amount = 0;
+            List<KCStorageFacility> storages = findFacilityWithResourceType(resource, saveGame, bodyIndex, colonyName);
+            foreach (KCStorageFacility storage in storages)
+            {
+                amount += storage.getRessources()[resource];
+            }
+            return amount;
+        }
+
+        public static double maxColonySpace(PartResourceDefinition resource, double amount, string saveGame, int bodyIndex, string colonyName)
+        {
+            List<KCStorageFacility> storages = findEmptyStorageFacilities(saveGame, bodyIndex, colonyName);
+            double space = 0;
+            foreach (KCStorageFacility storage in storages)
+            {
+                space += storage.getEmptyAmount(resource);
+            }
+            return space;
+        }
+
+        public static bool colonyHasSpace(PartResourceDefinition resource, double amount, string saveGame, int bodyIndex, string colonyName)
+        {
+            List<KCStorageFacility> storages = findEmptyStorageFacilities(saveGame, bodyIndex, colonyName);
+            foreach (KCStorageFacility storage in storages)
+            {
+                if (amount <= storage.getEmptyAmount(resource))
+                {
+                    return true;
+                }
+                else
+                {
+                    amount -= storage.getEmptyAmount(resource);
+                }
+            }
+            return false;
+        }
+
+        // TODO: make it compatible for negative amounts
+        public static double addResourceToColony(PartResourceDefinition resource, double amount, string saveGame, int bodyIndex, string colonyName)
+        {
+            List<KCStorageFacility> storages = KCStorageFacility.findFacilityWithResourceType(resource, saveGame, bodyIndex, colonyName);
+
+            if (storages.Count == 0)
+            {
+                storages = KCStorageFacility.findEmptyStorageFacilities(saveGame, bodyIndex, colonyName);
+            }
+
+            foreach (KCStorageFacility storage in storages)
+            {
+                if (amount <= storage.getEmptyAmount(resource))
+                {
+                    storage.changeAmount(resource, (float)amount);
+                    return 0;
+                }
+                else
+                {
+                    double tempAmount = storage.getEmptyAmount(resource);
+                    storage.changeAmount(resource, (float)tempAmount);
+                    amount -= tempAmount;
+                }
+            }
+
+            return amount;
+        }
+
         public static List<KCStorageFacility> findFacilityWithResourceType(PartResourceDefinition resource, string saveGame, int bodyIndex, string colonyName)
         {
             if (!Configuration.coloniesPerBody.ContainsKey(saveGame)) { return new List<KCStorageFacility> { }; }
@@ -299,6 +343,10 @@ namespace KerbalColonies.colonyFacilities
             });
             return storages;
         }
+
+        /// <summary>
+        /// returns a list of all storage facilities that are not full
+        /// </summary>
         public static List<KCStorageFacility> findEmptyStorageFacilities(string saveGame, int bodyIndex, string colonyName)
         {
             if (!Configuration.coloniesPerBody.ContainsKey(saveGame)) { return new List<KCStorageFacility> { }; }
@@ -465,21 +513,6 @@ namespace KerbalColonies.colonyFacilities
             return false;
         }
 
-        public override void Update()
-        {
-            base.Update();
-
-            if (maxVolume == 0f)
-            {
-                GameObject instace = KerbalKonstructs.API.GetGameObject(KCFacilityBase.GetUUIDbyFacility(this));
-                if (instace != null)
-                {
-                    Vector3 size = instace.GetRendererBounds().extents;
-                    maxVolume = (size.x * size.y * size.z);
-                }
-            }
-        }
-
         public override void OnBuildingClicked()
         {
             KSPLog.print("KCStorageWindow: " + StorageWindow.ToString());
@@ -494,16 +527,11 @@ namespace KerbalColonies.colonyFacilities
 
             this.upgradeType = UpgradeType.withAdditionalGroup;
 
-            switch (this.level)
-            {
-                default:
-                case 0:
-                    this.baseGroupName = "KC_SF_0";
-                    break;
-                case 1:
-                    this.baseGroupName = "KC_SF_1";
-                    break;
-            }
+            float[] maxVolumes = { 80000f, 100000f };
+            maxVolume = maxVolumes[level];
+
+            string[] baseGroupNames = { "KC_SF_0", "KC_SF_1" };
+            baseGroupName = baseGroupNames[level];
         }
 
         public override void UpdateBaseGroupName()

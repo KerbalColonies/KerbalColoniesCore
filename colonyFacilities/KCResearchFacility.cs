@@ -8,51 +8,24 @@ namespace KerbalColonies.colonyFacilities
 {
     internal class KCResearchFacilityCost : KCFacilityCostClass
     {
-        public override bool VesselHasRessources(Vessel vessel, int level)
-        {
-            for (int i = 0; i < resourceCost[level].Count; i++)
-            {
-                vessel.GetConnectedResourceTotals(resourceCost[level].ElementAt(i).Key.id, false, out double amount, out double maxAmount);
-
-                if (amount < resourceCost[level].ElementAt(i).Value)
-                {
-                    return false;
-                }
-            }
-            return true;
-        }
-
-        public override bool RemoveVesselRessources(Vessel vessel, int level)
-        {
-            if (VesselHasRessources(vessel, 0))
-            {
-                for (int i = 0; i < resourceCost[level].Count; i++)
-                {
-                    vessel.RequestResource(vessel.rootPart, resourceCost[level].ElementAt(i).Key.id, resourceCost[level].ElementAt(i).Value, true);
-                }
-                return true;
-            }
-            return false;
-        }
-
         public KCResearchFacilityCost()
         {
-            resourceCost = new Dictionary<int, Dictionary<PartResourceDefinition, float>>{ 
-                { 0, new Dictionary<PartResourceDefinition, float> { 
-                    { PartResourceLibrary.Instance.GetDefinition("RocketParts"), 1000f },
-                    { PartResourceLibrary.Instance.GetDefinition("XenonGas"), 100f } }
+            resourceCost = new Dictionary<int, Dictionary<PartResourceDefinition, double>>{ 
+                { 0, new Dictionary<PartResourceDefinition, double> { 
+                    { PartResourceLibrary.Instance.GetDefinition("RocketParts"), 1000 },
+                    { PartResourceLibrary.Instance.GetDefinition("XenonGas"), 100 } }
                 },
-                { 1, new Dictionary<PartResourceDefinition, float> {
-                    { PartResourceLibrary.Instance.GetDefinition("RocketParts"), 1200f },
-                    { PartResourceLibrary.Instance.GetDefinition("XenonGas"), 200f } }
+                { 1, new Dictionary<PartResourceDefinition, double> {
+                    { PartResourceLibrary.Instance.GetDefinition("RocketParts"), 1200 },
+                    { PartResourceLibrary.Instance.GetDefinition("XenonGas"), 200 } }
                 },
-                { 2, new Dictionary<PartResourceDefinition, float> {
-                    { PartResourceLibrary.Instance.GetDefinition("RocketParts"), 1400f },
-                    { PartResourceLibrary.Instance.GetDefinition("XenonGas"), 400f } }
+                { 2, new Dictionary<PartResourceDefinition, double> {
+                    { PartResourceLibrary.Instance.GetDefinition("RocketParts"), 1400 },
+                    { PartResourceLibrary.Instance.GetDefinition("XenonGas"), 400 } }
                 },
-                { 3, new Dictionary<PartResourceDefinition, float> {
-                    { PartResourceLibrary.Instance.GetDefinition("RocketParts"), 1600f },
-                    { PartResourceLibrary.Instance.GetDefinition("XenonGas"), 600f } }
+                { 3, new Dictionary<PartResourceDefinition, double> {
+                    { PartResourceLibrary.Instance.GetDefinition("RocketParts"), 1600 },
+                    { PartResourceLibrary.Instance.GetDefinition("XenonGas"), 600 } }
                 },
             };
         }

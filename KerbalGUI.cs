@@ -80,7 +80,8 @@ namespace KerbalColonies
 
                     toVessel.RemoveCrew(member);
 
-                    member.rosterStatus = ProtoCrewMember.RosterStatus.Assigned;
+                    member.rosterStatus = ProtoCrewMember.RosterStatus.Missing;
+                    member.SetTimeForRespawn(double.MaxValue / 2);
                     HighLogic.CurrentGame.CrewRoster.AddCrewMember(member);
 
                     toVessel.SpawnCrew();
@@ -123,9 +124,7 @@ namespace KerbalColonies
                         }
                     }
 
-                    member.rosterStatus = ProtoCrewMember.RosterStatus.Missing;
-                    member.SetInactive(double.MaxValue);
-                    member.SetTimeForRespawn(double.MaxValue);
+                    member.rosterStatus = ProtoCrewMember.RosterStatus.Assigned;
                     //toVessel.RebuildCrewList();
                     toVessel.RebuildCrewList();
                     toVessel.SpawnCrew();
@@ -321,25 +320,28 @@ namespace KerbalColonies
 
                 GUILayout.Space(2);
 
-                GUILayout.BeginHorizontal();
+                if (ksg != null)
                 {
-                    if (GUILayout.Button("Assign/Retrive Kerbals", GUILayout.Height(23)))
+                    if (ksg.mode == KerbalSelectorGUI.SwitchModes.ActiveVessel && FlightGlobals.ActiveVessel == null) { GUI.enabled = false; }
+                    GUILayout.BeginHorizontal();
                     {
-                        if (transferWindow)
+                        if (GUILayout.Button("Assign/Retrive Kerbals", GUILayout.Height(23)))
                         {
-                            ksg.Close();
-                            transferWindow = false;
-                        }
-                        else
-                        {
-                            ksg.Open();
-                            transferWindow = true;
+                            if (transferWindow)
+                            {
+                                ksg.Close();
+                                transferWindow = false;
+                            }
+                            else
+                            {
+                                ksg.Open();
+                                transferWindow = true;
+                            }
                         }
                     }
+                    GUI.enabled = true;
+                    GUILayout.EndHorizontal();
                 }
-
-                GUI.enabled = true;
-                GUILayout.EndHorizontal();
             }
 
             GUILayout.Space(5);
@@ -350,7 +352,14 @@ namespace KerbalColonies
             transferWindow = false;
             this.fac = fac;
 
-            this.ksg = new KerbalSelectorGUI(fac, this, "current ship", fac.name, FlightGlobals.ActiveVessel);
+            if (FlightGlobals.ActiveVessel != null)
+            {
+                this.ksg = new KerbalSelectorGUI(fac, this, "current ship", fac.name, FlightGlobals.ActiveVessel);
+            }
+            else
+            {
+                ksg = null;
+            }
         }
 
         public KerbalGUI(KCKerbalFacilityBase fac, string savegame, int bodyIndex, string colonyName)

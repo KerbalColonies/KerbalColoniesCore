@@ -72,7 +72,7 @@ namespace KerbalColonies.colonyFacilities
                     Configuration.coloniesPerBody[saveGame][bodyIndex][colonyName][gph] = new Dictionary<string, List<KCFacilityBase>>();
                     KerbalKonstructs.API.GetGroupStatics(gph.GroupName).ToList().ForEach(x => KerbalKonstructs.API.RemoveStatic(x.UUID));
 
-                    KerbalKonstructs.API.CopyGroup(gph.GroupName, facility.baseGroupName);
+                    KerbalKonstructs.API.CopyGroup(gph.GroupName, facility.baseGroupName, fromBodyName: "Kerbin");
 
                     foreach (KerbalKonstructs.Core.StaticInstance staticInstance in KerbalKonstructs.API.GetGroupStatics(gph.GroupName))
                     {
@@ -108,7 +108,7 @@ namespace KerbalColonies.colonyFacilities
                 facility.UpgradeFacility(facility.level + 1);
 
                 KCFacilityBase.CountFacilityType(facility.GetType(), saveGame, bodyIndex, colonyName, out int count);
-                Colonies.AddGroupUpdate(facility, facility.baseGroupName, $"{colonyName}_{facility.GetType().Name}_{facility.level}_{count}", colonyName);
+                Colonies.AddGroupUpdate(facility, $"{colonyName}_{facility.GetType().Name}_{facility.level}_{count}", colonyName);
                 Configuration.saveColonies = true;
                 return true;
             }
@@ -254,8 +254,10 @@ namespace KerbalColonies.colonyFacilities
         }
 
 
-        internal static string GetUUIDbyFacility(KCFacilityBase facility)
+        internal static string[] GetUUIDbyFacility(KCFacilityBase facility)
         {
+            List<string> uuids = new List<string>();
+
             foreach (string saveGame in Configuration.coloniesPerBody.Keys)
             {
                 foreach (int bodyId in Configuration.coloniesPerBody[saveGame].Keys)
@@ -268,14 +270,15 @@ namespace KerbalColonies.colonyFacilities
                             {
                                 if (Configuration.coloniesPerBody[saveGame][bodyId][colonyName][gph][uuid].Contains(facility))
                                 {
-                                    return uuid;
+                                    uuids.Add(uuid);
                                 }
                             }
                         }
                     }
                 }
             }
-            return "";
+
+            return uuids.ToArray();
         }
 
         /// <summary>
@@ -360,6 +363,11 @@ namespace KerbalColonies.colonyFacilities
             }
 
         }
+
+        /// <summary>
+        /// This method gets called when the KK group is placed and saved
+        /// </summary>
+        public virtual void OnGroupPlaced() { }
 
         /// <summary>
         /// This method should return the upgrade time for the specified level

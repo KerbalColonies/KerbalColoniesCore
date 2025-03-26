@@ -39,38 +39,11 @@ namespace KerbalColonies.colonyFacilities
 {
     public class KCHangarFacilityCost : KCFacilityCostClass
     {
-        public override bool VesselHasRessources(Vessel vessel, int level)
-        {
-            for (int i = 0; i < resourceCost[level].Count; i++)
-            {
-                vessel.GetConnectedResourceTotals(resourceCost[level].ElementAt(i).Key.id, false, out double amount, out double maxAmount);
-
-                if (amount < resourceCost[level].ElementAt(i).Value)
-                {
-                    return false;
-                }
-            }
-            return true;
-        }
-
-        public override bool RemoveVesselRessources(Vessel vessel, int level)
-        {
-            if (VesselHasRessources(vessel, 0))
-            {
-                for (int i = 0; i < resourceCost[level].Count; i++)
-                {
-                    vessel.RequestResource(vessel.rootPart, resourceCost[level].ElementAt(i).Key.id, resourceCost[level].ElementAt(i).Value, true);
-                }
-                return true;
-            }
-            return false;
-        }
-
         public KCHangarFacilityCost()
         {
-            resourceCost = new Dictionary<int, Dictionary<PartResourceDefinition, float>> {
-                { 0, new Dictionary<PartResourceDefinition, float> { { PartResourceLibrary.Instance.GetDefinition("RocketParts"), 500f } } },
-                { 1, new Dictionary<PartResourceDefinition, float> { { PartResourceLibrary.Instance.GetDefinition("RocketParts"), 500f } } }
+            resourceCost = new Dictionary<int, Dictionary<PartResourceDefinition, double>> {
+                { 0, new Dictionary<PartResourceDefinition, double> { { PartResourceLibrary.Instance.GetDefinition("RocketParts"), 500 } } },
+                { 1, new Dictionary<PartResourceDefinition, double> { { PartResourceLibrary.Instance.GetDefinition("RocketParts"), 500 } } }
             };
         }
     }
@@ -89,29 +62,34 @@ namespace KerbalColonies.colonyFacilities
             {
                 GUILayout.BeginHorizontal();
                 GUILayout.Label(vessel.vesselName);
+
                 if (GUILayout.Button("Load"))
                 {
-                    hangar.RollOutVessel(vessel);
+                    Vessel v = hangar.RollOutVessel(vessel).vesselRef;
                 }
                 GUILayout.EndHorizontal();
             });
             GUILayout.EndVertical();
             GUILayout.EndScrollView();
 
-            GUILayout.Space(10);
-            if (hangar.CanStoreVessel(FlightGlobals.ActiveVessel))
+            if (FlightGlobals.ActiveVessel != null)
             {
-                GUI.enabled = true;
-            }
-            else
-            {
-                GUI.enabled = false;
+                GUILayout.Space(10);
+                if (hangar.CanStoreVessel(FlightGlobals.ActiveVessel))
+                {
+                    GUI.enabled = true;
+                }
+                else
+                {
+                    GUI.enabled = false;
+                }
+
+                if (GUILayout.Button("Store vessel"))
+                {
+                    hangar.StoreVessel(FlightGlobals.ActiveVessel);
+                }
             }
 
-            if (GUILayout.Button("Store vessel"))
-            {
-                hangar.StoreVessel(FlightGlobals.ActiveVessel);
-            }
             GUI.enabled = true;
         }
 
@@ -219,10 +197,6 @@ namespace KerbalColonies.colonyFacilities
 
                             // remove the crew from the ship
                             part.RemoveCrewmember(crewList[i]);
-
-                            crewList[i].rosterStatus = ProtoCrewMember.RosterStatus.Missing;
-                            crewList[i].SetInactive(double.MaxValue);
-                            crewList[i].SetTimeForRespawn(double.MaxValue);
                             KCCrewQuarters.AddKerbalToColony(saveGame, bodyIndex, colonyName, crewList[i]);
                         }
                     }
@@ -248,6 +222,14 @@ namespace KerbalColonies.colonyFacilities
                     vessel.protoVessel.Clean();
                 }
 
+                List<KCLaunchpadFacility> facilities = KCLaunchpadFacility.getLaunchPadsInColony(saveGame, bodyIndex, colonyName);
+
+                if (facilities.Count > 0)
+                {
+                    KerbalKonstructs.Core.CameraController.SetSpaceCenterCam(KerbalKonstructs.API.getStaticInstanceByUUID(facilities[0].launchSiteUUID).launchSite);
+                }
+                KerbalKonstructs.KerbalKonstructs.instance.UpdateCache();
+
                 GamePersistence.SaveGame("persistent", HighLogic.SaveFolder, SaveMode.OVERWRITE);
                 HighLogic.LoadScene(GameScenes.SPACECENTER);
 
@@ -257,26 +239,28 @@ namespace KerbalColonies.colonyFacilities
             return false;
         }
 
-        public bool RollOutVessel(StoredVessel storedVessel)
+
+        public ProtoVessel RollOutVessel(StoredVessel storedVessel)
         {
             if (!storedVessels.Contains(storedVessel))
             {
                 Configuration.writeLog("no Stored Vessel found:" + storedVessel.vesselName);
-                return false;
+                return null;
             }
-            storedVessels.Remove(storedVessel);
 
             ProtoVessel protoVessel = new ProtoVessel(storedVessel.vesselNode, HighLogic.CurrentGame);
-
-
             protoVessel.Load(HighLogic.CurrentGame.flightState);
 
-            Vessel vessel = protoVessel.vesselRef;
+            KCFacilityBase.GetInformationByFacilty(this, out string saveGame, out int bodyIndex, out string colonyName, out List<GroupPlaceHolder> gph, out List<string> UUIDs);
 
-            vessel.Load();
-            vessel.MakeActive();
+            List<KCLaunchpadFacility> launchpads = KCLaunchpadFacility.getLaunchPadsInColony(saveGame, bodyIndex, colonyName);
+            if (launchpads.Count > 0)
+            {
+                storedVessels.Remove(storedVessel);
+                launchpads[0].LaunchVessel(protoVessel);
+            }
 
-            return true;
+            return protoVessel;
         }
 
         public override ConfigNode getCustomNode()

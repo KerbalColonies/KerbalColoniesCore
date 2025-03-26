@@ -6,37 +6,10 @@ namespace KerbalColonies.colonyFacilities
 {
     internal class KCCrewQuarterCost : KCFacilityCostClass
     {
-        public override bool VesselHasRessources(Vessel vessel, int level)
-        {
-            for (int i = 0; i < resourceCost[level].Count; i++)
-            {
-                vessel.GetConnectedResourceTotals(resourceCost[level].ElementAt(i).Key.id, false, out double amount, out double maxAmount);
-
-                if (amount < resourceCost[level].ElementAt(i).Value)
-                {
-                    return false;
-                }
-            }
-            return true;
-        }
-
-        public override bool RemoveVesselRessources(Vessel vessel, int level)
-        {
-            if (VesselHasRessources(vessel, 0))
-            {
-                for (int i = 0; i < resourceCost[level].Count; i++)
-                {
-                    vessel.RequestResource(vessel.rootPart, resourceCost[level].ElementAt(i).Key.id, resourceCost[level].ElementAt(i).Value, true);
-                }
-                return true;
-            }
-            return false;
-        }
-
         public KCCrewQuarterCost()
         {
-            resourceCost = new Dictionary<int, Dictionary<PartResourceDefinition, float>> { 
-                { 0, new Dictionary<PartResourceDefinition, float> { { PartResourceLibrary.Instance.GetDefinition("Ore"), 100f } } }
+            resourceCost = new Dictionary<int, Dictionary<PartResourceDefinition, double>> {
+                { 0, new Dictionary<PartResourceDefinition, double> { { PartResourceLibrary.Instance.GetDefinition("Ore"), 100 } } }
             };
 
         }
@@ -49,8 +22,6 @@ namespace KerbalColonies.colonyFacilities
 
         protected override void CustomWindow()
         {
-            KSPLog.print("KCCrewQuartersWindow: " + this.ToString());
-
             GUILayout.Space(2);
             GUILayout.BeginHorizontal();
             GUI.enabled = true;
@@ -58,14 +29,15 @@ namespace KerbalColonies.colonyFacilities
             kerbalGUI.StaffingInterface();
 
             GUILayout.EndHorizontal();
-
-            GUILayout.Space(2);
         }
 
         protected override void OnClose()
         {
-            kerbalGUI.ksg.Close();
-            kerbalGUI.transferWindow = false;
+            if (kerbalGUI != null && kerbalGUI.ksg != null)
+            {
+                kerbalGUI.ksg.Close();
+                kerbalGUI.transferWindow = false;
+            }
         }
 
         public KCCrewQuartersWindow(KCCrewQuarters CrewQuarterFacility) : base(Configuration.createWindowID(CrewQuarterFacility), "Crewquarters")
@@ -141,7 +113,7 @@ namespace KerbalColonies.colonyFacilities
 
             if (FindKerbalInCrewQuarters(saveGame, bodyIndex, colonyName, kerbal) != null) { return false; }
 
-            foreach(KCCrewQuarters crewQuarter in CrewQuartersInColony(saveGame, bodyIndex, colonyName))
+            foreach (KCCrewQuarters crewQuarter in CrewQuartersInColony(saveGame, bodyIndex, colonyName))
             {
                 if (crewQuarter.kerbals.Count < crewQuarter.maxKerbals)
                 {

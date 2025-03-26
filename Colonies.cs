@@ -1,4 +1,5 @@
 ﻿using KerbalColonies.colonyFacilities;
+using KerbalKonstructs.Modules;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -24,11 +25,27 @@ namespace KerbalColonies
 {
     internal static class Colonies
     {
-        internal static Type FacilityType = null;
-        internal static KCFacilityBase Facility = null;
-        internal static string ColonyName = "";
-        internal static string groupName = "";
-        internal static int colonyCount = 0;
+        internal static Queue<QueueInformation> buildQueue = new Queue<QueueInformation>();
+        public static bool placedGroup = false;
+        public static bool nextFrame = false;
+
+        internal class QueueInformation
+        {
+            internal bool GroupUpdate = false;
+            internal KCFacilityBase Facility = null;
+            internal string ColonyName = null;
+            internal string groupName = null;
+            internal string fromGroupName = null;
+
+            internal QueueInformation(bool GroupUpdate, KCFacilityBase facility, string colonyName, string groupName, string fromGroupName)
+            {
+                this.GroupUpdate = GroupUpdate;
+                Facility = facility;
+                ColonyName = colonyName;
+                this.groupName = groupName;
+                this.fromGroupName = fromGroupName;
+            }
+        }
 
         /// <summary>
         /// This function is called after a group is saved.
@@ -37,43 +54,33 @@ namespace KerbalColonies
         /// </summary>
         internal static void PlaceNewGroupSave(KerbalKonstructs.Core.GroupCenter groupCenter)
         {
-            if (groupCenter.Group != groupName) { return; }
+            if (groupCenter.Group != buildQueue.Peek().groupName) { return; }
 
-            List<KerbalKonstructs.Core.StaticInstance> instances = KerbalKonstructs.API.GetGroupStatics(groupName).ToList();
-            GroupPlaceHolder gph = new GroupPlaceHolder(groupName, groupCenter.RadialPosition, groupCenter.Orientation, groupCenter.Heading);
-            Configuration.coloniesPerBody[HighLogic.CurrentGame.Seed.ToString()][FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody)][ColonyName].Add(gph, new Dictionary<string, List<KCFacilityBase>>());
+            List<KerbalKonstructs.Core.StaticInstance> instances = KerbalKonstructs.API.GetGroupStatics(buildQueue.Peek().groupName).ToList();
+            GroupPlaceHolder gph = new GroupPlaceHolder(buildQueue.Peek().groupName, groupCenter.RadialPosition, groupCenter.Orientation, groupCenter.Heading);
+            Configuration.coloniesPerBody[HighLogic.CurrentGame.Seed.ToString()][FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody)][buildQueue.Peek().ColonyName].Add(gph, new Dictionary<string, List<KCFacilityBase>>());
 
-            if (Facility == null)
+            if (buildQueue.Peek().Facility == null)
             {
                 throw new Exception("No facility found");
-            }
-
-            if (typeof(KC_CAB_Facility).IsAssignableFrom(Facility.GetType()))
-            {
-                KC_CAB_Facility kC_CAB_Facility = (KC_CAB_Facility)Facility;
-
-                foreach (KeyValuePair<Type, int> kvp in KC_CAB_Facility.defaultFacilities)
-                {
-                    for (int i = 0; i < kvp.Value; i++)
-                    {
-                        KCFacilityBase KCFac = Configuration.CreateInstance(kvp.Key, false);
-                        kC_CAB_Facility.addConstructedFacility(KCFac);
-                    }
-                }
             }
 
             foreach (KerbalKonstructs.Core.StaticInstance instance in instances)
             {
                 instance.ToggleAllColliders(true);
-                Configuration.coloniesPerBody[HighLogic.CurrentGame.Seed.ToString()][FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody)][ColonyName][gph].Add(instance.UUID, new List<colonyFacilities.KCFacilityBase> { });
-                Configuration.coloniesPerBody[HighLogic.CurrentGame.Seed.ToString()][FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody)][ColonyName][gph][instance.UUID].Add(Facility);
+                Configuration.coloniesPerBody[HighLogic.CurrentGame.Seed.ToString()][FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody)][buildQueue.Peek().ColonyName][gph].Add(instance.UUID, new List<colonyFacilities.KCFacilityBase> { });
+                Configuration.coloniesPerBody[HighLogic.CurrentGame.Seed.ToString()][FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody)][buildQueue.Peek().ColonyName][gph][instance.UUID].Add(buildQueue.Peek().Facility);
             }
 
-            Facility.OnGroupPlaced();
+            buildQueue.Peek().Facility.OnGroupPlaced();
 
             Configuration.saveColonies = true;
             KerbalKonstructs.API.UnRegisterOnGroupSaved(PlaceNewGroupSave);
             KerbalKonstructs.API.Save();
+
+            buildQueue.Dequeue();
+            placedGroup = true;
+            nextFrame = false;
         }
 
         /// <summary>
@@ -81,17 +88,21 @@ namespace KerbalColonies
         /// Therefore it creates a temporary group so the entire group can be moved together.
         /// It adds the PlaceNewGroupSave method to the KK groupsave to transfer the statics over to the main group.
         /// </summary>
-        internal static bool PlaceNewGroup(KCFacilityBase facilityType, string fromGroupName, string newGroupName, string colonyName, int range = int.MaxValue)
+        internal static bool PlaceNewGroup(KCFacilityBase facility, string newGroupName, string colonyName)
         {
-            Facility = facilityType;
-            // range isn't working
-            KerbalKonstructs.API.SetEditorRange(range);
-            Colonies.ColonyName = colonyName;
-            groupName = newGroupName;
-            KerbalKonstructs.API.CopyGroup(newGroupName, fromGroupName, fromBodyName: "Kerbin");
-            KerbalKonstructs.API.GetGroupStatics(newGroupName).ForEach(instance => instance.ToggleAllColliders(false));
-            KerbalKonstructs.API.OpenGroupEditor(newGroupName);
-            KerbalKonstructs.API.RegisterOnGroupSaved(PlaceNewGroupSave);
+            QueueInformation buildObj = new QueueInformation(false, facility, colonyName, newGroupName, facility.baseGroupName);
+
+            if (buildQueue.Count() == 0)
+            {
+                KerbalKonstructs.API.CreateGroup(newGroupName);
+                KerbalKonstructs.API.CopyGroup(newGroupName, facility.baseGroupName, fromBodyName: "Kerbin");
+                KerbalKonstructs.API.GetGroupStatics(newGroupName).ForEach(instance => instance.ToggleAllColliders(false));
+                KerbalKonstructs.API.OpenGroupEditor(newGroupName);
+                KerbalKonstructs.API.RegisterOnGroupSaved(PlaceNewGroupSave);
+            }
+
+            buildQueue.Enqueue(buildObj);
+            placedGroup = false;
             return true;
         }
 
@@ -101,21 +112,25 @@ namespace KerbalColonies
         /// </summary>
         internal static void AddGroupUpdateSave(KerbalKonstructs.Core.GroupCenter groupCenter)
         {
-            if (groupCenter.Group != groupName) { return; }
+            if (groupCenter.Group != buildQueue.Peek().groupName) { return; }
 
-            List<KerbalKonstructs.Core.StaticInstance> instances = KerbalKonstructs.API.GetGroupStatics(groupName).ToList();
-            GroupPlaceHolder gph = new GroupPlaceHolder(groupName, groupCenter.RadialPosition, groupCenter.Orientation, groupCenter.Heading);
-            Configuration.coloniesPerBody[HighLogic.CurrentGame.Seed.ToString()][FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody)][ColonyName].Add(gph, new Dictionary<string, List<KCFacilityBase>>());
+            List<KerbalKonstructs.Core.StaticInstance> instances = KerbalKonstructs.API.GetGroupStatics(buildQueue.Peek().groupName).ToList();
+            GroupPlaceHolder gph = new GroupPlaceHolder(buildQueue.Peek().groupName, groupCenter.RadialPosition, groupCenter.Orientation, groupCenter.Heading);
+            Configuration.coloniesPerBody[HighLogic.CurrentGame.Seed.ToString()][FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody)][buildQueue.Peek().ColonyName].Add(gph, new Dictionary<string, List<KCFacilityBase>>());
 
             foreach (KerbalKonstructs.Core.StaticInstance instance in instances)
             {
                 instance.ToggleAllColliders(true);
-                Configuration.coloniesPerBody[HighLogic.CurrentGame.Seed.ToString()][FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody)][ColonyName][gph].Add(instance.UUID, new List<colonyFacilities.KCFacilityBase> { Facility });
+                Configuration.coloniesPerBody[HighLogic.CurrentGame.Seed.ToString()][FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody)][buildQueue.Peek().ColonyName][gph].Add(instance.UUID, new List<colonyFacilities.KCFacilityBase> { buildQueue.Peek().Facility });
             }
 
             Configuration.saveColonies = true;
             KerbalKonstructs.API.UnRegisterOnGroupSaved(AddGroupUpdateSave);
             KerbalKonstructs.API.Save();
+
+            buildQueue.Dequeue();
+            placedGroup = true;
+            nextFrame = false;
         }
 
         /// <summary>
@@ -123,19 +138,22 @@ namespace KerbalColonies
         /// Therefore it creates a temporary group so the entire group can be moved together.
         /// It adds the PlaceNewGroupSave method to the KK groupsave to transfer the statics over to the main group.
         /// </summary>
-        internal static bool AddGroupUpdate(KCFacilityBase facility, string fromGroupName, string newGroupName, string colonyName, int range = int.MaxValue)
+        internal static bool AddGroupUpdate(KCFacilityBase facility, string newGroupName, string colonyName)
         {
-            Facility = facility;
-            // range isn't working
-            KerbalKonstructs.API.SetEditorRange(range);
-            ColonyName = colonyName;
-            groupName = newGroupName;
-            groupName = KerbalKonstructs.API.CreateGroup(newGroupName);
-            KerbalKonstructs.API.CopyGroup(newGroupName, fromGroupName, fromBodyName: "Kerbin");
-            KerbalKonstructs.API.GetGroupStatics(newGroupName).ForEach(instance => instance.ToggleAllColliders(false));
-            KerbalKonstructs.API.OpenGroupEditor(newGroupName);
-            KerbalKonstructs.API.RegisterOnGroupSaved(AddGroupUpdateSave);
-            Configuration.saveColonies = true;
+            QueueInformation buildObj = new QueueInformation(true, facility, colonyName, newGroupName, facility.baseGroupName);
+
+            if (buildQueue.Count() == 0)
+            {
+                KerbalKonstructs.API.CreateGroup(newGroupName);
+                KerbalKonstructs.API.CopyGroup(newGroupName, facility.baseGroupName, fromBodyName: "Kerbin");
+                KerbalKonstructs.API.GetGroupStatics(newGroupName).ForEach(instance => instance.ToggleAllColliders(false));
+                KerbalKonstructs.API.OpenGroupEditor(newGroupName);
+                KerbalKonstructs.API.RegisterOnGroupSaved(AddGroupUpdateSave);
+                Configuration.saveColonies = true;
+            }
+
+            buildQueue.Enqueue(buildObj);
+            placedGroup = false;
             return true;
         }
 
@@ -159,17 +177,41 @@ namespace KerbalColonies
                 return false;
             }
 
-            colonyCount = Configuration.coloniesPerBody[HighLogic.CurrentGame.Seed.ToString()][FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody)].Count();
+            int colonyCount = Configuration.coloniesPerBody[HighLogic.CurrentGame.Seed.ToString()][FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody)].Count();
 
             string colonyName = $"KC_{HighLogic.CurrentGame.Seed.ToString()}_{FlightGlobals.currentMainBody.name}_{colonyCount}";
             string groupName = $"{colonyName}_CAB";
 
-            groupName = KerbalKonstructs.API.CreateGroup(groupName);
             Configuration.coloniesPerBody[HighLogic.CurrentGame.Seed.ToString()][FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody)].Add(colonyName, new Dictionary<GroupPlaceHolder, Dictionary<string, List<KCFacilityBase>>> { });
 
             KC_CAB_Facility cab = new KC_CAB_Facility();
 
-            PlaceNewGroup(cab, "KC_CAB", groupName, colonyName); //CAB: Colony Assembly Hub, initial start group
+            foreach (KeyValuePair<Type, int> kvp in KC_CAB_Facility.priorityDefaultFacilities)
+            {
+                for (int i = 0; i < kvp.Value; i++)
+                {
+                    KCFacilityBase KCFac = Configuration.CreateInstance(kvp.Key, true);
+                    KCFacilityBase.CountFacilityType(KCFac.GetType(), HighLogic.CurrentGame.Seed.ToString(), FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody), colonyName, out int count);
+                    string facilityGroupName = $"{colonyName}_{KCFac.GetType().Name}_0_{count + 1}";
+
+                    PlaceNewGroup(KCFac, facilityGroupName, colonyName);
+                }
+            }
+
+            PlaceNewGroup(cab, groupName, colonyName); //CAB: Colony Assembly Hub, initial start group
+
+            foreach (KeyValuePair<Type, int> kvp in KC_CAB_Facility.defaultFacilities)
+            {
+                for (int i = 0; i < kvp.Value; i++)
+                {
+                    KCFacilityBase KCFac = Configuration.CreateInstance(kvp.Key, true);
+                    KCFacilityBase.CountFacilityType(KCFac.GetType(), HighLogic.CurrentGame.Seed.ToString(), FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody), colonyName, out int count);
+                    string facilityGroupName = $"{colonyName}_{KCFac.GetType().Name}_0_{count + 1}";
+
+                    PlaceNewGroup(KCFac, facilityGroupName, colonyName);
+                }
+            }
+
             return true;
         }
     }

@@ -141,8 +141,7 @@ namespace KerbalColonies.colonyFacilities
                         KCFacilityBase.CountFacilityType(newFacility.GetType(), saveGame, bodyIndex, colonyName, out int count);
                         string groupName = $"{colonyName}_{newFacility.GetType().Name}_0_{count + 1}";
 
-                        KerbalKonstructs.API.CreateGroup(groupName);
-                        Colonies.PlaceNewGroup(newFacility, newFacility.baseGroupName, groupName, colonyName);
+                        Colonies.PlaceNewGroup(newFacility, groupName, colonyName);
                     }
                     GUI.enabled = true;
                     GUILayout.EndHorizontal();
@@ -192,7 +191,14 @@ namespace KerbalColonies.colonyFacilities
     [System.Serializable]
     internal class KC_CAB_Facility : KCFacilityBase
     {
+        /// <summary>
+        /// All of the default facilties that are queued to be placed after the cab is placed.
+        /// </summary>
         public static Dictionary<Type, int> defaultFacilities = new Dictionary<Type, int>();
+        /// <summary>
+        /// All of the default facilties that are queued to be placed before the cab is placed.
+        /// </summary>
+        public static Dictionary<Type, int> priorityDefaultFacilities = new Dictionary<Type, int>();
         public static void addDefaultFacility(Type facilityType, int amount)
         {
             if (typeof(KCFacilityBase).IsAssignableFrom(facilityType))
@@ -200,6 +206,16 @@ namespace KerbalColonies.colonyFacilities
                 if (!defaultFacilities.ContainsKey(facilityType))
                 {
                     defaultFacilities.Add(facilityType, amount);
+                }
+            }
+        }
+        public static void addPriorityDefaultFacility(Type facilityType, int amount)
+        {
+            if (typeof(KCFacilityBase).IsAssignableFrom(facilityType))
+            {
+                if (!priorityDefaultFacilities.ContainsKey(facilityType))
+                {
+                    priorityDefaultFacilities.Add(facilityType, amount);
                 }
             }
         }

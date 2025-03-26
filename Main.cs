@@ -2,6 +2,7 @@
 using KerbalColonies.Serialization;
 using System.Collections.Generic;
 using UnityEngine;
+using System.Linq;
 
 // KC: Kerbal Colonies
 // This mod aimes to create a colony system with Kerbal Konstructs statics
@@ -53,6 +54,7 @@ namespace KerbalColonies
             Configuration.RegisterBuildableFacility(typeof(KCLaunchpadFacility), new KCLaunchPadCost());
             Configuration.RegisterBuildableFacility(typeof(KCCommNetFacility), new KCCommNetCost());
 
+            KC_CAB_Facility.addPriorityDefaultFacility(typeof(KCLaunchpadFacility), 1);
             KC_CAB_Facility.addDefaultFacility(typeof(KCStorageFacility), 1);
             KC_CAB_Facility.addDefaultFacility(typeof(KCCrewQuarters), 1);
             KC_CAB_Facility.addDefaultFacility(typeof(KCProductionFacility), 1);
@@ -90,6 +92,37 @@ namespace KerbalColonies
             else
             {
                 lastTime += Planetarium.GetUniversalTime();
+            }
+
+            if (Colonies.placedGroup)
+            {
+                if (!Colonies.nextFrame)
+                {
+                    Colonies.nextFrame = true;
+                }
+                else
+                {
+                    if (Colonies.buildQueue.Count() > 0)
+                    {
+                        if (Colonies.buildQueue.Peek().GroupUpdate)
+                        {
+                            KerbalKonstructs.API.CreateGroup(Colonies.buildQueue.Peek().groupName);
+                            KerbalKonstructs.API.CopyGroup(Colonies.buildQueue.Peek().groupName, Colonies.buildQueue.Peek().fromGroupName, fromBodyName: "Kerbin");
+                            KerbalKonstructs.API.GetGroupStatics(Colonies.buildQueue.Peek().groupName).ForEach(instance => instance.ToggleAllColliders(false));
+                            KerbalKonstructs.API.OpenGroupEditor(Colonies.buildQueue.Peek().groupName);
+                            KerbalKonstructs.API.RegisterOnGroupSaved(Colonies.AddGroupUpdateSave);
+                        }
+                        else
+                        {
+                            KerbalKonstructs.API.CreateGroup(Colonies.buildQueue.Peek().groupName);
+                            KerbalKonstructs.API.CopyGroup(Colonies.buildQueue.Peek().groupName, Colonies.buildQueue.Peek().fromGroupName, fromBodyName: "Kerbin");
+                            KerbalKonstructs.API.GetGroupStatics(Colonies.buildQueue.Peek().groupName).ForEach(instance => instance.ToggleAllColliders(false));
+                            KerbalKonstructs.API.OpenGroupEditor(Colonies.buildQueue.Peek().groupName);
+                            KerbalKonstructs.API.RegisterOnGroupSaved(Colonies.PlaceNewGroupSave);
+                        }
+                    }
+                    Colonies.placedGroup = false;
+                }
             }
 
             if (waitCounter < 10)

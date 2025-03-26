@@ -108,7 +108,7 @@ namespace KerbalColonies.colonyFacilities
                 facility.UpgradeFacility(facility.level + 1);
 
                 KCFacilityBase.CountFacilityType(facility.GetType(), saveGame, bodyIndex, colonyName, out int count);
-                Colonies.AddGroupUpdate(facility, facility.baseGroupName, $"{colonyName}_{facility.GetType().Name}_{facility.level}_{count}", colonyName);
+                Colonies.AddGroupUpdate(facility, $"{colonyName}_{facility.GetType().Name}_{facility.level}_{count}", colonyName);
                 Configuration.saveColonies = true;
                 return true;
             }

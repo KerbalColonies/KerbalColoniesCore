@@ -16,8 +16,36 @@ namespace KerbalColonies.colonyFacilities
         }
     }
 
+    public class KCLaunchpadFacilityWindow : KCWindowBase
+    {
+        KCLaunchpadFacility launchpad;
+
+        protected override void CustomWindow()
+        {
+            if (FlightGlobals.ActiveVessel != null)
+            {
+                if (GUILayout.Button("Teleport to Launchpad"))
+                {
+                    KerbalKonstructs.Core.StaticInstance instance = KerbalKonstructs.API.getStaticInstanceByUUID(launchpad.launchSiteUUID);
+                    
+
+                    FlightGlobals.fetch.SetVesselPosition(FlightGlobals.GetBodyIndex(instance.launchSite.body), instance.launchSite.refLat, instance.launchSite.refLon, instance.launchSite.refAlt + 6, FlightGlobals.ActiveVessel.ReferenceTransform.eulerAngles, true, easeToSurface: true, 0.1);
+                    FloatingOrigin.ResetTerrainShaderOffset();
+                }
+            }
+        }
+
+        public KCLaunchpadFacilityWindow(KCLaunchpadFacility launchpad) : base(Configuration.createWindowID(launchpad), "Launchpad")
+        {
+            toolRect = new Rect(100, 100, 400, 200);
+            this.launchpad = launchpad;
+        }
+    }
+
     public class KCLaunchpadFacility : KCFacilityBase
     {
+        KCLaunchpadFacilityWindow launchpadWindow;
+
         public string launchSiteUUID;
 
         public override void OnGroupPlaced()
@@ -153,6 +181,19 @@ namespace KerbalColonies.colonyFacilities
             {
                 launchSiteUUID = customNode.GetValue("launchSiteUUID");
             }
+        }
+
+        public override void OnBuildingClicked()
+        {
+            launchpadWindow.Toggle();
+        }
+
+        public override void Initialize()
+        {
+            base.Initialize();
+            upgradeType = UpgradeType.withGroupChange;
+
+            launchpadWindow = new KCLaunchpadFacilityWindow(this);
         }
 
         public KCLaunchpadFacility(bool enabled) : base("KCLaunchpadFacility", enabled, 0, 0)

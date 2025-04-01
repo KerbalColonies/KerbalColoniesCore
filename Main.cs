@@ -59,7 +59,7 @@ namespace KerbalColonies
             KC_CAB_Facility.addDefaultFacility(typeof(KCCrewQuarters), 1);
             KC_CAB_Facility.addDefaultFacility(typeof(KCProductionFacility), 1);
 
-            KerbalKonstructs.API.RegisterOnBuildingClicked(KCFacilityBase.OnBuildingClickedHandler);
+            KerbalKonstructs.API.RegisterOnStaticClicked(KCFacilityBase.OnBuildingClickedHandler);
         }
 
         protected void Start()
@@ -225,7 +225,7 @@ namespace KerbalColonies
             }
 
             Configuration.SaveColonies();
-            KerbalKonstructs.API.UnRegisterOnBuildingClicked(KCFacilityBase.OnBuildingClickedHandler);
+            KerbalKonstructs.API.UnRegisterOnStaticClicked(KCFacilityBase.OnBuildingClickedHandler);
             Configuration.coloniesPerBody.Clear();
         }
 

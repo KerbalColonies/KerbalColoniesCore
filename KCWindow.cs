@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-// KC: Kerbal Colonies
+// KC: Kerbal ColonyBuilding
 // This mod aimes to create a colony system with Kerbal Konstructs statics
 // Copyright (C) 2024 AMPW, Halengar
 

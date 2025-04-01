@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using UniLinq;
 using static UnityEngine.GraphicsBuffer;
 
-// KC: Kerbal Colonies
+// KC: Kerbal ColonyBuilding
 // This mod aimes to create a colony system with Kerbal Konstructs statics
 // Copyright (C) 2024 AMPW, Halengar
 
@@ -46,7 +46,7 @@ namespace KerbalColonies
             part.vessel.GetConnectedResourceTotals(oreResource.id, false, out double amount, out double maxAmount);
             if (amount >= Configuration.oreRequiredPerColony)
             {
-                if (Colonies.CreateColony())
+                if (ColonyBuilding.CreateColony())
                 {
                     part.RequestResource("Ore", (double)Configuration.oreRequiredPerColony);
                     writeLog("Creating colony");

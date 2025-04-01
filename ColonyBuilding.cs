@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-// KC: Kerbal Colonies
+// KC: Kerbal ColonyBuilding
 // This mod aimes to create a colony system with Kerbal Konstructs statics
 // Copyright (C) 2024 AMPW, Halengar
 
@@ -23,7 +23,7 @@ using System.Linq;
 
 namespace KerbalColonies
 {
-    internal static class Colonies
+    internal static class ColonyBuilding
     {
         internal static Queue<QueueInformation> buildQueue = new Queue<QueueInformation>();
         public static bool placedGroup = false;

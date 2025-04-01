@@ -3,8 +3,9 @@ using KerbalColonies.Serialization;
 using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
+using CommNet.Network;
 
-// KC: Kerbal Colonies
+// KC: Kerbal ColonyBuilding
 // This mod aimes to create a colony system with Kerbal Konstructs statics
 // Copyright (C) 2024 AMPW, Halengar
 
@@ -32,6 +33,9 @@ namespace KerbalColonies
 
         protected void Awake()
         {
+            GameEvents.onGameStateCreated.Add(GameLoad);
+            GameEvents.onGameStateSaved.Add(GameSave);
+
             KSPLog.print("KC awake");
             Configuration.LoadConfiguration(Configuration.APP_NAME.ToUpper());
             KCFacilityTypeRegistry.RegisterType<KCStorageFacility>();
@@ -71,6 +75,16 @@ namespace KerbalColonies
             Configuration.LoadColonies("KCCD");
         }
 
+        public void GameLoad(Game game)
+        {
+            Configuration.writeDebug(game.config.HasNode("KCtestNode") ? game.config.GetNode("KCtestNode").ToString() : "");
+        }
+        public void GameSave(Game game)
+        {
+            Configuration.writeDebug("Game saved");
+            game.config.SetNode("KCtestNode", new ConfigNode("KCtestNode"), true);
+        }
+
         public void FixedUpdate()
         {
             if (lastTime - Planetarium.GetUniversalTime() >= 10)
@@ -94,34 +108,34 @@ namespace KerbalColonies
                 lastTime += Planetarium.GetUniversalTime();
             }
 
-            if (Colonies.placedGroup)
+            if (ColonyBuilding.placedGroup)
             {
-                if (!Colonies.nextFrame)
+                if (!ColonyBuilding.nextFrame)
                 {
-                    Colonies.nextFrame = true;
+                    ColonyBuilding.nextFrame = true;
                 }
                 else
                 {
-                    if (Colonies.buildQueue.Count() > 0)
+                    if (ColonyBuilding.buildQueue.Count() > 0)
                     {
-                        if (Colonies.buildQueue.Peek().GroupUpdate)
+                        if (ColonyBuilding.buildQueue.Peek().GroupUpdate)
                         {
-                            KerbalKonstructs.API.CreateGroup(Colonies.buildQueue.Peek().groupName);
-                            KerbalKonstructs.API.CopyGroup(Colonies.buildQueue.Peek().groupName, Colonies.buildQueue.Peek().fromGroupName, fromBodyName: "Kerbin");
-                            KerbalKonstructs.API.GetGroupStatics(Colonies.buildQueue.Peek().groupName).ForEach(instance => instance.ToggleAllColliders(false));
-                            KerbalKonstructs.API.OpenGroupEditor(Colonies.buildQueue.Peek().groupName);
-                            KerbalKonstructs.API.RegisterOnGroupSaved(Colonies.AddGroupUpdateSave);
+                            KerbalKonstructs.API.CreateGroup(ColonyBuilding.buildQueue.Peek().groupName);
+                            KerbalKonstructs.API.CopyGroup(ColonyBuilding.buildQueue.Peek().groupName, ColonyBuilding.buildQueue.Peek().fromGroupName, fromBodyName: "Kerbin");
+                            KerbalKonstructs.API.GetGroupStatics(ColonyBuilding.buildQueue.Peek().groupName).ForEach(instance => instance.ToggleAllColliders(false));
+                            KerbalKonstructs.API.OpenGroupEditor(ColonyBuilding.buildQueue.Peek().groupName);
+                            KerbalKonstructs.API.RegisterOnGroupSaved(ColonyBuilding.AddGroupUpdateSave);
                         }
                         else
                         {
-                            KerbalKonstructs.API.CreateGroup(Colonies.buildQueue.Peek().groupName);
-                            KerbalKonstructs.API.CopyGroup(Colonies.buildQueue.Peek().groupName, Colonies.buildQueue.Peek().fromGroupName, fromBodyName: "Kerbin");
-                            KerbalKonstructs.API.GetGroupStatics(Colonies.buildQueue.Peek().groupName).ForEach(instance => instance.ToggleAllColliders(false));
-                            KerbalKonstructs.API.OpenGroupEditor(Colonies.buildQueue.Peek().groupName);
-                            KerbalKonstructs.API.RegisterOnGroupSaved(Colonies.PlaceNewGroupSave);
+                            KerbalKonstructs.API.CreateGroup(ColonyBuilding.buildQueue.Peek().groupName);
+                            KerbalKonstructs.API.CopyGroup(ColonyBuilding.buildQueue.Peek().groupName, ColonyBuilding.buildQueue.Peek().fromGroupName, fromBodyName: "Kerbin");
+                            KerbalKonstructs.API.GetGroupStatics(ColonyBuilding.buildQueue.Peek().groupName).ForEach(instance => instance.ToggleAllColliders(false));
+                            KerbalKonstructs.API.OpenGroupEditor(ColonyBuilding.buildQueue.Peek().groupName);
+                            KerbalKonstructs.API.RegisterOnGroupSaved(ColonyBuilding.PlaceNewGroupSave);
                         }
                     }
-                    Colonies.placedGroup = false;
+                    ColonyBuilding.placedGroup = false;
                 }
             }
 
@@ -203,6 +217,9 @@ namespace KerbalColonies
 
         protected void OnDestroy()
         {
+            GameEvents.onGameStateCreated.Remove(GameLoad);
+            GameEvents.onGameStateSaved.Remove(GameSave);
+
             GameEvents.onGamePause.Remove(onPause);
 
             foreach (string saveGame in Configuration.coloniesPerBody.Keys)
@@ -227,19 +244,6 @@ namespace KerbalColonies
             Configuration.SaveColonies();
             KerbalKonstructs.API.UnRegisterOnStaticClicked(KCFacilityBase.OnBuildingClickedHandler);
             Configuration.coloniesPerBody.Clear();
-        }
-
-        internal void writeDebug(string text)
-        {
-            if (Configuration.enableLogging)
-            {
-                writeLog(text);
-            }
-        }
-
-        internal void writeLog(string text)
-        {
-            KSPLog.print(Configuration.APP_NAME + ": " + text);
         }
     }
 }

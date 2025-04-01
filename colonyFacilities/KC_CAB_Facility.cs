@@ -141,7 +141,7 @@ namespace KerbalColonies.colonyFacilities
                         KCFacilityBase.CountFacilityType(newFacility.GetType(), saveGame, bodyIndex, colonyName, out int count);
                         string groupName = $"{colonyName}_{newFacility.GetType().Name}_0_{count + 1}";
 
-                        Colonies.PlaceNewGroup(newFacility, groupName, colonyName);
+                        ColonyBuilding.PlaceNewGroup(newFacility, groupName, colonyName);
                     }
                     GUI.enabled = true;
                     GUILayout.EndHorizontal();
@@ -189,7 +189,7 @@ namespace KerbalColonies.colonyFacilities
     }
 
     [System.Serializable]
-    internal class KC_CAB_Facility : KCFacilityBase
+    public class KC_CAB_Facility : KCFacilityBase
     {
         /// <summary>
         /// All of the default facilties that are queued to be placed after the cab is placed.

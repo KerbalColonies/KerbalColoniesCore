@@ -8,7 +8,7 @@ using System.Reflection;
 using UniLinq;
 using UnityEngine;
 
-// KC: Kerbal Colonies
+// KC: Kerbal ColonyBuilding
 // This mod aimes to create a colony system with Kerbal Konstructs statics
 // Copyright (C) 2024 AMPW, Halengar
 
@@ -30,9 +30,23 @@ namespace KerbalColonies
 
     /// <summary>
     /// Reads and holds configuration parameters
-    /// </summary>
-    internal static class Configuration
+    /// </summary> 
+    [KSPScenario(ScenarioCreationOptions.AddToAllGames, GameScenes.SPACECENTER, GameScenes.FLIGHT)]
+    internal class Configuration : ScenarioModule
     {
+        public override void OnLoad(ConfigNode node)
+        {
+            Debug.Log(node.ToString());
+            Debug.Log(node.HasValue("gameTime") ? node.GetValue("gameTime") : "no gametime value found");
+        }
+        public override void OnSave(ConfigNode node)
+        {
+            node.AddValue("gameTime", Planetarium.GetUniversalTime());
+            Debug.Log(node.ToString());
+            Debug.Log(Planetarium.GetUniversalTime());
+        }
+
+
         internal static Dictionary<int, KCFacilityBase> windowIDs = new Dictionary<int, KCFacilityBase>();
 
         internal static int createWindowID(KCFacilityBase facility)
@@ -89,6 +103,85 @@ namespace KerbalColonies
 
         // this is the GAME confignode (the confignode from the save file)
         internal static ConfigNode gameNode = HighLogic.CurrentGame.config;
+
+        #region savingV3
+        // New saving
+        // The current system for creating facilities requieres exactly one facility per group
+        // -> Only the group name needs to be saved in the extra file and it only needs to be checked if one of the group statics is clicked
+        // 
+        // Extra file:
+        // Dictionary 0: the SaveGame name (the "name" field in the GAME node) as key
+        // Dictionary 1: bodyindex as key
+        // Dictionary 1: KK Groups as value
+        //
+        // Savegame content:
+        // Dictionary 0: the SaveGame name (the "name" field in the GAME node) as key
+        // Dictionary 1: bodyindex as key
+        // Dictionary 2: a colony class object as key
+        // Dictionary 2: facilities with a List of KK groups and additional KK statics
+        //
+        // Additional ram dictionary:
+        // Dictionary 0: group names as key and a list of facilities as value
+        // Used for the on click event of the KK statics
+
+        /// <summary>
+        /// This dictionary contains all of the groups across all savegames. It's used to disable the groups from other savegames to enable per savegame colonies
+        /// </summary>
+        internal static Dictionary<string, Dictionary<int, List<string>>> KCgroups = new Dictionary<string, Dictionary<int, List<string>>> { };
+
+        /// <summary>
+        /// This dictionary contains all of the colonies in the current savegame
+        /// </summary>
+        internal static Dictionary<int, Colony> colonyDictionary = new Dictionary<int, Colony> { };
+
+        /// <summary>
+        /// This dictionary contains all of the facilties attached to a specific KK group
+        /// <para>the string is the KK group name</para>
+        /// </summary>
+        internal static Dictionary<string, KCFacilityBase> UUIDfacilities = new Dictionary<string, KCFacilityBase> { };
+
+        public static void LoadColoniesV3(ConfigNode persistentNode)
+        {
+            string path = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + "/ColonyDataV3.cfg";
+
+            ConfigNode node = ConfigNode.Load(path);
+
+            if ((node == null) || (node.GetNodes().Length == 0))
+            {
+                return;
+            }
+            ConfigNode[] nodes = node.GetNodes();
+
+            foreach (ConfigNode saveGame in nodes[0].GetNodes())
+            {
+                if (!KCgroups.ContainsKey(saveGame.name))
+                {
+                    KCgroups.Add(saveGame.name, new Dictionary<int, List<string>> { });
+
+                    foreach (ConfigNode bodyId in nodes[0].GetNode(saveGame.name).GetNodes())
+                    {
+                        if (!KCgroups[saveGame.name].ContainsKey(int.Parse(bodyId.name)))
+                        {
+                            KCgroups[saveGame.name].Add(int.Parse(bodyId.name), new List<string> { });
+                        }
+
+                        foreach (ConfigNode group in nodes[0].GetNode(saveGame.name).GetNode(bodyId.name).GetNodes())
+                        {
+                            if (!KCgroups[saveGame.name][int.Parse(bodyId.name)].Contains(group.name))
+                            {
+                                KCgroups[saveGame.name][int.Parse(bodyId.name)].Add(group.name);
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (persistentNode.HasNode("colonyNode"))
+            {
+                // TODO: load the colonies into the colonyDictionary and generate the UUIDfacilities afterwards
+            }
+        }
+        #endregion
 
         // saves the colonies per body with
         // Dictionary 0: the SaveGame name (the "name" field in the GAME node) as key
@@ -150,6 +243,7 @@ namespace KerbalColonies
             node.AddNode(nodes[0]);
             node.Save(path);
         }
+
         internal static void LoadColonies(string root)
         {
             string path = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + "/ColonyData.cfg";

@@ -51,69 +51,48 @@ namespace KerbalColonies.colonyFacilities
     [System.Serializable]
     internal class KCCrewQuarters : KCKerbalFacilityBase
     {
-        public static List<KCCrewQuarters> CrewQuartersInColony(string saveGame, int bodyIndex, string colonyName)
+        public static List<KCCrewQuarters> CrewQuartersInColony(int bodyIndex, string colonyName)
         {
-            if (!Configuration.coloniesPerBody.ContainsKey(saveGame)) { return new List<KCCrewQuarters> { }; }
-            else if (!Configuration.coloniesPerBody[saveGame].ContainsKey(bodyIndex)) { return new List<KCCrewQuarters> { }; }
-            else if (!Configuration.coloniesPerBody[saveGame][bodyIndex].ContainsKey(colonyName)) { return new List<KCCrewQuarters> { }; }
+            if (!Configuration.colonyDictionary.ContainsKey(bodyIndex)) { return new List<KCCrewQuarters> { }; }
+
+            colonyClass colony = Configuration.colonyDictionary[bodyIndex].FirstOrDefault(c => c.Name == colonyName);
+            if (colony == null) { return new List<KCCrewQuarters> { }; }
 
             List<KCCrewQuarters> crewQuarters = new List<KCCrewQuarters>();
-            Configuration.coloniesPerBody[saveGame][bodyIndex][colonyName].Values.ToList().ForEach(UUIDdict =>
+            colony.Facilities.Where(f => typeof(KCCrewQuarters).IsAssignableFrom(f.GetType())).ToList().ForEach(f =>
             {
-                UUIDdict.Values.ToList().ForEach(colonyFacilitys =>
-                {
-                    colonyFacilitys.ForEach(colonyFacility =>
-                    {
-                        if (Configuration.CrewQuarterType.IsAssignableFrom(colonyFacility.GetType()))
-                        {
-                            if (!crewQuarters.Contains((KCCrewQuarters)colonyFacility))
-                            {
-                                crewQuarters.Add((KCCrewQuarters)colonyFacility);
-                            }
-                        }
-                    });
-                });
+                crewQuarters.Add((KCCrewQuarters)f);
             });
             return crewQuarters;
         }
 
-        public static int ColonyKerbalCapacity(string saveGame, int bodyIndex, string colonyName)
+        public static int ColonyKerbalCapacity(int bodyIndex, string colonyName)
         {
-            if (!Configuration.coloniesPerBody.ContainsKey(saveGame)) { return 0; }
-            else if (!Configuration.coloniesPerBody[saveGame].ContainsKey(bodyIndex)) { return 0; }
-            else if (!Configuration.coloniesPerBody[saveGame][bodyIndex].ContainsKey(colonyName)) { return 0; }
+            if (!Configuration.colonyDictionary.ContainsKey(bodyIndex)) { return 0; }
+            else if (!Configuration.colonyDictionary[bodyIndex].Exists(c => c.Name == colonyName)) { return 0; }
 
             int i = 0;
-            CrewQuartersInColony(saveGame, bodyIndex, colonyName).ForEach(crewQuarter =>
+            CrewQuartersInColony(bodyIndex, colonyName).ForEach(crewQuarter =>
             {
                 i += crewQuarter.maxKerbals;
             });
             return i;
         }
 
-        public static KCCrewQuarters FindKerbalInCrewQuarters(string saveGame, int bodyIndex, string colonyName, ProtoCrewMember kerbal)
+        public static KCCrewQuarters FindKerbalInCrewQuarters(int bodyIndex, string colonyName, ProtoCrewMember kerbal)
         {
-            List<KCKerbalFacilityBase> facilitiesWithKerbal = KCKerbalFacilityBase.findKerbal(saveGame, bodyIndex, colonyName, kerbal);
-            foreach (KCKerbalFacilityBase facility in facilitiesWithKerbal)
-            {
-                if (typeof(KCCrewQuarters).IsAssignableFrom(facility.GetType()))
-                {
-                    return (KCCrewQuarters)facility;
-                }
-            }
-            return null;
+            List<KCKerbalFacilityBase> facilitiesWithKerbal = KCKerbalFacilityBase.findKerbal(bodyIndex, colonyName, kerbal);
+            return (KCCrewQuarters) facilitiesWithKerbal.Where(fac => fac is KCCrewQuarters).FirstOrDefault();
         }
-        private KCCrewQuartersWindow crewQuartersWindow;
 
-        public static bool AddKerbalToColony(string saveGame, int bodyIndex, string colonyName, ProtoCrewMember kerbal)
+        public static bool AddKerbalToColony(int bodyIndex, string colonyName, ProtoCrewMember kerbal)
         {
-            if (!Configuration.coloniesPerBody.ContainsKey(saveGame)) { return false; }
-            else if (!Configuration.coloniesPerBody[saveGame].ContainsKey(bodyIndex)) { return false; }
-            else if (!Configuration.coloniesPerBody[saveGame][bodyIndex].ContainsKey(colonyName)) { return false; }
+            if (!Configuration.colonyDictionary.ContainsKey(bodyIndex)) { return false; }
+            else if (!Configuration.colonyDictionary[bodyIndex].Exists(c => c.Name == colonyName)) { return false; }
 
-            if (FindKerbalInCrewQuarters(saveGame, bodyIndex, colonyName, kerbal) != null) { return false; }
+            if (FindKerbalInCrewQuarters(bodyIndex, colonyName, kerbal) != null) { return false; }
 
-            foreach (KCCrewQuarters crewQuarter in CrewQuartersInColony(saveGame, bodyIndex, colonyName))
+            foreach (KCCrewQuarters crewQuarter in CrewQuartersInColony(bodyIndex, colonyName))
             {
                 if (crewQuarter.kerbals.Count < crewQuarter.maxKerbals)
                 {
@@ -125,14 +104,16 @@ namespace KerbalColonies.colonyFacilities
             return false;
         }
 
+        private KCCrewQuartersWindow crewQuartersWindow;
+
         /// <summary>
-        /// Adds the kerbal to this crew quarrter or moves it from another crew quarter over to this one if the kerbal is already assigned to a crew quarter in this colony
+        /// Adds the kerbal to this crew quarrter or moves it from another crew quarter over to this one if the kerbal is already assigned to a crew quarter in this Colony
         /// </summary>
         /// <param name="kerbal"></param>
         public override void AddKerbal(ProtoCrewMember kerbal)
         {
             KCFacilityBase.GetInformationByFacilty(this, out string saveGame, out int bodyIndex, out string colonyName, out List<GroupPlaceHolder> gph, out List<string> UUIDs);
-            KCCrewQuarters oldCrewQuarter = FindKerbalInCrewQuarters(saveGame, bodyIndex, colonyName, kerbal);
+            KCCrewQuarters oldCrewQuarter = FindKerbalInCrewQuarters(bodyIndex, colonyName, kerbal);
 
             if (oldCrewQuarter != null)
             {
@@ -155,9 +136,7 @@ namespace KerbalColonies.colonyFacilities
             {
                 KCFacilityBase.GetInformationByFacilty(this, out string saveGame, out int bodyIndex, out string colonyName, out List<GroupPlaceHolder> gph, out List<string> UUIDs);
 
-                List<KCKerbalFacilityBase> facilities = KCKerbalFacilityBase.findKerbal(saveGame, bodyIndex, colonyName, kerbal).Where(x => !typeof(KCCrewQuarters).IsAssignableFrom(x.GetType())).ToList();
-
-                facilities.ForEach(facility =>
+                KCKerbalFacilityBase.findKerbal(bodyIndex, colonyName, kerbal).Where(x => !(x is KCCrewQuarters)).ToList().ForEach(facility =>
                 {
                     facility.Update();
                     facility.RemoveKerbal(kerbal);
@@ -190,7 +169,6 @@ namespace KerbalColonies.colonyFacilities
         {
             this.maxKerbals = 16;
             base.Initialize();
-            this.baseGroupName = "KC_CAB";
             this.crewQuartersWindow = new KCCrewQuartersWindow(this);
         }
 

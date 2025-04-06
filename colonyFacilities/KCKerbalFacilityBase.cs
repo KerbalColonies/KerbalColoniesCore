@@ -9,7 +9,7 @@ namespace KerbalColonies.colonyFacilities
     {
 
         /// <summary>
-        /// Returns a list of all kerbals in the colony that are registered in a crew quarter
+        /// Returns a list of all kerbals in the Colony that are registered in a crew quarter
         /// </summary>
         /// <returns>An empty dictionary if any of the parameters are invalid, no KCCrewQuarter facilities exist or no KCCrewQuarter has any kerbals assigned</returns>
         public static Dictionary<ProtoCrewMember, int> GetAllKerbalsInColony(string saveGame, int bodyIndex, string colonyName)
@@ -37,28 +37,20 @@ namespace KerbalColonies.colonyFacilities
         /// Returns a list of all facilities that the kerbal is assigned to
         /// </summary>
         /// <returns>Returns an empty list if any of the parameters are invalid or the kerbal wasn't found</returns>
-        public static List<KCKerbalFacilityBase> findKerbal(string saveGame, int bodyIndex, string colonyName, ProtoCrewMember kerbal)
+        public static List<KCKerbalFacilityBase> findKerbal(int bodyIndex, string colonyName, ProtoCrewMember kerbal)
         {
-            if (!Configuration.coloniesPerBody.ContainsKey(saveGame)) { return new List<KCKerbalFacilityBase>(); }
-            else if (!Configuration.coloniesPerBody[saveGame].ContainsKey(bodyIndex)) { return new List<KCKerbalFacilityBase>(); }
-            else if (!Configuration.coloniesPerBody[saveGame][bodyIndex].ContainsKey(colonyName)) { return new List<KCKerbalFacilityBase>(); }
+            if (!Configuration.colonyDictionary.ContainsKey(bodyIndex)) { return new List<KCKerbalFacilityBase>(); }
+            else if (!Configuration.colonyDictionary[bodyIndex].Exists(c => c.Name == colonyName)) { return new List<KCKerbalFacilityBase>(); }
 
             List<KCKerbalFacilityBase> facilities = new List<KCKerbalFacilityBase>();
-            Configuration.coloniesPerBody[saveGame][bodyIndex][colonyName].Values.ToList().ForEach(UUIDdict =>
+            Configuration.colonyDictionary[bodyIndex].Where(c => c.Name == colonyName).ToList().ForEach(colony =>
             {
-                UUIDdict.Values.ToList().ForEach(colonyFacilitys =>
+                colony.Facilities.Where(f => f is KCKerbalFacilityBase).ToList().ForEach(f =>
                 {
-                    colonyFacilitys.ForEach(colonyFacility =>
+                    if (((KCKerbalFacilityBase)f).kerbals.ContainsKey(kerbal))
                     {
-                        KCKerbalFacilityBase kCKerbalFacilityBase = colonyFacility as KCKerbalFacilityBase;
-                        if (kCKerbalFacilityBase != null)
-                        {
-                            if (kCKerbalFacilityBase.kerbals.ContainsKey(kerbal))
-                            {
-                                facilities.Add(kCKerbalFacilityBase);
-                            }
-                        }
-                    });
+                        facilities.Add((KCKerbalFacilityBase)f);
+                    }
                 });
             });
 
@@ -135,7 +127,7 @@ namespace KerbalColonies.colonyFacilities
             }
         }
 
-        public override ConfigNode getCustomNode()
+        public override ConfigNode getConfigNode()
         {
             return createKerbalNode();
         }

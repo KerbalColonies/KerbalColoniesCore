@@ -156,14 +156,14 @@ namespace KerbalColonies.colonyFacilities
             return true;
         }
 
-        public override ConfigNode getCustomNode()
+        public override ConfigNode getConfigNode()
         {
             ConfigNode node = new ConfigNode();
             node.AddValue("ore", ore);
             node.AddValue("metalOre", metalOre);
 
             ConfigNode wrapperNode = new ConfigNode("wrapper");
-            wrapperNode.AddNode(base.getCustomNode());
+            wrapperNode.AddNode(base.getConfigNode());
             node.AddNode(wrapperNode);
 
             return node;

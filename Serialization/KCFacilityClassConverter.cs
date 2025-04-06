@@ -40,6 +40,24 @@ namespace KerbalColonies.Serialization
             return $"{typeName}/{json}";
         }
 
+        public static KCFacilityBase DeserializeObject(string typeName, string serializedData)
+        {
+            // Look up the type using the type registry
+            Type type = KCFacilityTypeRegistry.GetType(typeName);
+            if (type == null)
+            {
+                Debug.LogError($"Unknown type: {typeName}");
+                return null;
+            }
+
+            // Deserialize using the correct type
+            KCFacilityBase obj = (KCFacilityBase)JsonUtility.FromJson(serializedData, type);
+            obj.Initialized = false;
+            obj.Initialize();
+
+            return obj;
+        }
+
         public static KCFacilityBase DeserializeObject(string serializedData)
         {
             // Extract the type name and JSON content

@@ -42,25 +42,11 @@ namespace KerbalColonies.colonyFacilities
                     GUILayout.EndHorizontal();
                 }
 
-                GUILayout.Label("Facilities in this colony:");
+                GUILayout.Label("Facilities in this Colony:");
 
                 GUILayout.BeginVertical();
 
-                List<KCFacilityBase> colonyFacilitiyList = new List<KCFacilityBase>();
-
-                Configuration.coloniesPerBody[saveGame][bodyIndex][colonyName].Values.ToList().ForEach(UUIDdict =>
-                {
-                    UUIDdict.Values.ToList().ForEach(colonyFacilitys =>
-                    {
-                        colonyFacilitys.ForEach(colonyFacility =>
-                        {
-                            if (!colonyFacilitiyList.Contains(colonyFacility))
-                            {
-                                colonyFacilitiyList.Add(colonyFacility);
-                            }
-                        });
-                    });
-                });
+                List<KCFacilityBase> colonyFacilitiyList = Configuration.colonyDictionary[bodyIndex].Find(c => c.Name == colonyName).Facilities;
 
 
                 colonyFacilitiyList.ForEach(colonyFacility =>
@@ -406,7 +392,7 @@ namespace KerbalColonies.colonyFacilities
             window.Toggle();
         }
 
-        public override ConfigNode getCustomNode()
+        public override ConfigNode getConfigNode()
         {
             ConfigNode node = new ConfigNode("cabNode");
 
@@ -421,7 +407,7 @@ namespace KerbalColonies.colonyFacilities
                 facilityNode.AddValue("facilityString", serializedFacility);
                 facilityNode.AddValue("remainingTime", facility.Value);
 
-                ConfigNode customNode = facility.Key.getCustomNode();
+                ConfigNode customNode = facility.Key.getConfigNode();
                 if (customNode != null)
                 {
                     facilityNode.AddNode(customNode);
@@ -440,10 +426,10 @@ namespace KerbalColonies.colonyFacilities
 
                 facilityNode.AddValue("facilityString", serializedFacility);
 
-                ConfigNode customNode = facility.getCustomNode();
+                ConfigNode customNode = facility.getConfigNode();
                 if (customNode != null)
                 {
-                    facilityNode.AddNode(facility.getCustomNode());
+                    facilityNode.AddNode(facility.getConfigNode());
                 }
 
                 constructed.AddNode(facilityNode);
@@ -460,7 +446,7 @@ namespace KerbalColonies.colonyFacilities
                 facilityNode.AddValue("facilityString", serializedFacility);
                 facilityNode.AddValue("remainingTime", facility.Value);
 
-                ConfigNode customNode = facility.Key.getCustomNode();
+                ConfigNode customNode = facility.Key.getConfigNode();
                 if (customNode != null)
                 {
                     facilityNode.AddNode(customNode);
@@ -479,10 +465,10 @@ namespace KerbalColonies.colonyFacilities
 
                 facilityNode.AddValue("facilityString", serializedFacility);
 
-                ConfigNode customNode = facility.getCustomNode();
+                ConfigNode customNode = facility.getConfigNode();
                 if (customNode != null)
                 {
-                    facilityNode.AddNode(facility.getCustomNode());
+                    facilityNode.AddNode(facility.getConfigNode());
                 }
 
                 upgraded.AddNode(facilityNode);
@@ -572,8 +558,6 @@ namespace KerbalColonies.colonyFacilities
             window = new KC_CAB_Window(this);
             enabled = true;
         }
-
-        public KC_CAB_Facility(bool enabled) : base("KCCABFacility", enabled, 0, 0) { }
 
         public KC_CAB_Facility() : base("KCCABFacility", true)
         {

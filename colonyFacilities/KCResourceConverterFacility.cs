@@ -461,13 +461,13 @@ namespace KerbalColonies.colonyFacilities
             kCResourceConverterWindow.Toggle();
         }
 
-        public override ConfigNode getCustomNode()
+        public override ConfigNode getConfigNode()
         {
             ConfigNode node = new ConfigNode();
             node.AddValue("recipt", activeRecipe.ReciptName);
 
             ConfigNode wrapperNode = new ConfigNode("wrapper");
-            wrapperNode.AddNode(base.getCustomNode());
+            wrapperNode.AddNode(base.getConfigNode());
             node.AddNode(wrapperNode);
 
             return node;

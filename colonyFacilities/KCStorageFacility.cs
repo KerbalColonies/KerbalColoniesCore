@@ -441,7 +441,7 @@ namespace KerbalColonies.colonyFacilities
             return buildTimes[level];
         }
 
-        public override ConfigNode getCustomNode()
+        public override ConfigNode getConfigNode()
         {
             ConfigNode node = new ConfigNode("resources");
 

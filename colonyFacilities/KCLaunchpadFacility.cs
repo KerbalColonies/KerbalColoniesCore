@@ -168,7 +168,7 @@ namespace KerbalColonies.colonyFacilities
             return launchPads;
         }
 
-        public override ConfigNode getCustomNode()
+        public override ConfigNode getConfigNode()
         {
             ConfigNode node = new ConfigNode("LAUNCHSITE");
             node.AddValue("launchSiteUUID", launchSiteUUID);

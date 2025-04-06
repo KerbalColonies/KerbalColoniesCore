@@ -50,9 +50,7 @@ namespace KerbalColonies.colonyFacilities
 
         public override void OnGroupPlaced()
         {
-            KCFacilityBase.GetInformationByFacilty(this, out string saveGame, out int bodyIndex, out string colonyName, out List<GroupPlaceHolder> gph, out List<string> UUIDs);
-
-            KerbalKonstructs.Core.StaticInstance baseInstance = KerbalKonstructs.API.GetGroupStatics(baseGroupName, "Kerbin").Where(s => s.hasLauchSites).First();
+            KerbalKonstructs.Core.StaticInstance baseInstance = KerbalKonstructs.API.GetGroupStatics(GetBaseGroupName(level), "Kerbin").Where(s => s.hasLauchSites).First();
             string uuid = GetUUIDbyFacility(this).Where(s => KerbalKonstructs.API.GetModelTitel(s) == KerbalKonstructs.API.GetModelTitel(baseInstance.UUID)).First();
 
             KerbalKonstructs.Core.StaticInstance targetInstance = KerbalKonstructs.API.getStaticInstanceByUUID(uuid);
@@ -65,7 +63,7 @@ namespace KerbalColonies.colonyFacilities
             string oldName = name;
             bool oldState = baseInstance.launchSite.ILSIsActive;
 
-            targetInstance.launchSite.LaunchSiteName = gph[0].GroupName;
+            targetInstance.launchSite.LaunchSiteName = KKgroups[0];
             targetInstance.launchSite.LaunchSiteLength = baseInstance.launchSite.LaunchSiteLength;
             targetInstance.launchSite.LaunchSiteWidth = baseInstance.launchSite.LaunchSiteWidth;
             targetInstance.launchSite.LaunchSiteHeight = baseInstance.launchSite.LaunchSiteHeight;
@@ -154,33 +152,16 @@ namespace KerbalColonies.colonyFacilities
             InputLockManager.ClearControlLocks();
         }
 
-        public static List<KCLaunchpadFacility> getLaunchPadsInColony(string saveGame, int bodyIndex, string colonyName)
+        public static List<KCLaunchpadFacility> getLaunchPadsInColony(colonyClass colony)
         {
-            List<KCFacilityBase> facilities = GetFacilitiesInColony(saveGame, bodyIndex, colonyName);
-            List<KCLaunchpadFacility> launchPads = new List<KCLaunchpadFacility>();
-            facilities.ForEach(facility =>
-            {
-                if (typeof(KCLaunchpadFacility).IsAssignableFrom(facility.GetType()))
-                {
-                    launchPads.Add((KCLaunchpadFacility)facility);
-                }
-            });
-            return launchPads;
+            return colony.Facilities.Where(x => x is KCLaunchpadFacility).Select(x => (KCLaunchpadFacility)x).ToList();
         }
 
         public override ConfigNode getConfigNode()
         {
-            ConfigNode node = new ConfigNode("LAUNCHSITE");
+            ConfigNode node = base.getConfigNode();
             node.AddValue("launchSiteUUID", launchSiteUUID);
             return node;
-        }
-
-        public override void loadCustomNode(ConfigNode customNode)
-        {
-            if (customNode != null)
-            {
-                launchSiteUUID = customNode.GetValue("launchSiteUUID");
-            }
         }
 
         public override void OnBuildingClicked()
@@ -188,17 +169,21 @@ namespace KerbalColonies.colonyFacilities
             launchpadWindow.Toggle();
         }
 
-        public override void Initialize()
+        public override string GetBaseGroupName(int level)
         {
-            base.Initialize();
-            upgradeType = UpgradeType.withGroupChange;
+            return "KC_CAB";
+        }
 
+        public KCLaunchpadFacility(colonyClass colony, ConfigNode node) : base(colony, node)
+        {
+            launchSiteUUID = node.GetValue("launchSiteUUID");
             launchpadWindow = new KCLaunchpadFacilityWindow(this);
         }
 
-        public KCLaunchpadFacility(bool enabled) : base("KCLaunchpadFacility", enabled, 0, 0)
+        public KCLaunchpadFacility(colonyClass colony, bool enabled) : base(colony, "KCLaunchpadFacility", enabled, 0, 0)
         {
-            baseGroupName = "KC_Launchpad_0";
+            upgradeType = UpgradeType.withGroupChange;
+            launchpadWindow = new KCLaunchpadFacilityWindow(this);
         }
     }
 }

@@ -1,5 +1,5 @@
 ﻿using KerbalColonies.colonyFacilities;
-using KerbalColonies.Serialization;
+using KerbalColonies;
 using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
@@ -34,9 +34,6 @@ namespace KerbalColonies
 
         protected void Awake()
         {
-            GameEvents.onGameStateCreated.Add(GameLoad);
-            GameEvents.onGameStateSaved.Add(GameSave);
-
             KSPLog.print("KC awake");
             Configuration.LoadConfiguration(Configuration.APP_NAME.ToUpper());
             KCFacilityTypeRegistry.RegisterType<KCStorageFacility>();
@@ -69,44 +66,15 @@ namespace KerbalColonies
 
         protected void Start()
         {
-            GameEvents.onGamePause.Add(onPause);
-
             KSPLog.print("KC start");
-            Configuration.coloniesPerBody.Clear();
-            Configuration.LoadColonies("KCCD");
-        }
-
-        public void GameLoad(Game game)
-        {
-            Configuration.writeDebug(game.config.HasNode("KCtestNode") ? game.config.GetNode("KCtestNode").ToString() : "");
-        }
-        public void GameSave(Game game)
-        {
-            Configuration.writeDebug("Game saved");
-            game.config.SetNode("KCtestNode", new ConfigNode("KCtestNode"), true);
         }
 
         public void FixedUpdate()
         {
-            if (lastTime - Planetarium.GetUniversalTime() >= 10)
+            if (Planetarium.GetUniversalTime() - lastTime >= 10)
             {
                 lastTime = Planetarium.GetUniversalTime();
-                string saveGame = HighLogic.CurrentGame.Seed.ToString();
-                if (Configuration.coloniesPerBody.ContainsKey(saveGame))
-                {
-                    foreach (int bodyIndex in Configuration.coloniesPerBody[saveGame].Keys)
-                    {
-                        foreach (string colonyName in Configuration.coloniesPerBody[saveGame][bodyIndex].Keys)
-                        {
-                            List<KCFacilityBase> colonyFacilities = KCFacilityBase.GetFacilitiesInColony(saveGame, bodyIndex, colonyName);
-                            colonyFacilities.ForEach(facility => facility.Update());
-                        }
-                    }
-                }
-            }
-            else
-            {
-                lastTime += Planetarium.GetUniversalTime();
+                Configuration.colonyDictionary.Values.SelectMany(x => x).ToList().ForEach(x => x.UpdateColony());
             }
 
             if (ColonyBuilding.placedGroup)
@@ -124,7 +92,7 @@ namespace KerbalColonies
                         KerbalKonstructs.API.GetGroupStatics(ColonyBuilding.buildQueue.Peek().groupName).ForEach(instance => instance.ToggleAllColliders(false));
                         KerbalKonstructs.API.OpenGroupEditor(ColonyBuilding.buildQueue.Peek().groupName);
                         KerbalKonstructs.API.RegisterOnGroupSaved(ColonyBuilding.PlaceNewGroupSave);
-                        ColonyBuilding.buildQueue.Peek().Facility.KKgroups.Add(ColonyBuilding.buildQueue.Peek().groupName, FlightGlobals.GetBodyIndex(FlightGlobals.currentMainBody)); // add the group to the facility groups
+                        ColonyBuilding.buildQueue.Peek().Facility.KKgroups.Add(ColonyBuilding.buildQueue.Peek().groupName); // add the group to the facility groups
                     }
                     ColonyBuilding.placedGroup = false;
                 }
@@ -139,44 +107,16 @@ namespace KerbalColonies
             {
                 if (!despawned)
                 {
-                    foreach (string saveGame in Configuration.coloniesPerBody.Keys)
-                    {
-                        if (saveGame == HighLogic.CurrentGame.Seed.ToString()) { continue; }
+                    Configuration.KCgroups.Where(x => x.Key != HighLogic.CurrentGame.Seed.ToString())
+                        .ToDictionary(x => x.Key, x => x.Value)
+                        .SelectMany(x => x.Value.Values.SelectMany(y => y)).ToList()
+                        .ForEach(x => KerbalKonstructs.API.DeactivateStatic(x));
 
-                        foreach (int bodyIndex in Configuration.coloniesPerBody[saveGame].Keys)
-                        {
-                            foreach (string colonyName in Configuration.coloniesPerBody[saveGame][bodyIndex].Keys)
-                            {
-                                foreach (GroupPlaceHolder gph in Configuration.coloniesPerBody[saveGame][bodyIndex][colonyName].Keys)
-                                {
-                                    foreach (string UUID in Configuration.coloniesPerBody[saveGame][bodyIndex][colonyName][gph].Keys)
-                                    {
-                                        KerbalKonstructs.API.DeactivateStatic(UUID);
-                                    }
-                                }
-                            }
-                        }
-                    }
+                    Configuration.KCgroups.Where(x => x.Key == HighLogic.CurrentGame.Seed.ToString())
+                        .ToDictionary(x => x.Key, x => x.Value)
+                        .SelectMany(x => x.Value.Values.SelectMany(y => y)).ToList()
+                        .ForEach(x => KerbalKonstructs.API.ActivateStatic(x));
 
-                    foreach (string saveGame in Configuration.coloniesPerBody.Keys)
-                    {
-                        if (saveGame != HighLogic.CurrentGame.Seed.ToString()) { continue; }
-
-                        foreach (int bodyIndex in Configuration.coloniesPerBody[saveGame].Keys)
-                        {
-                            foreach (string colonyName in Configuration.coloniesPerBody[saveGame][bodyIndex].Keys)
-                            {
-                                foreach (GroupPlaceHolder gph in Configuration.coloniesPerBody[saveGame][bodyIndex][colonyName].Keys)
-                                {
-                                    //"4470f197-e8c2-407d-8544-49c647bb5996"
-                                    foreach (string UUID in Configuration.coloniesPerBody[saveGame][bodyIndex][colonyName][gph].Keys)
-                                    {
-                                        KerbalKonstructs.API.ActivateStatic(UUID);
-                                    }
-                                }
-                            }
-                        }
-                    }
                     despawned = true;
                 }
             }
@@ -185,21 +125,6 @@ namespace KerbalColonies
             {
                 KCResourceConverterFacility.resourceTypes.ToString();
             }
-            else if (Input.GetKeyDown(KeyCode.Z))
-            {
-                KerbalKonstructs.API.ActivateStatic("33846799-30d8-4309-9196-8a94f2927af2");
-                KerbalKonstructs.API.ActivateStatic("692b2f7a-ef4a-4070-a583-05fce1ebf80f");
-            }
-            else if (Input.GetKeyDown(KeyCode.H))
-            {
-                KerbalKonstructs.API.DeactivateStatic("33846799-30d8-4309-9196-8a94f2927af2");
-                KerbalKonstructs.API.DeactivateStatic("692b2f7a-ef4a-4070-a583-05fce1ebf80f");
-            }
-        }
-
-        void onPause()
-        {
-            Configuration.SaveColonies();
         }
 
         public void LateUpdate()
@@ -208,33 +133,10 @@ namespace KerbalColonies
 
         protected void OnDestroy()
         {
-            GameEvents.onGameStateCreated.Remove(GameLoad);
-            GameEvents.onGameStateSaved.Remove(GameSave);
+            Configuration.KCgroups.SelectMany(x => x.Value.Values.SelectMany(y => y)).ToList()
+                .ForEach(x => KerbalKonstructs.API.ActivateStatic(x));
 
-            GameEvents.onGamePause.Remove(onPause);
-
-            foreach (string saveGame in Configuration.coloniesPerBody.Keys)
-            {
-                if (saveGame == HighLogic.CurrentGame.Seed.ToString()) { continue; }
-
-                foreach (int bodyIndex in Configuration.coloniesPerBody[saveGame].Keys)
-                {
-                    foreach (string colonyName in Configuration.coloniesPerBody[saveGame][bodyIndex].Keys)
-                    {
-                        foreach (GroupPlaceHolder gph in Configuration.coloniesPerBody[saveGame][bodyIndex][colonyName].Keys)
-                        {
-                            foreach (string UUID in Configuration.coloniesPerBody[saveGame][bodyIndex][colonyName][gph].Keys)
-                            {
-                                KerbalKonstructs.API.ActivateStatic(UUID);
-                            }
-                        }
-                    }
-                }
-            }
-
-            Configuration.SaveColonies();
             KerbalKonstructs.API.UnRegisterOnStaticClicked(KCFacilityBase.OnBuildingClickedHandler);
-            Configuration.coloniesPerBody.Clear();
         }
     }
 }

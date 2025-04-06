@@ -16,7 +16,6 @@ namespace KerbalColonies
         public SwitchModes mode = SwitchModes.ActiveVessel;
 
         private KCKerbalFacilityBase fromFac;
-        private KCKerbalFacilityBase toFac;
         private string fromName;
         private string toName;
         private KerbalGUI kGUI;
@@ -31,9 +30,7 @@ namespace KerbalColonies
         Vector2 fromScrollPos;
         Vector2 toScrollPos;
 
-        string saveGame;
-        int bodyIndex;
-        string colonyName;
+        colonyClass colony;
 
         protected override void OnOpen()
         {
@@ -44,7 +41,7 @@ namespace KerbalColonies
                     this.toList = new List<ProtoCrewMember>(fromFac.getKerbals());
                     break;
                 case SwitchModes.Colony:
-                    this.fromList = fromFac.filterKerbals(KCKerbalFacilityBase.GetAllKerbalsInColony(saveGame, bodyIndex, colonyName).Where(kvp => kvp.Value == 0).ToDictionary(i => i.Key, i => i.Value).Keys.ToList());
+                    this.fromList = fromFac.filterKerbals(KCKerbalFacilityBase.GetAllKerbalsInColony(colony).Where(kvp => kvp.Value == 0).ToDictionary(i => i.Key, i => i.Value).Keys.ToList());
                     this.toList = fromFac.getKerbals();
                     break;
             }
@@ -88,7 +85,7 @@ namespace KerbalColonies
                 }
                 else if (mode == SwitchModes.Colony)
                 {
-                    KCCrewQuarters.FindKerbalInCrewQuarters(saveGame, bodyIndex, colonyName, member).modifyKerbal(member, 1);
+                    KCCrewQuarters.FindKerbalInCrewQuarters(colony, member).modifyKerbal(member, 1);
                 }
 
             }
@@ -133,14 +130,12 @@ namespace KerbalColonies
                 }
                 else if (mode == SwitchModes.Colony)
                 {
-                    KCCrewQuarters.FindKerbalInCrewQuarters(saveGame, bodyIndex, colonyName, member).modifyKerbal(member, 0);
+                    KCCrewQuarters.FindKerbalInCrewQuarters(colony, member).modifyKerbal(member, 0);
                 }
             }
             toListModifierList.Clear();
 
             kGUI.transferWindow = false;
-
-            Configuration.saveColonies = true;
         }
 
         protected override void CustomWindow()
@@ -214,20 +209,18 @@ namespace KerbalColonies
             this.toCapacity = fac.maxKerbals;
         }
 
-        internal KerbalSelectorGUI(KCKerbalFacilityBase fac, KerbalGUI kGUI, string saveGame, int bodyIndex, string colonyName, string fromName, string toName) : base(Configuration.createWindowID(fac), fac.name)
+        internal KerbalSelectorGUI(KCKerbalFacilityBase fac, KerbalGUI kGUI, colonyClass colony, string toName) : base(Configuration.createWindowID(fac), fac.name)
         {
             this.fromFac = fac;
             toolRect = new Rect(100, 100, 500, 500);
-            this.fromName = fromName;
+            this.fromName = colony.Name;
             this.toName = toName;
-            this.fromList = fac.filterKerbals(KCKerbalFacilityBase.GetAllKerbalsInColony(saveGame, bodyIndex, colonyName).Where(kvp => kvp.Value == 0).ToDictionary(i => i.Key, i => i.Value).Keys.ToList());
+            this.fromList = fac.filterKerbals(KCKerbalFacilityBase.GetAllKerbalsInColony(colony).Where(kvp => kvp.Value == 0).ToDictionary(i => i.Key, i => i.Value).Keys.ToList());
             this.toList = fac.getKerbals();
-            this.saveGame = saveGame;
-            this.bodyIndex = bodyIndex;
-            this.colonyName = colonyName;
             this.kGUI = kGUI;
+            this.colony = colony;
             this.mode = SwitchModes.Colony;
-            this.fromCapacity = KCCrewQuarters.ColonyKerbalCapacity(saveGame, bodyIndex, colonyName);
+            this.fromCapacity = KCCrewQuarters.ColonyKerbalCapacity(colony);
             this.toCapacity = fac.maxKerbals;
         }
     }
@@ -362,12 +355,12 @@ namespace KerbalColonies
             }
         }
 
-        public KerbalGUI(KCKerbalFacilityBase fac, string savegame, int bodyIndex, string colonyName)
+        public KerbalGUI(KCKerbalFacilityBase fac, colonyClass colony)
         {
             transferWindow = false;
             this.fac = fac;
 
-            this.ksg = new KerbalSelectorGUI(fac, this, savegame, bodyIndex, colonyName, colonyName, fac.name);
+            this.ksg = new KerbalSelectorGUI(fac, this, colony, fac.name);
         }
     }
 }

@@ -30,8 +30,7 @@ namespace KerbalColonies.colonyFacilities
 
             if (kerbalGUI == null)
             {
-                KCFacilityBase.GetInformationByFacilty(miningFacility, out string saveGame, out int bodyIndex, out string colonyName, out List<GroupPlaceHolder> gph, out List<string> UUIDs);
-                kerbalGUI = new KerbalGUI(miningFacility, saveGame, bodyIndex, colonyName);
+                kerbalGUI = new KerbalGUI(miningFacility, miningFacility.Colony);
             }
 
             GUILayout.BeginHorizontal();
@@ -104,7 +103,6 @@ namespace KerbalColonies.colonyFacilities
             lastUpdateTime = Planetarium.GetUniversalTime();
             ore = Math.Min(maxOreList[level], ore + (float)((OrePerDayperEngineer[level] / 24 / 60 / 60) * deltaTime) * kerbals.Count);
             metalOre = Math.Min(maxMetalOretList[level], metalOre + (float)((MetalOrePerDayperEngineer[level] / 24 / 60 / 60) * deltaTime) * kerbals.Count);
-            Configuration.saveColonies = true;
         }
 
         public override void OnBuildingClicked()
@@ -123,15 +121,14 @@ namespace KerbalColonies.colonyFacilities
 
         public bool RetrieveResources()
         {
-            KCFacilityBase.GetInformationByFacilty(this, out string saveGame, out int bodyIndex, out string colonyName, out List<GroupPlaceHolder> gph, out List<string> UUIDs);
             if (ore > 0)
             {
-                ore = KCStorageFacility.addResourceToColony(PartResourceLibrary.Instance.GetDefinition("Ore"), ore, saveGame, bodyIndex, colonyName);
+                ore = KCStorageFacility.addResourceToColony(PartResourceLibrary.Instance.GetDefinition("Ore"), ore, Colony);
             }
 
             if (metalOre > 0)
             {
-                metalOre = KCStorageFacility.addResourceToColony(PartResourceLibrary.Instance.GetDefinition("MetalOre"), metalOre, saveGame, bodyIndex, colonyName);
+                metalOre = KCStorageFacility.addResourceToColony(PartResourceLibrary.Instance.GetDefinition("MetalOre"), metalOre, Colony);
             }
             return true;
         }
@@ -169,19 +166,29 @@ namespace KerbalColonies.colonyFacilities
             return node;
         }
 
-        public override void loadCustomNode(ConfigNode customNode)
+        public override string GetBaseGroupName(int level)
         {
-            ore = double.Parse(customNode.GetValue("ore"));
-            metalOre = double.Parse(customNode.GetValue("metalOre"));
-
-            base.loadCustomNode(customNode.GetNode("wrapper").GetNodes()[0]);
+            return "KC_CAB";
         }
 
-        public override void Initialize()
+        public KCMiningFacility(colonyClass colony, ConfigNode node) : base(colony, node)
         {
-            base.Initialize();
+            ore = double.Parse(node.GetValue("ore"));
+            metalOre = double.Parse(node.GetValue("metalOre"));
             miningFacilityWindow = new KCMiningFacilityWindow(this);
-            this.baseGroupName = "KC_CAB";
+
+            maxOreList = new List<float> { 2000f, 4000f };
+            maxMetalOretList = new List<float> { 400f, 800f };
+            OrePerDayperEngineer = new List<float> { 200f, 400f };
+            MetalOrePerDayperEngineer = new List<float> { 40f, 80f };
+            maxKerbalsPerLevel = new List<int> { 8, 12 };
+            this.maxKerbals = maxKerbalsPerLevel[level];
+            this.upgradeType = UpgradeType.withoutGroupChange;
+        }
+
+        public KCMiningFacility(colonyClass colony, bool enabled) : base(colony, "KCMiningFacility", enabled, 8, 0, 1)
+        {
+            miningFacilityWindow = new KCMiningFacilityWindow(this);
 
             maxOreList = new List<float> { 2000f, 4000f };
             maxMetalOretList = new List<float> { 400f, 800f };
@@ -189,14 +196,12 @@ namespace KerbalColonies.colonyFacilities
             MetalOrePerDayperEngineer = new List<float> { 40f, 80f };
             maxKerbalsPerLevel = new List<int> { 8, 12 };
 
+            ore = 0;
+            metalOre = 0;
+
             this.maxKerbals = maxKerbalsPerLevel[level];
 
             this.upgradeType = UpgradeType.withoutGroupChange;
-        }
-
-        public KCMiningFacility(bool enabled) : base("KCMiningFacility", enabled, 8, 0, 1)
-        {
-            ore = 0;
         }
     }
 }

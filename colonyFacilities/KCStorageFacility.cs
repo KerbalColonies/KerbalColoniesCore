@@ -110,7 +110,7 @@ namespace KerbalColonies.colonyFacilities
 
         private bool facilityHasSpace(PartResourceDefinition resource, float amount)
         {
-            if (storageFacility.getMaxVolume() - storageFacility.getCurrentVolume() >= storageFacility.getVolumeForAmount(resource, amount))
+            if (storageFacility.getMaxVolume() - storageFacility.getCurrentVolume() >= KCStorageFacility.getVolumeForAmount(resource, amount))
             {
                 return true;
             }
@@ -155,14 +155,12 @@ namespace KerbalColonies.colonyFacilities
                                 {
                                     FlightGlobals.ActiveVessel.rootPart.RequestResource(kvp.Key.id, (double)i);
                                     storageFacility.changeAmount(kvp.Key, i);
-                                    Configuration.saveColonies = true;
                                 }
                                 else
                                 {
                                     double amount = getFacilityResource(kvp.Key);
                                     storageFacility.changeAmount(kvp.Key, (float)-amount);
                                     FlightGlobals.ActiveVessel.rootPart.RequestResource(kvp.Key.id, -amount);
-                                    Configuration.saveColonies = true;
                                 }
                             }
                             else
@@ -173,14 +171,12 @@ namespace KerbalColonies.colonyFacilities
                                 {
                                     FlightGlobals.ActiveVessel.rootPart.RequestResource(kvp.Key.id, (double)amount);
                                     storageFacility.changeAmount(kvp.Key, (float)-amount);
-                                    Configuration.saveColonies = true;
                                 }
                                 else
                                 {
                                     amount = getFacilityResource(kvp.Key);
                                     storageFacility.changeAmount(kvp.Key, (float)-amount);
                                     FlightGlobals.ActiveVessel.rootPart.RequestResource(kvp.Key.id, -amount);
-                                    Configuration.saveColonies = true;
                                 }
                             }
                         }
@@ -192,14 +188,12 @@ namespace KerbalColonies.colonyFacilities
                                 {
                                     FlightGlobals.ActiveVessel.rootPart.RequestResource(kvp.Key.id, (double)i);
                                     storageFacility.changeAmount(kvp.Key, i);
-                                    Configuration.saveColonies = true;
                                 }
                                 else
                                 {
                                     double amount = getVesselRessources(FlightGlobals.ActiveVessel, kvp.Key);
                                     FlightGlobals.ActiveVessel.rootPart.RequestResource(kvp.Key.id, amount);
                                     storageFacility.changeAmount(kvp.Key, (float)amount);
-                                    Configuration.saveColonies = true;
                                 }
                             }
                             else
@@ -209,14 +203,12 @@ namespace KerbalColonies.colonyFacilities
                                 {
                                     FlightGlobals.ActiveVessel.rootPart.RequestResource(kvp.Key.id, (double)amount);
                                     storageFacility.changeAmount(kvp.Key, (float)amount);
-                                    Configuration.saveColonies = true;
                                 }
                                 else
                                 {
                                     amount = getVesselRessources(FlightGlobals.ActiveVessel, kvp.Key);
                                     FlightGlobals.ActiveVessel.rootPart.RequestResource(kvp.Key.id, amount);
                                     storageFacility.changeAmount(kvp.Key, (float)amount);
-                                    Configuration.saveColonies = true;
                                 }
                             }
                         }
@@ -246,65 +238,29 @@ namespace KerbalColonies.colonyFacilities
     [System.Serializable]
     internal class KCStorageFacility : KCFacilityBase
     {
-        public static double colonyResources(PartResourceDefinition resource, string saveGame, int bodyIndex, string colonyName)
+        // TODO: add shared colony storage
+        public static double colonyResources(PartResourceDefinition resource, colonyClass colony)
         {
-            double amount = 0;
-            List<KCStorageFacility> storages = findFacilityWithResourceType(resource, saveGame, bodyIndex, colonyName);
-            foreach (KCStorageFacility storage in storages)
-            {
-                amount += storage.getRessources()[resource];
-            }
-            return amount;
-        }
-
-        public static double maxColonySpace(PartResourceDefinition resource, double amount, string saveGame, int bodyIndex, string colonyName)
-        {
-            List<KCStorageFacility> storages = findEmptyStorageFacilities(saveGame, bodyIndex, colonyName);
-            double space = 0;
-            foreach (KCStorageFacility storage in storages)
-            {
-                space += storage.getEmptyAmount(resource);
-            }
-            return space;
-        }
-
-        public static bool colonyHasSpace(PartResourceDefinition resource, double amount, string saveGame, int bodyIndex, string colonyName)
-        {
-            List<KCStorageFacility> storages = findEmptyStorageFacilities(saveGame, bodyIndex, colonyName);
-            foreach (KCStorageFacility storage in storages)
-            {
-                if (amount <= storage.getEmptyAmount(resource))
-                {
-                    return true;
-                }
-                else
-                {
-                    amount -= storage.getEmptyAmount(resource);
-                }
-            }
-            return false;
+            return findFacilityWithResourceType(resource, colony).Sum(s => s.getRessources()[resource]);
         }
 
         // TODO: make it compatible for negative amounts
-        public static double addResourceToColony(PartResourceDefinition resource, double amount, string saveGame, int bodyIndex, string colonyName)
+        public static double addResourceToColony(PartResourceDefinition resource, double amount, colonyClass colony)
         {
-            List<KCStorageFacility> storages = KCStorageFacility.findFacilityWithResourceType(resource, saveGame, bodyIndex, colonyName);
+            List<KCStorageFacility> storages = KCStorageFacility.findFacilityWithResourceType(resource, colony);
 
-            if (storages.Count == 0)
-            {
-                storages = KCStorageFacility.findEmptyStorageFacilities(saveGame, bodyIndex, colonyName);
-            }
+            KCStorageFacility.findEmptyStorageFacilities(colony).ForEach(s => storages.Add(s));
 
             foreach (KCStorageFacility storage in storages)
             {
-                if (amount <= storage.getEmptyAmount(resource))
+                double tempAmount = storage.getEmptyAmount(resource);
+                if (amount <= tempAmount)
                 {
                     storage.changeAmount(resource, (float)amount);
                     return 0;
                 }
                 else
                 {
-                    double tempAmount = storage.getEmptyAmount(resource);
                     storage.changeAmount(resource, (float)tempAmount);
                     amount -= tempAmount;
                 }
@@ -313,72 +269,24 @@ namespace KerbalColonies.colonyFacilities
             return amount;
         }
 
-        public static List<KCStorageFacility> findFacilityWithResourceType(PartResourceDefinition resource, string saveGame, int bodyIndex, string colonyName)
+        public static List<KCStorageFacility> GetStoragesInColony(colonyClass colony)
         {
-            if (!Configuration.coloniesPerBody.ContainsKey(saveGame)) { return new List<KCStorageFacility> { }; }
-            else if (!Configuration.coloniesPerBody[saveGame].ContainsKey(bodyIndex)) { return new List<KCStorageFacility> { }; }
-            else if (!Configuration.coloniesPerBody[saveGame][bodyIndex].ContainsKey(colonyName)) { return new List<KCStorageFacility> { }; }
+            return colony.Facilities.Where(f => f is KCStorageFacility).Select(f => (KCStorageFacility)f).ToList();
+        }
 
-            List<KCStorageFacility> storages = new List<KCStorageFacility>();
-
-            Configuration.coloniesPerBody[saveGame][bodyIndex][colonyName].Values.ToList().ForEach(UUIDdict =>
-            {
-                UUIDdict.Values.ToList().ForEach(colonyFacilitys =>
-                {
-                    colonyFacilitys.ForEach(colonyFacility =>
-                    {
-                        if (typeof(KCStorageFacility).IsAssignableFrom(colonyFacility.GetType()))
-                        {
-                            KCStorageFacility fac = (KCStorageFacility)colonyFacility;
-                            if (fac.getRessources().ContainsKey(resource))
-                            {
-                                if (!storages.Contains((KCStorageFacility)colonyFacility))
-                                {
-                                    storages.Add((KCStorageFacility)colonyFacility);
-                                }
-                            }
-                        }
-                    });
-                });
-            });
-            return storages;
+        public static List<KCStorageFacility> findFacilityWithResourceType(PartResourceDefinition resource, colonyClass colony)
+        {
+            return GetStoragesInColony(colony).Where(f => f.getRessources().ContainsKey(resource)).ToList();
         }
 
         /// <summary>
         /// returns a list of all storage facilities that are not full
         /// </summary>
-        public static List<KCStorageFacility> findEmptyStorageFacilities(string saveGame, int bodyIndex, string colonyName)
+        public static List<KCStorageFacility> findEmptyStorageFacilities(colonyClass colony)
         {
-            if (!Configuration.coloniesPerBody.ContainsKey(saveGame)) { return new List<KCStorageFacility> { }; }
-            else if (!Configuration.coloniesPerBody[saveGame].ContainsKey(bodyIndex)) { return new List<KCStorageFacility> { }; }
-            else if (!Configuration.coloniesPerBody[saveGame][bodyIndex].ContainsKey(colonyName)) { return new List<KCStorageFacility> { }; }
-
-            List<KCStorageFacility> storages = new List<KCStorageFacility>();
-
-            Configuration.coloniesPerBody[saveGame][bodyIndex][colonyName].Values.ToList().ForEach(UUIDdict =>
-            {
-                UUIDdict.Values.ToList().ForEach(colonyFacilitys =>
-                {
-                    colonyFacilitys.ForEach(colonyFacility =>
-                    {
-                        if (typeof(KCStorageFacility).IsAssignableFrom(colonyFacility.GetType()))
-                        {
-                            KCStorageFacility fac = (KCStorageFacility)colonyFacility;
-                            if (fac.currentVolume < fac.maxVolume)
-                            {
-                                if (!storages.Contains((KCStorageFacility)colonyFacility))
-                                {
-                                    storages.Add((KCStorageFacility)colonyFacility);
-                                }
-                            }
-                        }
-                    });
-                });
-            });
-            return storages;
+            return GetStoragesInColony(colony).Where(f => f.currentVolume < f.maxVolume).ToList();
         }
 
-        [NonSerialized]
         public Dictionary<PartResourceDefinition, double> resources;
 
         public double maxVolume;
@@ -419,7 +327,7 @@ namespace KerbalColonies.colonyFacilities
             return maxVolume;
         }
 
-        public double getVolumeForAmount(PartResourceDefinition resource, double amount) { return amount * resource.volume; }
+        public static double getVolumeForAmount(PartResourceDefinition resource, double amount) { return amount * resource.volume; }
 
         public double getEmptyAmount(PartResourceDefinition resource)
         {
@@ -443,7 +351,7 @@ namespace KerbalColonies.colonyFacilities
 
         public override ConfigNode getConfigNode()
         {
-            ConfigNode node = new ConfigNode("resources");
+            ConfigNode node = base.getConfigNode();
 
             node.AddValue("maxVolume", maxVolume);
 
@@ -453,29 +361,6 @@ namespace KerbalColonies.colonyFacilities
             }
 
             return node;
-        }
-
-        public override void loadCustomNode(ConfigNode customNode)
-        {
-            if (customNode != null)
-            {
-                maxVolume = double.Parse(customNode.GetValue("maxVolume"));
-                customNode.RemoveValue("maxVolume");
-
-
-                foreach (ConfigNode.Value value in customNode.values)
-                {
-                    PartResourceDefinition prd = PartResourceLibrary.Instance.GetDefinition(value.name);
-                    if (!resources.ContainsKey(prd))
-                    {
-                        resources.Add(prd, double.Parse(value.value));
-                    }
-                    else
-                    {
-                        resources[prd] = double.Parse(value.value);
-                    }
-                }
-            }
         }
 
         /// <summary>
@@ -519,33 +404,10 @@ namespace KerbalColonies.colonyFacilities
             StorageWindow.Toggle();
         }
 
-        public override void Initialize()
+        public override string GetBaseGroupName(int level)
         {
-            resources = new Dictionary<PartResourceDefinition, double>();
-            base.Initialize();
-            this.StorageWindow = new KCStorageFacilityWindow(this);
-
-            this.upgradeType = UpgradeType.withAdditionalGroup;
-
-            float[] maxVolumes = { 80000f, 100000f };
-            maxVolume = maxVolumes[level];
-
             string[] baseGroupNames = { "KC_SF_0", "KC_SF_1" };
-            baseGroupName = baseGroupNames[level];
-        }
-
-        public override void UpdateBaseGroupName()
-        {
-            switch (this.level)
-            {
-                default:
-                case 0:
-                    this.baseGroupName = "KC_SF_0";
-                    break;
-                case 1:
-                    this.baseGroupName = "KC_SF_1";
-                    break;
-            }
+            return baseGroupNames[level];
         }
 
 
@@ -556,9 +418,25 @@ namespace KerbalColonies.colonyFacilities
             return base.UpgradeFacility(level);
         }
 
-        public KCStorageFacility(bool enabled) : base("KCStorageFacility", enabled, 0, 1)
+        public KCStorageFacility(colonyClass colony, ConfigNode node) : base(colony, node)
         {
-            maxVolume = 2000f;
+            maxVolume = double.Parse(node.GetValue("maxVolume"));
+
+            resources = new Dictionary<PartResourceDefinition, double>();
+
+            foreach (ConfigNode.Value value in node.values)
+            {
+                PartResourceDefinition prd = PartResourceLibrary.Instance.GetDefinition(value.name);
+
+                resources.Add(prd, double.Parse(value.value));
+            }
+        }
+
+        public KCStorageFacility(colonyClass colony, bool enabled) : base(colony, "KCStorageFacility", enabled, 0, 1)
+        {
+            this.upgradeType = UpgradeType.withAdditionalGroup;
+            maxVolume = 80000f;
+            resources = new Dictionary<PartResourceDefinition, double>();
         }
     }
 }

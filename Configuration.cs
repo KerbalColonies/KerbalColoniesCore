@@ -1,5 +1,5 @@
 ﻿using KerbalColonies.colonyFacilities;
-using KerbalColonies.Serialization;
+using KerbalColonies;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -262,27 +262,6 @@ namespace KerbalColonies
             persistentNode.AddNode(ColonyDictionaryNode);
         }
         #endregion
-
-        // saves the colonies per body with
-        // Dictionary 0: the SaveGame name (the "name" field in the GAME node) as key
-        // Dictionary 1: bodyindex as key
-        // Dictionary 2: ColonyName as key
-        // Dictionary 3: groupPlaceholder class as key
-        // Dictionary 4: static uuid as key and a KCFacilityBase List as value
-        internal static Dictionary<string,
-            Dictionary<int,
-                Dictionary<string,
-                    Dictionary<GroupPlaceHolder,
-                        Dictionary<string,
-                            List<KCFacilityBase>>>>>> coloniesPerBody =
-
-                                new Dictionary<string,
-                            Dictionary<int,
-                        Dictionary<string,
-                    Dictionary<GroupPlaceHolder,
-                Dictionary<string,
-            List<KCFacilityBase>>>>>>();
-
 
         // static parameters
         internal const string APP_NAME = "KerbalColonies";

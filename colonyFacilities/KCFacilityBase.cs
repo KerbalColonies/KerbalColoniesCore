@@ -23,7 +23,6 @@ namespace KerbalColonies.colonyFacilities
     /// <para>I recommend using "|" as seperator and "&" instead of "="</para>
     /// <para>It's NOT checked if the datastring contains any of these symbols!</para>
     /// </summary>
-    [System.Serializable]
     public abstract class KCFacilityBase
     {
         public colonyClass Colony { get; private set; }
@@ -104,7 +103,22 @@ namespace KerbalColonies.colonyFacilities
             return uuids;
         }
 
-        internal static bool IDexists(int id)
+        public static KCFacilityBase GetFacilityByID(int id)
+        {
+            foreach (var colony in Configuration.colonyDictionary.Values.SelectMany(c => c))
+            {
+                foreach (var facility in colony.Facilities)
+                {
+                    if (facility.id == id)
+                    {
+                        return facility;
+                    }
+                }
+            }
+            return null;
+        }
+
+        public static bool IDexists(int id)
         {
             return Configuration.colonyDictionary.Values.SelectMany(c => c).Any(c => c.Facilities.Any(fac => fac.id == id) || c.CAB.id == id);
         }
@@ -141,7 +155,7 @@ namespace KerbalColonies.colonyFacilities
         /// <returns></returns>
         public virtual int GetUpgradeTime(int level) { return 0; }
 
-        public virtual string GetBaseGroupName(int level) { return "KC_CAB"; }
+        public abstract string GetBaseGroupName(int level);
 
         /// <summary>
         /// This function get automatically called, do not call it manually.

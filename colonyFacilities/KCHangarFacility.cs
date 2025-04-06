@@ -154,9 +154,7 @@ namespace KerbalColonies.colonyFacilities
                 return false;
             }
 
-            KCFacilityBase.GetInformationByFacilty(this, out string saveGame, out int bodyIndex, out string colonyName, out List<GroupPlaceHolder> gph, out List<string> UUIDs);
-
-            if (KCCrewQuarters.ColonyKerbalCapacity(saveGame, bodyIndex, colonyName) - KCCrewQuarters.GetAllKerbalsInColony(saveGame, bodyIndex, colonyName).Count < vessel.GetCrewCount())
+            if (KCCrewQuarters.ColonyKerbalCapacity(Colony) - KCCrewQuarters.GetAllKerbalsInColony(Colony).Count < vessel.GetCrewCount())
             {
                 return false;
             }
@@ -178,8 +176,6 @@ namespace KerbalColonies.colonyFacilities
                     vesselVolume = (vesselSize.x * vesselSize.y * vesselSize.z) * 0.8
                 };
 
-                KCFacilityBase.GetInformationByFacilty(this, out string saveGame, out int bodyIndex, out string colonyName, out List<GroupPlaceHolder> gph, out List<string> UUIDs);
-
                 //get the experience and assign the crew to the rooster
                 foreach (Part part in vessel.parts)
                 {
@@ -197,7 +193,7 @@ namespace KerbalColonies.colonyFacilities
 
                             // remove the crew from the ship
                             part.RemoveCrewmember(crewList[i]);
-                            KCCrewQuarters.AddKerbalToColony(saveGame, bodyIndex, colonyName, crewList[i]);
+                            KCCrewQuarters.AddKerbalToColony(Colony, crewList[i]);
                         }
                     }
                 }
@@ -222,8 +218,9 @@ namespace KerbalColonies.colonyFacilities
                     vessel.protoVessel.Clean();
                 }
 
-                List<KCLaunchpadFacility> facilities = KCLaunchpadFacility.getLaunchPadsInColony(saveGame, bodyIndex, colonyName);
+                List<KCLaunchpadFacility> facilities = KCLaunchpadFacility.getLaunchPadsInColony(Colony);
 
+                // TODO: the set space center cam doesn't work
                 if (facilities.Count > 0)
                 {
                     KerbalKonstructs.Core.CameraController.SetSpaceCenterCam(KerbalKonstructs.API.getStaticInstanceByUUID(facilities[0].launchSiteUUID).launchSite);
@@ -251,9 +248,8 @@ namespace KerbalColonies.colonyFacilities
             ProtoVessel protoVessel = new ProtoVessel(storedVessel.vesselNode, HighLogic.CurrentGame);
             protoVessel.Load(HighLogic.CurrentGame.flightState);
 
-            KCFacilityBase.GetInformationByFacilty(this, out string saveGame, out int bodyIndex, out string colonyName, out List<GroupPlaceHolder> gph, out List<string> UUIDs);
 
-            List<KCLaunchpadFacility> launchpads = KCLaunchpadFacility.getLaunchPadsInColony(saveGame, bodyIndex, colonyName);
+            List<KCLaunchpadFacility> launchpads = KCLaunchpadFacility.getLaunchPadsInColony(Colony);
             if (launchpads.Count > 0)
             {
                 storedVessels.Remove(storedVessel);
@@ -265,7 +261,7 @@ namespace KerbalColonies.colonyFacilities
 
         public override ConfigNode getConfigNode()
         {
-            ConfigNode node = new ConfigNode("hangar");
+            ConfigNode node = base.getConfigNode();
             node.AddValue("x", x);
             node.AddValue("y", y);
             node.AddValue("z", z);
@@ -285,38 +281,40 @@ namespace KerbalColonies.colonyFacilities
             return node;
         }
 
-        public override void loadCustomNode(ConfigNode customNode)
-        {
-            if (customNode != null)
-            {
-                x = double.Parse(customNode.GetValue("x"));
-                y = double.Parse(customNode.GetValue("y"));
-                z = double.Parse(customNode.GetValue("z"));
-                vesselCapacity = int.Parse(customNode.GetValue("capacity"));
-
-                storedVessels = new List<StoredVessel> { };
-
-                foreach (ConfigNode vesselNode in customNode.GetNodes("vessel"))
-                {
-                    StoredVessel vessel = new StoredVessel();
-
-                    vessel.uuid = Guid.Parse(vesselNode.GetValue("VesselID"));
-                    vessel.vesselName = vesselNode.GetValue("VesselName");
-                    vessel.vesselNode = vesselNode.GetNode("VESSEL");
-
-                    storedVessels.Add(vessel);
-                }
-            }
-        }
-
         public override void OnBuildingClicked()
         {
             hangarWindow.Toggle();
         }
 
-        public override void Initialize()
+        public override string GetBaseGroupName(int level)
         {
-            base.Initialize();
+            return "KC_CAB";
+        }
+
+        public KCHangarFacility(colonyClass colony, ConfigNode node) : base(colony, node)
+        {
+            x = double.Parse(node.GetValue("x"));
+            y = double.Parse(node.GetValue("y"));
+            z = double.Parse(node.GetValue("z"));
+            vesselCapacity = int.Parse(node.GetValue("capacity"));
+
+            storedVessels = new List<StoredVessel> { };
+
+            foreach (ConfigNode vesselNode in node.GetNodes("vessel"))
+            {
+                StoredVessel vessel = new StoredVessel();
+
+                vessel.uuid = Guid.Parse(vesselNode.GetValue("VesselID"));
+                vessel.vesselName = vesselNode.GetValue("VesselName");
+                vessel.vesselNode = vesselNode.GetNode("VESSEL");
+
+                storedVessels.Add(vessel);
+            }
+            hangarWindow = new KCHangarFacilityWindow(this);
+        }
+
+        public KCHangarFacility(colonyClass colony, bool enabled) : base(colony, "KCHangarFacility", enabled, 0, 1)
+        {
             upgradeType = UpgradeType.withGroupChange;
 
             hangarWindow = new KCHangarFacilityWindow(this);
@@ -326,11 +324,6 @@ namespace KerbalColonies.colonyFacilities
             z = 100;
 
             vesselCapacity = 100;
-        }
-
-        public KCHangarFacility(bool enabled) : base("KCHangarFacility", enabled, 0, 1)
-        {
-
         }
     }
 }

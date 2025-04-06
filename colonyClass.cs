@@ -1,6 +1,4 @@
 ﻿using KerbalColonies.colonyFacilities;
-using KerbalColonies.Serialization;
-using KerbalKonstructs.Modules;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -43,9 +41,7 @@ namespace KerbalColonies
             ConfigNode CABNode = new ConfigNode("CAB");
             CABNode.AddValue("type", CAB.GetType().FullName);
 
-            ConfigNode CABcustomNode = new ConfigNode("customNode");
-            CABcustomNode.AddNode(CAB.getConfigNode());
-            CABNode.AddNode(CABcustomNode);
+            CABNode.AddNode(CAB.getConfigNode());
             node.AddNode(CABNode);
 
             foreach (KCFacilityBase facility in Facilities)
@@ -53,18 +49,22 @@ namespace KerbalColonies
                 ConfigNode facilityNode = new ConfigNode("facility");
                 facilityNode.AddValue("type", facility.GetType().FullName);
 
-                ConfigNode customNode = new ConfigNode("customNode");
-                customNode.AddNode(facility.getConfigNode());
-                facilityNode.AddNode(customNode);
+                facilityNode.AddNode(facility.getConfigNode());
                 node.AddNode(facilityNode);
             }
             return node;
         }
 
+        public void UpdateColony()
+        {
+            CAB.Update();
+            Facilities.ForEach(f => f.Update());
+        }
+
         public colonyClass(string name)
         {
             Name = name;
-            CAB = new KC_CAB_Facility();
+            CAB = new KC_CAB_Facility(this);
             Facilities = new List<KCFacilityBase>();
             sharedColonyNodes = new List<ConfigNode>();
         }
@@ -75,19 +75,18 @@ namespace KerbalColonies
             Facilities = new List<KCFacilityBase>();
             sharedColonyNodes = node.GetNode("sharedColonyNodes").GetNodes().ToList();
 
-            ConfigNode CABNode = node.GetNode("CAB");
-
-            CAB = (KC_CAB_Facility)KCFacilityClassConverter.DeserializeObject(CABNode.GetValue("type"), CABNode.GetValue("serializedData"));
-            CAB.loadCustomNode(CABNode.GetNode("customNode").GetNodes()[0]);
-
             foreach (ConfigNode facilityNode in node.GetNodes("facility"))
             {
                 Facilities.Add(Configuration.CreateInstance(
                     KCFacilityTypeRegistry.GetType(facilityNode.GetValue("type")),
                     this,
-                    facilityNode.GetNode("customNode")
+                    facilityNode.GetNodes().First()
                 ));
             }
+
+            ConfigNode CABNode = node.GetNode("CAB");
+
+            CAB = new KC_CAB_Facility(this, CABNode.GetNodes().First());
         }
     }
 }

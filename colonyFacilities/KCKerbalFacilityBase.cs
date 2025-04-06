@@ -12,14 +12,10 @@ namespace KerbalColonies.colonyFacilities
         /// Returns a list of all kerbals in the Colony that are registered in a crew quarter
         /// </summary>
         /// <returns>An empty dictionary if any of the parameters are invalid, no KCCrewQuarter facilities exist or no KCCrewQuarter has any kerbals assigned</returns>
-        public static Dictionary<ProtoCrewMember, int> GetAllKerbalsInColony(string saveGame, int bodyIndex, string colonyName)
+        public static Dictionary<ProtoCrewMember, int> GetAllKerbalsInColony(colonyClass colony)
         {
-            if (!Configuration.coloniesPerBody.ContainsKey(saveGame)) { return new Dictionary<ProtoCrewMember, int> { }; }
-            else if (!Configuration.coloniesPerBody[saveGame].ContainsKey(bodyIndex)) { return new Dictionary<ProtoCrewMember, int> { }; }
-            else if (!Configuration.coloniesPerBody[saveGame][bodyIndex].ContainsKey(colonyName)) { return new Dictionary<ProtoCrewMember, int> { }; }
-
             Dictionary<ProtoCrewMember, int> kerbals = new Dictionary<ProtoCrewMember, int> { };
-            KCCrewQuarters.CrewQuartersInColony(saveGame, bodyIndex, colonyName).ForEach(crewQuarter =>
+            KCCrewQuarters.CrewQuartersInColony(colony).ForEach(crewQuarter =>
             {
                 crewQuarter.kerbals.Keys.ToList().ForEach(k =>
                 {
@@ -37,24 +33,9 @@ namespace KerbalColonies.colonyFacilities
         /// Returns a list of all facilities that the kerbal is assigned to
         /// </summary>
         /// <returns>Returns an empty list if any of the parameters are invalid or the kerbal wasn't found</returns>
-        public static List<KCKerbalFacilityBase> findKerbal(int bodyIndex, string colonyName, ProtoCrewMember kerbal)
+        public static List<KCKerbalFacilityBase> findKerbal(colonyClass colony, ProtoCrewMember kerbal)
         {
-            if (!Configuration.colonyDictionary.ContainsKey(bodyIndex)) { return new List<KCKerbalFacilityBase>(); }
-            else if (!Configuration.colonyDictionary[bodyIndex].Exists(c => c.Name == colonyName)) { return new List<KCKerbalFacilityBase>(); }
-
-            List<KCKerbalFacilityBase> facilities = new List<KCKerbalFacilityBase>();
-            Configuration.colonyDictionary[bodyIndex].Where(c => c.Name == colonyName).ToList().ForEach(colony =>
-            {
-                colony.Facilities.Where(f => f is KCKerbalFacilityBase).ToList().ForEach(f =>
-                {
-                    if (((KCKerbalFacilityBase)f).kerbals.ContainsKey(kerbal))
-                    {
-                        facilities.Add((KCKerbalFacilityBase)f);
-                    }
-                });
-            });
-
-            return facilities;
+            return colony.Facilities.Where(f => f is KCKerbalFacilityBase).Select(f => (KCKerbalFacilityBase)f).Where(f => f.kerbals.Keys.Contains(kerbal)).ToList();
         }
 
         /// <summary>
@@ -110,6 +91,7 @@ namespace KerbalColonies.colonyFacilities
             if (kerbalNode != null)
             {
                 maxKerbals = int.Parse(kerbalNode.GetValue("maxKerbals"));
+                kerbals = new Dictionary<ProtoCrewMember, int> { };
 
                 foreach (ConfigNode kerbal in kerbalNode.GetNodes())
                 {
@@ -132,18 +114,12 @@ namespace KerbalColonies.colonyFacilities
             return createKerbalNode();
         }
 
-        public override void loadCustomNode(ConfigNode customNode)
+        public KCKerbalFacilityBase(colonyClass colony, ConfigNode node) : base(colony, node)
         {
-            loadKerbalNode(customNode);
+            loadKerbalNode(node);
         }
 
-        public override void Initialize()
-        {
-            kerbals = new Dictionary<ProtoCrewMember, int> { };
-            base.Initialize();
-        }
-
-        public KCKerbalFacilityBase(string facilityName, bool enabled, int maxKerbals = 8, int level = 0, int maxLevel = 0) : base(facilityName, enabled, level, maxLevel)
+        public KCKerbalFacilityBase(colonyClass colony, string facilityName, bool enabled, int maxKerbals = 8, int level = 0, int maxLevel = 0) : base(colony, facilityName, enabled, level, maxLevel)
         {
             this.maxKerbals = maxKerbals;
             kerbals = new Dictionary<ProtoCrewMember, int> { };

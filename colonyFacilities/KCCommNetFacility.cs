@@ -1,9 +1,24 @@
 ﻿using KerbalKonstructs.Modules;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+
+// KC: Kerbal Colonies
+// This mod aimes to create a Colony system with Kerbal Konstructs statics
+// Copyright (C) 2024 AMPW, Halengar
+
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/
+
 
 namespace KerbalColonies.colonyFacilities
 {
@@ -24,9 +39,7 @@ namespace KerbalColonies.colonyFacilities
 
         public override void OnGroupPlaced()
         {
-            KCFacilityBase.GetInformationByFacilty(this, out string saveGame, out int bodyIndex, out string colonyName, out List<GroupPlaceHolder> gph, out List<string> UUIDs);
-
-            KerbalKonstructs.Core.StaticInstance baseInstance = KerbalKonstructs.API.GetGroupStatics(baseGroupName, "Kerbin").Where(s => s.facilityType == KerbalKonstructs.Modules.KKFacilityType.GroundStation).First();
+            KerbalKonstructs.Core.StaticInstance baseInstance = KerbalKonstructs.API.GetGroupStatics(GetBaseGroupName(0), "Kerbin").Where(s => s.facilityType == KerbalKonstructs.Modules.KKFacilityType.GroundStation).First();
             string uuid = GetUUIDbyFacility(this).Where(s => KerbalKonstructs.API.GetModelTitel(s) == KerbalKonstructs.API.GetModelTitel(baseInstance.UUID)).First();
 
             KerbalKonstructs.Core.StaticInstance targetInstance = KerbalKonstructs.API.getStaticInstanceByUUID(uuid);
@@ -40,14 +53,25 @@ namespace KerbalColonies.colonyFacilities
             targetStation.TrackingShort = baseStation.TrackingShort;
         }
 
-        public override void Initialize()
+        public override string GetBaseGroupName(int level)
         {
-            base.Initialize();
-            this.baseGroupName = "KC_CommNet";
+            return "KC_CommNet";
         }
 
+        public override ConfigNode getConfigNode()
+        {
+            ConfigNode baseNode = base.getConfigNode();
+            baseNode.AddValue("groundstationUUID", groundstationUUID);
 
-        public KCCommNetFacility(bool enabled) : base("KCCommNetFacility", enabled, 4, 0, 0)
+            return baseNode;
+        }
+
+        public KCCommNetFacility(colonyClass colony, ConfigNode node) : base(colony, node)
+        {
+            groundstationUUID = node.GetValue("groundstationUUID");
+        }
+
+        public KCCommNetFacility(colonyClass colony, bool enabled) : base(colony, "KCCommNetFacility", enabled, 4, 0, 0)
         {
 
         }

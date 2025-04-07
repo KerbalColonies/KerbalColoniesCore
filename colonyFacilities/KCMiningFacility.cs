@@ -30,7 +30,7 @@ namespace KerbalColonies.colonyFacilities
 
             if (kerbalGUI == null)
             {
-                kerbalGUI = new KerbalGUI(miningFacility, miningFacility.Colony);
+                kerbalGUI = new KerbalGUI(miningFacility, true);
             }
 
             GUILayout.BeginHorizontal();
@@ -72,7 +72,6 @@ namespace KerbalColonies.colonyFacilities
         }
     }
 
-    [System.Serializable]
     internal class KCMiningFacility : KCKerbalFacilityBase
     {
         private KCMiningFacilityWindow miningFacilityWindow;

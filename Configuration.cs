@@ -35,12 +35,16 @@ namespace KerbalColonies
     {
         public override void OnLoad(ConfigNode node)
         {
+            KCgroups.Clear();
+            colonyDictionary.Clear();
+            GroupFacilities.Clear();
             LoadColoniesV3(node);
+            writeDebug(node.ToString());
         }
         public override void OnSave(ConfigNode node)
         {
             SaveColoniesV3(node);
-            Debug.Log(node.ToString());
+            writeDebug(node.ToString());
         }
 
 

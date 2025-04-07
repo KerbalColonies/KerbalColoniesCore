@@ -169,7 +169,6 @@ namespace KerbalColonies.colonyFacilities
         }
     }
 
-    [System.Serializable]
     public class KC_CAB_Facility : KCFacilityBase
     {
         /// <summary>
@@ -463,14 +462,18 @@ namespace KerbalColonies.colonyFacilities
             {
                 upgradedFacilities.Add(KCFacilityBase.GetFacilityByID(int.Parse(facilityNode.GetValue("facilityID"))));
             }
+
+            window = new KC_CAB_Window(this);
         }
 
-        public KC_CAB_Facility(colonyClass colony) : base(colony, "KCCABFacility", true)
+        public KC_CAB_Facility(colonyClass colony) : base(colony, "KCCABFacility")
         {
             constructingFacilities = new Dictionary<KCFacilityBase, double>();
             constructedFacilities = new List<KCFacilityBase>();
             upgradingFacilities = new Dictionary<KCFacilityBase, double>();
             upgradedFacilities = new List<KCFacilityBase>();
+
+            window = new KC_CAB_Window(this);
         }
     }
 }

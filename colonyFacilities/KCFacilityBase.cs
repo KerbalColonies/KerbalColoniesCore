@@ -239,6 +239,33 @@ namespace KerbalColonies.colonyFacilities
         }
 
         /// <summary>
+        /// This constructor is ONLY meant to be used for the CAB facility
+        /// <para>DON'T USE IT</para>
+        /// <para>It doesn't add the facility to the facility list of the colony which means it won't get saved.</para>
+        /// </summary>
+        protected KCFacilityBase(colonyClass colony, string name)
+        {
+            this.Colony = colony;
+
+            this.name = name;
+            this.enabled = true;
+            this.id = createID();
+            this.level = 0;
+            this.maxLevel = 0;
+            creationTime = Planetarium.GetUniversalTime();
+            lastUpdateTime = Planetarium.GetUniversalTime();
+
+            if (this.level < this.maxLevel)
+            {
+                this.upgradeable = true;
+            }
+            else
+            {
+                this.upgradeable = false;
+            }
+        }
+
+        /// <summary>
         /// The base constructor of the kc facilities. It only calls the initialize function.
         /// You can use a custom constructor but it should only call an overriden initialize function and not the base constructor
         /// This is necessary because of the serialization.
@@ -263,6 +290,8 @@ namespace KerbalColonies.colonyFacilities
             {
                 this.upgradeable = false;
             }
+
+            colony.Facilities.Add(this);
         }
     }
 }

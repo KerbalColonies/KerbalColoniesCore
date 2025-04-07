@@ -80,20 +80,25 @@ namespace KerbalColonies
         {
             QueueInformation buildObj = new QueueInformation(facility, newGroupName, facility.GetBaseGroupName(facility.level));
 
-            if (buildQueue.Count() == 0)
-            {
-                KerbalKonstructs.API.CreateGroup(newGroupName);
-                KerbalKonstructs.API.CopyGroup(newGroupName, buildObj.fromGroupName, fromBodyName: "Kerbin");
-                KerbalKonstructs.API.GetGroupStatics(newGroupName).ForEach(instance => instance.ToggleAllColliders(false));
-                KerbalKonstructs.API.OpenGroupEditor(newGroupName);
-                KerbalKonstructs.API.RegisterOnGroupSaved(PlaceNewGroupSave);
-                facility.KKgroups.Add(newGroupName); // add the group to the facility groups
-                Configuration.AddGroup(FlightGlobals.GetBodyIndex(FlightGlobals.currentMainBody), newGroupName, facility);
-            }
-
             buildQueue.Enqueue(buildObj);
-            placedGroup = false;
+            placedGroup = true;
+            nextFrame = false;
             return true;
+        }
+
+        internal static void QueuePlacer()
+        {
+            if (buildQueue.Count() > 0)
+            {
+                KerbalKonstructs.API.CreateGroup(ColonyBuilding.buildQueue.Peek().groupName);
+                KerbalKonstructs.API.CopyGroup(ColonyBuilding.buildQueue.Peek().groupName, ColonyBuilding.buildQueue.Peek().fromGroupName, fromBodyName: "Kerbin");
+                KerbalKonstructs.API.GetGroupStatics(ColonyBuilding.buildQueue.Peek().groupName).ForEach(instance => instance.ToggleAllColliders(false));
+                KerbalKonstructs.API.OpenGroupEditor(ColonyBuilding.buildQueue.Peek().groupName);
+                KerbalKonstructs.API.RegisterOnGroupSaved(ColonyBuilding.PlaceNewGroupSave);
+                ColonyBuilding.buildQueue.Peek().Facility.KKgroups.Add(ColonyBuilding.buildQueue.Peek().groupName); // add the group to the facility groups
+                Configuration.AddGroup(FlightGlobals.GetBodyIndex(FlightGlobals.currentMainBody), ColonyBuilding.buildQueue.Peek().groupName, ColonyBuilding.buildQueue.Peek().Facility);
+            }
+            ColonyBuilding.placedGroup = false;
         }
 
         /// <summary>

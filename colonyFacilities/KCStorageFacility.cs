@@ -235,7 +235,6 @@ namespace KerbalColonies.colonyFacilities
         }
     }
 
-    [System.Serializable]
     internal class KCStorageFacility : KCFacilityBase
     {
         // TODO: add shared colony storage
@@ -400,7 +399,6 @@ namespace KerbalColonies.colonyFacilities
 
         public override void OnBuildingClicked()
         {
-            KSPLog.print("KCStorageWindow: " + StorageWindow.ToString());
             StorageWindow.Toggle();
         }
 
@@ -421,8 +419,8 @@ namespace KerbalColonies.colonyFacilities
         public KCStorageFacility(colonyClass colony, ConfigNode node) : base(colony, node)
         {
             maxVolume = double.Parse(node.GetValue("maxVolume"));
-
             resources = new Dictionary<PartResourceDefinition, double>();
+            StorageWindow = new KCStorageFacilityWindow(this);
 
             foreach (ConfigNode.Value value in node.values)
             {
@@ -437,6 +435,7 @@ namespace KerbalColonies.colonyFacilities
             this.upgradeType = UpgradeType.withAdditionalGroup;
             maxVolume = 80000f;
             resources = new Dictionary<PartResourceDefinition, double>();
+            StorageWindow = new KCStorageFacilityWindow(this);
         }
     }
 }

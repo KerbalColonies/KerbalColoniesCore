@@ -43,7 +43,7 @@ namespace KerbalColonies.colonyFacilities
         public KCCrewQuartersWindow(KCCrewQuarters CrewQuarterFacility) : base(Configuration.createWindowID(CrewQuarterFacility), "Crewquarters")
         {
             this.CrewQuarterFacility = CrewQuarterFacility;
-            this.kerbalGUI = new KerbalGUI(CrewQuarterFacility);
+            this.kerbalGUI = new KerbalGUI(CrewQuarterFacility, false);
             toolRect = new Rect(100, 100, 800, 1200);
         }
     }

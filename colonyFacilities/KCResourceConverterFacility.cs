@@ -99,8 +99,7 @@ namespace KerbalColonies.colonyFacilities
 
             if (kerbalGUI == null)
             {
-                KCFacilityBase.GetInformationByFacilty(resourceConverter, out string saveGame, out int bodyIndex, out string colonyName, out List<GroupPlaceHolder> gph, out List<string> UUIDs);
-                kerbalGUI = new KerbalGUI(resourceConverter, saveGame, bodyIndex, colonyName);
+                kerbalGUI = new KerbalGUI(resourceConverter, true);
             }
 
             ResourceConversionRate recipe = resourceConverter.activeRecipe;
@@ -308,13 +307,11 @@ namespace KerbalColonies.colonyFacilities
 
         private void executeRecipt(ResourceConversionRate recipt, double dTime)
         {
-            KCFacilityBase.GetInformationByFacilty(this, out string saveGame, out int bodyIndex, out string colonyName, out List<GroupPlaceHolder> gphs, out List<string> UUIDs);
-
             foreach (KeyValuePair<PartResourceDefinition, double> kvp in activeRecipe.InputResources)
             {
                 double remainingResource = kvp.Value * dTime * ISRUcount;
 
-                List<KCStorageFacility> facilitiesWithResource = KCStorageFacility.findFacilityWithResourceType(kvp.Key, saveGame, bodyIndex, colonyName);
+                List<KCStorageFacility> facilitiesWithResource = KCStorageFacility.findFacilityWithResourceType(kvp.Key, Colony);
 
                 foreach (KCStorageFacility facility in facilitiesWithResource)
                 {
@@ -337,7 +334,7 @@ namespace KerbalColonies.colonyFacilities
             {
                 double remainingResource = kvp.Value * dTime * ISRUcount;
 
-                List<KCStorageFacility> facilitiesWithResource = KCStorageFacility.findFacilityWithResourceType(kvp.Key, saveGame, bodyIndex, colonyName);
+                List<KCStorageFacility> facilitiesWithResource = KCStorageFacility.findFacilityWithResourceType(kvp.Key, Colony);
 
                 foreach (KCStorageFacility facility in facilitiesWithResource)
                 {
@@ -359,13 +356,11 @@ namespace KerbalColonies.colonyFacilities
         {
             bool canExecute = true;
 
-            KCFacilityBase.GetInformationByFacilty(this, out string saveGame, out int bodyIndex, out string colonyName, out List<GroupPlaceHolder> gphs, out List<string> UUIDs);
-
             foreach (KeyValuePair<PartResourceDefinition, double> kvp in activeRecipe.InputResources)
             {
                 double remainingResource = kvp.Value * dTime * ISRUcount;
 
-                List<KCStorageFacility> facilitiesWithResource = KCStorageFacility.findFacilityWithResourceType(kvp.Key, saveGame, bodyIndex, colonyName);
+                List<KCStorageFacility> facilitiesWithResource = KCStorageFacility.findFacilityWithResourceType(kvp.Key, Colony);
 
                 if (facilitiesWithResource.Count == 0)
                 {
@@ -389,12 +384,12 @@ namespace KerbalColonies.colonyFacilities
             {
                 double remainingResource = kvp.Value * dTime * ISRUcount;
 
-                List<KCStorageFacility> facilitiesWithResource = KCStorageFacility.findFacilityWithResourceType(kvp.Key, saveGame, bodyIndex, colonyName);
+                List<KCStorageFacility> facilitiesWithResource = KCStorageFacility.findFacilityWithResourceType(kvp.Key, Colony);
                 bool addResource = false;
 
                 if (facilitiesWithResource.Count == 0)
                 {
-                    facilitiesWithResource = KCStorageFacility.findEmptyStorageFacilities(saveGame, bodyIndex, colonyName);
+                    facilitiesWithResource = KCStorageFacility.findEmptyStorageFacilities(Colony);
                     addResource = true;
                 }
 
@@ -463,34 +458,32 @@ namespace KerbalColonies.colonyFacilities
 
         public override ConfigNode getConfigNode()
         {
-            ConfigNode node = new ConfigNode();
+            ConfigNode node = base.getConfigNode();
             node.AddValue("recipt", activeRecipe.ReciptName);
-
-            ConfigNode wrapperNode = new ConfigNode("wrapper");
-            wrapperNode.AddNode(base.getConfigNode());
-            node.AddNode(wrapperNode);
 
             return node;
         }
 
-        public override void loadCustomNode(ConfigNode customNode)
+        public override string GetBaseGroupName(int level)
         {
-            activeRecipe = conversionRates.Where(recipt => { return recipt.Key.ReciptName == customNode.GetValue("recipt"); }).First().Key;
-
-            base.loadCustomNode(customNode.GetNode("wrapper").GetNodes()[0]);
+            return "KC_CAB";
         }
 
-        public override void Initialize()
+        public KCResourceConverterFacility(colonyClass colony, ConfigNode node) : base(colony, node)
         {
-            base.Initialize();
-            this.baseGroupName = "KC_CAB";
-            ISRUcount = new int[2] { 2, 4 }[level];
             kCResourceConverterWindow = new KCResourceConverterWindow(this);
+
+            activeRecipe = conversionRates.First(recipt => recipt.Key.ReciptName == node.GetValue("recipt")).Key;
+            ISRUcount = new int[2] { 2, 4 }[level];
+
         }
 
-        public KCResourceConverterFacility(bool enabled) : base("KCResourceConverterFacility", enabled, 4, 0, 1)
+        public KCResourceConverterFacility(colonyClass colony, bool enabled) : base(colony, "KCResourceConverterFacility", enabled, 4, 0, 1)
         {
+            kCResourceConverterWindow = new KCResourceConverterWindow(this);
+
             this.activeRecipe = conversionRates.ElementAt(0).Key;
+            ISRUcount = new int[2] { 2, 4 }[level];
         }
     }
 }

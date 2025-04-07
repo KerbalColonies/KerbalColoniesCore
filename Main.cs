@@ -85,16 +85,7 @@ namespace KerbalColonies
                 }
                 else
                 {
-                    if (ColonyBuilding.buildQueue.Count() > 0)
-                    {
-                        KerbalKonstructs.API.CreateGroup(ColonyBuilding.buildQueue.Peek().groupName);
-                        KerbalKonstructs.API.CopyGroup(ColonyBuilding.buildQueue.Peek().groupName, ColonyBuilding.buildQueue.Peek().fromGroupName, fromBodyName: "Kerbin");
-                        KerbalKonstructs.API.GetGroupStatics(ColonyBuilding.buildQueue.Peek().groupName).ForEach(instance => instance.ToggleAllColliders(false));
-                        KerbalKonstructs.API.OpenGroupEditor(ColonyBuilding.buildQueue.Peek().groupName);
-                        KerbalKonstructs.API.RegisterOnGroupSaved(ColonyBuilding.PlaceNewGroupSave);
-                        ColonyBuilding.buildQueue.Peek().Facility.KKgroups.Add(ColonyBuilding.buildQueue.Peek().groupName); // add the group to the facility groups
-                    }
-                    ColonyBuilding.placedGroup = false;
+                    ColonyBuilding.QueuePlacer();
                 }
             }
 
@@ -108,14 +99,20 @@ namespace KerbalColonies
                 if (!despawned)
                 {
                     Configuration.KCgroups.Where(x => x.Key != HighLogic.CurrentGame.Seed.ToString())
-                        .ToDictionary(x => x.Key, x => x.Value)
-                        .SelectMany(x => x.Value.Values.SelectMany(y => y)).ToList()
-                        .ForEach(x => KerbalKonstructs.API.DeactivateStatic(x));
+                        .ToDictionary(x => x.Key, x => x.Value).ToList()
+                        .ForEach(kvp =>
+                        kvp.Value.ToList().ForEach(bodyKVP =>
+                        bodyKVP.Value.ForEach(KKgroup =>
+                        KerbalKonstructs.API.GetGroupStatics(KKgroup).ForEach(s =>
+                        KerbalKonstructs.API.DeactivateStatic(s.UUID)))));
 
                     Configuration.KCgroups.Where(x => x.Key == HighLogic.CurrentGame.Seed.ToString())
-                        .ToDictionary(x => x.Key, x => x.Value)
-                        .SelectMany(x => x.Value.Values.SelectMany(y => y)).ToList()
-                        .ForEach(x => KerbalKonstructs.API.ActivateStatic(x));
+                        .ToDictionary(x => x.Key, x => x.Value).ToList()
+                        .ForEach(kvp =>
+                        kvp.Value.ToList().ForEach(bodyKVP =>
+                        bodyKVP.Value.ForEach(KKgroup =>
+                        KerbalKonstructs.API.GetGroupStatics(KKgroup).ForEach(s =>
+                        KerbalKonstructs.API.ActivateStatic(s.UUID)))));
 
                     despawned = true;
                 }

@@ -243,8 +243,6 @@ namespace KerbalColonies
 
         public void StaffingInterface()
         {
-            KSPLog.print("StaffingInterface: " + this.ToString());
-
             int kerbalCount = fac.getKerbals().Count;
             LabelInfo = new GUIStyle(GUI.skin.label);
             LabelInfo.normal.background = null;
@@ -340,27 +338,26 @@ namespace KerbalColonies
             GUILayout.Space(5);
         }
 
-        public KerbalGUI(KCKerbalFacilityBase fac)
+        public KerbalGUI(KCKerbalFacilityBase fac, bool fromColony)
         {
             transferWindow = false;
             this.fac = fac;
 
-            if (FlightGlobals.ActiveVessel != null)
+            if (fromColony)
             {
-                this.ksg = new KerbalSelectorGUI(fac, this, "current ship", fac.name, FlightGlobals.ActiveVessel);
+                this.ksg = new KerbalSelectorGUI(fac, this, fac.Colony, fac.name);
             }
             else
             {
-                ksg = null;
+                if (FlightGlobals.ActiveVessel != null)
+                {
+                    this.ksg = new KerbalSelectorGUI(fac, this, "current ship", fac.name, FlightGlobals.ActiveVessel);
+                }
+                else
+                {
+                    ksg = null;
+                }
             }
-        }
-
-        public KerbalGUI(KCKerbalFacilityBase fac, colonyClass colony)
-        {
-            transferWindow = false;
-            this.fac = fac;
-
-            this.ksg = new KerbalSelectorGUI(fac, this, colony, fac.name);
         }
     }
 }

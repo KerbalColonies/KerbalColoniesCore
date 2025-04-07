@@ -4,7 +4,6 @@ using System.Linq;
 
 namespace KerbalColonies.colonyFacilities
 {
-    [System.Serializable]
     public abstract class KCKerbalFacilityBase : KCFacilityBase
     {
 
@@ -111,12 +110,14 @@ namespace KerbalColonies.colonyFacilities
 
         public override ConfigNode getConfigNode()
         {
-            return createKerbalNode();
+            ConfigNode node = base.getConfigNode();
+            node.AddNode(createKerbalNode());
+            return node;
         }
 
         public KCKerbalFacilityBase(colonyClass colony, ConfigNode node) : base(colony, node)
         {
-            loadKerbalNode(node);
+            loadKerbalNode(node.GetNode("KerbalNode"));
         }
 
         public KCKerbalFacilityBase(colonyClass colony, string facilityName, bool enabled, int maxKerbals = 8, int level = 0, int maxLevel = 0) : base(colony, facilityName, enabled, level, maxLevel)

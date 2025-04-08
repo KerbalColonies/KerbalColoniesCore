@@ -354,10 +354,12 @@ namespace KerbalColonies.colonyFacilities
 
             node.AddValue("maxVolume", maxVolume);
 
+            ConfigNode resourceNode = new ConfigNode("resources");
             foreach (KeyValuePair<PartResourceDefinition, double> entry in resources)
             {
-                node.AddValue(entry.Key.name, entry.Value);
+                resourceNode.AddValue(entry.Key.name, entry.Value);
             }
+            node.AddNode(resourceNode);
 
             return node;
         }
@@ -422,11 +424,12 @@ namespace KerbalColonies.colonyFacilities
             resources = new Dictionary<PartResourceDefinition, double>();
             StorageWindow = new KCStorageFacilityWindow(this);
 
-            foreach (ConfigNode.Value value in node.values)
+            foreach (ConfigNode.Value value in node.GetNode("resources").values)
             {
                 PartResourceDefinition prd = PartResourceLibrary.Instance.GetDefinition(value.name);
 
-                resources.Add(prd, double.Parse(value.value));
+                if (resources.ContainsKey(prd)) resources[prd] = double.Parse(value.value);
+                else resources.Add(prd, double.Parse(value.value));
             }
         }
 

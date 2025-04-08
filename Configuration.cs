@@ -40,11 +40,13 @@ namespace KerbalColonies
             GroupFacilities.Clear();
             LoadColoniesV3(node);
             writeDebug(node.ToString());
+            writeDebug("scenariomodule load");
         }
         public override void OnSave(ConfigNode node)
         {
             SaveColoniesV3(node);
             writeDebug(node.ToString());
+            writeDebug("scenariomodule save");
         }
 
 
@@ -161,34 +163,36 @@ namespace KerbalColonies
 
         public static void LoadColoniesV3(ConfigNode persistentNode)
         {
-            string path = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + "/ColonyDataV3.cfg";
+            string path = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + "\\ColonyDataV3.cfg";
 
             ConfigNode node = ConfigNode.Load(path);
 
-            if ((node == null) || (node.GetNodes().Length == 0))
+            if (node != null)
             {
-                return;
-            }
-            ConfigNode[] nodes = node.GetNodes();
-
-            foreach (ConfigNode saveGame in nodes[0].GetNodes())
-            {
-                if (!KCgroups.ContainsKey(saveGame.name))
+                if (node.GetNodes().Length >= 0)
                 {
-                    KCgroups.Add(saveGame.name, new Dictionary<int, List<string>> { });
+                    ConfigNode[] nodes = node.GetNodes();
 
-                    foreach (ConfigNode bodyId in nodes[0].GetNode(saveGame.name).GetNodes())
+                    foreach (ConfigNode saveGame in nodes[0].GetNodes())
                     {
-                        if (!KCgroups[saveGame.name].ContainsKey(int.Parse(bodyId.name)))
+                        if (!KCgroups.ContainsKey(saveGame.name))
                         {
-                            KCgroups[saveGame.name].Add(int.Parse(bodyId.name), new List<string> { });
-                        }
+                            KCgroups.Add(saveGame.name, new Dictionary<int, List<string>> { });
 
-                        foreach (ConfigNode group in nodes[0].GetNode(saveGame.name).GetNode(bodyId.name).GetNodes())
-                        {
-                            if (!KCgroups[saveGame.name][int.Parse(bodyId.name)].Contains(group.name))
+                            foreach (ConfigNode bodyId in nodes[0].GetNode(saveGame.name).GetNodes())
                             {
-                                KCgroups[saveGame.name][int.Parse(bodyId.name)].Add(group.name);
+                                if (!KCgroups[saveGame.name].ContainsKey(int.Parse(bodyId.name)))
+                                {
+                                    KCgroups[saveGame.name].Add(int.Parse(bodyId.name), new List<string> { });
+                                }
+
+                                foreach (ConfigNode group in nodes[0].GetNode(saveGame.name).GetNode(bodyId.name).GetNodes())
+                                {
+                                    if (!KCgroups[saveGame.name][int.Parse(bodyId.name)].Contains(group.name))
+                                    {
+                                        KCgroups[saveGame.name][int.Parse(bodyId.name)].Add(group.name);
+                                    }
+                                }
                             }
                         }
                     }
@@ -239,7 +243,7 @@ namespace KerbalColonies
                 nodes[0].AddNode(saveGameNode);
             }
 
-            string path = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + "/ColonyData.cfg";
+            string path = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + "/ColonyDataV3.cfg";
 
             ConfigNode node = new ConfigNode();
             nodes[0].name = root;
@@ -261,7 +265,7 @@ namespace KerbalColonies
             // potentially usefull in the future if any changes to the saving are necessary
             persistentNode.AddValue("majorVersion", 3);
             persistentNode.AddValue("minorVersion", 0);
-            persistentNode.AddValue("fixVersion", 0);
+            persistentNode.AddValue("fixVersion", 4);
 
             persistentNode.AddNode(ColonyDictionaryNode);
         }

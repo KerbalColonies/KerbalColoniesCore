@@ -128,11 +128,16 @@ namespace KerbalColonies.colonyFacilities
 
         public override void OnBuildingClicked()
         {
+            if (crewQuartersWindow == null) crewQuartersWindow = new KCCrewQuartersWindow(this);
+
             if (crewQuartersWindow.IsOpen())
             {
                 crewQuartersWindow.Close();
-                crewQuartersWindow.kerbalGUI.ksg.Close();
-                crewQuartersWindow.kerbalGUI.transferWindow = false;
+                if (FlightGlobals.ActiveVessel != null)
+                {
+                    crewQuartersWindow.kerbalGUI.ksg.Close();
+                    crewQuartersWindow.kerbalGUI.transferWindow = false;
+                }
             }
             else
             {
@@ -147,12 +152,12 @@ namespace KerbalColonies.colonyFacilities
 
         public KCCrewQuarters(colonyClass colony, ConfigNode node) : base(colony, node)
         {
-            this.crewQuartersWindow = new KCCrewQuartersWindow(this);
+            this.crewQuartersWindow = null;
         }
 
         public KCCrewQuarters(colonyClass colony, bool enabled) : base(colony, "KCCrewQuarters", true, 16)
         {
-            this.crewQuartersWindow = new KCCrewQuartersWindow(this);
+            this.crewQuartersWindow = null;
         }
     }
 }

@@ -378,7 +378,7 @@ namespace KerbalColonies.colonyFacilities
 
         public override ConfigNode getConfigNode()
         {
-            ConfigNode node = new ConfigNode("cabNode");
+            ConfigNode node = base.getConfigNode();
 
             ConfigNode constructing = new ConfigNode("constructingFacilities");
 

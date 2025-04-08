@@ -1,11 +1,13 @@
 ﻿using KerbalColonies.colonyFacilities;
-using KerbalColonies.Serialization;
+using KerbalColonies;
 using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
+using CommNet.Network;
+using KerbalKonstructs.Modules;
 
 // KC: Kerbal Colonies
-// This mod aimes to create a colony system with Kerbal Konstructs statics
+// This mod aimes to create a Colony system with Kerbal Konstructs statics
 // Copyright (C) 2024 AMPW, Halengar
 
 // This program is free software: you can redistribute it and/or modify
@@ -59,69 +61,31 @@ namespace KerbalColonies
             KC_CAB_Facility.addDefaultFacility(typeof(KCCrewQuarters), 1);
             KC_CAB_Facility.addDefaultFacility(typeof(KCProductionFacility), 1);
 
-            KerbalKonstructs.API.RegisterOnBuildingClicked(KCFacilityBase.OnBuildingClickedHandler);
+            KerbalKonstructs.API.RegisterOnStaticClicked(KCFacilityBase.OnBuildingClickedHandler);
         }
 
         protected void Start()
         {
-            GameEvents.onGamePause.Add(onPause);
-
             KSPLog.print("KC start");
-            Configuration.coloniesPerBody.Clear();
-            Configuration.LoadColonies("KCCD");
         }
 
         public void FixedUpdate()
         {
-            if (lastTime - Planetarium.GetUniversalTime() >= 10)
+            if (Planetarium.GetUniversalTime() - lastTime >= 10)
             {
                 lastTime = Planetarium.GetUniversalTime();
-                string saveGame = HighLogic.CurrentGame.Seed.ToString();
-                if (Configuration.coloniesPerBody.ContainsKey(saveGame))
-                {
-                    foreach (int bodyIndex in Configuration.coloniesPerBody[saveGame].Keys)
-                    {
-                        foreach (string colonyName in Configuration.coloniesPerBody[saveGame][bodyIndex].Keys)
-                        {
-                            List<KCFacilityBase> colonyFacilities = KCFacilityBase.GetFacilitiesInColony(saveGame, bodyIndex, colonyName);
-                            colonyFacilities.ForEach(facility => facility.Update());
-                        }
-                    }
-                }
-            }
-            else
-            {
-                lastTime += Planetarium.GetUniversalTime();
+                Configuration.colonyDictionary.Values.SelectMany(x => x).ToList().ForEach(x => x.UpdateColony());
             }
 
-            if (Colonies.placedGroup)
+            if (ColonyBuilding.placedGroup)
             {
-                if (!Colonies.nextFrame)
+                if (!ColonyBuilding.nextFrame)
                 {
-                    Colonies.nextFrame = true;
+                    ColonyBuilding.nextFrame = true;
                 }
                 else
                 {
-                    if (Colonies.buildQueue.Count() > 0)
-                    {
-                        if (Colonies.buildQueue.Peek().GroupUpdate)
-                        {
-                            KerbalKonstructs.API.CreateGroup(Colonies.buildQueue.Peek().groupName);
-                            KerbalKonstructs.API.CopyGroup(Colonies.buildQueue.Peek().groupName, Colonies.buildQueue.Peek().fromGroupName, fromBodyName: "Kerbin");
-                            KerbalKonstructs.API.GetGroupStatics(Colonies.buildQueue.Peek().groupName).ForEach(instance => instance.ToggleAllColliders(false));
-                            KerbalKonstructs.API.OpenGroupEditor(Colonies.buildQueue.Peek().groupName);
-                            KerbalKonstructs.API.RegisterOnGroupSaved(Colonies.AddGroupUpdateSave);
-                        }
-                        else
-                        {
-                            KerbalKonstructs.API.CreateGroup(Colonies.buildQueue.Peek().groupName);
-                            KerbalKonstructs.API.CopyGroup(Colonies.buildQueue.Peek().groupName, Colonies.buildQueue.Peek().fromGroupName, fromBodyName: "Kerbin");
-                            KerbalKonstructs.API.GetGroupStatics(Colonies.buildQueue.Peek().groupName).ForEach(instance => instance.ToggleAllColliders(false));
-                            KerbalKonstructs.API.OpenGroupEditor(Colonies.buildQueue.Peek().groupName);
-                            KerbalKonstructs.API.RegisterOnGroupSaved(Colonies.PlaceNewGroupSave);
-                        }
-                    }
-                    Colonies.placedGroup = false;
+                    ColonyBuilding.QueuePlacer();
                 }
             }
 
@@ -134,44 +98,22 @@ namespace KerbalColonies
             {
                 if (!despawned)
                 {
-                    foreach (string saveGame in Configuration.coloniesPerBody.Keys)
-                    {
-                        if (saveGame == HighLogic.CurrentGame.Seed.ToString()) { continue; }
+                    Configuration.KCgroups.Where(x => x.Key != HighLogic.CurrentGame.Seed.ToString())
+                        .ToDictionary(x => x.Key, x => x.Value).ToList()
+                        .ForEach(kvp =>
+                        kvp.Value.ToList().ForEach(bodyKVP =>
+                        bodyKVP.Value.ForEach(KKgroup =>
+                        KerbalKonstructs.API.GetGroupStatics(KKgroup).ForEach(s =>
+                        KerbalKonstructs.API.DeactivateStatic(s.UUID)))));
 
-                        foreach (int bodyIndex in Configuration.coloniesPerBody[saveGame].Keys)
-                        {
-                            foreach (string colonyName in Configuration.coloniesPerBody[saveGame][bodyIndex].Keys)
-                            {
-                                foreach (GroupPlaceHolder gph in Configuration.coloniesPerBody[saveGame][bodyIndex][colonyName].Keys)
-                                {
-                                    foreach (string UUID in Configuration.coloniesPerBody[saveGame][bodyIndex][colonyName][gph].Keys)
-                                    {
-                                        KerbalKonstructs.API.DeactivateStatic(UUID);
-                                    }
-                                }
-                            }
-                        }
-                    }
+                    Configuration.KCgroups.Where(x => x.Key == HighLogic.CurrentGame.Seed.ToString())
+                        .ToDictionary(x => x.Key, x => x.Value).ToList()
+                        .ForEach(kvp =>
+                        kvp.Value.ToList().ForEach(bodyKVP =>
+                        bodyKVP.Value.ForEach(KKgroup =>
+                        KerbalKonstructs.API.GetGroupStatics(KKgroup).ForEach(s =>
+                        KerbalKonstructs.API.ActivateStatic(s.UUID)))));
 
-                    foreach (string saveGame in Configuration.coloniesPerBody.Keys)
-                    {
-                        if (saveGame != HighLogic.CurrentGame.Seed.ToString()) { continue; }
-
-                        foreach (int bodyIndex in Configuration.coloniesPerBody[saveGame].Keys)
-                        {
-                            foreach (string colonyName in Configuration.coloniesPerBody[saveGame][bodyIndex].Keys)
-                            {
-                                foreach (GroupPlaceHolder gph in Configuration.coloniesPerBody[saveGame][bodyIndex][colonyName].Keys)
-                                {
-                                    //"4470f197-e8c2-407d-8544-49c647bb5996"
-                                    foreach (string UUID in Configuration.coloniesPerBody[saveGame][bodyIndex][colonyName][gph].Keys)
-                                    {
-                                        KerbalKonstructs.API.ActivateStatic(UUID);
-                                    }
-                                }
-                            }
-                        }
-                    }
                     despawned = true;
                 }
             }
@@ -180,21 +122,6 @@ namespace KerbalColonies
             {
                 KCResourceConverterFacility.resourceTypes.ToString();
             }
-            else if (Input.GetKeyDown(KeyCode.Z))
-            {
-                KerbalKonstructs.API.ActivateStatic("33846799-30d8-4309-9196-8a94f2927af2");
-                KerbalKonstructs.API.ActivateStatic("692b2f7a-ef4a-4070-a583-05fce1ebf80f");
-            }
-            else if (Input.GetKeyDown(KeyCode.H))
-            {
-                KerbalKonstructs.API.DeactivateStatic("33846799-30d8-4309-9196-8a94f2927af2");
-                KerbalKonstructs.API.DeactivateStatic("692b2f7a-ef4a-4070-a583-05fce1ebf80f");
-            }
-        }
-
-        void onPause()
-        {
-            Configuration.SaveColonies();
         }
 
         public void LateUpdate()
@@ -203,43 +130,10 @@ namespace KerbalColonies
 
         protected void OnDestroy()
         {
-            GameEvents.onGamePause.Remove(onPause);
+            Configuration.KCgroups.SelectMany(x => x.Value.Values.SelectMany(y => y)).ToList()
+                .ForEach(x => KerbalKonstructs.API.ActivateStatic(x));
 
-            foreach (string saveGame in Configuration.coloniesPerBody.Keys)
-            {
-                if (saveGame == HighLogic.CurrentGame.Seed.ToString()) { continue; }
-
-                foreach (int bodyIndex in Configuration.coloniesPerBody[saveGame].Keys)
-                {
-                    foreach (string colonyName in Configuration.coloniesPerBody[saveGame][bodyIndex].Keys)
-                    {
-                        foreach (GroupPlaceHolder gph in Configuration.coloniesPerBody[saveGame][bodyIndex][colonyName].Keys)
-                        {
-                            foreach (string UUID in Configuration.coloniesPerBody[saveGame][bodyIndex][colonyName][gph].Keys)
-                            {
-                                KerbalKonstructs.API.ActivateStatic(UUID);
-                            }
-                        }
-                    }
-                }
-            }
-
-            Configuration.SaveColonies();
-            KerbalKonstructs.API.UnRegisterOnBuildingClicked(KCFacilityBase.OnBuildingClickedHandler);
-            Configuration.coloniesPerBody.Clear();
-        }
-
-        internal void writeDebug(string text)
-        {
-            if (Configuration.enableLogging)
-            {
-                writeLog(text);
-            }
-        }
-
-        internal void writeLog(string text)
-        {
-            KSPLog.print(Configuration.APP_NAME + ": " + text);
+            KerbalKonstructs.API.UnRegisterOnStaticClicked(KCFacilityBase.OnBuildingClickedHandler);
         }
     }
 }

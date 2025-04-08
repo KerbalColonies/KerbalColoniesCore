@@ -16,15 +16,41 @@ namespace KerbalColonies.colonyFacilities
         }
     }
 
+    public class KCLaunchpadFacilityWindow : KCWindowBase
+    {
+        KCLaunchpadFacility launchpad;
+
+        protected override void CustomWindow()
+        {
+            if (FlightGlobals.ActiveVessel != null)
+            {
+                if (GUILayout.Button("Teleport to Launchpad"))
+                {
+                    KerbalKonstructs.Core.StaticInstance instance = KerbalKonstructs.API.getStaticInstanceByUUID(launchpad.launchSiteUUID);
+                    
+
+                    FlightGlobals.fetch.SetVesselPosition(FlightGlobals.GetBodyIndex(instance.launchSite.body), instance.launchSite.refLat, instance.launchSite.refLon, instance.launchSite.refAlt + 6, FlightGlobals.ActiveVessel.ReferenceTransform.eulerAngles, true, easeToSurface: true, 0.1);
+                    FloatingOrigin.ResetTerrainShaderOffset();
+                }
+            }
+        }
+
+        public KCLaunchpadFacilityWindow(KCLaunchpadFacility launchpad) : base(Configuration.createWindowID(launchpad), "Launchpad")
+        {
+            toolRect = new Rect(100, 100, 400, 200);
+            this.launchpad = launchpad;
+        }
+    }
+
     public class KCLaunchpadFacility : KCFacilityBase
     {
+        KCLaunchpadFacilityWindow launchpadWindow;
+
         public string launchSiteUUID;
 
         public override void OnGroupPlaced()
         {
-            KCFacilityBase.GetInformationByFacilty(this, out string saveGame, out int bodyIndex, out string colonyName, out List<GroupPlaceHolder> gph, out List<string> UUIDs);
-
-            KerbalKonstructs.Core.StaticInstance baseInstance = KerbalKonstructs.API.GetGroupStatics(baseGroupName, "Kerbin").Where(s => s.hasLauchSites).First();
+            KerbalKonstructs.Core.StaticInstance baseInstance = KerbalKonstructs.API.GetGroupStatics(GetBaseGroupName(level), "Kerbin").Where(s => s.hasLauchSites).First();
             string uuid = GetUUIDbyFacility(this).Where(s => KerbalKonstructs.API.GetModelTitel(s) == KerbalKonstructs.API.GetModelTitel(baseInstance.UUID)).First();
 
             KerbalKonstructs.Core.StaticInstance targetInstance = KerbalKonstructs.API.getStaticInstanceByUUID(uuid);
@@ -37,7 +63,7 @@ namespace KerbalColonies.colonyFacilities
             string oldName = name;
             bool oldState = baseInstance.launchSite.ILSIsActive;
 
-            targetInstance.launchSite.LaunchSiteName = gph[0].GroupName;
+            targetInstance.launchSite.LaunchSiteName = KKgroups[0];
             targetInstance.launchSite.LaunchSiteLength = baseInstance.launchSite.LaunchSiteLength;
             targetInstance.launchSite.LaunchSiteWidth = baseInstance.launchSite.LaunchSiteWidth;
             targetInstance.launchSite.LaunchSiteHeight = baseInstance.launchSite.LaunchSiteHeight;
@@ -126,38 +152,38 @@ namespace KerbalColonies.colonyFacilities
             InputLockManager.ClearControlLocks();
         }
 
-        public static List<KCLaunchpadFacility> getLaunchPadsInColony(string saveGame, int bodyIndex, string colonyName)
+        public static List<KCLaunchpadFacility> getLaunchPadsInColony(colonyClass colony)
         {
-            List<KCFacilityBase> facilities = GetFacilitiesInColony(saveGame, bodyIndex, colonyName);
-            List<KCLaunchpadFacility> launchPads = new List<KCLaunchpadFacility>();
-            facilities.ForEach(facility =>
-            {
-                if (typeof(KCLaunchpadFacility).IsAssignableFrom(facility.GetType()))
-                {
-                    launchPads.Add((KCLaunchpadFacility)facility);
-                }
-            });
-            return launchPads;
+            return colony.Facilities.Where(x => x is KCLaunchpadFacility).Select(x => (KCLaunchpadFacility)x).ToList();
         }
 
-        public override ConfigNode getCustomNode()
+        public override ConfigNode getConfigNode()
         {
-            ConfigNode node = new ConfigNode("LAUNCHSITE");
+            ConfigNode node = base.getConfigNode();
             node.AddValue("launchSiteUUID", launchSiteUUID);
             return node;
         }
 
-        public override void loadCustomNode(ConfigNode customNode)
+        public override void OnBuildingClicked()
         {
-            if (customNode != null)
-            {
-                launchSiteUUID = customNode.GetValue("launchSiteUUID");
-            }
+            launchpadWindow.Toggle();
         }
 
-        public KCLaunchpadFacility(bool enabled) : base("KCLaunchpadFacility", enabled, 0, 0)
+        public override string GetBaseGroupName(int level)
         {
-            baseGroupName = "KC_Launchpad_0";
+            return "KC_CAB";
+        }
+
+        public KCLaunchpadFacility(colonyClass colony, ConfigNode node) : base(colony, node)
+        {
+            launchSiteUUID = node.GetValue("launchSiteUUID");
+            launchpadWindow = new KCLaunchpadFacilityWindow(this);
+        }
+
+        public KCLaunchpadFacility(colonyClass colony, bool enabled) : base(colony, "KCLaunchpadFacility", enabled, 0, 0)
+        {
+            upgradeType = UpgradeType.withGroupChange;
+            launchpadWindow = new KCLaunchpadFacilityWindow(this);
         }
     }
 }

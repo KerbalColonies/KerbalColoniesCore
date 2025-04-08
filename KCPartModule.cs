@@ -8,7 +8,7 @@ using UniLinq;
 using static UnityEngine.GraphicsBuffer;
 
 // KC: Kerbal Colonies
-// This mod aimes to create a colony system with Kerbal Konstructs statics
+// This mod aimes to create a Colony system with Kerbal Konstructs statics
 // Copyright (C) 2024 AMPW, Halengar
 
 // This program is free software: you can redistribute it and/or modify
@@ -46,11 +46,11 @@ namespace KerbalColonies
             part.vessel.GetConnectedResourceTotals(oreResource.id, false, out double amount, out double maxAmount);
             if (amount >= Configuration.oreRequiredPerColony)
             {
-                if (Colonies.CreateColony())
+                if (ColonyBuilding.CreateColony())
                 {
                     part.RequestResource("Ore", (double)Configuration.oreRequiredPerColony);
-                    writeLog("Creating colony");
-                    ScreenMessages.PostScreenMessage($"Creating a colony on {part.vessel.mainBody.name}", 10f, ScreenMessageStyle.UPPER_RIGHT);
+                    writeLog("Creating Colony");
+                    ScreenMessages.PostScreenMessage($"Creating a Colony on {part.vessel.mainBody.name}", 10f, ScreenMessageStyle.UPPER_RIGHT);
                     //FlightGlobals.fetch.SetVesselPosition(FlightGlobals.GetBodyIndex(FlightGlobals.currentMainBody), FlightGlobals.ship_latitude, FlightGlobals.ship_longitude, FlightGlobals.ship_altitude + Configuration.spawnHeight, FlightGlobals.ActiveVessel.ReferenceTransform.eulerAngles, false, easeToSurface: true, 0.01);
                     //FloatingOrigin.ResetTerrainShaderOffset();
                 }
@@ -61,7 +61,7 @@ namespace KerbalColonies
             }
         }
 
-        [KSPAction("Toggle", KSPActionGroup.None, guiName = "Create colony")]
+        [KSPAction("Toggle", KSPActionGroup.None, guiName = "Create Colony")]
         public void ActionActivate(KSPActionParam param)
         {
             Activate();
@@ -69,7 +69,7 @@ namespace KerbalColonies
 
         public override string GetInfo()
         {
-            return "The core part of KC, with this part you can start a colony if you have the requiered ressources.";
+            return "The core part of KC, with this part you can start a Colony if you have the requiered ressources.";
         }
 
         public override void OnStart(StartState state)

@@ -3,6 +3,22 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
+// KC: Kerbal Colonies
+// This mod aimes to create a Colony system with Kerbal Konstructs statics
+// Copyright (C) 2024 AMPW, Halengar
+
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/
 
 namespace KerbalColonies.colonyFacilities
 {
@@ -42,8 +58,7 @@ namespace KerbalColonies.colonyFacilities
 
             if (kerbalGUI == null)
             {
-                KCFacilityBase.GetInformationByFacilty(researchFacility, out string saveGame, out int bodyIndex, out string colonyName, out List<GroupPlaceHolder> gph, out List<string> UUIDs);
-                kerbalGUI = new KerbalGUI(researchFacility, saveGame, bodyIndex, colonyName);
+                kerbalGUI = new KerbalGUI(researchFacility, true);
             }
 
             GUILayout.BeginHorizontal();
@@ -76,7 +91,6 @@ namespace KerbalColonies.colonyFacilities
     }
 
 
-    [System.Serializable]
     internal class KCResearchFacility : KCKerbalFacilityBase
     {
         private KCResearchFacilityWindow researchFacilityWindow;
@@ -101,7 +115,6 @@ namespace KerbalColonies.colonyFacilities
 
             lastUpdateTime = Planetarium.GetUniversalTime();
             sciencePoints = Math.Min(maxSciencePointList[level], sciencePoints + (float)((researchpointsPerDayperResearcher[level] / 24 / 60 / 60) * deltaTime) * kerbals.Count);
-            Configuration.saveColonies = true;
         }
 
         public override void OnBuildingClicked()
@@ -141,30 +154,23 @@ namespace KerbalColonies.colonyFacilities
             return true;
         }
 
-        public override ConfigNode getCustomNode()
+        public override ConfigNode getConfigNode()
         {
-            ConfigNode node = new ConfigNode();
+            ConfigNode node = base.getConfigNode();
             node.AddValue("sciencePoints", sciencePoints);
-
-            ConfigNode wrapperNode = new ConfigNode("wrapper");
-            wrapperNode.AddNode(base.getCustomNode());
-            node.AddNode(wrapperNode);
 
             return node;
         }
 
-        public override void loadCustomNode(ConfigNode customNode)
+        public override string GetBaseGroupName(int level)
         {
-            sciencePoints = float.Parse(customNode.GetValue("sciencePoints"));
-
-            base.loadCustomNode(customNode.GetNode("wrapper").GetNodes()[0]);
+            return "KC_CAB";
         }
 
-        public override void Initialize()
+        public KCResearchFacility(colonyClass colony, ConfigNode node) : base(colony, node)
         {
-            base.Initialize();
+            sciencePoints = float.Parse(node.GetValue("sciencePoints"));
             this.researchFacilityWindow = new KCResearchFacilityWindow(this);
-            this.baseGroupName = "KC_CAB";
 
             maxSciencePointList = new List<float> { 50, 100, 200, 400 };
             researchpointsPerDayperResearcher = new List<float> { 0.25f, 0.3f, 0.35f, 0.4f };
@@ -174,9 +180,18 @@ namespace KerbalColonies.colonyFacilities
             this.upgradeType = UpgradeType.withoutGroupChange;
         }
 
-        public KCResearchFacility(bool enabled) : base("KCResearchFacility", enabled, 8, 0, 3)
+        public KCResearchFacility(colonyClass colony, bool enabled) : base(colony, "KCResearchFacility", enabled, 8, 0, 3)
         {
             sciencePoints = 0;
+
+            this.researchFacilityWindow = new KCResearchFacilityWindow(this);
+
+            maxSciencePointList = new List<float> { 50, 100, 200, 400 };
+            researchpointsPerDayperResearcher = new List<float> { 0.25f, 0.3f, 0.35f, 0.4f };
+            maxKerbalsPerLevel = new List<int> { 4, 6, 8, 12 };
+
+            this.maxKerbals = maxKerbalsPerLevel[level];
+            this.upgradeType = UpgradeType.withoutGroupChange;
         }
     }
 }

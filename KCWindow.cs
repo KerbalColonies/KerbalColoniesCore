@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 // KC: Kerbal Colonies
-// This mod aimes to create a colony system with Kerbal Konstructs statics
+// This mod aimes to create a Colony system with Kerbal Konstructs statics
 // Copyright (C) 2024 AMPW, Halengar
 
 // This program is free software: you can redistribute it and/or modify

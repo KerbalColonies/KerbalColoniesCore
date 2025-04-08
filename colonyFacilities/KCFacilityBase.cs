@@ -1,4 +1,5 @@
-﻿using System;
+﻿using KerbalKonstructs.Modules;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -22,21 +23,26 @@ namespace KerbalColonies.colonyFacilities
     /// <para>I recommend using "|" as seperator and "&" instead of "="</para>
     /// <para>It's NOT checked if the datastring contains any of these symbols!</para>
     /// </summary>
-    [System.Serializable]
     public abstract class KCFacilityBase
     {
+        public colonyClass Colony { get; private set; }
+
         public string name;
         public int id;
         public bool enabled;
         public double lastUpdateTime;
         public double creationTime;
-        protected bool initialized = false;
-        internal bool Initialized { get { return initialized; } set { initialized = value; } }
-        public string baseGroupName; // The KC group name that will be copied when creating a new facility
         public int level = 0;
         public int maxLevel = 0;
         public bool upgradeable = false;
         public UpgradeType upgradeType = UpgradeType.withoutGroupChange;
+        public bool built = false;
+
+        /// <summary>
+        /// The KK group name and the body id
+        /// </summary>
+        public List<string> KKgroups = new List<string> { };
+
 
         /// <summary>
         /// This function gets automatically called when the building is clicked, it might get used for custom windows.
@@ -46,305 +52,78 @@ namespace KerbalColonies.colonyFacilities
 
         internal static void OnBuildingClickedHandler(KerbalKonstructs.Core.StaticInstance instance)
         {
-            if (GetInformationByUUID(instance.UUID, out string sg, out int bI, out string cN, out GroupPlaceHolder gph, out List<KCFacilityBase> facilities))
+            if (Configuration.GroupFacilities.ContainsKey(instance.Group))
             {
-                if (sg != HighLogic.CurrentGame.Seed.ToString() || bI != FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody)) { return; }
-
-                foreach (KCFacilityBase kcFacility in facilities)
-                {
-                    KSPLog.print(Configuration.APP_NAME + ": " + instance.ToString());
-                    kcFacility.Update();
-                    kcFacility.OnBuildingClicked();
-                }
+                Configuration.GroupFacilities[instance.Group].Update();
+                Configuration.GroupFacilities[instance.Group].OnBuildingClicked();
             }
         }
 
-        internal static bool UpgradeFacilityWithGroupChange(KCFacilityBase facility)
+        public static bool UpgradeFacilityWithGroupChange(KCFacilityBase facility)
         {
             if (facility.upgradeType != UpgradeType.withGroupChange || !facility.upgradeable) { return false; }
 
-            if (GetInformationByFacilty(facility, out string saveGame, out int bodyIndex, out string colonyName, out List<GroupPlaceHolder> gphs, out List<string> UUIDs))
-            {
-                foreach (GroupPlaceHolder gph in gphs)
-                {
-                    facility.UpgradeFacility(facility.level + 1);
+            facility.UpgradeFacility(facility.level + 1);
+            KerbalKonstructs.API.GetGroupStatics(facility.KKgroups.First()).ToList().ForEach(x => KerbalKonstructs.API.RemoveStatic(x.UUID));
+            KerbalKonstructs.API.CopyGroup(facility.KKgroups.First(), facility.GetBaseGroupName(facility.level), fromBodyName: "Kerbin");
 
-                    Configuration.coloniesPerBody[saveGame][bodyIndex][colonyName][gph] = new Dictionary<string, List<KCFacilityBase>>();
-                    KerbalKonstructs.API.GetGroupStatics(gph.GroupName).ToList().ForEach(x => KerbalKonstructs.API.RemoveStatic(x.UUID));
-
-                    KerbalKonstructs.API.CopyGroup(gph.GroupName, facility.baseGroupName, fromBodyName: "Kerbin");
-
-                    foreach (KerbalKonstructs.Core.StaticInstance staticInstance in KerbalKonstructs.API.GetGroupStatics(gph.GroupName))
-                    {
-                        Configuration.coloniesPerBody[saveGame][bodyIndex][colonyName][gph].Add(staticInstance.UUID, new List<KCFacilityBase> { facility });
-                    }
-                }
-
-                Configuration.saveColonies = true;
-                return true;
-            }
-            return false;
-        }
-
-        internal static bool UpgradeFacilityWithoutGroupChange(KCFacilityBase facility)
-        {
-            if (facility.upgradeType != UpgradeType.withoutGroupChange || !facility.upgradeable || facility.level >= facility.maxLevel) { return false; }
-
-            if (GetInformationByFacilty(facility, out string saveGames, out int bodyIndexes, out string colonyNames, out List<GroupPlaceHolder> gphs, out List<string> UUIDs))
-            {
-                facility.UpgradeFacility(facility.level + 1);
-                Configuration.saveColonies = true;
-                return true;
-            }
-            return false;
-        }
-
-        internal static bool UpgradeFacilityWithAdditionalGroup(KCFacilityBase facility)
-        {
-            if (facility.upgradeType != UpgradeType.withAdditionalGroup || !facility.upgradeable || facility.level >= facility.maxLevel) { return false; }
-
-            if (GetInformationByFacilty(facility, out string saveGame, out int bodyIndex, out string colonyName, out List<GroupPlaceHolder> gphs, out List<string> UUIDs))
-            {
-                facility.UpgradeFacility(facility.level + 1);
-
-                KCFacilityBase.CountFacilityType(facility.GetType(), saveGame, bodyIndex, colonyName, out int count);
-                Colonies.AddGroupUpdate(facility, $"{colonyName}_{facility.GetType().Name}_{facility.level}_{count}", colonyName);
-                Configuration.saveColonies = true;
-                return true;
-            }
-            return false;
-        }
-
-        internal static bool CountFacilityType(Type faciltyType, string saveGame, int bodyIndex, string colonyName, out int count)
-        {
-            count = -1;
-            if (!typeof(KCFacilityBase).IsAssignableFrom(faciltyType))
-            {
-                return false;
-            }
-            if (!Configuration.coloniesPerBody.ContainsKey(saveGame))
-            {
-                return false;
-            }
-            else if (!Configuration.coloniesPerBody[saveGame].ContainsKey(bodyIndex))
-            {
-                return false;
-            }
-            else if (!Configuration.coloniesPerBody[saveGame][bodyIndex].ContainsKey(colonyName))
-            {
-                return false;
-            }
-
-            List<KCFacilityBase> facList = new List<KCFacilityBase>();
-            foreach (GroupPlaceHolder gph in Configuration.coloniesPerBody[saveGame][bodyIndex][colonyName].Keys)
-            {
-                foreach (string uuid in Configuration.coloniesPerBody[saveGame][bodyIndex][colonyName][gph].Keys)
-                {
-                    foreach (KCFacilityBase fac in Configuration.coloniesPerBody[saveGame][bodyIndex][colonyName][gph][uuid])
-                    {
-                        if (fac.GetType() == faciltyType)
-                        {
-                            if (!facList.Contains(fac))
-                            {
-                                facList.Add(fac);
-                            }
-                        }
-                    }
-                }
-            }
-            count = facList.Count;
             return true;
         }
 
-        internal static List<KCFacilityBase> GetFacilitiesInColony(string saveGame, int bodyIndex, string colonyName)
+        public static bool UpgradeFacilityWithoutGroupChange(KCFacilityBase facility)
         {
-            List<KCFacilityBase> facList = new List<KCFacilityBase>();
-            foreach (GroupPlaceHolder gph in Configuration.coloniesPerBody[saveGame][bodyIndex][colonyName].Keys)
-            {
-                foreach (string uuid in Configuration.coloniesPerBody[saveGame][bodyIndex][colonyName][gph].Keys)
-                {
-                    foreach (KCFacilityBase fac in Configuration.coloniesPerBody[saveGame][bodyIndex][colonyName][gph][uuid])
-                    {
-                        if (!facList.Contains(fac))
-                        {
-                            facList.Add(fac);
-                        }
-                    }
-                }
-            }
-            return facList;
+            if (facility.upgradeType != UpgradeType.withoutGroupChange || !facility.upgradeable) { return false; }
+
+            facility.UpgradeFacility(facility.level + 1);
+            return true;
         }
 
-        internal static bool GetInformationByFacilty(KCFacilityBase facility, out string saveGame, out int bodyIndex, out string colonyName, out List<GroupPlaceHolder> gph, out List<string> UUIDs)
+        public static bool UpgradeFacilityWithAdditionalGroup(KCFacilityBase facility)
         {
-            saveGame = "";
-            bodyIndex = -1;
-            colonyName = "";
-            gph = new List<GroupPlaceHolder>();
-            UUIDs = new List<string>();
+            if (facility.upgradeType != UpgradeType.withAdditionalGroup || !facility.upgradeable) { return false; }
 
-            foreach (string sg in Configuration.coloniesPerBody.Keys)
-            {
-                foreach (int bI in Configuration.coloniesPerBody[sg].Keys)
-                {
-                    foreach (string cN in Configuration.coloniesPerBody[sg][bI].Keys)
-                    {
-                        foreach (GroupPlaceHolder gp in Configuration.coloniesPerBody[sg][bI][cN].Keys)
-                        {
-                            foreach (string id in Configuration.coloniesPerBody[sg][bI][cN][gp].Keys)
-                            {
-                                if (Configuration.coloniesPerBody[sg][bI][cN][gp][id].Contains(facility))
-                                {
-                                    saveGame = sg;
-                                    bodyIndex = bI;
-                                    colonyName = cN;
-                                    if (!gph.Contains(gp)) { gph.Add(gp); }
-                                    if (!UUIDs.Contains(id)) { UUIDs.Add(id); }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
+            facility.UpgradeFacility(facility.level + 1);
 
-            if (UUIDs.Count == 0)
-            {
-                return false;
-            }
-            else
-            {
-                return true;
-            }
+            ColonyBuilding.PlaceNewGroup(facility, $"{facility.Colony.Name}_{facility.GetType().Name}_{facility.level}_{KCFacilityBase.CountFacilityType(facility.GetType(), facility.Colony)}");
+
+            return true;
         }
 
-        internal static bool GetInformationByUUID(string uuid, out string saveGame, out int bodyIndex, out string colonyName, out GroupPlaceHolder gph, out List<KCFacilityBase> facilities)
+        public static int CountFacilityType(Type faciltyType, colonyClass colony)
         {
-            saveGame = null;
-            bodyIndex = -1;
-            colonyName = null;
-            gph = null;
-            facilities = null;
-
-            foreach (string sg in Configuration.coloniesPerBody.Keys)
-            {
-                foreach (int bI in Configuration.coloniesPerBody[sg].Keys)
-                {
-                    foreach (string cN in Configuration.coloniesPerBody[sg][bI].Keys)
-                    {
-                        foreach (GroupPlaceHolder gp in Configuration.coloniesPerBody[sg][bI][cN].Keys)
-                        {
-                            foreach (string id in Configuration.coloniesPerBody[sg][bI][cN][gp].Keys)
-                            {
-                                if (id == uuid)
-                                {
-                                    saveGame = sg;
-                                    bodyIndex = bI;
-                                    colonyName = cN;
-                                    gph = gp;
-                                    facilities = Configuration.coloniesPerBody[sg][bI][cN][gp][id];
-                                    return true;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            return false;
+            return colony.Facilities.Count(x => faciltyType.IsInstanceOfType(x));
         }
 
-
-        internal static string[] GetUUIDbyFacility(KCFacilityBase facility)
+        public static List<string> GetUUIDbyFacility(KCFacilityBase facility)
         {
             List<string> uuids = new List<string>();
 
-            foreach (string saveGame in Configuration.coloniesPerBody.Keys)
-            {
-                foreach (int bodyId in Configuration.coloniesPerBody[saveGame].Keys)
-                {
-                    foreach (string colonyName in Configuration.coloniesPerBody[saveGame][bodyId].Keys)
-                    {
-                        foreach (GroupPlaceHolder gph in Configuration.coloniesPerBody[saveGame][bodyId][colonyName].Keys)
-                        {
-                            foreach (string uuid in Configuration.coloniesPerBody[saveGame][bodyId][colonyName][gph].Keys)
-                            {
-                                if (Configuration.coloniesPerBody[saveGame][bodyId][colonyName][gph][uuid].Contains(facility))
-                                {
-                                    uuids.Add(uuid);
-                                }
-                            }
-                        }
-                    }
-                }
-            }
+            facility.KKgroups.ForEach(groupName => KerbalKonstructs.API.GetGroupStatics(groupName).ForEach(kkStatic => uuids.Add(kkStatic.UUID)));
 
-            return uuids.ToArray();
+            return uuids;
         }
 
-        /// <summary>
-        /// Returns true if the facility with the corresponding id was found
-        /// Returns false if the the id wasn't found.
-        /// </summary>
-        /// <returns>Important: if the facility wasn't found the outed facility is NULL</returns>
-        internal static bool GetFacilityByID(int id, out KCFacilityBase facility)
+        public static KCFacilityBase GetFacilityByID(int id)
         {
-            foreach (string saveGame in Configuration.coloniesPerBody.Keys)
+            foreach (var colony in Configuration.colonyDictionary.Values.SelectMany(c => c))
             {
-                foreach (int bodyId in Configuration.coloniesPerBody[saveGame].Keys)
+                foreach (var facility in colony.Facilities)
                 {
-                    foreach (string colonyName in Configuration.coloniesPerBody[saveGame][bodyId].Keys)
+                    if (facility.id == id)
                     {
-                        foreach (GroupPlaceHolder gph in Configuration.coloniesPerBody[saveGame][bodyId][colonyName].Keys)
-                        {
-                            foreach (string uuid in Configuration.coloniesPerBody[saveGame][bodyId][colonyName][gph].Keys)
-                            {
-                                foreach (KCFacilityBase fac in Configuration.coloniesPerBody[saveGame][bodyId][colonyName][gph][uuid])
-                                {
-                                    if (fac.id == id)
-                                    {
-                                        facility = fac;
-                                        return true;
-                                    }
-                                }
-                            }
-                        }
+                        return facility;
                     }
                 }
             }
-            facility = null;
-            return false;
+            return null;
         }
 
-        internal static bool IDexists(int id)
+        public static bool IDexists(int id)
         {
-            foreach (string saveGame in Configuration.coloniesPerBody.Keys)
-            {
-                foreach (int bodyId in Configuration.coloniesPerBody[saveGame].Keys)
-                {
-                    foreach (string colonyName in Configuration.coloniesPerBody[saveGame][bodyId].Keys)
-                    {
-                        foreach (GroupPlaceHolder gph in Configuration.coloniesPerBody[saveGame][bodyId][colonyName].Keys)
-                        {
-                            foreach (string uuid in Configuration.coloniesPerBody[saveGame][bodyId][colonyName][gph].Keys)
-                            {
-                                foreach (KCFacilityBase fac in Configuration.coloniesPerBody[saveGame][bodyId][colonyName][gph][uuid])
-                                {
-                                    if (fac.id == id)
-                                    {
-                                        return true;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            return false;
+            return Configuration.colonyDictionary.Values.SelectMany(c => c).Any(c => c.Facilities.Any(fac => fac.id == id) || c.CAB.id == id);
         }
-
 
         private static Random random = new Random();
-        // TODO: find out why the default facilities have the same id as the cab facility
         internal static int createID()
         {
             int id = 0;
@@ -376,6 +155,8 @@ namespace KerbalColonies.colonyFacilities
         /// <returns></returns>
         public virtual int GetUpgradeTime(int level) { return 0; }
 
+        public abstract string GetBaseGroupName(int level);
+
         /// <summary>
         /// This function get automatically called, do not call it manually.
         /// The OnBuildingClicked method function should be used for custom windows.
@@ -385,31 +166,37 @@ namespace KerbalColonies.colonyFacilities
             lastUpdateTime = Planetarium.GetUniversalTime();
         }
 
-        public virtual void UpdateBaseGroupName()
-        {
-        }
-
         /// <summary>
-        /// A new way of storing custom data, the loadCustomNode will recive the node from this method
+        /// This method is used to save all of the persistent facility data.
+        /// <para>It's recommended to call this base method as it adds the necessary metadata like name, creationdate, ...</para>
         /// </summary>
-        public virtual ConfigNode getCustomNode()
+        public virtual ConfigNode getConfigNode()
         {
-            return null;
+            ConfigNode node = new ConfigNode("facilityNode");
+            node.AddValue("name", name);
+            node.AddValue("id", id);
+            node.AddValue("enabled", enabled);
+            node.AddValue("level", level);
+            node.AddValue("maxLevel", maxLevel);
+            node.AddValue("creationTime", creationTime);
+            node.AddValue("lastUpdateTime", lastUpdateTime);
+            node.AddValue("upgradeType", upgradeType.ToString());
+            node.AddValue("built", built.ToString());
+
+            KKgroups.ForEach(x =>
+            {
+                ConfigNode groupNode = new ConfigNode("kkGroupNode");
+                groupNode.AddValue("groupName", x);
+                node.AddNode(groupNode);
+            }
+            );
+            return node;
         }
-
-        /// <summary>
-        /// A new way of storing custom data, this method recieves the node from the getCustomNode method
-        /// </summary>
-        public virtual void loadCustomNode(ConfigNode customNode)
-        {
-
-        }
-
 
         public virtual bool UpgradeFacility(int level)
         {
             this.level = level;
-            this.UpdateBaseGroupName();
+            if (this.level >= this.maxLevel) upgradeable = false;
             return true;
         }
 
@@ -422,25 +209,59 @@ namespace KerbalColonies.colonyFacilities
         }
 
         /// <summary>
-        /// This method is called when the facilty when an object is created.
-        /// During deserialization the constructor is not called, this method is used set up the facility for use during the game.
+        /// This constructor is used for restoring existing facilities during loading.
         /// </summary>
-        public virtual void Initialize()
+        /// <param name="node"></param>
+        protected KCFacilityBase(colonyClass colony, ConfigNode node)
         {
-            if (!initialized)
+            this.Colony = colony;
+
+            this.name = node.GetValue("name");
+            this.id = int.Parse(node.GetValue("id"));
+            this.enabled = bool.Parse(node.GetValue("enabled"));
+            this.level = int.Parse(node.GetValue("level"));
+            this.maxLevel = int.Parse(node.GetValue("maxLevel"));
+            this.creationTime = double.Parse(node.GetValue("creationTime"));
+            this.lastUpdateTime = double.Parse(node.GetValue("lastUpdateTime"));
+            this.upgradeType = (UpgradeType)Enum.Parse(typeof(UpgradeType), node.GetValue("upgradeType"));
+            this.built = bool.Parse(node.GetValue("built"));
+            this.KKgroups = new List<string> { };
+            node.GetNodes("kkGroupNode").ToList().ForEach(n => KKgroups.Add(n.GetValue("groupName")));
+
+            if (this.level < this.maxLevel)
             {
-                baseGroupName = "KC_CAB";
+                this.upgradeable = true;
+            }
+            else
+            {
+                this.upgradeable = false;
+            }
+        }
 
-                if (this.level < this.maxLevel)
-                {
-                    this.upgradeable = true;
-                }
-                else
-                {
-                    this.upgradeable = false;
-                }
+        /// <summary>
+        /// This constructor is ONLY meant to be used for the CAB facility
+        /// <para>DON'T USE IT</para>
+        /// <para>It doesn't add the facility to the facility list of the colony which means it won't get saved.</para>
+        /// </summary>
+        protected KCFacilityBase(colonyClass colony, string name)
+        {
+            this.Colony = colony;
 
-                initialized = true;
+            this.name = name;
+            this.enabled = true;
+            this.id = createID();
+            this.level = 0;
+            this.maxLevel = 0;
+            creationTime = Planetarium.GetUniversalTime();
+            lastUpdateTime = Planetarium.GetUniversalTime();
+
+            if (this.level < this.maxLevel)
+            {
+                this.upgradeable = true;
+            }
+            else
+            {
+                this.upgradeable = false;
             }
         }
 
@@ -449,8 +270,10 @@ namespace KerbalColonies.colonyFacilities
         /// You can use a custom constructor but it should only call an overriden initialize function and not the base constructor
         /// This is necessary because of the serialization.
         /// </summary>
-        protected KCFacilityBase(string facilityName, bool enabled, int level = 0, int maxLevel = 0)
+        protected KCFacilityBase(colonyClass colony, string facilityName, bool enabled, int level = 0, int maxLevel = 0)
         {
+            this.Colony = colony;
+
             this.name = facilityName;
             this.enabled = enabled;
             this.id = createID();
@@ -458,7 +281,17 @@ namespace KerbalColonies.colonyFacilities
             this.maxLevel = maxLevel;
             creationTime = Planetarium.GetUniversalTime();
             lastUpdateTime = Planetarium.GetUniversalTime();
-            Initialize();
+
+            if (this.level < this.maxLevel)
+            {
+                this.upgradeable = true;
+            }
+            else
+            {
+                this.upgradeable = false;
+            }
+
+            colony.Facilities.Add(this);
         }
     }
 }

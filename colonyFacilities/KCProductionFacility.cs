@@ -31,8 +31,7 @@ namespace KerbalColonies.colonyFacilities
 
             if (kerbalGUI == null)
             {
-                KCFacilityBase.GetInformationByFacilty(facility, out string saveGame, out int bodyIndex, out string colonyName, out List<GroupPlaceHolder> gph, out List<string> UUIDs);
-                kerbalGUI = new KerbalGUI(facility, saveGame, bodyIndex, colonyName);
+                kerbalGUI = new KerbalGUI(facility, true);
             }
 
             GUILayout.BeginVertical();
@@ -51,7 +50,6 @@ namespace KerbalColonies.colonyFacilities
         }
     }
 
-    [System.Serializable]
     public class KCProductionFacility : KCKerbalFacilityBase
     {
         KCProductionWindow prdWindow;
@@ -92,23 +90,22 @@ namespace KerbalColonies.colonyFacilities
             prdWindow.Toggle();
         }
 
-        public override void UpdateBaseGroupName()
+        public override string GetBaseGroupName(int level)
         {
-            baseGroupName = "KC_CAB";
+            return "KC_CAB";
         }
 
-        public override void Initialize()
+        public KCProductionFacility(colonyClass colony, ConfigNode node) : base(colony, node)
         {
-            base.Initialize();
-            baseGroupName = "KC_CAB";
+            prdWindow = new KCProductionWindow(this);
+            upgradeType = UpgradeType.withGroupChange;
+        }
+
+        public KCProductionFacility(colonyClass colony, bool enabled) : base(colony, "KCProductionFacility", enabled, 4, 0, 2)
+        {
             upgradeType = UpgradeType.withGroupChange;
             maxKerbalsPerLevel = new List<int> { 8, 12, 16 };
             prdWindow = new KCProductionWindow(this);
-        }
-
-        public KCProductionFacility(bool enabled) : base("KCProductionFacility", enabled, 4, 0, 2)
-        {
-
         }
     }
 }

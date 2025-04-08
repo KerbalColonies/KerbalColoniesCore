@@ -23,16 +23,16 @@ namespace KerbalColonies.colonyFacilities
         public double funds;
 
         /// <summary>
-        /// Used for custom checks, returns true if the facility can be built or upgraded.
+        /// Used for custom checks (e.g. if a specific facility already exists in the colony), returns true if the facility can be built or upgraded.
         /// </summary>
-        public virtual bool customCheck(int level, string saveGame, int bodyIndex, string colonyName)
+        public virtual bool customCheck(int level, colonyClass colony)
         {
             return true;
         }
 
-        public static bool checkResources(KCFacilityCostClass facilityCost, int level, string saveGame, int bodyIndex, string colonyName)
+        public static bool checkResources(KCFacilityCostClass facilityCost, int level, colonyClass colony)
         {
-            if (!facilityCost.customCheck(level, saveGame, bodyIndex, colonyName))
+            if (!facilityCost.customCheck(level, colony))
             {
                 return false;
             }
@@ -40,7 +40,7 @@ namespace KerbalColonies.colonyFacilities
             foreach (KeyValuePair<PartResourceDefinition, double> resource in facilityCost.resourceCost[level])
             {
                 double vesselAmount = 0;
-                double colonyAmount = KCStorageFacility.colonyResources(resource.Key, saveGame, bodyIndex, colonyName);
+                double colonyAmount = KCStorageFacility.colonyResources(resource.Key, colony);
 
                 if (FlightGlobals.ActiveVessel != null)
                 {
@@ -77,16 +77,16 @@ namespace KerbalColonies.colonyFacilities
             return true;
         }
 
-        public static bool removeResources(KCFacilityCostClass facilityCost, int level, string saveGame, int bodyIndex, string colonyName)
+        public static bool removeResources(KCFacilityCostClass facilityCost, int level, colonyClass colony)
         {
-            if (checkResources(facilityCost, level, saveGame, bodyIndex, colonyName))
+            if (checkResources(facilityCost, level, colony))
             {
                 foreach (KeyValuePair<PartResourceDefinition, double> resource in facilityCost.resourceCost[level])
                 {
                     double remainingAmount = resource.Value;
 
                     double vesselAmount = 0;
-                    double colonyAmount = KCStorageFacility.colonyResources(resource.Key, saveGame, bodyIndex, colonyName);
+                    double colonyAmount = KCStorageFacility.colonyResources(resource.Key, colony);
                     if (FlightGlobals.ActiveVessel != null)
                     {
                         FlightGlobals.ActiveVessel.GetConnectedResourceTotals(resource.Key.id, out double amount, out double maxAmount);
@@ -105,7 +105,7 @@ namespace KerbalColonies.colonyFacilities
                         }
                         remainingAmount -= vesselAmount;
 
-                        KCStorageFacility.addResourceToColony(resource.Key, -remainingAmount, saveGame, bodyIndex, colonyName);
+                        KCStorageFacility.addResourceToColony(resource.Key, -remainingAmount, colony);
                     }
                 }
                 if (Funding.Instance != null)

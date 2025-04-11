@@ -14,7 +14,7 @@ namespace KerbalColonies.colonyFacilities
 
     /// <summary>
     /// <para>The KCFaciltiyBase class is used to create custom KCFacilities, you must register your types in the typeregistry at startup with the AWAKE method.</para>
-    /// <para>If the facility can be built from the CAB it must be registered with a KCFacilityCostClass in the Configuration.BuildableFacilities dictionary via the RegisterBuildableFacility method.</para>
+    /// <para>If the facility can be built from the CAB it must be registered with a KCFacilityInfoClass in the Configuration.BuildableFacilities dictionary via the RegisterBuildableFacility method.</para>
     /// <para>If the faciltiy can be upgraded from the CAB it must be registered with the inclusive maximum level in the Configuration. UpgradeableFacilities Dictionary</para>
     /// <para>If you have custom fields that you want to save overwrite the encode and decode string methods and save the values of your custom fields in the facilityData string.</para>
     /// <para>Public fields are saved during the serialization but they are NOT loaded.</para>
@@ -27,6 +27,7 @@ namespace KerbalColonies.colonyFacilities
     {
         public colonyClass Colony { get; private set; }
 
+        public string displayName;
         public string name;
         public int id;
         public bool enabled;
@@ -174,6 +175,7 @@ namespace KerbalColonies.colonyFacilities
         {
             ConfigNode node = new ConfigNode("facilityNode");
             node.AddValue("name", name);
+            node.AddValue("displayName", displayName);
             node.AddValue("id", id);
             node.AddValue("enabled", enabled);
             node.AddValue("level", level);
@@ -212,11 +214,12 @@ namespace KerbalColonies.colonyFacilities
         /// This constructor is used for restoring existing facilities during loading.
         /// </summary>
         /// <param name="node"></param>
-        protected KCFacilityBase(colonyClass colony, ConfigNode node)
+        protected KCFacilityBase(colonyClass colony, ConfigNode facilityConfig, ConfigNode node)
         {
             this.Colony = colony;
 
-            this.name = node.GetValue("name");
+            this.name = facilityConfig.GetValue("name");
+            this.displayName = facilityConfig.GetValue("displayName");
             this.id = int.Parse(node.GetValue("id"));
             this.enabled = bool.Parse(node.GetValue("enabled"));
             this.level = int.Parse(node.GetValue("level"));
@@ -243,11 +246,12 @@ namespace KerbalColonies.colonyFacilities
         /// <para>DON'T USE IT</para>
         /// <para>It doesn't add the facility to the facility list of the colony which means it won't get saved.</para>
         /// </summary>
-        protected KCFacilityBase(colonyClass colony, string name)
+        protected KCFacilityBase(colonyClass colony, string name, string displayName)
         {
             this.Colony = colony;
 
             this.name = name;
+            this.displayName = displayName;
             this.enabled = true;
             this.id = createID();
             this.level = 0;
@@ -266,15 +270,48 @@ namespace KerbalColonies.colonyFacilities
         }
 
         /// <summary>
+        /// This constructor is ONLY meant to be used for the CAB facility
+        /// <para>DON'T USE IT</para>
+        /// <para>It doesn't add the facility to the facility list of the colony which means it won't get saved.</para>
+        /// </summary>
+        protected KCFacilityBase(colonyClass colony, ConfigNode node, string name, string displayName)
+        {
+            this.Colony = colony;
+
+            this.name = name;
+            this.displayName = displayName;
+            this.id = int.Parse(node.GetValue("id"));
+            this.enabled = bool.Parse(node.GetValue("enabled"));
+            this.level = int.Parse(node.GetValue("level"));
+            this.maxLevel = int.Parse(node.GetValue("maxLevel"));
+            this.creationTime = double.Parse(node.GetValue("creationTime"));
+            this.lastUpdateTime = double.Parse(node.GetValue("lastUpdateTime"));
+            this.upgradeType = (UpgradeType)Enum.Parse(typeof(UpgradeType), node.GetValue("upgradeType"));
+            this.built = bool.Parse(node.GetValue("built"));
+            this.KKgroups = new List<string> { };
+            node.GetNodes("kkGroupNode").ToList().ForEach(n => KKgroups.Add(n.GetValue("groupName")));
+
+            if (this.level < this.maxLevel)
+            {
+                this.upgradeable = true;
+            }
+            else
+            {
+                this.upgradeable = false;
+            }
+        }
+
+        /// <summary>
         /// The base constructor of the kc facilities. It only calls the initialize function.
         /// You can use a custom constructor but it should only call an overriden initialize function and not the base constructor
         /// This is necessary because of the serialization.
         /// </summary>
-        protected KCFacilityBase(colonyClass colony, string facilityName, bool enabled, int level = 0, int maxLevel = 0)
+        protected KCFacilityBase(colonyClass colony, ConfigNode facilityConfig, bool enabled, int level = 0, int maxLevel = 0)
         {
             this.Colony = colony;
 
-            this.name = facilityName;
+            this.name = facilityConfig.GetValue("name");
+            this.displayName = facilityConfig.GetValue("displayName");
             this.enabled = enabled;
             this.id = createID();
             this.level = level;

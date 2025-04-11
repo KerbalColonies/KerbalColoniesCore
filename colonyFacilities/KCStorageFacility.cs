@@ -6,17 +6,6 @@ using UnityEngine;
 
 namespace KerbalColonies.colonyFacilities
 {
-    internal class KCStorageFacilityCost : KCFacilityCostClass
-    {
-        public KCStorageFacilityCost()
-        {
-            resourceCost = new Dictionary<int, Dictionary<PartResourceDefinition, double>> {
-                { 0, new Dictionary<PartResourceDefinition, double> { { PartResourceLibrary.Instance.GetDefinition("RocketParts"), 500 } } },
-                { 1, new Dictionary<PartResourceDefinition, double> { { PartResourceLibrary.Instance.GetDefinition("RocketParts"), 500 } } }
-            };
-        }
-    }
-
     internal class KCStorageFacilityWindow : KCWindowBase
     {
         KCStorageFacility storageFacility;
@@ -418,7 +407,7 @@ namespace KerbalColonies.colonyFacilities
             return base.UpgradeFacility(level);
         }
 
-        public KCStorageFacility(colonyClass colony, ConfigNode node) : base(colony, node)
+        public KCStorageFacility(colonyClass colony, ConfigNode facilityConfig, ConfigNode node) : base(colony, facilityConfig, node)
         {
             maxVolume = double.Parse(node.GetValue("maxVolume"));
             resources = new Dictionary<PartResourceDefinition, double>();
@@ -433,7 +422,7 @@ namespace KerbalColonies.colonyFacilities
             }
         }
 
-        public KCStorageFacility(colonyClass colony, bool enabled) : base(colony, "KCStorageFacility", enabled, 0, 1)
+        public KCStorageFacility(colonyClass colony, ConfigNode facilityConfig, bool enabled) : base(colony, facilityConfig, enabled, 0, 1)
         {
             this.upgradeType = UpgradeType.withAdditionalGroup;
             maxVolume = 80000f;

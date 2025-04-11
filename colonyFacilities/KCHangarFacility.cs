@@ -37,17 +37,6 @@ using UnityEngine;
 
 namespace KerbalColonies.colonyFacilities
 {
-    public class KCHangarFacilityCost : KCFacilityCostClass
-    {
-        public KCHangarFacilityCost()
-        {
-            resourceCost = new Dictionary<int, Dictionary<PartResourceDefinition, double>> {
-                { 0, new Dictionary<PartResourceDefinition, double> { { PartResourceLibrary.Instance.GetDefinition("RocketParts"), 500 } } },
-                { 1, new Dictionary<PartResourceDefinition, double> { { PartResourceLibrary.Instance.GetDefinition("RocketParts"), 500 } } }
-            };
-        }
-    }
-
     public class KCHangarFacilityWindow : KCWindowBase
     {
         KCHangarFacility hangar;
@@ -291,7 +280,7 @@ namespace KerbalColonies.colonyFacilities
             return "KC_CAB";
         }
 
-        public KCHangarFacility(colonyClass colony, ConfigNode node) : base(colony, node)
+        public KCHangarFacility(colonyClass colony, ConfigNode facilityConfig, ConfigNode node) : base(colony, facilityConfig, node)
         {
             x = double.Parse(node.GetValue("x"));
             y = double.Parse(node.GetValue("y"));
@@ -313,7 +302,7 @@ namespace KerbalColonies.colonyFacilities
             hangarWindow = new KCHangarFacilityWindow(this);
         }
 
-        public KCHangarFacility(colonyClass colony, bool enabled) : base(colony, "KCHangarFacility", enabled, 0, 1)
+        public KCHangarFacility(colonyClass colony, ConfigNode facilityConfig, bool enabled) : base(colony, facilityConfig, enabled, 0, 1)
         {
             upgradeType = UpgradeType.withGroupChange;
 

@@ -115,12 +115,12 @@ namespace KerbalColonies.colonyFacilities
             return node;
         }
 
-        public KCKerbalFacilityBase(colonyClass colony, ConfigNode node) : base(colony, node)
+        public KCKerbalFacilityBase(colonyClass colony, ConfigNode facilityConfig, ConfigNode node) : base(colony, facilityConfig, node)
         {
             loadKerbalNode(node.GetNode("KerbalNode"));
         }
 
-        public KCKerbalFacilityBase(colonyClass colony, string facilityName, bool enabled, int maxKerbals = 8, int level = 0, int maxLevel = 0) : base(colony, facilityName, enabled, level, maxLevel)
+        public KCKerbalFacilityBase(colonyClass colony, ConfigNode facilityConfig, bool enabled, int maxKerbals = 8, int level = 0, int maxLevel = 0) : base(colony, facilityConfig, enabled, level, maxLevel)
         {
             this.maxKerbals = maxKerbals;
             kerbals = new Dictionary<ProtoCrewMember, int> { };

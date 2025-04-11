@@ -5,21 +5,6 @@ using UnityEngine;
 
 namespace KerbalColonies.colonyFacilities
 {
-    public class KCProductionFacilityCost : KCFacilityCostClass
-    {
-        public KCProductionFacilityCost()
-        {
-            resourceCost = new Dictionary<int, Dictionary<PartResourceDefinition, double>> {
-                { 0, new Dictionary<PartResourceDefinition, double> {
-                    { PartResourceLibrary.Instance.GetDefinition("RocketParts"), 500 } } },
-                { 1, new Dictionary<PartResourceDefinition, double> {
-                    { PartResourceLibrary.Instance.GetDefinition("RocketParts"), 1000 } } },
-                {2, new Dictionary<PartResourceDefinition, double> {
-                    { PartResourceLibrary.Instance.GetDefinition("RocketParts"), 1500 } } },
-            };
-        }
-    }
-
     public class KCProductionWindow : KCWindowBase
     {
         KCProductionFacility facility;
@@ -95,13 +80,13 @@ namespace KerbalColonies.colonyFacilities
             return "KC_CAB";
         }
 
-        public KCProductionFacility(colonyClass colony, ConfigNode node) : base(colony, node)
+        public KCProductionFacility(colonyClass colony, ConfigNode facilityConfig, ConfigNode node) : base(colony, facilityConfig, node)
         {
             prdWindow = new KCProductionWindow(this);
             upgradeType = UpgradeType.withGroupChange;
         }
 
-        public KCProductionFacility(colonyClass colony, bool enabled) : base(colony, "KCProductionFacility", enabled, 4, 0, 2)
+        public KCProductionFacility(colonyClass colony, ConfigNode facilityConfig, bool enabled) : base(colony, facilityConfig, enabled, 4, 0, 2)
         {
             upgradeType = UpgradeType.withGroupChange;
             maxKerbalsPerLevel = new List<int> { 8, 12, 16 };

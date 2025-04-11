@@ -5,21 +5,6 @@ using UnityEngine;
 
 namespace KerbalColonies.colonyFacilities
 {
-    internal class KCResourceConverterFacilityCost : KCFacilityCostClass
-    {
-        public KCResourceConverterFacilityCost()
-        {
-            resourceCost = new Dictionary<int, Dictionary<PartResourceDefinition, double>> {
-                { 0, new Dictionary<PartResourceDefinition, double> {
-                    { PartResourceLibrary.Instance.GetDefinition("RocketParts"), 500 } } },
-                { 1, new Dictionary<PartResourceDefinition, double> {
-                    { PartResourceLibrary.Instance.GetDefinition("RocketParts"), 1000 } }
-                }
-            };
-        }
-    }
-
-
     internal class RecipeSelectorWindow : KCWindowBase
     {
         KCResourceConverterFacility resourceConverter;
@@ -469,7 +454,7 @@ namespace KerbalColonies.colonyFacilities
             return "KC_CAB";
         }
 
-        public KCResourceConverterFacility(colonyClass colony, ConfigNode node) : base(colony, node)
+        public KCResourceConverterFacility(colonyClass colony, ConfigNode facilityConfig, ConfigNode node) : base(colony, facilityConfig, node)
         {
             kCResourceConverterWindow = new KCResourceConverterWindow(this);
 
@@ -478,7 +463,7 @@ namespace KerbalColonies.colonyFacilities
 
         }
 
-        public KCResourceConverterFacility(colonyClass colony, bool enabled) : base(colony, "KCResourceConverterFacility", enabled, 4, 0, 1)
+        public KCResourceConverterFacility(colonyClass colony, ConfigNode facilityConfig, bool enabled) : base(colony, facilityConfig, enabled, 4, 0, 1)
         {
             kCResourceConverterWindow = new KCResourceConverterWindow(this);
 

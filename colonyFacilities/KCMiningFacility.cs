@@ -5,20 +5,6 @@ using UnityEngine;
 
 namespace KerbalColonies.colonyFacilities
 {
-    internal class KCMiningFacilityCost : KCFacilityCostClass
-    {
-        public KCMiningFacilityCost()
-        {
-            resourceCost = new Dictionary<int, Dictionary<PartResourceDefinition, double>> {
-                { 0, new Dictionary<PartResourceDefinition, double> {
-                    { PartResourceLibrary.Instance.GetDefinition("RocketParts"), 500 } } },
-                { 1, new Dictionary<PartResourceDefinition, double> {
-                    { PartResourceLibrary.Instance.GetDefinition("RocketParts"), 1000 } }
-                }
-            };
-        }
-    }
-
     internal class KCMiningFacilityWindow : KCWindowBase
     {
         KCMiningFacility miningFacility;
@@ -170,7 +156,7 @@ namespace KerbalColonies.colonyFacilities
             return "KC_CAB";
         }
 
-        public KCMiningFacility(colonyClass colony, ConfigNode node) : base(colony, node)
+        public KCMiningFacility(colonyClass colony, ConfigNode facilityConfig, ConfigNode node) : base(colony, facilityConfig, node)
         {
             ore = double.Parse(node.GetValue("ore"));
             metalOre = double.Parse(node.GetValue("metalOre"));
@@ -185,7 +171,7 @@ namespace KerbalColonies.colonyFacilities
             this.upgradeType = UpgradeType.withoutGroupChange;
         }
 
-        public KCMiningFacility(colonyClass colony, bool enabled) : base(colony, "KCMiningFacility", enabled, 8, 0, 1)
+        public KCMiningFacility(colonyClass colony, ConfigNode facilityConfig, bool enabled) : base(colony, facilityConfig, enabled, 8, 0, 1)
         {
             miningFacilityWindow = new KCMiningFacilityWindow(this);
 

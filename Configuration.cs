@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using UnityEngine;
+using static Targeting.Sample;
 
 // KC: Kerbal Colonies
 // This mod aimes to create a Colony system with Kerbal Konstructs statics
@@ -35,6 +36,7 @@ namespace KerbalColonies
     {
         public override void OnLoad(ConfigNode node)
         {
+            ConfigFacilityLoader.LoadFacilityConfigs();
             KCgroups.Clear();
             colonyDictionary.Clear();
             GroupFacilities.Clear();
@@ -70,26 +72,33 @@ namespace KerbalColonies
         /// <summary>
         /// Facilities that can be built from the CAB must be registered here during startup via the RegisterBuildableFacility method.
         /// </summary>
-        internal static Dictionary<Type, KCFacilityCostClass> BuildableFacilities = new Dictionary<Type, KCFacilityCostClass>();
+        private static List<KCFacilityInfoClass> buildableFacilities = new List<KCFacilityInfoClass>();
 
-        internal static bool RegisterBuildableFacility(Type facilityType, KCFacilityCostClass cost)
+        public static List<KCFacilityInfoClass> BuildableFacilities { get { return buildableFacilities; } }
+
+        public static bool RegisterBuildableFacility(KCFacilityInfoClass info)
         {
-            if (!BuildableFacilities.ContainsKey(facilityType))
+            if (!buildableFacilities.Any(c => c.name == info.name))
             {
-                BuildableFacilities.Add(facilityType, cost);
+                buildableFacilities.Add(info);
                 return true;
             }
             return false;
         }
 
-        internal static KCFacilityBase CreateInstance(Type t, colonyClass colony, bool enabled)
+        public static KCFacilityInfoClass GetInfoClass(string name)
         {
-            return (KCFacilityBase)Activator.CreateInstance(t, new object[] { colony, enabled });
+            return buildableFacilities.FirstOrDefault(c => c.name == name);
         }
 
-        internal static KCFacilityBase CreateInstance(Type t, colonyClass colony, ConfigNode node)
+        internal static KCFacilityBase CreateInstance(KCFacilityInfoClass info, colonyClass colony, bool enabled)
         {
-            return (KCFacilityBase)Activator.CreateInstance(t, new object[] { colony, node });
+            return (KCFacilityBase)Activator.CreateInstance(info.type, new object[] { colony, info.facilityConfig, enabled });
+        }
+
+        internal static KCFacilityBase CreateInstance(KCFacilityInfoClass info, colonyClass colony, ConfigNode node)
+        {
+            return (KCFacilityBase)Activator.CreateInstance(info.type, new object[] { colony, info.facilityConfig, node });
         }
 
         // configurable parameters

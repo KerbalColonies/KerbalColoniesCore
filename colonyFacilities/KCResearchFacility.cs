@@ -22,31 +22,6 @@ using UnityEngine;
 
 namespace KerbalColonies.colonyFacilities
 {
-    internal class KCResearchFacilityCost : KCFacilityCostClass
-    {
-        public KCResearchFacilityCost()
-        {
-            resourceCost = new Dictionary<int, Dictionary<PartResourceDefinition, double>>{ 
-                { 0, new Dictionary<PartResourceDefinition, double> { 
-                    { PartResourceLibrary.Instance.GetDefinition("RocketParts"), 1000 },
-                    { PartResourceLibrary.Instance.GetDefinition("XenonGas"), 100 } }
-                },
-                { 1, new Dictionary<PartResourceDefinition, double> {
-                    { PartResourceLibrary.Instance.GetDefinition("RocketParts"), 1200 },
-                    { PartResourceLibrary.Instance.GetDefinition("XenonGas"), 200 } }
-                },
-                { 2, new Dictionary<PartResourceDefinition, double> {
-                    { PartResourceLibrary.Instance.GetDefinition("RocketParts"), 1400 },
-                    { PartResourceLibrary.Instance.GetDefinition("XenonGas"), 400 } }
-                },
-                { 3, new Dictionary<PartResourceDefinition, double> {
-                    { PartResourceLibrary.Instance.GetDefinition("RocketParts"), 1600 },
-                    { PartResourceLibrary.Instance.GetDefinition("XenonGas"), 600 } }
-                },
-            };
-        }
-    }
-
     internal class KCResearchFacilityWindow : KCWindowBase
     {
         KCResearchFacility researchFacility;
@@ -167,7 +142,7 @@ namespace KerbalColonies.colonyFacilities
             return "KC_CAB";
         }
 
-        public KCResearchFacility(colonyClass colony, ConfigNode node) : base(colony, node)
+        public KCResearchFacility(colonyClass colony, ConfigNode facilityConfig, ConfigNode node) : base(colony, facilityConfig, node)
         {
             sciencePoints = float.Parse(node.GetValue("sciencePoints"));
             this.researchFacilityWindow = new KCResearchFacilityWindow(this);
@@ -180,7 +155,7 @@ namespace KerbalColonies.colonyFacilities
             this.upgradeType = UpgradeType.withoutGroupChange;
         }
 
-        public KCResearchFacility(colonyClass colony, bool enabled) : base(colony, "KCResearchFacility", enabled, 8, 0, 3)
+        public KCResearchFacility(colonyClass colony, ConfigNode facilityConfig, bool enabled) : base(colony, facilityConfig, enabled, 8, 0, 3)
         {
             sciencePoints = 0;
 

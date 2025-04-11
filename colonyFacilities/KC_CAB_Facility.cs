@@ -1,5 +1,4 @@
-﻿using KerbalColonies;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -16,23 +15,24 @@ namespace KerbalColonies.colonyFacilities
 
             GUILayout.BeginScrollView(new Vector2());
             {
-                foreach (Type t in Configuration.BuildableFacilities.Keys)
+                foreach (KCFacilityInfoClass t in Configuration.BuildableFacilities)
                 {
                     GUILayout.BeginHorizontal();
-                    GUILayout.Label(t.Name);
+                    GUILayout.Label(t.displayName);
                     GUILayout.BeginVertical();
                     {
-                        for (int i = 0; i < Configuration.BuildableFacilities[t].resourceCost[0].Count; i++)
+                        for (int i = 0; i < t.resourceCost[0].Count; i++)
                         {
-                            GUILayout.Label($"{Configuration.BuildableFacilities[t].resourceCost[0].ElementAt(i).Key.displayName}: {Configuration.BuildableFacilities[t].resourceCost[0].ElementAt(i).Value}");
+                            GUILayout.Label($"{t.resourceCost[0].ElementAt(i).Key.displayName}: {t.resourceCost[0].ElementAt(i).Value}");
                         }
                     }
                     GUILayout.EndVertical();
 
-                    if (!KCFacilityCostClass.checkResources(Configuration.BuildableFacilities[t], 0, facility.Colony)) { GUI.enabled = false; }
+                    if (!t.checkResources(0, facility.Colony)) { GUI.enabled = false; }
+
                     if (GUILayout.Button("Build"))
                     {
-                        KCFacilityCostClass.removeResources(Configuration.BuildableFacilities[t], 0, facility.Colony);
+                        t.removeResources(0, facility.Colony);
                         KCFacilityBase KCFac = Configuration.CreateInstance(t, facility.Colony, false);
 
                         facility.AddconstructingFacility(KCFac);
@@ -49,19 +49,19 @@ namespace KerbalColonies.colonyFacilities
                 {
                     GUILayout.BeginHorizontal();
 
-                    GUILayout.Label(colonyFacility.name);
+                    GUILayout.Label(colonyFacility.displayName);
                     GUILayout.Label(colonyFacility.level.ToString());
                     GUILayout.Label(colonyFacility.GetFacilityProductionDisplay());
 
                     if (colonyFacility.upgradeable && colonyFacility.level < colonyFacility.maxLevel)
                     {
-                        if (!KCFacilityCostClass.checkResources(Configuration.BuildableFacilities[colonyFacility.GetType()], colonyFacility.level + 1, facility.Colony))
-                        {
-                            GUI.enabled = false;
-                        }
+                        KCFacilityInfoClass facilityInfo = Configuration.GetInfoClass(colonyFacility.name);
+
+                        if (!facilityInfo.checkResources(colonyFacility.level + 1, facility.Colony)) GUI.enabled = false;
+
                         GUILayout.BeginVertical();
                         {
-                            Configuration.BuildableFacilities[colonyFacility.GetType()].resourceCost[colonyFacility.level].ToList().ForEach(pair =>
+                            facilityInfo.resourceCost[colonyFacility.level].ToList().ForEach(pair =>
                             {
                                 GUILayout.Label($"{pair.Key.displayName}: {pair.Value}");
                             });
@@ -70,7 +70,7 @@ namespace KerbalColonies.colonyFacilities
                             {
                                 if (GUILayout.Button("Upgrade"))
                                 {
-                                    KCFacilityCostClass.removeResources(Configuration.BuildableFacilities[colonyFacility.GetType()], colonyFacility.level + 1, facility.Colony);
+                                    facilityInfo.removeResources(colonyFacility.level + 1, facility.Colony);
                                     if (colonyFacility.upgradeType == UpgradeType.withGroupChange)
                                     {
                                         KCFacilityBase.UpgradeFacilityWithGroupChange(colonyFacility);
@@ -174,29 +174,23 @@ namespace KerbalColonies.colonyFacilities
         /// <summary>
         /// All of the default facilties that are queued to be placed after the cab is placed.
         /// </summary>
-        public static Dictionary<Type, int> defaultFacilities = new Dictionary<Type, int>();
+        public static Dictionary<string, int> defaultFacilities = new Dictionary<string, int>();
         /// <summary>
         /// All of the default facilties that are queued to be placed before the cab is placed.
         /// </summary>
-        public static Dictionary<Type, int> priorityDefaultFacilities = new Dictionary<Type, int>();
-        public static void addDefaultFacility(Type facilityType, int amount)
+        public static Dictionary<string, int> priorityDefaultFacilities = new Dictionary<string, int>();
+        public static void addDefaultFacility(string facilityName, int amount)
         {
-            if (typeof(KCFacilityBase).IsAssignableFrom(facilityType))
+            if (!defaultFacilities.ContainsKey(facilityName))
             {
-                if (!defaultFacilities.ContainsKey(facilityType))
-                {
-                    defaultFacilities.Add(facilityType, amount);
-                }
+                defaultFacilities.Add(facilityName, amount);
             }
         }
-        public static void addPriorityDefaultFacility(Type facilityType, int amount)
+        public static void addPriorityDefaultFacility(string facilityName, int amount)
         {
-            if (typeof(KCFacilityBase).IsAssignableFrom(facilityType))
+            if (!priorityDefaultFacilities.ContainsKey(facilityName))
             {
-                if (!priorityDefaultFacilities.ContainsKey(facilityType))
-                {
-                    priorityDefaultFacilities.Add(facilityType, amount);
-                }
+                priorityDefaultFacilities.Add(facilityName, amount);
             }
         }
 
@@ -439,7 +433,7 @@ namespace KerbalColonies.colonyFacilities
             return "KC_CAB";
         }
 
-        public KC_CAB_Facility(colonyClass colony, ConfigNode node) : base(colony, node)
+        public KC_CAB_Facility(colonyClass colony, ConfigNode node) : base(colony, node, "KCCABFacility", "CAB")
         {
             constructingFacilities = new Dictionary<KCFacilityBase, double>();
             constructedFacilities = new List<KCFacilityBase>();
@@ -466,7 +460,7 @@ namespace KerbalColonies.colonyFacilities
             window = new KC_CAB_Window(this);
         }
 
-        public KC_CAB_Facility(colonyClass colony) : base(colony, "KCCABFacility")
+        public KC_CAB_Facility(colonyClass colony) : base(colony, "KCCABFacility", "CAB")
         {
             constructingFacilities = new Dictionary<KCFacilityBase, double>();
             constructedFacilities = new List<KCFacilityBase>();

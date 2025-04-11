@@ -47,7 +47,6 @@ namespace KerbalColonies
             foreach (KCFacilityBase facility in Facilities)
             {
                 ConfigNode facilityNode = new ConfigNode("facility");
-                facilityNode.AddValue("type", facility.GetType().FullName);
 
                 facilityNode.AddNode(facility.getConfigNode());
                 node.AddNode(facilityNode);
@@ -78,7 +77,7 @@ namespace KerbalColonies
             foreach (ConfigNode facilityNode in node.GetNodes("facility"))
             {
                 Facilities.Add(Configuration.CreateInstance(
-                    KCFacilityTypeRegistry.GetType(facilityNode.GetValue("type")),
+                    Configuration.GetInfoClass(facilityNode.GetValue("name")),
                     this,
                     facilityNode.GetNodes().First()
                 ));

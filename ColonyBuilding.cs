@@ -128,11 +128,11 @@ namespace KerbalColonies
 
             KC_CAB_Facility cab = colony.CAB;
 
-            foreach (KeyValuePair<Type, int> kvp in KC_CAB_Facility.priorityDefaultFacilities)
+            foreach (KeyValuePair<string, int> kvp in KC_CAB_Facility.priorityDefaultFacilities)
             {
                 for (int i = 0; i < kvp.Value; i++)
                 {
-                    KCFacilityBase KCFac = Configuration.CreateInstance(kvp.Key, colony, false);
+                    KCFacilityBase KCFac = Configuration.CreateInstance(Configuration.GetInfoClass(kvp.Key), colony, false);
                     string facilityGroupName = $"{colonyName}_{KCFac.GetType().Name}_0_{KCFacilityBase.CountFacilityType(KCFac.GetType(), colony) + 1}";
 
                     PlaceNewGroup(KCFac, facilityGroupName);
@@ -141,11 +141,11 @@ namespace KerbalColonies
 
             PlaceNewGroup(cab, groupName); //CAB: colonyClass Assembly Hub, initial start group
 
-            foreach (KeyValuePair<Type, int> kvp in KC_CAB_Facility.defaultFacilities)
+            foreach (KeyValuePair<string, int> kvp in KC_CAB_Facility.defaultFacilities)
             {
                 for (int i = 0; i < kvp.Value; i++)
                 {
-                    KCFacilityBase KCFac = Configuration.CreateInstance(kvp.Key, colony, false);
+                    KCFacilityBase KCFac = Configuration.CreateInstance(Configuration.GetInfoClass(kvp.Key), colony, false);
                     string facilityGroupName = $"{colonyName}_{KCFac.GetType().Name}_0_{KCFacilityBase.CountFacilityType(KCFac.GetType(), colony) + 1}";
 
                     PlaceNewGroup(KCFac, facilityGroupName);

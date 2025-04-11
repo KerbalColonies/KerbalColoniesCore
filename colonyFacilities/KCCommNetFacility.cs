@@ -22,16 +22,6 @@ using System.Linq;
 
 namespace KerbalColonies.colonyFacilities
 {
-    public class KCCommNetCost : KCFacilityCostClass
-    {
-        public KCCommNetCost()
-        {
-            resourceCost = new Dictionary<int, Dictionary<PartResourceDefinition, double>> {
-                { 0, new Dictionary<PartResourceDefinition, double> { { PartResourceLibrary.Instance.GetDefinition("RocketParts"), 500 } } },
-            };
-        }
-    }
-
     public class KCCommNetFacility : KCKerbalFacilityBase
     {
         public string groundstationUUID;
@@ -66,12 +56,12 @@ namespace KerbalColonies.colonyFacilities
             return baseNode;
         }
 
-        public KCCommNetFacility(colonyClass colony, ConfigNode node) : base(colony, node)
+        public KCCommNetFacility(colonyClass colony, ConfigNode facilityConfig, ConfigNode node) : base(colony, facilityConfig, node)
         {
             groundstationUUID = node.GetValue("groundstationUUID");
         }
 
-        public KCCommNetFacility(colonyClass colony, bool enabled) : base(colony, "KCCommNetFacility", enabled, 4, 0, 0)
+        public KCCommNetFacility(colonyClass colony, ConfigNode facilityConfig, bool enabled) : base(colony, facilityConfig, enabled, 4, 0, 0)
         {
 
         }

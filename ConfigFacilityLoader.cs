@@ -2,6 +2,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
 // KC: Kerbal Colonies
 // This mod aimes to create a Colony system with Kerbal Konstructs statics
@@ -22,31 +24,23 @@ using System.Linq;
 
 namespace KerbalColonies
 {
-    internal static class KCFacilityTypeRegistry
+    public static class ConfigFacilityLoader
     {
-        private static Dictionary<string, Type> _registeredTypes = new Dictionary<string, Type>();
+        // A config file with facility nodes
+        // Each facility node has the standart parameters and a list of custom parameters
+        // Also includes a node for the base group names
+        // display name and facility type
 
-        // Register a new type by a unique string key
-        public static void RegisterType<T>() where T : KCFacilityBase
+        public static void LoadFacilityConfigs()
         {
-            string key = typeof(T).FullName;
-            _registeredTypes[key] = typeof(T);
-        }
-
-        // Get a registered type by key
-        public static Type GetType(string typeName)
-        {
-            Type t = _registeredTypes.TryGetValue(typeName, out var type) ? type : null;
-            if (t == null)
+            ConfigNode[] facilityConfigs = GameDatabase.Instance.GetConfigNodes("facilityConfigs");
+            facilityConfigs.ToList().ForEach(node =>
             {
-                KeyValuePair<string, Type> kvp = _registeredTypes.FirstOrDefault(x => x.Key.Contains(typeName));
-                t = !kvp.Equals(default(KeyValuePair<string, Type>)) ? kvp.Value : null;
-            }
-            return t;
-        }
-        public static IEnumerable<string> GetAllRegisteredTypes()
-        {
-            return _registeredTypes.Keys;
+                node.GetNodes("facility").ToList().ForEach(facilityNode =>
+                {
+                    Configuration.RegisterBuildableFacility(KCFacilityInfoClass.GetInfoClass(facilityNode));
+                });
+            });
         }
     }
 }

@@ -5,17 +5,6 @@ using UnityEngine;
 
 namespace KerbalColonies.colonyFacilities
 {
-    public class KCLaunchPadCost : KCFacilityCostClass
-    {
-        public KCLaunchPadCost()
-        {
-            resourceCost = new Dictionary<int, Dictionary<PartResourceDefinition, double>> {
-                { 0, new Dictionary<PartResourceDefinition, double> { { PartResourceLibrary.Instance.GetDefinition("RocketParts"), 500 } } },
-                { 1, new Dictionary<PartResourceDefinition, double> { { PartResourceLibrary.Instance.GetDefinition("RocketParts"), 500 } } }
-            };
-        }
-    }
-
     public class KCLaunchpadFacilityWindow : KCWindowBase
     {
         KCLaunchpadFacility launchpad;
@@ -27,9 +16,8 @@ namespace KerbalColonies.colonyFacilities
                 if (GUILayout.Button("Teleport to Launchpad"))
                 {
                     KerbalKonstructs.Core.StaticInstance instance = KerbalKonstructs.API.getStaticInstanceByUUID(launchpad.launchSiteUUID);
-                    
 
-                    FlightGlobals.fetch.SetVesselPosition(FlightGlobals.GetBodyIndex(instance.launchSite.body), instance.launchSite.refLat, instance.launchSite.refLon, instance.launchSite.refAlt + 6, FlightGlobals.ActiveVessel.ReferenceTransform.eulerAngles, true, easeToSurface: true, 0.1);
+                    FlightGlobals.fetch.SetVesselPosition(FlightGlobals.GetBodyIndex(instance.launchSite.body), instance.launchSite.refLat, instance.launchSite.refLon, instance.launchSite.refAlt + FlightGlobals.ActiveVessel.vesselSize.y, FlightGlobals.ActiveVessel.ReferenceTransform.eulerAngles, true, easeToSurface: true, 0.1);
                     FloatingOrigin.ResetTerrainShaderOffset();
                 }
             }
@@ -54,11 +42,14 @@ namespace KerbalColonies.colonyFacilities
             string uuid = GetUUIDbyFacility(this).Where(s => KerbalKonstructs.API.GetModelTitel(s) == KerbalKonstructs.API.GetModelTitel(baseInstance.UUID)).First();
 
             KerbalKonstructs.Core.StaticInstance targetInstance = KerbalKonstructs.API.getStaticInstanceByUUID(uuid);
-            targetInstance.launchSite = new KerbalKonstructs.Core.KKLaunchSite();
-            targetInstance.hasLauchSites = true;
+            if (targetInstance.launchSite == null)
+            {
+                targetInstance.launchSite = new KerbalKonstructs.Core.KKLaunchSite();
+                targetInstance.hasLauchSites = true;
 
-            targetInstance.launchSite.staticInstance = targetInstance;
-            targetInstance.launchSite.body = targetInstance.CelestialBody;
+                targetInstance.launchSite.staticInstance = targetInstance;
+                targetInstance.launchSite.body = targetInstance.CelestialBody;
+            }
 
             string oldName = name;
             bool oldState = baseInstance.launchSite.ILSIsActive;
@@ -86,6 +77,9 @@ namespace KerbalColonies.colonyFacilities
             targetInstance.launchSite.InitialCameraRotation = baseInstance.launchSite.InitialCameraRotation;
 
             targetInstance.launchSite.ToggleLaunchPositioning = baseInstance.launchSite.ToggleLaunchPositioning;
+
+            targetInstance.launchSite.isOpen = true;
+            targetInstance.launchSite.OpenCloseState = "open";
 
 
             if (ILSConfig.DetectNavUtils())
@@ -174,13 +168,13 @@ namespace KerbalColonies.colonyFacilities
             return "KC_CAB";
         }
 
-        public KCLaunchpadFacility(colonyClass colony, ConfigNode node) : base(colony, node)
+        public KCLaunchpadFacility(colonyClass colony, ConfigNode facilityConfig, ConfigNode node) : base(colony, facilityConfig, node)
         {
             launchSiteUUID = node.GetValue("launchSiteUUID");
             launchpadWindow = new KCLaunchpadFacilityWindow(this);
         }
 
-        public KCLaunchpadFacility(colonyClass colony, bool enabled) : base(colony, "KCLaunchpadFacility", enabled, 0, 0)
+        public KCLaunchpadFacility(colonyClass colony, ConfigNode facilityConfig, bool enabled) : base(colony, facilityConfig, enabled, 0, 0)
         {
             upgradeType = UpgradeType.withGroupChange;
             launchpadWindow = new KCLaunchpadFacilityWindow(this);

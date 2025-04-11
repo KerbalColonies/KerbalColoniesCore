@@ -46,20 +46,11 @@ namespace KerbalColonies
             KCFacilityTypeRegistry.RegisterType<KCHangarFacility>();
             KCFacilityTypeRegistry.RegisterType<KCLaunchpadFacility>();
             KCFacilityTypeRegistry.RegisterType<KCCommNetFacility>();
-            Configuration.RegisterBuildableFacility(typeof(KCStorageFacility), new KCStorageFacilityCost());
-            Configuration.RegisterBuildableFacility(typeof(KCCrewQuarters), new KCCrewQuarterCost());
-            Configuration.RegisterBuildableFacility(typeof(KCResearchFacility), new KCResearchFacilityCost());
-            Configuration.RegisterBuildableFacility(typeof(KCMiningFacility), new KCMiningFacilityCost());
-            Configuration.RegisterBuildableFacility(typeof(KCProductionFacility), new KCProductionFacilityCost());
-            Configuration.RegisterBuildableFacility(typeof(KCResourceConverterFacility), new KCResourceConverterFacilityCost());
-            Configuration.RegisterBuildableFacility(typeof(KCHangarFacility), new KCHangarFacilityCost());
-            Configuration.RegisterBuildableFacility(typeof(KCLaunchpadFacility), new KCLaunchPadCost());
-            Configuration.RegisterBuildableFacility(typeof(KCCommNetFacility), new KCCommNetCost());
 
-            KC_CAB_Facility.addPriorityDefaultFacility(typeof(KCLaunchpadFacility), 1);
-            KC_CAB_Facility.addDefaultFacility(typeof(KCStorageFacility), 1);
-            KC_CAB_Facility.addDefaultFacility(typeof(KCCrewQuarters), 1);
-            KC_CAB_Facility.addDefaultFacility(typeof(KCProductionFacility), 1);
+            KC_CAB_Facility.addPriorityDefaultFacility("launchpadFacility", 1);
+            KC_CAB_Facility.addDefaultFacility("storageFacility", 1);
+            KC_CAB_Facility.addDefaultFacility("crewQuarters", 1);
+            KC_CAB_Facility.addDefaultFacility("productionFacility", 1);
 
             KerbalKonstructs.API.RegisterOnStaticClicked(KCFacilityBase.OnBuildingClickedHandler);
         }

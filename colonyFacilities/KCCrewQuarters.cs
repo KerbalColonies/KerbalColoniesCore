@@ -4,17 +4,6 @@ using UnityEngine;
 
 namespace KerbalColonies.colonyFacilities
 {
-    internal class KCCrewQuarterCost : KCFacilityCostClass
-    {
-        public KCCrewQuarterCost()
-        {
-            resourceCost = new Dictionary<int, Dictionary<PartResourceDefinition, double>> {
-                { 0, new Dictionary<PartResourceDefinition, double> { { PartResourceLibrary.Instance.GetDefinition("Ore"), 100 } } }
-            };
-
-        }
-    }
-
     internal class KCCrewQuartersWindow : KCWindowBase
     {
         KCCrewQuarters CrewQuarterFacility;
@@ -150,12 +139,12 @@ namespace KerbalColonies.colonyFacilities
             return "KC_CAB";
         }
 
-        public KCCrewQuarters(colonyClass colony, ConfigNode node) : base(colony, node)
+        public KCCrewQuarters(colonyClass colony, ConfigNode facilityConfig, ConfigNode node) : base(colony, facilityConfig, node)
         {
             this.crewQuartersWindow = null;
         }
 
-        public KCCrewQuarters(colonyClass colony, bool enabled) : base(colony, "KCCrewQuarters", true, 16)
+        public KCCrewQuarters(colonyClass colony, ConfigNode facilityConfig, bool enabled) : base(colony, facilityConfig, true, 16)
         {
             this.crewQuartersWindow = null;
         }

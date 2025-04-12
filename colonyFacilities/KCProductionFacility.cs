@@ -75,20 +75,13 @@ namespace KerbalColonies.colonyFacilities
             prdWindow.Toggle();
         }
 
-        public override string GetBaseGroupName(int level)
-        {
-            return "KC_CAB";
-        }
-
-        public KCProductionFacility(colonyClass colony, ConfigNode facilityConfig, ConfigNode node) : base(colony, facilityConfig, node)
+        public KCProductionFacility(colonyClass colony, KCFacilityInfoClass facilityInfo, ConfigNode node) : base(colony, facilityInfo, node)
         {
             prdWindow = new KCProductionWindow(this);
-            upgradeType = UpgradeType.withGroupChange;
         }
 
-        public KCProductionFacility(colonyClass colony, ConfigNode facilityConfig, bool enabled) : base(colony, facilityConfig, enabled, 4, 0, 2)
+        public KCProductionFacility(colonyClass colony, KCFacilityInfoClass facilityInfo, bool enabled) : base(colony, facilityInfo, enabled)
         {
-            upgradeType = UpgradeType.withGroupChange;
             maxKerbalsPerLevel = new List<int> { 8, 12, 16 };
             prdWindow = new KCProductionWindow(this);
         }

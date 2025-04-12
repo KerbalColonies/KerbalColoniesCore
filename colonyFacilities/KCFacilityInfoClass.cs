@@ -59,6 +59,8 @@ namespace KerbalColonies.colonyFacilities
         /// </summary>
         public Dictionary<int, double> electricity { get; private set; }
         public Dictionary<int, double> funds { get; private set; }
+        public Dictionary<int, UpgradeType> upgradeTypes { get; private set; }
+        public Dictionary<int, string> basegroupNames { get; private set; }
 
         /// <summary>
         /// Used for custom checks (e.g. if a specific facility already exists in the colony), returns true if the facility can be built or upgraded.
@@ -166,11 +168,20 @@ namespace KerbalColonies.colonyFacilities
             resourceCost = new Dictionary<int, Dictionary<PartResourceDefinition, double>>();
             electricity = new Dictionary<int, double>();
             funds = new Dictionary<int, double>();
+            upgradeTypes = new Dictionary<int, UpgradeType>();
+            basegroupNames = new Dictionary<int, string>();
 
             ConfigNode levelNode = node.GetNode("level");
             levelNode.GetNodes().ToList().ForEach(n =>
             {
                 int level = int.Parse(n.name);
+                if (n.HasValue("upgradeType")) upgradeTypes.Add(level, (UpgradeType)Enum.Parse(typeof(UpgradeType), n.GetValue("upgradeType")));
+                else upgradeTypes.Add(level, UpgradeType.withoutGroupChange);
+
+                if (n.HasValue("basegroupName")) basegroupNames.Add(level, n.GetValue("basegroupName"));
+                else if (level != 0) basegroupNames.Add(level, basegroupNames[level - 1]);
+                else throw new MissingFieldException($"The facility {name} (type: {type}) has no basegroupName (at least for level 0).");
+
                 if (n.HasNode("resources"))
                 {
                     ConfigNode resourceNode = n.GetNode("resources");

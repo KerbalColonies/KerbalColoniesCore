@@ -136,7 +136,7 @@ namespace KerbalColonies.colonyFacilities
             {
                 GUILayout.Label("This facility is disabled");
 
-                if (resourceConverter.getKerbals().Count() < resourceConverter.maxKerbals)
+                if (resourceConverter.getKerbals().Count() < resourceConverter.MaxKerbals)
                 {
                     GUI.enabled = false;
                 }
@@ -418,7 +418,7 @@ namespace KerbalColonies.colonyFacilities
         {
             double dTime = Planetarium.GetUniversalTime() - lastUpdateTime;
 
-            if (getKerbals().Count() < maxKerbals)
+            if (getKerbals().Count() < MaxKerbals)
             {
                 enabled = false;
             }
@@ -454,7 +454,7 @@ namespace KerbalColonies.colonyFacilities
             return "KC_CAB";
         }
 
-        public KCResourceConverterFacility(colonyClass colony, ConfigNode facilityConfig, ConfigNode node) : base(colony, facilityConfig, node)
+        public KCResourceConverterFacility(colonyClass colony, KCFacilityInfoClass facilityInfo, ConfigNode node) : base(colony, facilityInfo, node)
         {
             kCResourceConverterWindow = new KCResourceConverterWindow(this);
 
@@ -463,7 +463,7 @@ namespace KerbalColonies.colonyFacilities
 
         }
 
-        public KCResourceConverterFacility(colonyClass colony, ConfigNode facilityConfig, bool enabled) : base(colony, facilityConfig, enabled, 4, 0, 1)
+        public KCResourceConverterFacility(colonyClass colony, KCFacilityInfoClass facilityInfo, bool enabled) : base(colony, facilityInfo, enabled)
         {
             kCResourceConverterWindow = new KCResourceConverterWindow(this);
 

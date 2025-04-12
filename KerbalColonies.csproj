@@ -58,6 +58,7 @@
     <Compile Include="KCWindow.cs" />
     <Compile Include="KCWindowManager.cs" />
     <Compile Include="KerbalGUI.cs" />
+    <Compile Include="KKGroupMover.cs" />
     <Compile Include="Main.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="KCUI.cs" />

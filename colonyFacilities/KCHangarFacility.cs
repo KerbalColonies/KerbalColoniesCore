@@ -275,12 +275,7 @@ namespace KerbalColonies.colonyFacilities
             hangarWindow.Toggle();
         }
 
-        public override string GetBaseGroupName(int level)
-        {
-            return "KC_CAB";
-        }
-
-        public KCHangarFacility(colonyClass colony, ConfigNode facilityConfig, ConfigNode node) : base(colony, facilityConfig, node)
+        public KCHangarFacility(colonyClass colony, KCFacilityInfoClass facilityInfo, ConfigNode node) : base(colony, facilityInfo, node)
         {
             x = double.Parse(node.GetValue("x"));
             y = double.Parse(node.GetValue("y"));
@@ -302,10 +297,8 @@ namespace KerbalColonies.colonyFacilities
             hangarWindow = new KCHangarFacilityWindow(this);
         }
 
-        public KCHangarFacility(colonyClass colony, ConfigNode facilityConfig, bool enabled) : base(colony, facilityConfig, enabled, 0, 1)
+        public KCHangarFacility(colonyClass colony, KCFacilityInfoClass facilityInfo, bool enabled) : base(colony, facilityInfo, enabled)
         {
-            upgradeType = UpgradeType.withGroupChange;
-
             hangarWindow = new KCHangarFacilityWindow(this);
 
             x = 100;

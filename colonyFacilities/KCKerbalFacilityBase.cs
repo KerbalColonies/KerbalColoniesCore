@@ -1,4 +1,5 @@
-﻿using System;
+﻿using CommNet.Network;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -16,13 +17,10 @@ namespace KerbalColonies.colonyFacilities
             Dictionary<ProtoCrewMember, int> kerbals = new Dictionary<ProtoCrewMember, int> { };
             KCCrewQuarters.CrewQuartersInColony(colony).ForEach(crewQuarter =>
             {
-                crewQuarter.kerbals.Keys.ToList().ForEach(k =>
+                foreach (KeyValuePair<ProtoCrewMember, int> item in crewQuarter.kerbals)
                 {
-                    if (!kerbals.ContainsKey(k))
-                    {
-                        kerbals.Add(k, crewQuarter.kerbals[k]);
-                    }
-                });
+                    if (!kerbals.ContainsKey(item.Key)) kerbals.Add(item.Key, item.Value);
+                }
             });
 
             return kerbals;
@@ -37,16 +35,17 @@ namespace KerbalColonies.colonyFacilities
             return colony.Facilities.Where(f => f is KCKerbalFacilityBase).Select(f => (KCKerbalFacilityBase)f).Where(f => f.kerbals.Keys.Contains(kerbal)).ToList();
         }
 
+        private Dictionary<int, int> maxKerbalsPerLevel = new Dictionary<int, int> { };
+
+        public int MaxKerbals { get { return maxKerbalsPerLevel[level]; } }
+
         /// <summary>
         /// A list of kerbals in the facility and their current status
         /// <para>Value: 0 means unassigned, the other values are custom</para>
         /// <para>Kerbals with value 0 can get removed from the facility, e.g. to add them to a different facility or retrive them</para>
         /// <para>Don't remove the kerbals from the crewquarters to assign them, only change the availability in the crewquarters</para>
         /// </summary>
-        public int maxKerbals;
         protected Dictionary<ProtoCrewMember, int> kerbals;
-
-        public int MaxKerbals { get { return maxKerbals; } }
 
         public bool modifyKerbal(ProtoCrewMember kerbal, int status)
         {
@@ -70,7 +69,6 @@ namespace KerbalColonies.colonyFacilities
         public ConfigNode createKerbalNode()
         {
             ConfigNode kerbalsNode = new ConfigNode("KerbalNode");
-            kerbalsNode.AddValue("maxKerbals", maxKerbals);
 
             foreach (KeyValuePair<ProtoCrewMember, int> kerbal in kerbals)
             {
@@ -89,7 +87,6 @@ namespace KerbalColonies.colonyFacilities
         {
             if (kerbalNode != null)
             {
-                maxKerbals = int.Parse(kerbalNode.GetValue("maxKerbals"));
                 kerbals = new Dictionary<ProtoCrewMember, int> { };
 
                 foreach (ConfigNode kerbal in kerbalNode.GetNodes())
@@ -115,14 +112,32 @@ namespace KerbalColonies.colonyFacilities
             return node;
         }
 
-        public KCKerbalFacilityBase(colonyClass colony, ConfigNode facilityConfig, ConfigNode node) : base(colony, facilityConfig, node)
+        public KCKerbalFacilityBase(colonyClass colony, KCFacilityInfoClass facilityInfo, ConfigNode node) : base(colony, facilityInfo, node)
         {
+            ConfigNode levelNode = facilityInfo.facilityConfig.GetNode("level");
+            for (int i = 0; i <= level; i++)
+            {
+                ConfigNode iLevel = levelNode.GetNode(i.ToString());
+
+                if (iLevel.HasValue("maxKerbals")) maxKerbalsPerLevel[i] = int.Parse(iLevel.GetValue("maxKerbals"));
+                else if (i > 0) maxKerbalsPerLevel[i] = maxKerbalsPerLevel[i - 1];
+                else throw new MissingFieldException($"The facility {facilityInfo.name} (type: {facilityInfo.type}) has no maxKerbals (at least for level 0).");
+            }
             loadKerbalNode(node.GetNode("KerbalNode"));
         }
 
-        public KCKerbalFacilityBase(colonyClass colony, ConfigNode facilityConfig, bool enabled, int maxKerbals = 8, int level = 0, int maxLevel = 0) : base(colony, facilityConfig, enabled, level, maxLevel)
+        public KCKerbalFacilityBase(colonyClass colony, KCFacilityInfoClass facilityInfo, bool enabled) : base(colony, facilityInfo, enabled)
         {
-            this.maxKerbals = maxKerbals;
+            ConfigNode levelNode = facilityInfo.facilityConfig.GetNode("level");
+            for (int i = 0; i <= level; i++)
+            {
+                ConfigNode iLevel = levelNode.GetNode(i.ToString());
+
+                if (iLevel.HasValue("maxKerbals")) maxKerbalsPerLevel[i] = int.Parse(iLevel.GetValue("maxKerbals"));
+                else if (i > 0) maxKerbalsPerLevel[i] = maxKerbalsPerLevel[i - 1];
+                else throw new MissingFieldException($"The facility {facilityInfo.name} (type: {facilityInfo.type}) has no maxKerbals (at least for level 0).");
+            }
+
             kerbals = new Dictionary<ProtoCrewMember, int> { };
         }
     }

@@ -163,20 +163,14 @@ namespace KerbalColonies.colonyFacilities
             launchpadWindow.Toggle();
         }
 
-        public override string GetBaseGroupName(int level)
-        {
-            return "KC_CAB";
-        }
-
-        public KCLaunchpadFacility(colonyClass colony, ConfigNode facilityConfig, ConfigNode node) : base(colony, facilityConfig, node)
+        public KCLaunchpadFacility(colonyClass colony, KCFacilityInfoClass facilityInfo, ConfigNode node) : base(colony, facilityInfo, node)
         {
             launchSiteUUID = node.GetValue("launchSiteUUID");
             launchpadWindow = new KCLaunchpadFacilityWindow(this);
         }
 
-        public KCLaunchpadFacility(colonyClass colony, ConfigNode facilityConfig, bool enabled) : base(colony, facilityConfig, enabled, 0, 0)
+        public KCLaunchpadFacility(colonyClass colony, KCFacilityInfoClass facilityInfo, bool enabled) : base(colony, facilityInfo, enabled)
         {
-            upgradeType = UpgradeType.withGroupChange;
             launchpadWindow = new KCLaunchpadFacilityWindow(this);
         }
     }

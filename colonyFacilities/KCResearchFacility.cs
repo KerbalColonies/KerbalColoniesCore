@@ -122,13 +122,6 @@ namespace KerbalColonies.colonyFacilities
             return false;
         }
 
-        public override bool UpgradeFacility(int level)
-        {
-            base.UpgradeFacility(level);
-            maxKerbals = maxKerbalsPerLevel[level];
-            return true;
-        }
-
         public override ConfigNode getConfigNode()
         {
             ConfigNode node = base.getConfigNode();
@@ -137,25 +130,30 @@ namespace KerbalColonies.colonyFacilities
             return node;
         }
 
-        public override string GetBaseGroupName(int level)
+        public void configNodeLoader(ConfigNode node)
         {
-            return "KC_CAB";
+            ConfigNode levelNode = node.GetNode("level");
+            for (int i = 0; i <= level; i++)
+            {
+                ConfigNode iLevel = levelNode.GetNode(i.ToString());
+
+                if (iLevel.HasValue("scienceRate")) researchpointsPerDayperResearcher[i] = float.Parse(iLevel.GetValue("scienceRate"));
+                else if (i > 0) researchpointsPerDayperResearcher[i] = researchpointsPerDayperResearcher[i - 1];
+                else throw new MissingFieldException($"The facility {facilityInfo.name} (type: {facilityInfo.type}) has no scienceRate (at least for level 0).");
+
+                if (iLevel.HasValue("maxScience")) maxSciencePointList[i] = float.Parse(iLevel.GetValue("maxScience"));
+                else if (i > 0) maxSciencePointList[i] = maxSciencePointList[i - 1];
+                else throw new MissingFieldException($"The facility {facilityInfo.name} (type: {facilityInfo.type}) has no maxScience (at least for level 0).");
+            }
         }
 
-        public KCResearchFacility(colonyClass colony, ConfigNode facilityConfig, ConfigNode node) : base(colony, facilityConfig, node)
+        public KCResearchFacility(colonyClass colony, KCFacilityInfoClass facilityInfo, ConfigNode node) : base(colony, facilityInfo, node)
         {
             sciencePoints = float.Parse(node.GetValue("sciencePoints"));
             this.researchFacilityWindow = new KCResearchFacilityWindow(this);
-
-            maxSciencePointList = new List<float> { 50, 100, 200, 400 };
-            researchpointsPerDayperResearcher = new List<float> { 0.25f, 0.3f, 0.35f, 0.4f };
-            maxKerbalsPerLevel = new List<int> { 4, 6, 8, 12 };
-
-            this.maxKerbals = maxKerbalsPerLevel[level];
-            this.upgradeType = UpgradeType.withoutGroupChange;
         }
 
-        public KCResearchFacility(colonyClass colony, ConfigNode facilityConfig, bool enabled) : base(colony, facilityConfig, enabled, 8, 0, 3)
+        public KCResearchFacility(colonyClass colony, KCFacilityInfoClass facilityInfo, bool enabled) : base(colony, facilityInfo, enabled)
         {
             sciencePoints = 0;
 
@@ -164,9 +162,6 @@ namespace KerbalColonies.colonyFacilities
             maxSciencePointList = new List<float> { 50, 100, 200, 400 };
             researchpointsPerDayperResearcher = new List<float> { 0.25f, 0.3f, 0.35f, 0.4f };
             maxKerbalsPerLevel = new List<int> { 4, 6, 8, 12 };
-
-            this.maxKerbals = maxKerbalsPerLevel[level];
-            this.upgradeType = UpgradeType.withoutGroupChange;
         }
     }
 }

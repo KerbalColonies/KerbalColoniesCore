@@ -131,13 +131,6 @@ namespace KerbalColonies.colonyFacilities
             return buildTimes[level];
         }
 
-        public override bool UpgradeFacility(int level)
-        {
-            base.UpgradeFacility(level);
-            maxKerbals = maxKerbalsPerLevel[level];
-            return true;
-        }
-
         public override ConfigNode getConfigNode()
         {
             ConfigNode node = new ConfigNode();
@@ -156,7 +149,7 @@ namespace KerbalColonies.colonyFacilities
             return "KC_CAB";
         }
 
-        public KCMiningFacility(colonyClass colony, ConfigNode facilityConfig, ConfigNode node) : base(colony, facilityConfig, node)
+        public KCMiningFacility(colonyClass colony, KCFacilityInfoClass facilityInfo, ConfigNode node) : base(colony, facilityInfo, node)
         {
             ore = double.Parse(node.GetValue("ore"));
             metalOre = double.Parse(node.GetValue("metalOre"));
@@ -167,11 +160,9 @@ namespace KerbalColonies.colonyFacilities
             OrePerDayperEngineer = new List<float> { 200f, 400f };
             MetalOrePerDayperEngineer = new List<float> { 40f, 80f };
             maxKerbalsPerLevel = new List<int> { 8, 12 };
-            this.maxKerbals = maxKerbalsPerLevel[level];
-            this.upgradeType = UpgradeType.withoutGroupChange;
         }
 
-        public KCMiningFacility(colonyClass colony, ConfigNode facilityConfig, bool enabled) : base(colony, facilityConfig, enabled, 8, 0, 1)
+        public KCMiningFacility(colonyClass colony, KCFacilityInfoClass facilityInfo, bool enabled) : base(colony, facilityInfo, enabled)
         {
             miningFacilityWindow = new KCMiningFacilityWindow(this);
 
@@ -183,10 +174,6 @@ namespace KerbalColonies.colonyFacilities
 
             ore = 0;
             metalOre = 0;
-
-            this.maxKerbals = maxKerbalsPerLevel[level];
-
-            this.upgradeType = UpgradeType.withoutGroupChange;
         }
     }
 }

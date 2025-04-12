@@ -46,7 +46,7 @@ namespace KerbalColonies.colonyFacilities
 
         public static int ColonyKerbalCapacity(colonyClass colony)
         {
-            return CrewQuartersInColony(colony).Sum(crewQuarter => crewQuarter.maxKerbals);
+            return CrewQuartersInColony(colony).Sum(crewQuarter => crewQuarter.MaxKerbals);
         }
 
         public static KCCrewQuarters FindKerbalInCrewQuarters(colonyClass colony, ProtoCrewMember kerbal)
@@ -61,7 +61,7 @@ namespace KerbalColonies.colonyFacilities
 
             foreach (KCCrewQuarters crewQuarter in CrewQuartersInColony(colony))
             {
-                if (crewQuarter.kerbals.Count < crewQuarter.maxKerbals)
+                if (crewQuarter.kerbals.Count < crewQuarter.MaxKerbals)
                 {
                     crewQuarter.AddKerbal(kerbal);
                     return true;
@@ -134,17 +134,12 @@ namespace KerbalColonies.colonyFacilities
             }
         }
 
-        public override string GetBaseGroupName(int level)
-        {
-            return "KC_CAB";
-        }
-
-        public KCCrewQuarters(colonyClass colony, ConfigNode facilityConfig, ConfigNode node) : base(colony, facilityConfig, node)
+        public KCCrewQuarters(colonyClass colony, KCFacilityInfoClass facilityInfo, ConfigNode node) : base(colony, facilityInfo, node)
         {
             this.crewQuartersWindow = null;
         }
 
-        public KCCrewQuarters(colonyClass colony, ConfigNode facilityConfig, bool enabled) : base(colony, facilityConfig, true, 16)
+        public KCCrewQuarters(colonyClass colony, KCFacilityInfoClass facilityInfo, bool enabled) : base(colony, facilityInfo, true)
         {
             this.crewQuartersWindow = null;
         }

@@ -1,5 +1,8 @@
 ﻿using KerbalColonies.colonyFacilities;
+using KerbalKonstructs;
+using KerbalKonstructs.Core;
 using KerbalKonstructs.Modules;
+using KerbalKonstructs.UI;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -93,7 +96,14 @@ namespace KerbalColonies
                 KerbalKonstructs.API.CreateGroup(ColonyBuilding.buildQueue.Peek().groupName);
                 KerbalKonstructs.API.CopyGroup(ColonyBuilding.buildQueue.Peek().groupName, ColonyBuilding.buildQueue.Peek().fromGroupName, fromBodyName: "Kerbin");
                 KerbalKonstructs.API.GetGroupStatics(ColonyBuilding.buildQueue.Peek().groupName).ForEach(instance => instance.ToggleAllColliders(false));
-                KerbalKonstructs.API.OpenGroupEditor(ColonyBuilding.buildQueue.Peek().groupName);
+
+                EditorGUI.CloseEditors();
+                MapDecalEditor.Instance.Close();
+                GroupEditor.instance.Close();
+                GroupEditor.selectedGroup = API.GetGroupCenter(ColonyBuilding.buildQueue.Peek().groupName);
+                KCGroupEditor.selectedFacility = ColonyBuilding.buildQueue.Peek().Facility;
+                KCGroupEditor.instance.Open();
+
                 KerbalKonstructs.API.RegisterOnGroupSaved(ColonyBuilding.PlaceNewGroupSave);
                 ColonyBuilding.buildQueue.Peek().Facility.KKgroups.Add(ColonyBuilding.buildQueue.Peek().groupName); // add the group to the facility groups
                 Configuration.AddGroup(FlightGlobals.GetBodyIndex(FlightGlobals.currentMainBody), ColonyBuilding.buildQueue.Peek().groupName, ColonyBuilding.buildQueue.Peek().Facility);

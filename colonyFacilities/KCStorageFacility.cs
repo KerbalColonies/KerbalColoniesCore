@@ -393,13 +393,6 @@ namespace KerbalColonies.colonyFacilities
             StorageWindow.Toggle();
         }
 
-        public override string GetBaseGroupName(int level)
-        {
-            string[] baseGroupNames = { "KC_SF_0", "KC_SF_1" };
-            return baseGroupNames[level];
-        }
-
-
         public override bool UpgradeFacility(int level)
         {
             float[] maxVolumes = { 80000f, 100000f };
@@ -407,7 +400,7 @@ namespace KerbalColonies.colonyFacilities
             return base.UpgradeFacility(level);
         }
 
-        public KCStorageFacility(colonyClass colony, ConfigNode facilityConfig, ConfigNode node) : base(colony, facilityConfig, node)
+        public KCStorageFacility(colonyClass colony, KCFacilityInfoClass facilityInfo, ConfigNode node) : base(colony, facilityInfo, node)
         {
             maxVolume = double.Parse(node.GetValue("maxVolume"));
             resources = new Dictionary<PartResourceDefinition, double>();
@@ -422,9 +415,8 @@ namespace KerbalColonies.colonyFacilities
             }
         }
 
-        public KCStorageFacility(colonyClass colony, ConfigNode facilityConfig, bool enabled) : base(colony, facilityConfig, enabled, 0, 1)
+        public KCStorageFacility(colonyClass colony, KCFacilityInfoClass facilityInfo, bool enabled) : base(colony, facilityInfo, enabled)
         {
-            this.upgradeType = UpgradeType.withAdditionalGroup;
             maxVolume = 80000f;
             resources = new Dictionary<PartResourceDefinition, double>();
             StorageWindow = new KCStorageFacilityWindow(this);

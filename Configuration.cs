@@ -93,12 +93,12 @@ namespace KerbalColonies
 
         internal static KCFacilityBase CreateInstance(KCFacilityInfoClass info, colonyClass colony, bool enabled)
         {
-            return (KCFacilityBase)Activator.CreateInstance(info.type, new object[] { colony, info.facilityConfig, enabled });
+            return (KCFacilityBase)Activator.CreateInstance(info.type, new object[] { colony, info, enabled });
         }
 
         internal static KCFacilityBase CreateInstance(KCFacilityInfoClass info, colonyClass colony, ConfigNode node)
         {
-            return (KCFacilityBase)Activator.CreateInstance(info.type, new object[] { colony, info.facilityConfig, node });
+            return (KCFacilityBase)Activator.CreateInstance(info.type, new object[] { colony, info, node });
         }
 
         // configurable parameters

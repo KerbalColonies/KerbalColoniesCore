@@ -76,10 +76,12 @@ namespace KerbalColonies
 
             foreach (ConfigNode facilityNode in node.GetNodes("facility"))
             {
+                ConfigNode facility = facilityNode.GetNode("facilityNode");
+
                 Facilities.Add(Configuration.CreateInstance(
-                    Configuration.GetInfoClass(facilityNode.GetValue("name")),
+                    Configuration.GetInfoClass(facility.GetValue("name")),
                     this,
-                    facilityNode.GetNodes().First()
+                    facility
                 ));
             }
 

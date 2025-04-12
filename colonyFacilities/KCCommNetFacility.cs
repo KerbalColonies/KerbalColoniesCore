@@ -43,11 +43,6 @@ namespace KerbalColonies.colonyFacilities
             targetStation.TrackingShort = baseStation.TrackingShort;
         }
 
-        public override string GetBaseGroupName(int level)
-        {
-            return "KC_CommNet";
-        }
-
         public override ConfigNode getConfigNode()
         {
             ConfigNode baseNode = base.getConfigNode();
@@ -56,12 +51,12 @@ namespace KerbalColonies.colonyFacilities
             return baseNode;
         }
 
-        public KCCommNetFacility(colonyClass colony, ConfigNode facilityConfig, ConfigNode node) : base(colony, facilityConfig, node)
+        public KCCommNetFacility(colonyClass colony, KCFacilityInfoClass facilityInfo, ConfigNode node) : base(colony, facilityInfo, node)
         {
             groundstationUUID = node.GetValue("groundstationUUID");
         }
 
-        public KCCommNetFacility(colonyClass colony, ConfigNode facilityConfig, bool enabled) : base(colony, facilityConfig, enabled, 4, 0, 0)
+        public KCCommNetFacility(colonyClass colony, KCFacilityInfoClass facilityInfo, bool enabled) : base(colony, facilityInfo, enabled)
         {
 
         }

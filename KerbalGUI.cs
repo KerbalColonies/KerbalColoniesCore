@@ -206,7 +206,7 @@ namespace KerbalColonies
             this.toList = new List<ProtoCrewMember>(fromFac.getKerbals());
             this.mode = SwitchModes.ActiveVessel;
             this.fromCapacity = fromVessel.GetCrewCapacity();
-            this.toCapacity = fac.maxKerbals;
+            this.toCapacity = fac.MaxKerbals;
         }
 
         internal KerbalSelectorGUI(KCKerbalFacilityBase fac, KerbalGUI kGUI, colonyClass colony, string toName) : base(Configuration.createWindowID(fac), fac.name)
@@ -221,7 +221,7 @@ namespace KerbalColonies
             this.colony = colony;
             this.mode = SwitchModes.Colony;
             this.fromCapacity = KCCrewQuarters.ColonyKerbalCapacity(colony);
-            this.toCapacity = fac.maxKerbals;
+            this.toCapacity = fac.MaxKerbals;
         }
     }
 
@@ -266,12 +266,12 @@ namespace KerbalColonies
             ButtonSmallText.fontSize = 12;
             ButtonSmallText.fontStyle = FontStyle.Normal;
 
-            if (fac.maxKerbals > 0)
+            if (fac.MaxKerbals > 0)
             {
                 GUILayout.Space(5);
 
                 float CountCurrent = fac.getKerbals().Count;
-                float CountEmpty = fac.maxKerbals - CountCurrent;
+                float CountEmpty = fac.MaxKerbals - CountCurrent;
 
                 scrollPos = GUILayout.BeginScrollView(scrollPos, GUILayout.Width(400), GUILayout.Height(400));
                 {
@@ -305,7 +305,7 @@ namespace KerbalColonies
                 GUI.enabled = true;
 
                 GUILayout.BeginHorizontal();
-                GUILayout.Label("Staff: " + kerbalCount.ToString("#0") + "/" + fac.maxKerbals.ToString("#0"), LabelInfo);
+                GUILayout.Label("Staff: " + kerbalCount.ToString("#0") + "/" + fac.MaxKerbals.ToString("#0"), LabelInfo);
                 GUILayout.FlexibleSpace();
                 GUILayout.EndHorizontal();
 

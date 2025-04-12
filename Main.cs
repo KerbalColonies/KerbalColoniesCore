@@ -122,7 +122,7 @@ namespace KerbalColonies
         protected void OnDestroy()
         {
             Configuration.KCgroups.SelectMany(x => x.Value.Values.SelectMany(y => y)).ToList()
-                .ForEach(x => KerbalKonstructs.API.ActivateStatic(x));
+                .ForEach(x => KerbalKonstructs.API.GetGroupStatics(x).ForEach(uuid => KerbalKonstructs.API.ActivateStatic(uuid.UUID)));
 
             KerbalKonstructs.API.UnRegisterOnStaticClicked(KCFacilityBase.OnBuildingClickedHandler);
         }

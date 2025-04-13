@@ -272,12 +272,12 @@ namespace KerbalColonies.colonyFacilities
         /// </summary>
         public static List<KCStorageFacility> findEmptyStorageFacilities(colonyClass colony)
         {
-            return GetStoragesInColony(colony).Where(f => f.currentVolume < f.maxVolume).ToList();
+            return GetStoragesInColony(colony).Where(f => f.currentVolume < f.maxVolume[f.level]).ToList();
         }
 
         public Dictionary<PartResourceDefinition, double> resources;
 
-        public double maxVolume;
+        public List<float> maxVolume { get; private set; } = new List<float> { };
         public double currentVolume
         {
             get
@@ -312,30 +312,17 @@ namespace KerbalColonies.colonyFacilities
         }
         public double getMaxVolume()
         {
-            return maxVolume;
+            return maxVolume[level];
         }
 
         public static double getVolumeForAmount(PartResourceDefinition resource, double amount) { return amount * resource.volume; }
 
         public double getEmptyAmount(PartResourceDefinition resource)
         {
-            return (maxVolume - currentVolume) / resource.volume;
+            return (maxVolume[level] - currentVolume) / resource.volume;
         }
 
         private KCStorageFacilityWindow StorageWindow;
-
-        public override int GetUpgradeTime(int level)
-        {
-            // 1 Kerbin day = 0.25 days
-            // 100 per day * 5 engineers = 500 per day
-            // 500 per day * 4 kerbin days = 500
-
-            // 1 Kerbin day = 0.25 days
-            // 100 per day * 5 engineers = 500 per day
-            // 500 per day * 2 kerbin days = 250
-            int[] buildTimes = { 500, 250 };
-            return buildTimes[level];
-        }
 
         public override ConfigNode getConfigNode()
         {
@@ -371,7 +358,7 @@ namespace KerbalColonies.colonyFacilities
             }
             else
             {
-                if (this.currentVolume + getVolumeForAmount(resource, amount) <= this.maxVolume)
+                if (this.currentVolume + getVolumeForAmount(resource, amount) <= this.maxVolume[level])
                 {
                     if (this.resources.ContainsKey(resource))
                     {
@@ -393,16 +380,21 @@ namespace KerbalColonies.colonyFacilities
             StorageWindow.Toggle();
         }
 
-        public override bool UpgradeFacility(int level)
+        public void configNodeLoader(ConfigNode node)
         {
-            float[] maxVolumes = { 80000f, 100000f };
-            maxVolume = maxVolumes[level];
-            return base.UpgradeFacility(level);
+            ConfigNode levelNode = node.GetNode("level");
+            for (int i = 0; i <= maxLevel; i++)
+            {
+                ConfigNode iLevel = levelNode.GetNode(i.ToString());
+                if (iLevel.HasValue("maxVolume")) maxVolume[i] = float.Parse(iLevel.GetValue("maxVolume"));
+                else if (i > 0) maxVolume[i] = maxVolume[i - 1];
+                else throw new MissingFieldException($"The facility {facilityInfo.name} (type: {facilityInfo.type}) has no maxVolume (at least for level 0).");
+            }
         }
 
         public KCStorageFacility(colonyClass colony, KCFacilityInfoClass facilityInfo, ConfigNode node) : base(colony, facilityInfo, node)
         {
-            maxVolume = double.Parse(node.GetValue("maxVolume"));
+            configNodeLoader(facilityInfo.facilityConfig);
             resources = new Dictionary<PartResourceDefinition, double>();
             StorageWindow = new KCStorageFacilityWindow(this);
 
@@ -417,7 +409,7 @@ namespace KerbalColonies.colonyFacilities
 
         public KCStorageFacility(colonyClass colony, KCFacilityInfoClass facilityInfo, bool enabled) : base(colony, facilityInfo, enabled)
         {
-            maxVolume = 80000f;
+            configNodeLoader(facilityInfo.facilityConfig);
             resources = new Dictionary<PartResourceDefinition, double>();
             StorageWindow = new KCStorageFacilityWindow(this);
         }

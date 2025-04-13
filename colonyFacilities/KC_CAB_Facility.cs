@@ -66,25 +66,30 @@ namespace KerbalColonies.colonyFacilities
 
                         GUILayout.BeginVertical();
                         {
-                            facilityInfo.resourceCost[colonyFacility.level].ToList().ForEach(pair =>
+                            facilityInfo.resourceCost[colonyFacility.level + 1].ToList().ForEach(pair =>
                             {
                                 GUILayout.Label($"{pair.Key.displayName}: {pair.Value}");
                             });
 
-                            if (!(facility.UpgradingFacilities.ContainsKey(colonyFacility) || facility.UpgradedFacilities.Contains(colonyFacility)))
+                            if (!(
+                               facility.UpgradingFacilities.ContainsKey(colonyFacility)
+                            || facility.UpgradedFacilities.Contains(colonyFacility)
+                            || facility.ConstructingFacilities.ContainsKey(colonyFacility)
+                            || facility.ConstructedFacilities.Contains(colonyFacility)
+                            ))
                             {
                                 if (GUILayout.Button("Upgrade"))
                                 {
                                     facilityInfo.removeResources(colonyFacility.level + 1, facility.Colony);
-                                    if (colonyFacility.facilityInfo.upgradeTypes[facility.level] == UpgradeType.withGroupChange)
+                                    if (colonyFacility.facilityInfo.UpgradeTypes[facility.level + 1] == UpgradeType.withGroupChange)
                                     {
                                         KCFacilityBase.UpgradeFacilityWithGroupChange(colonyFacility);
                                     }
-                                    else if (colonyFacility.facilityInfo.upgradeTypes[facility.level] == UpgradeType.withoutGroupChange)
+                                    else if (colonyFacility.facilityInfo.UpgradeTypes[facility.level + 1] == UpgradeType.withoutGroupChange)
                                     {
                                         KCFacilityBase.UpgradeFacilityWithoutGroupChange(colonyFacility);
                                     }
-                                    else if (colonyFacility.facilityInfo.upgradeTypes[facility.level] == UpgradeType.withAdditionalGroup)
+                                    else if (colonyFacility.facilityInfo.UpgradeTypes[facility.level + 1] == UpgradeType.withAdditionalGroup)
                                     {
                                         facility.AddUpgradeableFacility(colonyFacility);
 
@@ -106,7 +111,7 @@ namespace KerbalColonies.colonyFacilities
                 {
                     GUILayout.BeginHorizontal();
                     GUILayout.Label(pair.Key.name);
-                    double max = pair.Key.GetUpgradeTime(0);
+                    double max = pair.Key.facilityInfo.UpgradeTimes[0];
                     GUILayout.Label($"{Math.Round(max - pair.Value, 2)}/{Math.Round(max, 2)}");
                     GUILayout.EndHorizontal();
                 });
@@ -140,7 +145,7 @@ namespace KerbalColonies.colonyFacilities
                 {
                     GUILayout.BeginHorizontal();
                     GUILayout.Label(pair.Key.name);
-                    double max = pair.Key.GetUpgradeTime(pair.Key.level + 1);
+                    double max = pair.Key.facilityInfo.UpgradeTimes[pair.Key.level + 1];
                     GUILayout.Label($"{Math.Round(max - pair.Value, 2)}/{Math.Round(max, 2)}");
                     GUILayout.EndHorizontal();
                 });
@@ -295,7 +300,7 @@ namespace KerbalColonies.colonyFacilities
                             totalProduction -= upgradingFacilities.ElementAt(0).Value;
                             upgradingFacilities.Remove(facility);
 
-                            switch (facility.facilityInfo.upgradeTypes[facility.level])
+                            switch (facility.facilityInfo.UpgradeTypes[facility.level + 1])
                             {
                                 case UpgradeType.withGroupChange:
                                     KCFacilityBase.UpgradeFacilityWithGroupChange(facility);
@@ -337,9 +342,9 @@ namespace KerbalColonies.colonyFacilities
 
         public void AddUpgradeableFacility(KCFacilityBase facility)
         {
-            if (facility.GetUpgradeTime(facility.level + 1) == 0)
+            if (facility.facilityInfo.UpgradeTimes[facility.level + 1] == 0)
             {
-                switch (facility.facilityInfo.upgradeTypes[facility.level])
+                switch (facility.facilityInfo.UpgradeTypes[facility.level + 1])
                 {
                     case UpgradeType.withGroupChange:
                         KCFacilityBase.UpgradeFacilityWithGroupChange(facility);
@@ -354,19 +359,19 @@ namespace KerbalColonies.colonyFacilities
             }
             else
             {
-                addUpgradingFacility(facility, facility.GetUpgradeTime(facility.level + 1));
+                addUpgradingFacility(facility, facility.facilityInfo.UpgradeTimes[facility.level + 1]);
             }
         }
 
         public void AddconstructingFacility(KCFacilityBase facility)
         {
-            if (facility.GetUpgradeTime(0) == 0)
+            if (facility.facilityInfo.UpgradeTimes[0] == 0)
             {
                 addConstructedFacility(facility);
             }
             else
             {
-                addConstructingFacility(facility, facility.GetUpgradeTime(0));
+                addConstructingFacility(facility, facility.facilityInfo.UpgradeTimes[0]);
             }
         }
 

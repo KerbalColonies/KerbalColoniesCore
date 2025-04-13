@@ -62,7 +62,7 @@ namespace KerbalColonies.colonyFacilities
 
         public static bool UpgradeFacilityWithGroupChange(KCFacilityBase facility)
         {
-            if (facility.facilityInfo.upgradeTypes[facility.level] != UpgradeType.withGroupChange || !facility.upgradeable) { return false; }
+            if (facility.facilityInfo.UpgradeTypes[facility.level + 1] != UpgradeType.withGroupChange || !facility.upgradeable) { return false; }
 
             facility.UpgradeFacility(facility.level + 1);
             KerbalKonstructs.API.GetGroupStatics(facility.KKgroups.First()).ToList().ForEach(x => KerbalKonstructs.API.RemoveStatic(x.UUID));
@@ -73,7 +73,7 @@ namespace KerbalColonies.colonyFacilities
 
         public static bool UpgradeFacilityWithoutGroupChange(KCFacilityBase facility)
         {
-            if (facility.facilityInfo.upgradeTypes[facility.level] != UpgradeType.withoutGroupChange || !facility.upgradeable) { return false; }
+            if (facility.facilityInfo.UpgradeTypes[facility.level + 1] != UpgradeType.withoutGroupChange || !facility.upgradeable) { return false; }
 
             facility.UpgradeFacility(facility.level + 1);
             return true;
@@ -81,7 +81,7 @@ namespace KerbalColonies.colonyFacilities
 
         public static bool UpgradeFacilityWithAdditionalGroup(KCFacilityBase facility)
         {
-            if (facility.facilityInfo.upgradeTypes[facility.level] != UpgradeType.withAdditionalGroup || !facility.upgradeable) { return false; }
+            if (facility.facilityInfo.UpgradeTypes[facility.level + 1] != UpgradeType.withAdditionalGroup || !facility.upgradeable) { return false; }
 
             facility.UpgradeFacility(facility.level + 1);
 
@@ -149,16 +149,7 @@ namespace KerbalColonies.colonyFacilities
         /// </summary>
         public virtual void OnGroupPlaced() { }
 
-        /// <summary>
-        /// This method should return the upgrade time for the specified level
-        /// <para>Each engineer reduces the upgrade time by 100 + 5 * (engineer level - 1) * facility bonus / day. If the upgrade time reaches 0 then the upgrade can be placed</para>
-        /// </summary>
-        /// <returns></returns>
-        public virtual int GetUpgradeTime(int level) => 0;
-
-        public virtual string GetBaseGroupName(int level) => facilityInfo.basegroupNames[level];
-
-        public virtual UpgradeType GetUpgradeType(int level) => facilityInfo.upgradeTypes[level];
+        public virtual string GetBaseGroupName(int level) => facilityInfo.BasegroupNames[level];
 
         /// <summary>
         /// This function get automatically called, do not call it manually.
@@ -282,7 +273,7 @@ namespace KerbalColonies.colonyFacilities
             this.id = int.Parse(node.GetValue("id"));
             this.enabled = bool.Parse(node.GetValue("enabled"));
             this.level = int.Parse(node.GetValue("level"));
-            this.maxLevel = facilityInfo.basegroupNames.Count - 1;
+            this.maxLevel = facilityInfo.BasegroupNames.Count - 1;
             this.creationTime = double.Parse(node.GetValue("creationTime"));
             this.lastUpdateTime = double.Parse(node.GetValue("lastUpdateTime"));
             this.built = bool.Parse(node.GetValue("built"));
@@ -314,7 +305,7 @@ namespace KerbalColonies.colonyFacilities
             this.enabled = enabled;
             this.id = createID();
             this.level = 0;
-            this.maxLevel = facilityInfo.basegroupNames.Count - 1;
+            this.maxLevel = facilityInfo.BasegroupNames.Count - 1;
             creationTime = Planetarium.GetUniversalTime();
             lastUpdateTime = Planetarium.GetUniversalTime();
 

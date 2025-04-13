@@ -52,7 +52,7 @@ namespace KerbalColonies.colonyFacilities
         public static KCCrewQuarters FindKerbalInCrewQuarters(colonyClass colony, ProtoCrewMember kerbal)
         {
             List<KCKerbalFacilityBase> facilitiesWithKerbal = KCKerbalFacilityBase.findKerbal(colony, kerbal);
-            return (KCCrewQuarters) facilitiesWithKerbal.Where(fac => fac is KCCrewQuarters).FirstOrDefault();
+            return (KCCrewQuarters) (facilitiesWithKerbal.Where(fac => fac is KCCrewQuarters).FirstOrDefault());
         }
 
         public static bool AddKerbalToColony(colonyClass colony, ProtoCrewMember kerbal)
@@ -74,7 +74,7 @@ namespace KerbalColonies.colonyFacilities
         private KCCrewQuartersWindow crewQuartersWindow;
 
         /// <summary>
-        /// Adds the kerbal to this crew quarrter or moves it from another crew quarter over to this one if the kerbal is already assigned to a crew quarter in this Colony
+        /// Adds the member to this crew quarrter or moves it from another crew quarter over to this one if the member is already assigned to a crew quarter in this Colony
         /// </summary>
         /// <param name="kerbal"></param>
         public override void AddKerbal(ProtoCrewMember kerbal)
@@ -94,19 +94,22 @@ namespace KerbalColonies.colonyFacilities
         }
 
         /// <summary>
-        /// Removes the kerbal from the crew quarters and all other facilities that the kerbal is assigned to
+        /// Removes the member from the crew quarters and all other facilities that the member is assigned to
         /// </summary>
-        public override void RemoveKerbal(ProtoCrewMember kerbal)
+        public override void RemoveKerbal(ProtoCrewMember member)
         {
-            if (kerbals.ContainsKey(kerbal))
+            if (kerbals.Any(k => k.Key.name == member.name))
             {
-                KCKerbalFacilityBase.findKerbal(Colony, kerbal).Where(x => !(x is KCCrewQuarters)).ToList().ForEach(facility =>
+                KCKerbalFacilityBase.findKerbal(Colony, member).Where(x => !(x is KCCrewQuarters)).ToList().ForEach(facility =>
                 {
                     facility.Update();
-                    facility.RemoveKerbal(kerbal);
+                    facility.RemoveKerbal(member);
                 });
 
-                kerbals.Remove(kerbal);
+                foreach (ProtoCrewMember key in kerbals.Where(kv => kv.Key.name == member.name).Select(kv => kv.Key).ToList())
+                {
+                    kerbals.Remove(key);
+                };
             }
         }
 

@@ -76,9 +76,6 @@ namespace KerbalColonies
                     }
 
                     toVessel.RemoveCrew(member);
-
-                    member.rosterStatus = ProtoCrewMember.RosterStatus.Missing;
-                    member.SetTimeForRespawn(double.MaxValue / 2);
                     HighLogic.CurrentGame.CrewRoster.AddCrewMember(member);
 
                     toVessel.SpawnCrew();

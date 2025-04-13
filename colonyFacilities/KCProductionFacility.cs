@@ -39,7 +39,9 @@ namespace KerbalColonies.colonyFacilities
     {
         KCProductionWindow prdWindow;
 
-        private List<int> maxKerbalsPerLevel = new List<int> { 8, 12, 16 };
+        public List<float> baseProduction { get; private set; } = new List<float> { };
+        public List<float> experienceMultiplier { get; private set; } = new List<float> { };
+        public List<float> facilityLevelMultiplier { get; private set; } = new List<float> { };
 
         public double dailyProduction()
         {
@@ -47,27 +49,9 @@ namespace KerbalColonies.colonyFacilities
 
             foreach (ProtoCrewMember pcm in kerbals.Keys)
             {
-                production += (100 + 5 * (pcm.experienceLevel - 1)) * (1 + 0.05 * this.level);
+                production += (baseProduction[level] + experienceMultiplier[level] * (pcm.experienceLevel - 1)) * (1 + facilityLevelMultiplier[level] * this.level);
             }
             return production;
-        }
-
-        public override List<ProtoCrewMember> filterKerbals(List<ProtoCrewMember> kerbals)
-        {
-            return kerbals.Where(k => k.experienceTrait.Title == "Engineer").ToList();
-        }
-
-        public override int GetUpgradeTime(int level)
-        {
-            // 1 Kerbin day = 0.25 days
-            // 100 per day * 5 engineers = 500 per day
-            // 500 per day * 4 kerbin days = 500
-
-            // 1 Kerbin day = 0.25 days
-            // 100 per day * 5 engineers = 500 per day
-            // 500 per day * 2 kerbin days = 250
-            int[] buildTimes = { 500, 250, 250 };
-            return buildTimes[level];
         }
 
         public override void OnBuildingClicked()
@@ -75,14 +59,35 @@ namespace KerbalColonies.colonyFacilities
             prdWindow.Toggle();
         }
 
+        private void configNodeLoader(ConfigNode node)
+        {
+            ConfigNode levelNode = facilityInfo.facilityConfig.GetNode("level");
+            for (int i = 0; i <= maxLevel; i++)
+            {
+                ConfigNode iLevel = levelNode.GetNode(i.ToString());
+                if (iLevel.HasValue("baseProduction")) baseProduction.Add(float.Parse(iLevel.GetValue("baseProduction")));
+                else if (i > 0) baseProduction.Add(baseProduction[i - 1]);
+                else throw new MissingFieldException($"The facility {facilityInfo.name} (type: {facilityInfo.type}) has no baseProduction (at least for level 0).");
+
+                if (iLevel.HasValue("experienceMultiplier")) experienceMultiplier.Add(float.Parse(iLevel.GetValue("experienceMultiplier")));
+                else if (i > 0) experienceMultiplier.Add(experienceMultiplier[i - 1]);
+                else experienceMultiplier.Add(1);
+
+                if (iLevel.HasValue("facilityLevelMultiplier")) facilityLevelMultiplier.Add(float.Parse(iLevel.GetValue("facilityLevelMultiplier")));
+                else if (i > 0) facilityLevelMultiplier.Add(facilityLevelMultiplier[i - 1]);
+                else facilityLevelMultiplier.Add(1);
+            }
+        }
+
         public KCProductionFacility(colonyClass colony, KCFacilityInfoClass facilityInfo, ConfigNode node) : base(colony, facilityInfo, node)
         {
+            configNodeLoader(facilityInfo.facilityConfig);
             prdWindow = new KCProductionWindow(this);
         }
 
         public KCProductionFacility(colonyClass colony, KCFacilityInfoClass facilityInfo, bool enabled) : base(colony, facilityInfo, enabled)
         {
-            maxKerbalsPerLevel = new List<int> { 8, 12, 16 };
+            configNodeLoader(facilityInfo.facilityConfig);
             prdWindow = new KCProductionWindow(this);
         }
     }

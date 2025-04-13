@@ -59,7 +59,7 @@ namespace KerbalColonies
                 return;
             }
             instance = this;
-            //DontDestroyOnLoad(instance);
+            //DontDestroyOnLoad(KCInstance);
             draw = delegate { };
             openWindows = new List<Action>();
         }

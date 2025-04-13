@@ -58,7 +58,7 @@ namespace KerbalColonies
 
                 if (GUILayout.Button("X", UIMain.DeadButtonRed, GUILayout.Height(21)))
                 {
-                    //KerbalKonstructs.instance.saveObjects();
+                    //KerbalKonstructs.KCInstance.saveObjects();
                     this.Close();
                 }
             }
@@ -124,7 +124,7 @@ namespace KerbalColonies
 
                 if (GUILayout.Button("X", UIMain.DeadButtonRed, GUILayout.Height(21)))
                 {
-                    //KerbalKonstructs.instance.saveObjects();
+                    //KerbalKonstructs.KCInstance.saveObjects();
                     this.Close();
                 }
             }

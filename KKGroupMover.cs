@@ -1,30 +1,22 @@
-﻿using KerbalKonstructs.Core;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using UnityEngine;
-using KerbalKonstructs;
+﻿using KerbalColonies.colonyFacilities;
 using KerbalKonstructs.UI;
-using KodeUI;
-using KerbalColonies.colonyFacilities;
+using UnityEngine;
 
 namespace KerbalColonies
 {
-    public class  KCGroupEditor : GroupEditor
+    public class KCGroupEditor : GroupEditor
     {
-        protected static KCGroupEditor _instance = null;
-        public static KCGroupEditor instance
+        protected static KCGroupEditor _kcInstance = null;
+        public static KCGroupEditor KCInstance
         {
             get
             {
-                if (_instance == null)
+                if (_kcInstance == null)
                 {
-                    _instance = new KCGroupEditor();
+                    _kcInstance = new KCGroupEditor();
 
                 }
-                return _instance;
+                return _kcInstance;
             }
         }
 

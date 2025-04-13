@@ -102,12 +102,12 @@ namespace KerbalColonies.colonyFacilities
     {
         KCHangarFacilityWindow hangarWindow;
 
-        public double x;
-        public double y;
-        public double z;
-        public double Volume { get { return x * y * z; } }
+        public Dictionary<int, float> x { get; private set; } = new Dictionary<int, float> { };
+        public Dictionary<int, float> y { get; private set; } = new Dictionary<int, float> { };
+        public Dictionary<int, float> z { get; private set; } = new Dictionary<int, float> { };
+        public float Volume { get { return x[level] * y[level] * z[level]; } }
 
-        public int vesselCapacity;
+        public Dictionary<int, int> vesselCapacity { get; private set; } = new Dictionary<int, int> { };
 
         internal List<StoredVessel> storedVessels = new List<StoredVessel>();
 
@@ -126,13 +126,13 @@ namespace KerbalColonies.colonyFacilities
         // TODO: make it so the vessel oriantation doesn't matter, e.g. if the hangar has dimensions of 10, 5, 5 and a vessel with 4, 8, 4 (x, y, z in meters) it should work
         public bool CanStoreVessel(Vessel vessel)
         {
-            if (vesselCapacity <= storedVessels.Count)
+            if (vesselCapacity[level] <= storedVessels.Count)
             {
                 return false;
             }
 
             Vector3 vesselSize = vessel.vesselSize;
-            if (vesselSize.x > x || vesselSize.y > y || vesselSize.z > z)
+            if (vesselSize.x > x[level] || vesselSize.y > y[level] || vesselSize.z > z[level])
             {
                 return false;
             }
@@ -251,10 +251,6 @@ namespace KerbalColonies.colonyFacilities
         public override ConfigNode getConfigNode()
         {
             ConfigNode node = base.getConfigNode();
-            node.AddValue("x", x);
-            node.AddValue("y", y);
-            node.AddValue("z", z);
-            node.AddValue("capacity", vesselCapacity);
 
             foreach (StoredVessel vessel in storedVessels)
             {
@@ -275,12 +271,34 @@ namespace KerbalColonies.colonyFacilities
             hangarWindow.Toggle();
         }
 
+        private void configNodeLoader(ConfigNode node)
+        {
+            ConfigNode levelNode = facilityInfo.facilityConfig.GetNode("level");
+            for (int i = 0; i <= maxLevel; i++)
+            {
+                ConfigNode iLevel = levelNode.GetNode(i.ToString());
+
+                if (iLevel.HasValue("x")) x[i] =  float.Parse(iLevel.GetValue("x"));
+                else if (i > 0) x[i] = x[i - 1];
+                else throw new MissingFieldException($"The facility {facilityInfo.name} (type: {facilityInfo.type}) has no x value (at least for level 0).");
+
+                if (iLevel.HasValue("y")) y[i] = float.Parse(iLevel.GetValue("y"));
+                else if (i > 0) y[i] = y[i - 1];
+                else throw new MissingFieldException($"The facility {facilityInfo.name} (type: {facilityInfo.type}) has no y value (at least for level 0).");
+
+                if (iLevel.HasValue("z")) z[i] = float.Parse(iLevel.GetValue("z"));
+                else if (i > 0) z[i] = z[i - 1];
+                else throw new MissingFieldException($"The facility {facilityInfo.name} (type: {facilityInfo.type}) has no z value (at least for level 0).");
+
+                if (iLevel.HasValue("capacity")) vesselCapacity[i] = int.Parse(iLevel.GetValue("capacity"));
+                else if (i > 0) vesselCapacity[i] = vesselCapacity[i - 1];
+                else throw new MissingFieldException($"The facility {facilityInfo.name} (type: {facilityInfo.type}) has no capacity value (at least for level 0).");
+            }
+        }
+
         public KCHangarFacility(colonyClass colony, KCFacilityInfoClass facilityInfo, ConfigNode node) : base(colony, facilityInfo, node)
         {
-            x = double.Parse(node.GetValue("x"));
-            y = double.Parse(node.GetValue("y"));
-            z = double.Parse(node.GetValue("z"));
-            vesselCapacity = int.Parse(node.GetValue("capacity"));
+            configNodeLoader(facilityInfo.facilityConfig);
 
             storedVessels = new List<StoredVessel> { };
 
@@ -299,13 +317,8 @@ namespace KerbalColonies.colonyFacilities
 
         public KCHangarFacility(colonyClass colony, KCFacilityInfoClass facilityInfo, bool enabled) : base(colony, facilityInfo, enabled)
         {
+            configNodeLoader(facilityInfo.facilityConfig);
             hangarWindow = new KCHangarFacilityWindow(this);
-
-            x = 100;
-            y = 100;
-            z = 100;
-
-            vesselCapacity = 100;
         }
     }
 }

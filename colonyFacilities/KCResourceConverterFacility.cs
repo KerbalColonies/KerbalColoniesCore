@@ -287,14 +287,14 @@ namespace KerbalColonies.colonyFacilities
         };
 
         public ResourceConversionRate activeRecipe;
-        public int ISRUcount;
+        public Dictionary<int, int> ISRUcount { get; private set; } = new Dictionary<int, int> { };
         private KCResourceConverterWindow kCResourceConverterWindow;
 
         private void executeRecipt(ResourceConversionRate recipt, double dTime)
         {
             foreach (KeyValuePair<PartResourceDefinition, double> kvp in activeRecipe.InputResources)
             {
-                double remainingResource = kvp.Value * dTime * ISRUcount;
+                double remainingResource = kvp.Value * dTime * ISRUcount[level];
 
                 List<KCStorageFacility> facilitiesWithResource = KCStorageFacility.findFacilityWithResourceType(kvp.Key, Colony);
 
@@ -317,7 +317,7 @@ namespace KerbalColonies.colonyFacilities
 
             foreach (KeyValuePair<PartResourceDefinition, double> kvp in activeRecipe.OutputResources)
             {
-                double remainingResource = kvp.Value * dTime * ISRUcount;
+                double remainingResource = kvp.Value * dTime * ISRUcount[level];
 
                 List<KCStorageFacility> facilitiesWithResource = KCStorageFacility.findFacilityWithResourceType(kvp.Key, Colony);
 
@@ -343,7 +343,7 @@ namespace KerbalColonies.colonyFacilities
 
             foreach (KeyValuePair<PartResourceDefinition, double> kvp in activeRecipe.InputResources)
             {
-                double remainingResource = kvp.Value * dTime * ISRUcount;
+                double remainingResource = kvp.Value * dTime * ISRUcount[level];
 
                 List<KCStorageFacility> facilitiesWithResource = KCStorageFacility.findFacilityWithResourceType(kvp.Key, Colony);
 
@@ -367,7 +367,7 @@ namespace KerbalColonies.colonyFacilities
 
             foreach (KeyValuePair<PartResourceDefinition, double> kvp in activeRecipe.OutputResources)
             {
-                double remainingResource = kvp.Value * dTime * ISRUcount;
+                double remainingResource = kvp.Value * dTime * ISRUcount[level];
 
                 List<KCStorageFacility> facilitiesWithResource = KCStorageFacility.findFacilityWithResourceType(kvp.Key, Colony);
                 bool addResource = false;
@@ -394,24 +394,6 @@ namespace KerbalColonies.colonyFacilities
             }
 
             return canExecute;
-        }
-
-        public override List<ProtoCrewMember> filterKerbals(List<ProtoCrewMember> kerbals)
-        {
-            return kerbals.Where(k => k.experienceTrait.Title == "Engineer").ToList();
-        }
-
-        public override int GetUpgradeTime(int level)
-        {
-            // 1 Kerbin day = 0.25 days
-            // 100 per day * 5 engineers = 500 per day
-            // 500 per day * 4 kerbin days = 500
-
-            // 1 Kerbin day = 0.25 days
-            // 100 per day * 5 engineers = 500 per day
-            // 500 per day * 2 kerbin days = 250
-            int[] buildTimes = { 500, 500 };
-            return buildTimes[level];
         }
 
         public override void Update()
@@ -454,21 +436,32 @@ namespace KerbalColonies.colonyFacilities
             return "KC_CAB";
         }
 
+        private void configNodeLoader(ConfigNode node)
+        {
+            ConfigNode levelNode = facilityInfo.facilityConfig.GetNode("level");
+            for (int i = 0; i <= maxLevel; i++)
+            {
+                ConfigNode iLevel = levelNode.GetNode(i.ToString());
+                if (iLevel.HasValue("ISRUcount")) ISRUcount[level] = int.Parse(iLevel.GetValue("ISRUcount"));
+                else if (i > 0) ISRUcount = ISRUcount;
+                else throw new MissingFieldException($"The facility {facilityInfo.name} (type: {facilityInfo.type}) has no ISRUcount (at least for level 0).");
+            }
+        }
+
         public KCResourceConverterFacility(colonyClass colony, KCFacilityInfoClass facilityInfo, ConfigNode node) : base(colony, facilityInfo, node)
         {
+            configNodeLoader(facilityInfo.facilityConfig);
             kCResourceConverterWindow = new KCResourceConverterWindow(this);
 
             activeRecipe = conversionRates.First(recipt => recipt.Key.ReciptName == node.GetValue("recipt")).Key;
-            ISRUcount = new int[2] { 2, 4 }[level];
-
         }
 
         public KCResourceConverterFacility(colonyClass colony, KCFacilityInfoClass facilityInfo, bool enabled) : base(colony, facilityInfo, enabled)
         {
+            configNodeLoader(facilityInfo.facilityConfig);
             kCResourceConverterWindow = new KCResourceConverterWindow(this);
 
             this.activeRecipe = conversionRates.ElementAt(0).Key;
-            ISRUcount = new int[2] { 2, 4 }[level];
         }
     }
 }

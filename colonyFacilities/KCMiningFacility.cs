@@ -70,16 +70,10 @@ namespace KerbalColonies.colonyFacilities
         public double MaxOre { get { return maxOreList[level]; } }
         public double MaxMetalOre { get { return maxMetalOretList[level]; } }
 
-        private List<float> maxOreList = new List<float> { 10000f, 12000f };
-        private List<float> maxMetalOretList = new List<float> { 4000f, 5000f };
-        private List<float> OrePerDayperEngineer = new List<float> { 1000f, 1200f };
-        private List<float> MetalOrePerDayperEngineer = new List<float> { 400f, 500f };
-        private List<int> maxKerbalsPerLevel = new List<int> { 8, 12 };
-
-        public override List<ProtoCrewMember> filterKerbals(List<ProtoCrewMember> kerbals)
-        {
-            return kerbals.Where(k => k.experienceTrait.Title == "Engineer").ToList();
-        }
+        public Dictionary<int, float> maxOreList { get; private set; } = new Dictionary<int, float> { };
+        public Dictionary<int, float> maxMetalOretList { get; private set; } = new Dictionary<int, float> { };
+        public Dictionary<int, float> OrePerDayperEngineer { get; private set; } = new Dictionary<int, float> { };
+        public Dictionary<int, float> MetalOrePerDayperEngineer { get; private set; } = new Dictionary<int, float> { };
 
         public override void Update()
         {
@@ -118,19 +112,6 @@ namespace KerbalColonies.colonyFacilities
             return true;
         }
 
-        public override int GetUpgradeTime(int level)
-        {
-            // 1 Kerbin day = 0.25 days
-            // 100 per day * 5 engineers = 500 per day
-            // 500 per day * 4 kerbin days = 500
-
-            // 1 Kerbin day = 0.25 days
-            // 100 per day * 5 engineers = 500 per day
-            // 500 per day * 2 kerbin days = 250
-            int[] buildTimes = { 500, 250 };
-            return buildTimes[level];
-        }
-
         public override ConfigNode getConfigNode()
         {
             ConfigNode node = new ConfigNode();
@@ -149,28 +130,44 @@ namespace KerbalColonies.colonyFacilities
             return "KC_CAB";
         }
 
+        private void configNodeLoader(ConfigNode node)
+        {
+            ConfigNode levelNode = facilityInfo.facilityConfig.GetNode("level");
+            for (int i = 0; i <= maxLevel; i++)
+            {
+                ConfigNode iLevel = levelNode.GetNode(i.ToString());
+
+                if (iLevel.HasValue("maxOre")) maxOreList[i] = int.Parse(iLevel.GetValue("maxOre"));
+                else if (i > 0) maxOreList[i] = maxOreList[i - 1];
+                else throw new MissingFieldException($"The facility {facilityInfo.name} (type: {facilityInfo.type}) has no maxOre (at least for level 0).");
+
+                if (iLevel.HasValue("maxMetalOre")) maxMetalOretList[i] = int.Parse(iLevel.GetValue("maxMetalOre"));
+                else if (i > 0) maxMetalOretList[i] = maxMetalOretList[i - 1];
+                else throw new MissingFieldException($"The facility {facilityInfo.name} (type: {facilityInfo.type}) has no maxMetalOre (at least for level 0).");
+
+                if (iLevel.HasValue("oreRate")) OrePerDayperEngineer[i] = float.Parse(iLevel.GetValue("oreRate"));
+                else if (i > 0) OrePerDayperEngineer[i] = OrePerDayperEngineer[i - 1];
+                else throw new MissingFieldException($"The facility {facilityInfo.name} (type: {facilityInfo.type}) has no oreRate (at least for level 0).");
+
+                if (iLevel.HasValue("metalOreRate")) MetalOrePerDayperEngineer[i] = float.Parse(iLevel.GetValue("metalOreRate"));
+                else if (i > 0) MetalOrePerDayperEngineer[i] = MetalOrePerDayperEngineer[i - 1];
+                else throw new MissingFieldException($"The facility {facilityInfo.name} (type: {facilityInfo.type}) has no metalOreRate (at least for level 0).");
+            }
+        }
+
         public KCMiningFacility(colonyClass colony, KCFacilityInfoClass facilityInfo, ConfigNode node) : base(colony, facilityInfo, node)
         {
+            configNodeLoader(facilityInfo.facilityConfig);
+
             ore = double.Parse(node.GetValue("ore"));
             metalOre = double.Parse(node.GetValue("metalOre"));
             miningFacilityWindow = new KCMiningFacilityWindow(this);
-
-            maxOreList = new List<float> { 2000f, 4000f };
-            maxMetalOretList = new List<float> { 400f, 800f };
-            OrePerDayperEngineer = new List<float> { 200f, 400f };
-            MetalOrePerDayperEngineer = new List<float> { 40f, 80f };
-            maxKerbalsPerLevel = new List<int> { 8, 12 };
         }
 
         public KCMiningFacility(colonyClass colony, KCFacilityInfoClass facilityInfo, bool enabled) : base(colony, facilityInfo, enabled)
         {
+            configNodeLoader(facilityInfo.facilityConfig);
             miningFacilityWindow = new KCMiningFacilityWindow(this);
-
-            maxOreList = new List<float> { 2000f, 4000f };
-            maxMetalOretList = new List<float> { 400f, 800f };
-            OrePerDayperEngineer = new List<float> { 200f, 400f };
-            MetalOrePerDayperEngineer = new List<float> { 40f, 80f };
-            maxKerbalsPerLevel = new List<int> { 8, 12 };
 
             ore = 0;
             metalOre = 0;

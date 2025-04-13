@@ -75,14 +75,9 @@ namespace KerbalColonies.colonyFacilities
         public float MaxSciencePoints { get { return maxSciencePointList[level]; } }
         public float SciencePoints { get { return sciencePoints; } }
 
-        private List<float> maxSciencePointList = new List<float> { 50, 100, 200, 400 };
-        private List<float> researchpointsPerDayperResearcher = new List<float> { 0.25f, 0.3f, 0.35f, 0.4f };
-        private List<int> maxKerbalsPerLevel = new List<int> { 4, 6, 8, 12 };
-
-        public override List<ProtoCrewMember> filterKerbals(List<ProtoCrewMember> kerbals)
-        {
-            return kerbals.Where(k => k.experienceTrait.Title == "Scientist").ToList();
-        }
+        private List<float> maxSciencePointList = new List<float> {  };
+        private List<float> researchpointsPerDayperResearcher = new List<float> { };
+        private List<int> maxKerbalsPerLevel = new List<int> { };
 
         public override void Update()
         {
@@ -133,7 +128,7 @@ namespace KerbalColonies.colonyFacilities
         public void configNodeLoader(ConfigNode node)
         {
             ConfigNode levelNode = node.GetNode("level");
-            for (int i = 0; i <= level; i++)
+            for (int i = 0; i <= maxLevel; i++)
             {
                 ConfigNode iLevel = levelNode.GetNode(i.ToString());
 
@@ -149,19 +144,17 @@ namespace KerbalColonies.colonyFacilities
 
         public KCResearchFacility(colonyClass colony, KCFacilityInfoClass facilityInfo, ConfigNode node) : base(colony, facilityInfo, node)
         {
+            configNodeLoader(facilityInfo.facilityConfig);
             sciencePoints = float.Parse(node.GetValue("sciencePoints"));
             this.researchFacilityWindow = new KCResearchFacilityWindow(this);
         }
 
         public KCResearchFacility(colonyClass colony, KCFacilityInfoClass facilityInfo, bool enabled) : base(colony, facilityInfo, enabled)
         {
+            configNodeLoader(facilityInfo.facilityConfig);
             sciencePoints = 0;
-
             this.researchFacilityWindow = new KCResearchFacilityWindow(this);
 
-            maxSciencePointList = new List<float> { 50, 100, 200, 400 };
-            researchpointsPerDayperResearcher = new List<float> { 0.25f, 0.3f, 0.35f, 0.4f };
-            maxKerbalsPerLevel = new List<int> { 4, 6, 8, 12 };
         }
     }
 }

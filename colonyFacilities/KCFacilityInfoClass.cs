@@ -57,10 +57,16 @@ namespace KerbalColonies.colonyFacilities
         /// <summary>
         /// currently unused
         /// </summary>
-        public Dictionary<int, double> electricity { get; private set; }
-        public Dictionary<int, double> funds { get; private set; }
-        public Dictionary<int, UpgradeType> upgradeTypes { get; private set; }
-        public Dictionary<int, string> basegroupNames { get; private set; }
+        public Dictionary<int, double> Electricity { get; private set; } = new Dictionary<int, double> { };
+        public Dictionary<int, double> Funds { get; private set; } = new Dictionary<int, double> { };
+        public Dictionary<int, UpgradeType> UpgradeTypes { get; private set; } = new Dictionary<int, UpgradeType> { };
+        public Dictionary<int, string> BasegroupNames { get; private set; } = new Dictionary<int, string> { };
+
+        // 1 Kerbin day = 0.25 days
+        // 100 per day * 5 engineers = 500 per day
+        // 500 per day * 4 kerbin days = 500
+        // 500 per day * 2 kerbin days = 250
+        public Dictionary<int, float> UpgradeTimes { get; private set; } = new Dictionary<int, float> { };
 
         /// <summary>
         /// Used for custom checks (e.g. if a specific facility already exists in the colony), returns true if the facility can be built or upgraded.
@@ -108,7 +114,7 @@ namespace KerbalColonies.colonyFacilities
 
             if (Funding.Instance != null)
             {
-                if (Funding.Instance.Funds < funds[level])
+                if (Funding.Instance.Funds < Funds[level])
                 {
                     return false;
                 }
@@ -150,7 +156,7 @@ namespace KerbalColonies.colonyFacilities
                 }
                 if (Funding.Instance != null)
                 {
-                    Funding.Instance.AddFunds(-funds[level], TransactionReasons.None);
+                    Funding.Instance.AddFunds(-Funds[level], TransactionReasons.None);
                 }
                 return true;
             }
@@ -166,20 +172,20 @@ namespace KerbalColonies.colonyFacilities
             displayName = node.GetValue("displayName");
 
             resourceCost = new Dictionary<int, Dictionary<PartResourceDefinition, double>>();
-            electricity = new Dictionary<int, double>();
-            funds = new Dictionary<int, double>();
-            upgradeTypes = new Dictionary<int, UpgradeType>();
-            basegroupNames = new Dictionary<int, string>();
+            Electricity = new Dictionary<int, double>();
+            Funds = new Dictionary<int, double>();
+            UpgradeTypes = new Dictionary<int, UpgradeType>();
+            BasegroupNames = new Dictionary<int, string>();
 
             ConfigNode levelNode = node.GetNode("level");
             levelNode.GetNodes().ToList().ForEach(n =>
             {
                 int level = int.Parse(n.name);
-                if (n.HasValue("upgradeType")) upgradeTypes.Add(level, (UpgradeType)Enum.Parse(typeof(UpgradeType), n.GetValue("upgradeType")));
-                else upgradeTypes.Add(level, UpgradeType.withoutGroupChange);
+                if (n.HasValue("upgradeType")) UpgradeTypes.Add(level, (UpgradeType)Enum.Parse(typeof(UpgradeType), n.GetValue("upgradeType")));
+                else UpgradeTypes.Add(level, UpgradeType.withoutGroupChange);
 
-                if (n.HasValue("basegroupName")) basegroupNames.Add(level, n.GetValue("basegroupName"));
-                else if (level != 0) basegroupNames.Add(level, basegroupNames[level - 1]);
+                if (n.HasValue("basegroupName")) BasegroupNames.Add(level, n.GetValue("basegroupName"));
+                else if (level != 0) BasegroupNames.Add(level, BasegroupNames[level - 1]);
                 else throw new MissingFieldException($"The facility {name} (type: {type}) has no basegroupName (at least for level 0).");
 
                 if (n.HasNode("resources"))
@@ -199,24 +205,14 @@ namespace KerbalColonies.colonyFacilities
                     resourceCost.Add(level, new Dictionary<PartResourceDefinition, double>());
                 }
 
-                if (n.HasValue("electricity"))
-                {
-                    electricity.Add(level, double.Parse(n.GetValue("electricity")));
-                }
-                else
-                {
-                    electricity.Add(level, 0);
-                }
+                if (n.HasValue("Electricity")) Electricity.Add(level, double.Parse(n.GetValue("Electricity")));
+                else Electricity.Add(level, 0);
 
-                if (n.HasValue("funds"))
-                {
-                    funds.Add(level, double.Parse(n.GetValue("funds")));
-                }
-                else
-                {
-                    funds.Add(level, 0);
-                }
+                if (n.HasValue("Funds")) Funds.Add(level, double.Parse(n.GetValue("Funds")));
+                else Funds.Add(level, 0);
 
+                if (n.HasValue("upgradeTime")) UpgradeTimes.Add(level, float.Parse(n.GetValue("upgradeTime")));
+                else UpgradeTimes.Add(level, 0);
             });
         }
     }

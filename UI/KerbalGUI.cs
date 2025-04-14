@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-namespace KerbalColonies
+namespace KerbalColonies.UI
 {
     public class KerbalSelectorGUI : KCWindowBase
     {
@@ -191,7 +191,7 @@ namespace KerbalColonies
             }
         }
 
-        internal KerbalSelectorGUI(KCKerbalFacilityBase fac, KerbalGUI kGUI, string fromName, string toName, Vessel fromVessel) : base(Configuration.createWindowID(fac), fac.name)
+        internal KerbalSelectorGUI(KCKerbalFacilityBase fac, KerbalGUI kGUI, string fromName, string toName, Vessel fromVessel) : base(Configuration.createWindowID(), fac.name)
         {
             this.fromFac = fac;
             toolRect = new Rect(100, 100, 500, 500);
@@ -206,7 +206,7 @@ namespace KerbalColonies
             this.toCapacity = fac.MaxKerbals;
         }
 
-        internal KerbalSelectorGUI(KCKerbalFacilityBase fac, KerbalGUI kGUI, colonyClass colony, string toName) : base(Configuration.createWindowID(fac), fac.name)
+        internal KerbalSelectorGUI(KCKerbalFacilityBase fac, KerbalGUI kGUI, colonyClass colony, string toName) : base(Configuration.createWindowID(), fac.name)
         {
             this.fromFac = fac;
             toolRect = new Rect(100, 100, 500, 500);

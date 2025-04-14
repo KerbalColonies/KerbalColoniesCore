@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using KerbalColonies.UI;
 
 namespace KerbalColonies.colonyFacilities
 {
@@ -29,7 +30,7 @@ namespace KerbalColonies.colonyFacilities
             }
         }
 
-        public KCCrewQuartersWindow(KCCrewQuarters CrewQuarterFacility) : base(Configuration.createWindowID(CrewQuarterFacility), "Crewquarters")
+        public KCCrewQuartersWindow(KCCrewQuarters CrewQuarterFacility) : base(Configuration.createWindowID(), "Crewquarters")
         {
             this.CrewQuarterFacility = CrewQuarterFacility;
             this.kerbalGUI = new KerbalGUI(CrewQuarterFacility, false);

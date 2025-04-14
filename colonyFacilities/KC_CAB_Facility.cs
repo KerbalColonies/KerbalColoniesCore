@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using KerbalColonies.UI;
 
 namespace KerbalColonies.colonyFacilities
 {
@@ -172,7 +173,7 @@ namespace KerbalColonies.colonyFacilities
         }
 
 
-        public KC_CAB_Window(KC_CAB_Facility facility) : base(Configuration.createWindowID(facility), facility.name)
+        public KC_CAB_Window(KC_CAB_Facility facility) : base(Configuration.createWindowID(), facility.name)
         {
             this.facility = facility;
             this.toolRect = new Rect(100, 100, 800, 1200);

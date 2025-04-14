@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using KerbalColonies.UI;
 
 // KC: Kerbal Colonies
 // This mod aimes to create a Colony system with Kerbal Konstructs statics
@@ -57,7 +58,7 @@ namespace KerbalColonies.colonyFacilities
             kerbalGUI.transferWindow = false;
         }
 
-        public KCResearchFacilityWindow(KCResearchFacility researchFacility) : base(Configuration.createWindowID(researchFacility), "Researchfacility")
+        public KCResearchFacilityWindow(KCResearchFacility researchFacility) : base(Configuration.createWindowID(), "Researchfacility")
         {
             this.researchFacility = researchFacility;
             toolRect = new Rect(100, 100, 400, 800);

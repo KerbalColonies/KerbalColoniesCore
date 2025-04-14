@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using KerbalColonies.UI;
 
 namespace KerbalColonies.colonyFacilities
 {
@@ -50,7 +51,7 @@ namespace KerbalColonies.colonyFacilities
         }
 
 
-        public KCMiningFacilityWindow(KCMiningFacility miningFacility) : base(Configuration.createWindowID(miningFacility), "Miningfacility")
+        public KCMiningFacilityWindow(KCMiningFacility miningFacility) : base(Configuration.createWindowID(), "Miningfacility")
         {
             this.miningFacility = miningFacility;
             toolRect = new Rect(100, 100, 400, 800);

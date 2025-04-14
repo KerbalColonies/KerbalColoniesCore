@@ -2,7 +2,7 @@
 using KerbalKonstructs.UI;
 using UnityEngine;
 
-namespace KerbalColonies
+namespace KerbalColonies.UI
 {
     public class KCGroupEditor : GroupEditor
     {

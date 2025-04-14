@@ -101,8 +101,8 @@ namespace KerbalColonies
                 MapDecalEditor.Instance.Close();
                 GroupEditor.instance.Close();
                 GroupEditor.selectedGroup = API.GetGroupCenter(ColonyBuilding.buildQueue.Peek().groupName);
-                KCGroupEditor.selectedFacility = ColonyBuilding.buildQueue.Peek().Facility;
-                KCGroupEditor.KCInstance.Open();
+                UI.KCGroupEditor.selectedFacility = ColonyBuilding.buildQueue.Peek().Facility;
+                UI.KCGroupEditor.KCInstance.Open();
 
                 KerbalKonstructs.API.RegisterOnGroupSaved(ColonyBuilding.PlaceNewGroupSave);
                 ColonyBuilding.buildQueue.Peek().Facility.KKgroups.Add(ColonyBuilding.buildQueue.Peek().groupName); // add the group to the facility groups

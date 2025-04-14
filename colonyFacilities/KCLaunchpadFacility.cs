@@ -1,7 +1,9 @@
-﻿using KerbalKonstructs;
+﻿using CommNet.Network;
+using KerbalKonstructs;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using KerbalColonies.UI;
 
 namespace KerbalColonies.colonyFacilities
 {
@@ -17,13 +19,16 @@ namespace KerbalColonies.colonyFacilities
                 {
                     KerbalKonstructs.Core.StaticInstance instance = KerbalKonstructs.API.getStaticInstanceByUUID(launchpad.launchSiteUUID);
 
-                    FlightGlobals.fetch.SetVesselPosition(FlightGlobals.GetBodyIndex(instance.launchSite.body), instance.launchSite.refLat, instance.launchSite.refLon, instance.launchSite.refAlt + FlightGlobals.ActiveVessel.vesselSize.y, FlightGlobals.ActiveVessel.ReferenceTransform.eulerAngles, true, easeToSurface: true, 0.1);
+                    PSystemSetup.SpaceCenterFacility s = instance.launchSite.spaceCenterFacility;
+                    s.GetSpawnPoint(instance.launchSite.LaunchSiteName).GetSpawnPointLatLonAlt(out double lat, out double lon, out double alt);
+
+                    FlightGlobals.fetch.SetVesselPosition(FlightGlobals.GetBodyIndex(instance.launchSite.body), lat, lon, alt + FlightGlobals.ActiveVessel.vesselSize.y, FlightGlobals.ActiveVessel.ReferenceTransform.eulerAngles, true, easeToSurface: true, 10);
                     FloatingOrigin.ResetTerrainShaderOffset();
                 }
             }
         }
 
-        public KCLaunchpadFacilityWindow(KCLaunchpadFacility launchpad) : base(Configuration.createWindowID(launchpad), "Launchpad")
+        public KCLaunchpadFacilityWindow(KCLaunchpadFacility launchpad) : base(Configuration.createWindowID(), "Launchpad")
         {
             toolRect = new Rect(100, 100, 400, 200);
             this.launchpad = launchpad;
@@ -35,6 +40,7 @@ namespace KerbalColonies.colonyFacilities
         KCLaunchpadFacilityWindow launchpadWindow;
 
         public string launchSiteUUID;
+        public KerbalKonstructs.Core.StaticInstance instance;
 
         public override void OnGroupPlaced()
         {
@@ -42,6 +48,7 @@ namespace KerbalColonies.colonyFacilities
             string uuid = GetUUIDbyFacility(this).Where(s => KerbalKonstructs.API.GetModelTitel(s) == KerbalKonstructs.API.GetModelTitel(baseInstance.UUID)).First();
 
             KerbalKonstructs.Core.StaticInstance targetInstance = KerbalKonstructs.API.getStaticInstanceByUUID(uuid);
+            instance = targetInstance;
             if (targetInstance.launchSite == null)
             {
                 targetInstance.launchSite = new KerbalKonstructs.Core.KKLaunchSite();
@@ -113,6 +120,7 @@ namespace KerbalColonies.colonyFacilities
             targetInstance.SaveConfig();
 
             launchSiteUUID = uuid;
+            instance = KerbalKonstructs.API.getStaticInstanceByUUID(launchSiteUUID);
         }
 
         public void LaunchVessel(ProtoVessel vessel)
@@ -146,7 +154,7 @@ namespace KerbalColonies.colonyFacilities
             InputLockManager.ClearControlLocks();
         }
 
-        public static List<KCLaunchpadFacility> getLaunchPadsInColony(colonyClass colony)
+        public static List<KCLaunchpadFacility> GetLaunchPadsInColony(colonyClass colony)
         {
             return colony.Facilities.Where(x => x is KCLaunchpadFacility).Select(x => (KCLaunchpadFacility)x).ToList();
         }
@@ -166,6 +174,7 @@ namespace KerbalColonies.colonyFacilities
         public KCLaunchpadFacility(colonyClass colony, KCFacilityInfoClass facilityInfo, ConfigNode node) : base(colony, facilityInfo, node)
         {
             launchSiteUUID = node.GetValue("launchSiteUUID");
+            instance = KerbalKonstructs.API.getStaticInstanceByUUID(launchSiteUUID);
             launchpadWindow = new KCLaunchpadFacilityWindow(this);
         }
 

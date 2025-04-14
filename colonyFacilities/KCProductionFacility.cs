@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using KerbalColonies.UI;
 
 namespace KerbalColonies.colonyFacilities
 {
@@ -26,7 +27,7 @@ namespace KerbalColonies.colonyFacilities
             GUILayout.EndVertical();
         }
 
-        public KCProductionWindow(KCProductionFacility facility) : base(Configuration.createWindowID(facility), "Production Facility")
+        public KCProductionWindow(KCProductionFacility facility) : base(Configuration.createWindowID(), "Production Facility")
         {
             this.facility = facility;
             this.kerbalGUI = null;

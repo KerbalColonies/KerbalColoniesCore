@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using KerbalColonies.UI;
 
 namespace KerbalColonies.colonyFacilities
 {
@@ -114,7 +115,7 @@ namespace KerbalColonies.colonyFacilities
             storageFacility.Update();
             //int maxVolume = (int)Math.Round(KCStorageFacility.maxVolume, 0);
             GUILayout.BeginHorizontal();
-            GUILayout.Label($"MaxVolume: {storageFacility.maxVolume}", LabelGreen, GUILayout.Height(18));
+            GUILayout.Label($"MaxVolume: {storageFacility.maxVolume[storageFacility.level]}", LabelGreen, GUILayout.Height(18));
             GUILayout.FlexibleSpace();
             GUILayout.Label($"UsedVolume: {storageFacility.getCurrentVolume()}", LabelGreen, GUILayout.Height(18));
             GUILayout.EndHorizontal();
@@ -212,7 +213,7 @@ namespace KerbalColonies.colonyFacilities
             GUILayout.Space(2);
         }
 
-        public KCStorageFacilityWindow(KCStorageFacility storageFacility) : base(Configuration.createWindowID(storageFacility), "Storagefacility")
+        public KCStorageFacilityWindow(KCStorageFacility storageFacility) : base(Configuration.createWindowID(), "Storagefacility")
         {
             this.storageFacility = storageFacility;
             GetVesselResources();
@@ -277,7 +278,7 @@ namespace KerbalColonies.colonyFacilities
 
         public Dictionary<PartResourceDefinition, double> resources;
 
-        public List<float> maxVolume { get; private set; } = new List<float> { };
+        public Dictionary<int, float> maxVolume { get; private set; } = new Dictionary<int, float> { };
         public double currentVolume
         {
             get
@@ -327,8 +328,6 @@ namespace KerbalColonies.colonyFacilities
         public override ConfigNode getConfigNode()
         {
             ConfigNode node = base.getConfigNode();
-
-            node.AddValue("maxVolume", maxVolume);
 
             ConfigNode resourceNode = new ConfigNode("resources");
             foreach (KeyValuePair<PartResourceDefinition, double> entry in resources)
@@ -380,7 +379,7 @@ namespace KerbalColonies.colonyFacilities
             StorageWindow.Toggle();
         }
 
-        public void configNodeLoader(ConfigNode node)
+        private void configNodeLoader(ConfigNode node)
         {
             ConfigNode levelNode = node.GetNode("level");
             for (int i = 0; i <= maxLevel; i++)

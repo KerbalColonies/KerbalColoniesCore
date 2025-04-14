@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using KerbalColonies.UI;
 
 namespace KerbalColonies.colonyFacilities
 {
@@ -64,7 +65,7 @@ namespace KerbalColonies.colonyFacilities
             GUILayout.EndScrollView();
         }
 
-        internal RecipeSelectorWindow(KCResourceConverterFacility resourceConverter) : base(Configuration.createWindowID(resourceConverter), "Recipe Selector")
+        internal RecipeSelectorWindow(KCResourceConverterFacility resourceConverter) : base(Configuration.createWindowID(), "Recipe Selector")
         {
             this.resourceConverter = resourceConverter;
             toolRect = new Rect(100, 100, 400, 800);
@@ -169,7 +170,7 @@ namespace KerbalColonies.colonyFacilities
             recipeSelector.Close();
         }
 
-        internal KCResourceConverterWindow(KCResourceConverterFacility resourceConverter) : base(Configuration.createWindowID(resourceConverter), "Resourceconverter")
+        internal KCResourceConverterWindow(KCResourceConverterFacility resourceConverter) : base(Configuration.createWindowID(), "Resourceconverter")
         {
             this.resourceConverter = resourceConverter;
             this.recipeSelector = new RecipeSelectorWindow(resourceConverter);

@@ -1,7 +1,9 @@
-﻿using System;
+﻿using KerbalKonstructs.Core;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using KerbalColonies.UI;
 
 // KC: Kerbal Colonies
 // This mod aimes to create a Colony system with Kerbal Konstructs statics
@@ -82,7 +84,7 @@ namespace KerbalColonies.colonyFacilities
             GUI.enabled = true;
         }
 
-        public KCHangarFacilityWindow(KCHangarFacility hangar) : base(Configuration.createWindowID(hangar), "Hangar")
+        public KCHangarFacilityWindow(KCHangarFacility hangar) : base(Configuration.createWindowID(), "Hangar")
         {
             this.hangar = hangar;
             toolRect = new Rect(100, 100, 400, 800);
@@ -153,6 +155,7 @@ namespace KerbalColonies.colonyFacilities
 
         public bool StoreVessel(Vessel vessel)
         {
+
             if (CanStoreVessel(vessel))
             {
                 Vector3 vesselSize = vessel.vesselSize;
@@ -207,13 +210,6 @@ namespace KerbalColonies.colonyFacilities
                     vessel.protoVessel.Clean();
                 }
 
-                List<KCLaunchpadFacility> facilities = KCLaunchpadFacility.getLaunchPadsInColony(Colony);
-
-                // TODO: the set space center cam doesn't work
-                if (facilities.Count > 0)
-                {
-                    KerbalKonstructs.Core.CameraController.SetSpaceCenterCam(KerbalKonstructs.API.getStaticInstanceByUUID(facilities[0].launchSiteUUID).launchSite);
-                }
                 KerbalKonstructs.KerbalKonstructs.instance.UpdateCache();
 
                 GamePersistence.SaveGame("persistent", HighLogic.SaveFolder, SaveMode.OVERWRITE);
@@ -238,7 +234,7 @@ namespace KerbalColonies.colonyFacilities
             protoVessel.Load(HighLogic.CurrentGame.flightState);
 
 
-            List<KCLaunchpadFacility> launchpads = KCLaunchpadFacility.getLaunchPadsInColony(Colony);
+            List<KCLaunchpadFacility> launchpads = KCLaunchpadFacility.GetLaunchPadsInColony(Colony);
             if (launchpads.Count > 0)
             {
                 storedVessels.Remove(storedVessel);

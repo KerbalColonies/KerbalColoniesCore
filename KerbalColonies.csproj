@@ -55,22 +55,32 @@
     <Compile Include="ConfigFacilityLoader.cs" />
     <Compile Include="Configuration.cs" />
     <Compile Include="KCPartModule.cs" />
-    <Compile Include="KCWindow.cs" />
-    <Compile Include="KCWindowManager.cs" />
-    <Compile Include="KerbalGUI.cs" />
-    <Compile Include="KKGroupMover.cs" />
+    <Compile Include="UI\KCWindow.cs" />
+    <Compile Include="UI\KCWindowManager.cs" />
+    <Compile Include="UI\KerbalGUI.cs" />
+    <Compile Include="UI\KCGroupEditor.cs" />
     <Compile Include="Main.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="KCUI.cs" />
+    <Compile Include="UI\KCUI.cs" />
     <Compile Include="FacilityTypeRegistry.cs" />
     <Compile Include="UIConfig.cs" />
+    <Compile Include="UI\OverviewWindow.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Reference Include="ClickThroughBlocker">
+      <HintPath>D:\KSP-Test\GameData\000_ClickThroughBlocker\Plugins\ClickThroughBlocker.dll</HintPath>
+    </Reference>
+    <Reference Include="CustomPreLaunchChecks">
+      <HintPath>D:\KSP-Test\GameData\CustomPreLaunchChecks\CustomPreLaunchChecks.dll</HintPath>
+    </Reference>
     <Reference Include="KerbalKonstructs">
       <HintPath>D:\KSP-Test\GameData\KerbalKonstructs\KerbalKonstructs.dll</HintPath>
     </Reference>
     <Reference Include="Launchpad">
       <HintPath>D:\KSP-Test\GameData\ExtraplanetaryLaunchpads\Plugins\Launchpad.dll</HintPath>
+    </Reference>
+    <Reference Include="ToolbarControl">
+      <HintPath>D:\KSP-Test\GameData\001_ToolbarControl\Plugins\ToolbarControl.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>

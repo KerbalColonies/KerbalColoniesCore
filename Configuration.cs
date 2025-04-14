@@ -52,18 +52,18 @@ namespace KerbalColonies
         }
 
 
-        internal static Dictionary<int, KCFacilityBase> windowIDs = new Dictionary<int, KCFacilityBase>();
+        internal static List<int> windowIDs { get; private set; } = new List<int> { }; // list of all window IDs
 
-        internal static int createWindowID(KCFacilityBase facility)
+        internal static int createWindowID()
         {
             System.Random random = new System.Random();
 
             while (true)
             {
                 int id = random.Next(0xCC00000, 0xCCFFFFF);
-                if (!windowIDs.ContainsKey(id))
+                if (!windowIDs.Contains(id))
                 {
-                    windowIDs.Add(id, facility);
+                    windowIDs.Add(id);
                     return id;
                 }
             }

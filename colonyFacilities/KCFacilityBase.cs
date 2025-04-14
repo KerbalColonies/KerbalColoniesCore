@@ -51,6 +51,13 @@ namespace KerbalColonies.colonyFacilities
         /// </summary>
         public virtual void OnBuildingClicked() { }
 
+        /// <summary>
+        /// This function gets called when the facility is clicked in the CAB window (if the CAB window was opened through the overview)
+        /// </summary>
+        public virtual void OnRemoteClicked() { }
+
+        public bool AllowRemote = true;
+
         internal static void OnBuildingClickedHandler(KerbalKonstructs.Core.StaticInstance instance)
         {
             if (Configuration.GroupFacilities.ContainsKey(instance.Group))

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using KerbalColonies.UI;
+using KerbalKonstructs.Modules;
 
 namespace KerbalColonies.colonyFacilities
 {
@@ -131,7 +132,7 @@ namespace KerbalColonies.colonyFacilities
                 GUILayout.BeginVertical();
                 GUILayout.Label($"{kvp.Key.displayName}: {kvp.Value}", GUILayout.Height(18));
 
-                if (FlightGlobals.ActiveVessel == null) { GUI.enabled = false; }
+                if (!storageFacility.Colony.CAB.PlayerInColony()) { GUI.enabled = false; }
                 GUILayout.BeginHorizontal();
                 foreach (int i in valueList)
                 {

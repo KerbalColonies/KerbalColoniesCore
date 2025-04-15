@@ -43,7 +43,7 @@
     <Compile Include="colonyFacilities\KCLaunchpadFacility.cs" />
     <Compile Include="colonyFacilities\KCProductionFacility.cs" />
     <Compile Include="colonyFacilities\KCFacilityBase.cs" />
-    <Compile Include="colonyFacilities\KCFacilityInfoClass.cs" />
+    <Compile Include="KCFacilityInfoClass.cs" />
     <Compile Include="colonyFacilities\KCHangarFacility.cs" />
     <Compile Include="colonyFacilities\KCKerbalFacilityBase.cs" />
     <Compile Include="colonyFacilities\KCCrewQuarters.cs" />
@@ -59,28 +59,31 @@
     <Compile Include="UI\KCWindowManager.cs" />
     <Compile Include="UI\KerbalGUI.cs" />
     <Compile Include="UI\KCGroupEditor.cs" />
-    <Compile Include="Main.cs" />
+    <Compile Include="KerbalColonies.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="UI\KCUI.cs" />
     <Compile Include="FacilityTypeRegistry.cs" />
     <Compile Include="UIConfig.cs" />
     <Compile Include="UI\OverviewWindow.cs" />
+    <Compile Include="UI\ToolbarRegistration.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="ClickThroughBlocker">
       <HintPath>D:\KSP-Test\GameData\000_ClickThroughBlocker\Plugins\ClickThroughBlocker.dll</HintPath>
+      <Private>False</Private>
     </Reference>
-    <Reference Include="CustomPreLaunchChecks">
-      <HintPath>D:\KSP-Test\GameData\CustomPreLaunchChecks\CustomPreLaunchChecks.dll</HintPath>
-    </Reference>
-    <Reference Include="KerbalKonstructs">
-      <HintPath>D:\KSP-Test\GameData\KerbalKonstructs\KerbalKonstructs.dll</HintPath>
+    <Reference Include="KerbalKonstructs, Version=2.0.0.0, Culture=neutral, processorArchitecture=AMD64">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\Kerbal-Konstructs\GameData\KerbalKonstructs\KerbalKonstructs.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="Launchpad">
       <HintPath>D:\KSP-Test\GameData\ExtraplanetaryLaunchpads\Plugins\Launchpad.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="ToolbarControl">
       <HintPath>D:\KSP-Test\GameData\001_ToolbarControl\Plugins\ToolbarControl.dll</HintPath>
+      <Private>False</Private>
     </Reference>
   </ItemGroup>
   <ItemGroup>

@@ -106,7 +106,7 @@ namespace KerbalColonies
         internal static Type CrewQuarterType { get { return crewQuarterType; } set { if (typeof(KCCrewQuarters).IsAssignableFrom(value)) { crewQuarterType = value; } } }
 
 
-        internal static float spawnHeight = -5;                  // The height the active vessel should be set above the surface, this is done to prevent the vessel getting destroyed by the statics
+        internal static float spawnHeight = 5;                  // The height the active vessel should be set above the surface, this is done to prevent the vessel getting destroyed by the statics
         internal static int maxColoniesPerBody = 3;              // Limits the amount of colonies per celestial body (planet/moon)
                                                                  // set it to zero to disable the limit
         internal static int oreRequiredPerColony = 1000;     // The required amount of ore to start a Colony
@@ -163,6 +163,11 @@ namespace KerbalColonies
         /// This dictionary contains all of the colonies in the current savegame
         /// </summary>
         internal static Dictionary<int, List<colonyClass>> colonyDictionary = new Dictionary<int, List<colonyClass>> { };
+
+        public static int GetBodyIndex(colonyClass colony)
+        {
+            return colonyDictionary.FirstOrDefault(c => c.Value.Contains(colony)).Key;
+        }
 
         /// <summary>
         /// This dictionary contains all of the facilties attached to a specific KK group. Used for the on click event of the KK statics

@@ -1,10 +1,9 @@
 ﻿using KerbalColonies.colonyFacilities;
-using KerbalColonies;
-using System.Collections.Generic;
-using UnityEngine;
+using KerbalColonies.UI;
+using KSP.UI.Screens;
 using System.Linq;
-using CommNet.Network;
-using KerbalKonstructs.Modules;
+using ToolbarControl_NS;
+using UnityEngine;
 
 // KC: Kerbal Colonies
 // This mod aimes to create a Colony system with Kerbal Konstructs statics
@@ -32,6 +31,8 @@ namespace KerbalColonies
         bool despawned = false;
         int waitCounter = 0;
 
+        internal static ToolbarControl toolbarControl;
+
         protected void Awake()
         {
             KSPLog.print("KC awake");
@@ -58,6 +59,17 @@ namespace KerbalColonies
         protected void Start()
         {
             KSPLog.print("KC start");
+            toolbarControl = gameObject.AddComponent<ToolbarControl>();
+            toolbarControl.AddToAllToolbars(
+                OverviewWindow.ToggleWindow,
+                OverviewWindow.ToggleWindow,
+                ApplicationLauncher.AppScenes.ALWAYS,
+                "KerbalColonies_NS",
+                "KerbalColoniesButton",
+                "KerbalColonies/KC",
+                "KerbalColonies/KC",
+                toolTip: "Kerbal Colonies overview"
+            );
         }
 
         public void FixedUpdate()
@@ -121,6 +133,9 @@ namespace KerbalColonies
 
         protected void OnDestroy()
         {
+            toolbarControl.OnDestroy();
+            Destroy(toolbarControl);
+
             Configuration.KCgroups.SelectMany(x => x.Value.Values.SelectMany(y => y)).ToList()
                 .ForEach(x => KerbalKonstructs.API.GetGroupStatics(x).ForEach(uuid => KerbalKonstructs.API.ActivateStatic(uuid.UUID)));
 

@@ -124,7 +124,7 @@ namespace KerbalColonies
 
             int colonyCount = Configuration.colonyDictionary[FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody)].Count;
 
-            if (colonyCount > Configuration.maxColoniesPerBody)
+            if (colonyCount >= Configuration.maxColoniesPerBody)
             {
                 return false;
             }

@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using KerbalColonies.colonyFacilities;
 
-namespace KerbalColonies.colonyFacilities
+namespace KerbalColonies
 {
     /// <summary>
     /// A class that's used to check and remove ressources from an vessel or other places. Currently only vessels are supported
@@ -88,7 +89,7 @@ namespace KerbalColonies.colonyFacilities
                 double vesselAmount = 0;
                 double colonyAmount = KCStorageFacility.colonyResources(resource.Key, colony);
 
-                if (FlightGlobals.ActiveVessel != null)
+                if (colony.CAB.PlayerInColony())
                 {
                     FlightGlobals.ActiveVessel.GetConnectedResourceTotals(resource.Key.id, out double amount, out double maxAmount);
                     if (amount >= resource.Value)
@@ -133,7 +134,7 @@ namespace KerbalColonies.colonyFacilities
 
                     double vesselAmount = 0;
                     double colonyAmount = KCStorageFacility.colonyResources(resource.Key, colony);
-                    if (FlightGlobals.ActiveVessel != null)
+                    if (colony.CAB.PlayerInColony())
                     {
                         FlightGlobals.ActiveVessel.GetConnectedResourceTotals(resource.Key.id, out double amount, out double maxAmount);
                         vesselAmount = amount;
@@ -145,7 +146,7 @@ namespace KerbalColonies.colonyFacilities
                     }
                     else
                     {
-                        if (FlightGlobals.ActiveVessel != null)
+                        if (colony.CAB.PlayerInColony())
                         {
                             FlightGlobals.ActiveVessel.RequestResource(FlightGlobals.ActiveVessel.rootPart, resource.Key.id, resource.Value, true);
                         }

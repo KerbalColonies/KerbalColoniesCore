@@ -1,8 +1,8 @@
-﻿using System;
+﻿using KerbalColonies.UI;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using KerbalColonies.UI;
 
 namespace KerbalColonies.colonyFacilities
 {
@@ -10,16 +10,21 @@ namespace KerbalColonies.colonyFacilities
     {
         private KC_CAB_Facility facility;
 
+        Vector2 scrollPosTypes = new Vector2();
+        Vector2 scrollPosFacilities = new Vector2();
+
+
         protected override void CustomWindow()
         {
             facility.Update();
 
-            GUILayout.BeginScrollView(new Vector2());
+            scrollPosTypes = GUILayout.BeginScrollView(scrollPosTypes);
             {
                 foreach (KCFacilityInfoClass t in Configuration.BuildableFacilities)
                 {
                     GUILayout.BeginHorizontal();
-                    GUILayout.Label(t.displayName);
+                    GUILayout.Label($"{t.displayName}\t");
+                    GUILayout.FlexibleSpace();
                     GUILayout.BeginVertical();
                     {
                         for (int i = 0; i < t.resourceCost[0].Count; i++)
@@ -28,6 +33,16 @@ namespace KerbalColonies.colonyFacilities
                         }
                     }
                     GUILayout.EndVertical();
+                    GUILayout.FlexibleSpace();
+                    GUILayout.BeginVertical();
+                    GUILayout.Label($"Funds: {(t.Funds.Count > 0 ? t.Funds[0] : 0)}");
+                    //GUILayout.Label($"Electricity: {t.Electricity}");
+                    GUILayout.Label($"Time: {t.UpgradeTimes[0]}");
+                    GUILayout.EndVertical();
+
+                    GUILayout.EndHorizontal();
+
+                    GUILayout.Space(10);
 
                     if (!t.checkResources(0, facility.Colony)) { GUI.enabled = false; }
 
@@ -38,26 +53,34 @@ namespace KerbalColonies.colonyFacilities
 
                         facility.AddconstructingFacility(KCFac);
                     }
+                    GUILayout.Space(20);
                     GUI.enabled = true;
-                    GUILayout.EndHorizontal();
                 }
+            }
+            GUILayout.EndScrollView();
+            scrollPosFacilities = GUILayout.BeginScrollView(scrollPosFacilities);
+            {
+
+                GUILayout.Space(40);
 
                 GUILayout.Label("Facilities in this Colony:");
 
                 GUILayout.BeginVertical();
 
-                facility.Colony.Facilities.Where(fac => 
-                    !facility.UpgradingFacilities.ContainsKey(fac) && 
-                    !facility.UpgradedFacilities.Contains(fac) && 
-                    !facility.ConstructingFacilities.ContainsKey(fac) && 
+                facility.Colony.Facilities.Where(fac =>
+                    !facility.UpgradingFacilities.ContainsKey(fac) &&
+                    !facility.UpgradedFacilities.Contains(fac) &&
+                    !facility.ConstructingFacilities.ContainsKey(fac) &&
                     !facility.ConstructedFacilities.Contains(fac)
                 ).ToList().ForEach(colonyFacility =>
                 {
                     GUILayout.BeginHorizontal();
 
                     GUILayout.Label(colonyFacility.displayName);
-                    GUILayout.Label(colonyFacility.level.ToString());
+                    GUILayout.Label($"Level: {colonyFacility.level.ToString()}");
                     GUILayout.Label(colonyFacility.GetFacilityProductionDisplay());
+
+                    GUILayout.EndHorizontal();
 
                     if (colonyFacility.upgradeable && colonyFacility.level < colonyFacility.maxLevel)
                     {
@@ -102,7 +125,6 @@ namespace KerbalColonies.colonyFacilities
                         GUI.enabled = true;
                         GUILayout.EndVertical();
                     }
-                    GUILayout.EndHorizontal();
                 });
 
                 GUILayout.Space(10);
@@ -124,7 +146,7 @@ namespace KerbalColonies.colonyFacilities
                 {
                     GUILayout.BeginHorizontal();
                     GUILayout.Label(newFacility.name);
-                    if (FlightGlobals.ActiveVessel == null) { GUI.enabled = false; }
+                    if (!facility.PlayerInColony()) { GUI.enabled = false; }
                     if (GUILayout.Button("Place"))
                     {
                         newFacility.enabled = true;
@@ -158,7 +180,7 @@ namespace KerbalColonies.colonyFacilities
                 {
                     GUILayout.Label(facilityUpgrade.name);
 
-                    if (FlightGlobals.ActiveVessel == null) { GUI.enabled = false; }
+                    if (!facility.PlayerInColony()) { GUI.enabled = false; }
                     if (GUILayout.Button("Place upgrade"))
                     {
                         KCFacilityBase.UpgradeFacilityWithAdditionalGroup(facilityUpgrade);
@@ -203,6 +225,17 @@ namespace KerbalColonies.colonyFacilities
             {
                 priorityDefaultFacilities.Add(facilityName, amount);
             }
+        }
+
+        public bool PlayerInColony()
+        {
+            if (FlightGlobals.ActiveVessel == null) return false;
+            string firstGroup = KKgroups[0];
+            KerbalKonstructs.Core.StaticInstance staticInstance = KerbalKonstructs.API.GetGroupStatics(firstGroup, FlightGlobals.Bodies.First(b => FlightGlobals.GetBodyIndex(b) == Configuration.GetBodyIndex(Colony)).name).FirstOrDefault();
+            GameObject gameObject = KerbalKonstructs.API.GetGameObject(staticInstance.UUID);
+            Vector3 staticPosition = gameObject.transform.position;
+            float distance = Vector3.Distance(staticPosition, FlightGlobals.ship_position);
+            return distance < 1000 ? true : false;
         }
 
         private KC_CAB_Window window;
@@ -377,6 +410,11 @@ namespace KerbalColonies.colonyFacilities
         }
 
         public override void OnBuildingClicked()
+        {
+            window.Toggle();
+        }
+
+        public override void OnRemoteClicked()
         {
             window.Toggle();
         }

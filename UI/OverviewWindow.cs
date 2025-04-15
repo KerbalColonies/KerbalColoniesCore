@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
+using KerbalColonies;
 
 namespace KerbalColonies.UI
 {
@@ -58,9 +59,37 @@ namespace KerbalColonies.UI
             GUILayout.EndScrollView();
         }
 
+        public static void ToggleWindow()
+        {
+            Instance.Toggle();
+        }
+
+        /// <summary>
+        /// Used for the toolbar button
+        /// </summary>
+        public static void OnTrue()
+        {
+            Instance.Open();
+        }
+
+        /// <summary>
+        /// Used for the toolbar button
+        /// </summary>
+        public static void OnFalse()
+        {
+            Instance.Close();
+        }
+
+        protected override void OnClose()
+        {
+            //KerbalColonies.toolbarControl.enabled = false;
+            //KerbalColonies.toolbarControl.Enabled = false;
+            //KerbalColonies.toolbarControl.buttonActive = false;
+        }
+
         private OverviewWindow() : base(Configuration.createWindowID(), "Overview")
         {
-
+            toolRect = new Rect(100, 100, 330, 600);
         }
     }
 }

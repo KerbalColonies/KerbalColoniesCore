@@ -27,11 +27,20 @@ namespace KerbalColonies.colonyFacilities
             GUILayout.EndVertical();
         }
 
+        protected override void OnClose()
+        {
+            if (kerbalGUI != null && kerbalGUI.ksg != null)
+            {
+                kerbalGUI.ksg.Close();
+                kerbalGUI.transferWindow = false;
+            }
+        }
+
         public KCProductionWindow(KCProductionFacility facility) : base(Configuration.createWindowID(), "Production Facility")
         {
             this.facility = facility;
             this.kerbalGUI = null;
-            toolRect = new Rect(100, 100, 400, 800);
+            toolRect = new Rect(100, 100, 400, 600);
 
         }
     }
@@ -56,6 +65,11 @@ namespace KerbalColonies.colonyFacilities
         }
 
         public override void OnBuildingClicked()
+        {
+            prdWindow.Toggle();
+        }
+
+        public override void OnRemoteClicked()
         {
             prdWindow.Toggle();
         }

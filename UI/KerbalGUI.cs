@@ -281,7 +281,7 @@ namespace KerbalColonies.UI
                         GUILayout.Label(pcm.displayName, LabelInfo);
                         GUILayout.Label(pcm.trait, LabelInfo);
                         GUILayout.Label(pcm.gender.ToString(), LabelInfo);
-                        GUILayout.Label($"Experiencelevel: {pcm.experienceLevel}", LabelInfo);
+                        GUILayout.Label($"Level: {pcm.experienceLevel}", LabelInfo);
                         GUILayout.EndVertical();
 
                         GUILayout.EndHorizontal();
@@ -310,7 +310,7 @@ namespace KerbalColonies.UI
 
                 if (ksg != null)
                 {
-                    if (ksg.mode == KerbalSelectorGUI.SwitchModes.ActiveVessel && FlightGlobals.ActiveVessel == null) { GUI.enabled = false; }
+                    if (ksg.mode == KerbalSelectorGUI.SwitchModes.ActiveVessel && !fac.Colony.CAB.PlayerInColony) { GUI.enabled = false; }
                     GUILayout.BeginHorizontal();
                     {
                         if (GUILayout.Button("Assign/Retrive Kerbals", GUILayout.Height(23)))

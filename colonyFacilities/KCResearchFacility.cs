@@ -54,8 +54,11 @@ namespace KerbalColonies.colonyFacilities
 
         protected override void OnClose()
         {
-            kerbalGUI.ksg.Close();
-            kerbalGUI.transferWindow = false;
+            if (kerbalGUI != null && kerbalGUI.ksg != null)
+            {
+                kerbalGUI.ksg.Close();
+                kerbalGUI.transferWindow = false;
+            }
         }
 
         public KCResearchFacilityWindow(KCResearchFacility researchFacility) : base(Configuration.createWindowID(), "Researchfacility")
@@ -90,16 +93,12 @@ namespace KerbalColonies.colonyFacilities
 
         public override void OnBuildingClicked()
         {
-            if (researchFacilityWindow.IsOpen())
-            {
-                researchFacilityWindow.Close();
-                researchFacilityWindow.kerbalGUI.ksg.Close();
-                researchFacilityWindow.kerbalGUI.transferWindow = false;
-            }
-            else
-            {
-                researchFacilityWindow.Open();
-            }
+            researchFacilityWindow.Toggle();
+        }
+
+        public override void OnRemoteClicked()
+        {
+            researchFacilityWindow.Toggle();
         }
 
         public bool RetrieveSciencePoints()

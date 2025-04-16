@@ -63,7 +63,7 @@ namespace KerbalColonies.colonyFacilities
             GUILayout.EndVertical();
             GUILayout.EndScrollView();
 
-            if (FlightGlobals.ActiveVessel != null)
+            if (hangar.Colony.CAB.PlayerInColony)
             {
                 GUILayout.Space(10);
                 if (hangar.CanStoreVessel(FlightGlobals.ActiveVessel))
@@ -263,6 +263,11 @@ namespace KerbalColonies.colonyFacilities
         }
 
         public override void OnBuildingClicked()
+        {
+            hangarWindow.Toggle();
+        }
+
+        public override void OnRemoteClicked()
         {
             hangarWindow.Toggle();
         }

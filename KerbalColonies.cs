@@ -72,7 +72,7 @@ namespace KerbalColonies
             );
         }
 
-        public void FixedUpdate()
+        public void Update()
         {
             if (Planetarium.GetUniversalTime() - lastTime >= 10)
             {

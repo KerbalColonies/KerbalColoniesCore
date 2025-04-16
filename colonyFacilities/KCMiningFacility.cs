@@ -46,8 +46,11 @@ namespace KerbalColonies.colonyFacilities
 
         protected override void OnClose()
         {
-            kerbalGUI.ksg.Close();
-            kerbalGUI.transferWindow = false;
+            if (kerbalGUI != null && kerbalGUI.ksg != null)
+            {
+                kerbalGUI.ksg.Close();
+                kerbalGUI.transferWindow = false;
+            }
         }
 
 
@@ -87,16 +90,12 @@ namespace KerbalColonies.colonyFacilities
 
         public override void OnBuildingClicked()
         {
-            if (miningFacilityWindow.IsOpen())
-            {
-                miningFacilityWindow.Close();
-                miningFacilityWindow.kerbalGUI.ksg.Close();
-                miningFacilityWindow.kerbalGUI.transferWindow = false;
-            }
-            else
-            {
-                miningFacilityWindow.Open();
-            }
+            miningFacilityWindow.Toggle();
+        }
+
+        public override void OnRemoteClicked()
+        {
+            miningFacilityWindow.Toggle();
         }
 
         public bool RetrieveResources()

@@ -89,28 +89,17 @@ namespace KerbalColonies
                 double vesselAmount = 0;
                 double colonyAmount = KCStorageFacility.colonyResources(resource.Key, colony);
 
-                if (colony.CAB.PlayerInColony())
+                if (colony.CAB.PlayerInColony)
                 {
                     FlightGlobals.ActiveVessel.GetConnectedResourceTotals(resource.Key.id, out double amount, out double maxAmount);
-                    if (amount >= resource.Value)
-                    {
-                        continue;
-                    }
+
                     vesselAmount = amount;
                 }
 
-                else if (resource.Value <= colonyAmount)
-                {
-                    continue;
-                }
-
-                else
-                {
-                    if (vesselAmount + colonyAmount < resource.Value)
-                    {
-                        return false;
-                    }
-                }
+                if (vesselAmount >= resource.Value) continue;
+                else if (colonyAmount >= resource.Value) continue;
+                else if (vesselAmount + colonyAmount >= resource.Value) continue;
+                else return false;
             }
 
             if (Funding.Instance != null)
@@ -134,7 +123,7 @@ namespace KerbalColonies
 
                     double vesselAmount = 0;
                     double colonyAmount = KCStorageFacility.colonyResources(resource.Key, colony);
-                    if (colony.CAB.PlayerInColony())
+                    if (colony.CAB.PlayerInColony)
                     {
                         FlightGlobals.ActiveVessel.GetConnectedResourceTotals(resource.Key.id, out double amount, out double maxAmount);
                         vesselAmount = amount;
@@ -146,9 +135,9 @@ namespace KerbalColonies
                     }
                     else
                     {
-                        if (colony.CAB.PlayerInColony())
+                        if (colony.CAB.PlayerInColony)
                         {
-                            FlightGlobals.ActiveVessel.RequestResource(FlightGlobals.ActiveVessel.rootPart, resource.Key.id, resource.Value, true);
+                            FlightGlobals.ActiveVessel.RequestResource(FlightGlobals.ActiveVessel.rootPart, resource.Key.id, vesselAmount, true);
                         }
                         remainingAmount -= vesselAmount;
 

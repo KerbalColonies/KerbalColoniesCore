@@ -13,7 +13,7 @@ namespace KerbalColonies.colonyFacilities
 
         protected override void CustomWindow()
         {
-            if (FlightGlobals.ActiveVessel != null)
+            if (launchpad.Colony.CAB.PlayerInColony)
             {
                 if (GUILayout.Button("Teleport to Launchpad"))
                 {
@@ -22,7 +22,7 @@ namespace KerbalColonies.colonyFacilities
                     PSystemSetup.SpaceCenterFacility s = instance.launchSite.spaceCenterFacility;
                     s.GetSpawnPoint(instance.launchSite.LaunchSiteName).GetSpawnPointLatLonAlt(out double lat, out double lon, out double alt);
 
-                    FlightGlobals.fetch.SetVesselPosition(FlightGlobals.GetBodyIndex(instance.launchSite.body), lat, lon, alt + FlightGlobals.ActiveVessel.vesselSize.y, FlightGlobals.ActiveVessel.ReferenceTransform.eulerAngles, true, easeToSurface: true, 10);
+                    FlightGlobals.fetch.SetVesselPosition(FlightGlobals.GetBodyIndex(instance.launchSite.body), lat, lon, alt + FlightGlobals.ActiveVessel.vesselSize.y, FlightGlobals.ActiveVessel.ReferenceTransform.eulerAngles, false, easeToSurface: true, 0.01);
                     FloatingOrigin.ResetTerrainShaderOffset();
                 }
             }
@@ -169,6 +169,12 @@ namespace KerbalColonies.colonyFacilities
         public override void OnBuildingClicked()
         {
             launchpadWindow.Toggle();
+        }
+
+        public override void OnRemoteClicked()
+        {
+            if (Colony.CAB.PlayerInColony) launchpadWindow.Toggle();
+            else launchpadWindow.Close();
         }
 
         public KCLaunchpadFacility(colonyClass colony, KCFacilityInfoClass facilityInfo, ConfigNode node) : base(colony, facilityInfo, node)

@@ -12,13 +12,9 @@ namespace KerbalColonies.colonyFacilities
 
         protected override void CustomWindow()
         {
-            GUILayout.Space(2);
-            GUILayout.BeginHorizontal();
-            GUI.enabled = true;
-
+            GUILayout.BeginVertical();
             kerbalGUI.StaffingInterface();
-
-            GUILayout.EndHorizontal();
+            GUILayout.EndVertical();
         }
 
         protected override void OnClose()
@@ -34,7 +30,7 @@ namespace KerbalColonies.colonyFacilities
         {
             this.CrewQuarterFacility = CrewQuarterFacility;
             this.kerbalGUI = new KerbalGUI(CrewQuarterFacility, false);
-            toolRect = new Rect(100, 100, 800, 1200);
+            toolRect = new Rect(100, 100, 400, 600);
         }
     }
 
@@ -122,20 +118,13 @@ namespace KerbalColonies.colonyFacilities
         public override void OnBuildingClicked()
         {
             if (crewQuartersWindow == null) crewQuartersWindow = new KCCrewQuartersWindow(this);
+            crewQuartersWindow.Toggle();
+        }
 
-            if (crewQuartersWindow.IsOpen())
-            {
-                crewQuartersWindow.Close();
-                if (FlightGlobals.ActiveVessel != null)
-                {
-                    crewQuartersWindow.kerbalGUI.ksg.Close();
-                    crewQuartersWindow.kerbalGUI.transferWindow = false;
-                }
-            }
-            else
-            {
-                crewQuartersWindow.Open();
-            }
+        public override void OnRemoteClicked()
+        {
+            if (crewQuartersWindow == null) crewQuartersWindow = new KCCrewQuartersWindow(this);
+            crewQuartersWindow.Toggle();
         }
 
         public KCCrewQuarters(colonyClass colony, KCFacilityInfoClass facilityInfo, ConfigNode node) : base(colony, facilityInfo, node)

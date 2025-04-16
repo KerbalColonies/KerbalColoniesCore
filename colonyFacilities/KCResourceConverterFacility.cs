@@ -168,6 +168,11 @@ namespace KerbalColonies.colonyFacilities
         protected override void OnClose()
         {
             recipeSelector.Close();
+            if (kerbalGUI != null && kerbalGUI.ksg != null)
+            {
+                kerbalGUI.ksg.Close();
+                kerbalGUI.transferWindow = false;
+            }
         }
 
         internal KCResourceConverterWindow(KCResourceConverterFacility resourceConverter) : base(Configuration.createWindowID(), "Resourceconverter")
@@ -420,6 +425,11 @@ namespace KerbalColonies.colonyFacilities
         }
 
         public override void OnBuildingClicked()
+        {
+            kCResourceConverterWindow.Toggle();
+        }
+
+        public override void OnRemoteClicked()
         {
             kCResourceConverterWindow.Toggle();
         }

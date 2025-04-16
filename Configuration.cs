@@ -111,7 +111,11 @@ namespace KerbalColonies
                                                                  // set it to zero to disable the limit
         internal static int oreRequiredPerColony = 1000;     // The required amount of ore to start a Colony
                                                              // It's planned to change this so different resources can be used
+#if DEBUG
         internal static bool enableLogging = true;            // Enable this only in debug purposes as it floods the logs very much
+#else
+        internal static bool enableLogging = false;           // Enable this only in debug purposes as it floods the logs very much
+#endif
 
         // this is the GAME confignode (the confignode from the save file)
         internal static ConfigNode gameNode = HighLogic.CurrentGame.config;

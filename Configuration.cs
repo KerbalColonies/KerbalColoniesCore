@@ -69,6 +69,19 @@ namespace KerbalColonies
             }
         }
 
+        private static List<KC_CABInfo> cabTypes = new List<KC_CABInfo>(); // The list of all available CAB types
+        public static List<KC_CABInfo> CabTypes { get { return cabTypes; } } // The list of all available CAB types
+
+        public static bool RegisterCabInfo(KC_CABInfo info)
+        {
+            if (!cabTypes.Any(c => c.name == info.name))
+            {
+                cabTypes.Add(info);
+                return true;
+            }
+            return false;
+        }
+
         /// <summary>
         /// Facilities that can be built from the CAB must be registered here during startup via the RegisterBuildableFacility method.
         /// </summary>
@@ -84,6 +97,11 @@ namespace KerbalColonies
                 return true;
             }
             return false;
+        }
+
+        public static KC_CABInfo GetCABInfoClass(string name)
+        {
+            return cabTypes.FirstOrDefault(c => c.name == name);
         }
 
         public static KCFacilityInfoClass GetInfoClass(string name)
@@ -187,25 +205,27 @@ namespace KerbalColonies
                 if (node.GetNodes().Length >= 0)
                 {
                     ConfigNode[] nodes = node.GetNodes();
-
-                    foreach (ConfigNode saveGame in nodes[0].GetNodes())
+                    if (nodes.Length > 0)
                     {
-                        if (!KCgroups.ContainsKey(saveGame.name))
+                        foreach (ConfigNode saveGame in nodes[0].GetNodes())
                         {
-                            KCgroups.Add(saveGame.name, new Dictionary<int, List<string>> { });
-
-                            foreach (ConfigNode bodyId in nodes[0].GetNode(saveGame.name).GetNodes())
+                            if (!KCgroups.ContainsKey(saveGame.name))
                             {
-                                if (!KCgroups[saveGame.name].ContainsKey(int.Parse(bodyId.name)))
-                                {
-                                    KCgroups[saveGame.name].Add(int.Parse(bodyId.name), new List<string> { });
-                                }
+                                KCgroups.Add(saveGame.name, new Dictionary<int, List<string>> { });
 
-                                foreach (ConfigNode group in nodes[0].GetNode(saveGame.name).GetNode(bodyId.name).GetNodes())
+                                foreach (ConfigNode bodyId in nodes[0].GetNode(saveGame.name).GetNodes())
                                 {
-                                    if (!KCgroups[saveGame.name][int.Parse(bodyId.name)].Contains(group.name))
+                                    if (!KCgroups[saveGame.name].ContainsKey(int.Parse(bodyId.name)))
                                     {
-                                        KCgroups[saveGame.name][int.Parse(bodyId.name)].Add(group.name);
+                                        KCgroups[saveGame.name].Add(int.Parse(bodyId.name), new List<string> { });
+                                    }
+
+                                    foreach (ConfigNode group in nodes[0].GetNode(saveGame.name).GetNode(bodyId.name).GetNodes())
+                                    {
+                                        if (!KCgroups[saveGame.name][int.Parse(bodyId.name)].Contains(group.name))
+                                        {
+                                            KCgroups[saveGame.name][int.Parse(bodyId.name)].Add(group.name);
+                                        }
                                     }
                                 }
                             }

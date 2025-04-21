@@ -36,10 +36,6 @@ namespace KerbalColonies
         protected void Awake()
         {
             KSPLog.print("KC awake");
-            KC_CAB_Facility.addPriorityDefaultFacility("launchpadFacility", 1);
-            KC_CAB_Facility.addDefaultFacility("storageFacility", 1);
-            KC_CAB_Facility.addDefaultFacility("crewQuarters", 1);
-            KC_CAB_Facility.addDefaultFacility("productionFacility", 1);
 
             KerbalKonstructs.API.RegisterOnStaticClicked(KCFacilityBase.OnBuildingClickedHandler);
         }

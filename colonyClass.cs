@@ -60,10 +60,10 @@ namespace KerbalColonies
             Facilities.ForEach(f => f.Update());
         }
 
-        public colonyClass(string name)
+        public colonyClass(string name, KC_CABInfo CABInfo)
         {
             Name = name;
-            CAB = new KC_CAB_Facility(this);
+            CAB = new KC_CAB_Facility(this, CABInfo);
             Facilities = new List<KCFacilityBase>();
             sharedColonyNodes = new List<ConfigNode>();
         }

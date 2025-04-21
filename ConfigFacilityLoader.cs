@@ -48,6 +48,9 @@ namespace KerbalColonies
 
         protected override void CustomWindow()
         {
+            if (Configuration.CabTypes.Count == 0) GUILayout.Label("No CAB Type was loaded which means this mod won't work.");
+            if (Configuration.BuildableFacilities.Count == 0) GUILayout.Label("No Buildable Facilities were loaded.");
+
             scrollPosition = GUILayout.BeginScrollView(scrollPosition);
             {
                 for (int i = 0; i < ConfigFacilityLoader.failedConfigs.Count; i++)
@@ -100,13 +103,15 @@ namespace KerbalColonies
             KCFacilityTypeRegistry.RegisterType<KCHangarFacility>();
             KCFacilityTypeRegistry.RegisterType<KCLaunchpadFacility>();
             KCFacilityTypeRegistry.RegisterType<KCCommNetFacility>();
+
+            KCFacilityTypeRegistry.RegisterFacilityInfo<KC_CAB_Facility, KC_CABInfo>();
         }
 
         protected void Start()
         {
             LoadFacilityConfigs();
 
-            if (FacilityConfigExceptionWindow.Instance != null)
+            if (FacilityConfigExceptionWindow.Instance != null && (failedConfigs.Count > 0 || Configuration.CabTypes.Count == 0))
             {
                 FacilityConfigExceptionWindow.Instance.Open();
             }
@@ -122,7 +127,10 @@ namespace KerbalColonies
                 {
                     try
                     {
-                        Configuration.RegisterBuildableFacility(new KCFacilityInfoClass(facilityNode));
+                        KCFacilityInfoClass facilityInfo = (KCFacilityInfoClass)Activator.CreateInstance(KCFacilityTypeRegistry.GetInfoType(KCFacilityTypeRegistry.GetType(facilityNode.GetValue("type"))), new object[] { facilityNode });
+                        
+                        if (!(facilityInfo is KC_CABInfo)) Configuration.RegisterBuildableFacility(facilityInfo);
+                        else Configuration.RegisterCabInfo(facilityInfo as KC_CABInfo);
                     }
                     catch (Exception e)
                     {

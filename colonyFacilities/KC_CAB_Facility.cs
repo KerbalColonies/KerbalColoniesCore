@@ -1,5 +1,4 @@
-﻿using CommNet.Network;
-using KerbalColonies.UI;
+﻿using KerbalColonies.UI;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,6 +6,58 @@ using UnityEngine;
 
 namespace KerbalColonies.colonyFacilities
 {
+    public class KC_CABInfo : KCFacilityInfoClass
+    {
+        /// <summary>
+        /// All of the default facilties that are queued to be placed after the cab is placed.
+        /// </summary>
+        public Dictionary<KCFacilityInfoClass, int> defaultFacilities = new Dictionary<KCFacilityInfoClass, int>();
+        /// <summary>
+        /// All of the default facilties that are queued to be placed before the cab is placed.
+        /// </summary>
+        public Dictionary<KCFacilityInfoClass, int> priorityDefaultFacilities = new Dictionary<KCFacilityInfoClass, int>();
+        public void addDefaultFacility(KCFacilityInfoClass facilityInfo, int amount)
+        {
+            if (!defaultFacilities.Any(c => facilityInfo.name == c.Key.name))
+            {
+                defaultFacilities.Add(facilityInfo, amount);
+            }
+        }
+        public void addPriorityDefaultFacility(KCFacilityInfoClass facilityInfo, int amount)
+        {
+            if (!priorityDefaultFacilities.Any(c => facilityInfo.name == c.Key.name))
+            {
+                priorityDefaultFacilities.Add(facilityInfo, amount);
+            }
+        }
+
+        public KC_CABInfo(ConfigNode node) : base(node)
+        {
+
+            if (node.HasNode("priorityDefaultFacilities"))
+            {
+                ConfigNode priorityNode = node.GetNode("priorityDefaultFacilities");
+                foreach (ConfigNode.Value v in priorityNode.values)
+                {
+                    KCFacilityInfoClass priorityInfo = Configuration.GetInfoClass(v.name);
+                    if (priorityInfo == null) throw new MissingFieldException($"The priority facility type {v.name} was not found");
+                    else addPriorityDefaultFacility(priorityInfo, int.Parse(v.value));
+                }
+            }
+
+            if (node.HasNode("defaultFacilities"))
+            {
+                ConfigNode defaultNode = node.GetNode("defaultFacilities");
+                foreach (ConfigNode.Value v in defaultNode.values)
+                {
+                    KCFacilityInfoClass defaultInfo = Configuration.GetInfoClass(v.name);
+                    if (defaultInfo == null) throw new MissingFieldException($"The default facility type {v.name} was not found");
+                    else addDefaultFacility(defaultInfo, int.Parse(v.value));
+                }
+            }
+        }
+    }
+
     internal class KC_CAB_Window : KCWindowBase
     {
         private KC_CAB_Facility facility;
@@ -113,7 +164,7 @@ namespace KerbalColonies.colonyFacilities
 
                             GUILayout.FlexibleSpace();
 
-                            if (!( facility.UpgradingFacilities.ContainsKey(colonyFacility)
+                            if (!(facility.UpgradingFacilities.ContainsKey(colonyFacility)
                                 || facility.UpgradedFacilities.Contains(colonyFacility)
                                 || facility.ConstructingFacilities.ContainsKey(colonyFacility)
                                 || facility.ConstructedFacilities.Contains(colonyFacility)
@@ -230,29 +281,6 @@ namespace KerbalColonies.colonyFacilities
 
     public class KC_CAB_Facility : KCFacilityBase
     {
-        /// <summary>
-        /// All of the default facilties that are queued to be placed after the cab is placed.
-        /// </summary>
-        public static Dictionary<string, int> defaultFacilities = new Dictionary<string, int>();
-        /// <summary>
-        /// All of the default facilties that are queued to be placed before the cab is placed.
-        /// </summary>
-        public static Dictionary<string, int> priorityDefaultFacilities = new Dictionary<string, int>();
-        public static void addDefaultFacility(string facilityName, int amount)
-        {
-            if (!defaultFacilities.ContainsKey(facilityName))
-            {
-                defaultFacilities.Add(facilityName, amount);
-            }
-        }
-        public static void addPriorityDefaultFacility(string facilityName, int amount)
-        {
-            if (!priorityDefaultFacilities.ContainsKey(facilityName))
-            {
-                priorityDefaultFacilities.Add(facilityName, amount);
-            }
-        }
-
         public bool PlayerInColony { get; private set; }
 
         private KC_CAB_Window window;
@@ -541,13 +569,10 @@ namespace KerbalColonies.colonyFacilities
             return node;
         }
 
-        public override string GetBaseGroupName(int level)
+        public KC_CAB_Facility(colonyClass colony, ConfigNode node) : base(Configuration.GetCABInfoClass(node.GetValue("name")), node)
         {
-            return "KC_CAB";
-        }
+            this.Colony = colony;
 
-        public KC_CAB_Facility(colonyClass colony, ConfigNode node) : base(colony, node, "KCCABFacility", "CAB")
-        {
             constructingFacilities = null;
             constructedFacilities = null;
             upgradingFacilities = null;
@@ -557,8 +582,10 @@ namespace KerbalColonies.colonyFacilities
             window = new KC_CAB_Window(this);
         }
 
-        public KC_CAB_Facility(colonyClass colony) : base(colony, "KCCABFacility", "CAB")
+        public KC_CAB_Facility(colonyClass colony, KC_CABInfo CABInfo) : base(CABInfo)
         {
+            this.Colony = colony;
+
             constructingFacilities = new Dictionary<KCFacilityBase, double>();
             constructedFacilities = new List<KCFacilityBase>();
             upgradingFacilities = new Dictionary<KCFacilityBase, double>();
@@ -568,3 +595,4 @@ namespace KerbalColonies.colonyFacilities
         }
     }
 }
+

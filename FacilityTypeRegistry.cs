@@ -22,7 +22,7 @@ using System.Linq;
 
 namespace KerbalColonies
 {
-    internal static class KCFacilityTypeRegistry
+    public static class KCFacilityTypeRegistry
     {
         private static Dictionary<string, Type> _registeredTypes = new Dictionary<string, Type>();
 
@@ -47,6 +47,29 @@ namespace KerbalColonies
         public static IEnumerable<string> GetAllRegisteredTypes()
         {
             return _registeredTypes.Keys;
+        }
+
+        private static Dictionary<Type, Type> _registeredInfoTypes = new Dictionary<Type, Type>();
+
+        // Register a facility with its info type
+        public static void RegisterFacilityInfo<T, U>() where T : KCFacilityBase where U : KCFacilityInfoClass
+        {
+            Type facilityType = typeof(T);
+            Type infoType = typeof(U);
+            if (!_registeredInfoTypes.ContainsKey(facilityType))
+            {
+                _registeredInfoTypes[facilityType] = infoType;
+            }
+        }
+
+        // Get the info type for a registered facility type, returns the default info type if not found
+        public static Type GetInfoType(Type facilityType)
+        {
+            if (_registeredInfoTypes.TryGetValue(facilityType, out var infoType))
+            {
+                return infoType;
+            }
+            return typeof(KCFacilityInfoClass);
         }
     }
 }

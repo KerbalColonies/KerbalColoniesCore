@@ -25,8 +25,8 @@ namespace KerbalColonies.colonyFacilities
     /// </summary>
     public abstract class KCFacilityBase
     {
-        public colonyClass Colony { get; private set; }
-        public KCFacilityInfoClass facilityInfo { get; private set; }
+        public colonyClass Colony { get; protected set; }
+        public KCFacilityInfoClass facilityInfo { get; protected set; }
 
         public string displayName;
         public string name;
@@ -212,12 +212,12 @@ namespace KerbalColonies.colonyFacilities
         /// <para>DON'T USE IT</para>
         /// <para>It doesn't add the facility to the facility list of the colony which means it won't get saved.</para>
         /// </summary>
-        protected KCFacilityBase(colonyClass colony, string name, string displayName)
+        protected KCFacilityBase(KC_CABInfo CABInfo)
         {
-            this.Colony = colony;
+            this.facilityInfo = CABInfo;
 
-            this.name = name;
-            this.displayName = displayName;
+            this.name = CABInfo.facilityConfig.GetValue("name");
+            this.displayName = CABInfo.facilityConfig.GetValue("displayName");
             this.enabled = true;
             this.id = createID();
             this.level = 0;
@@ -225,14 +225,7 @@ namespace KerbalColonies.colonyFacilities
             creationTime = Planetarium.GetUniversalTime();
             lastUpdateTime = Planetarium.GetUniversalTime();
 
-            if (this.level < this.maxLevel)
-            {
-                this.upgradeable = true;
-            }
-            else
-            {
-                this.upgradeable = false;
-            }
+            this.upgradeable = false;
         }
 
         /// <summary>
@@ -240,12 +233,12 @@ namespace KerbalColonies.colonyFacilities
         /// <para>DON'T USE IT</para>
         /// <para>It doesn't add the facility to the facility list of the colony which means it won't get saved.</para>
         /// </summary>
-        protected KCFacilityBase(colonyClass colony, ConfigNode node, string name, string displayName)
+        protected KCFacilityBase(KC_CABInfo CABInfo, ConfigNode node)
         {
-            this.Colony = colony;
+            this.facilityInfo = CABInfo;
 
-            this.name = name;
-            this.displayName = displayName;
+            this.name = CABInfo.facilityConfig.GetValue("name");
+            this.displayName = CABInfo.facilityConfig.GetValue("displayName");
             this.id = int.Parse(node.GetValue("id"));
             this.enabled = bool.Parse(node.GetValue("enabled"));
             this.level = 0;
@@ -256,14 +249,7 @@ namespace KerbalColonies.colonyFacilities
             this.KKgroups = new List<string> { };
             node.GetNodes("kkGroupNode").ToList().ForEach(n => KKgroups.Add(n.GetValue("groupName")));
 
-            if (this.level < this.maxLevel)
-            {
-                this.upgradeable = true;
-            }
-            else
-            {
-                this.upgradeable = false;
-            }
+            this.upgradeable = false;
         }
 
         /// <summary>

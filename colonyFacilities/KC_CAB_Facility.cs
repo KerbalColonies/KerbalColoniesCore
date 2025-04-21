@@ -337,21 +337,24 @@ namespace KerbalColonies.colonyFacilities
                 upgradingFacilities = new Dictionary<KCFacilityBase, double>();
                 upgradedFacilities = new List<KCFacilityBase>();
 
-                foreach (ConfigNode facilityNode in cabNode.GetNode("constructingFacilities").GetNodes("facilityNode"))
+                if (cabNode != null)
                 {
-                    constructingFacilities.Add(KCFacilityBase.GetFacilityByID(int.Parse(facilityNode.GetValue("facilityID"))), double.Parse(facilityNode.GetValue("remainingTime")));
-                }
-                foreach (ConfigNode facilityNode in cabNode.GetNode("constructedFacilities").GetNodes("facilityNode"))
-                {
-                    constructedFacilities.Add(KCFacilityBase.GetFacilityByID(int.Parse(facilityNode.GetValue("facilityID"))));
-                }
-                foreach (ConfigNode facilityNode in cabNode.GetNode("upgradingFacilities").GetNodes("facilityNode"))
-                {
-                    upgradingFacilities.Add(KCFacilityBase.GetFacilityByID(int.Parse(facilityNode.GetValue("facilityID"))), double.Parse(facilityNode.GetValue("remainingTime")));
-                }
-                foreach (ConfigNode facilityNode in cabNode.GetNode("upgradedFacilities").GetNodes("facilityNode"))
-                {
-                    upgradedFacilities.Add(KCFacilityBase.GetFacilityByID(int.Parse(facilityNode.GetValue("facilityID"))));
+                    foreach (ConfigNode facilityNode in cabNode.GetNode("constructingFacilities").GetNodes("facilityNode"))
+                    {
+                        constructingFacilities.Add(KCFacilityBase.GetFacilityByID(int.Parse(facilityNode.GetValue("facilityID"))), double.Parse(facilityNode.GetValue("remainingTime")));
+                    }
+                    foreach (ConfigNode facilityNode in cabNode.GetNode("constructedFacilities").GetNodes("facilityNode"))
+                    {
+                        constructedFacilities.Add(KCFacilityBase.GetFacilityByID(int.Parse(facilityNode.GetValue("facilityID"))));
+                    }
+                    foreach (ConfigNode facilityNode in cabNode.GetNode("upgradingFacilities").GetNodes("facilityNode"))
+                    {
+                        upgradingFacilities.Add(KCFacilityBase.GetFacilityByID(int.Parse(facilityNode.GetValue("facilityID"))), double.Parse(facilityNode.GetValue("remainingTime")));
+                    }
+                    foreach (ConfigNode facilityNode in cabNode.GetNode("upgradedFacilities").GetNodes("facilityNode"))
+                    {
+                        upgradedFacilities.Add(KCFacilityBase.GetFacilityByID(int.Parse(facilityNode.GetValue("facilityID"))));
+                    }
                 }
             }
 
@@ -473,6 +476,16 @@ namespace KerbalColonies.colonyFacilities
         public override ConfigNode getConfigNode()
         {
             ConfigNode node = base.getConfigNode();
+
+            if (constructingFacilities == null || constructedFacilities == null || upgradingFacilities == null || upgradedFacilities == null)
+            {
+                constructingFacilities = null;
+                constructedFacilities = null;
+                upgradingFacilities = null;
+                upgradedFacilities = null;
+
+                Update();
+            }
 
             ConfigNode constructing = new ConfigNode("constructingFacilities");
 

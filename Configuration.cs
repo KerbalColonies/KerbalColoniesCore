@@ -36,11 +36,11 @@ namespace KerbalColonies
     {
         public override void OnLoad(ConfigNode node)
         {
-            ConfigFacilityLoader.LoadFacilityConfigs();
             KCgroups.Clear();
             colonyDictionary.Clear();
             GroupFacilities.Clear();
             LoadColoniesV3(node);
+            LoadConfiguration();
             writeDebug(node.ToString());
             writeDebug("scenariomodule load");
         }
@@ -116,9 +116,6 @@ namespace KerbalColonies
 #else
         internal static bool enableLogging = false;           // Enable this only in debug purposes as it floods the logs very much
 #endif
-
-        // this is the GAME confignode (the confignode from the save file)
-        internal static ConfigNode gameNode = HighLogic.CurrentGame.config;
 
         #region savingV3
         // New saving
@@ -292,9 +289,9 @@ namespace KerbalColonies
         // static parameters
         internal const string APP_NAME = "KerbalColonies";
 
-        public static void LoadConfiguration(string root)
+        public static void LoadConfiguration()
         {
-            ConfigNode[] nodes = GameDatabase.Instance.GetConfigNodes(root);
+            ConfigNode[] nodes = GameDatabase.Instance.GetConfigNodes(APP_NAME.ToUpper());
 
             if ((nodes == null) || (nodes.Length == 0))
             {
@@ -307,9 +304,9 @@ namespace KerbalColonies
             bool.TryParse(nodes[0].GetValue("enableLogging"), out enableLogging);
         }
 
-        internal static void SaveConfiguration(string root)
+        internal static void SaveConfiguration()
         {
-            ConfigNode[] nodes = GameDatabase.Instance.GetConfigNodes(root);
+            ConfigNode[] nodes = GameDatabase.Instance.GetConfigNodes(APP_NAME.ToUpper());
             if ((nodes == null) || (nodes.Length == 0))
             {
                 return;

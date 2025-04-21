@@ -37,7 +37,7 @@ using UnityEngine;
 
 namespace KerbalColonies.UI
 {
-    [KSPAddon(KSPAddon.Startup.AllGameScenes, false)]
+    [KSPAddon(KSPAddon.Startup.EveryScene, false)]
     internal class KCWindowManager : MonoBehaviour
     {
 

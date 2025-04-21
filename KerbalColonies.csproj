@@ -63,7 +63,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="UI\KCUI.cs" />
     <Compile Include="FacilityTypeRegistry.cs" />
-    <Compile Include="UIConfig.cs" />
+    <Compile Include="UI\UIConfig.cs" />
     <Compile Include="UI\OverviewWindow.cs" />
     <Compile Include="UI\ToolbarRegistration.cs" />
   </ItemGroup>

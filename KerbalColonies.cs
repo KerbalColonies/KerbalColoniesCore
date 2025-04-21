@@ -36,18 +36,6 @@ namespace KerbalColonies
         protected void Awake()
         {
             KSPLog.print("KC awake");
-            Configuration.LoadConfiguration(Configuration.APP_NAME.ToUpper());
-            KCFacilityTypeRegistry.RegisterType<KCStorageFacility>();
-            KCFacilityTypeRegistry.RegisterType<KCCrewQuarters>();
-            KCFacilityTypeRegistry.RegisterType<KCResearchFacility>();
-            KCFacilityTypeRegistry.RegisterType<KC_CAB_Facility>();
-            KCFacilityTypeRegistry.RegisterType<KCMiningFacility>();
-            KCFacilityTypeRegistry.RegisterType<KCProductionFacility>();
-            KCFacilityTypeRegistry.RegisterType<KCResourceConverterFacility>();
-            KCFacilityTypeRegistry.RegisterType<KCHangarFacility>();
-            KCFacilityTypeRegistry.RegisterType<KCLaunchpadFacility>();
-            KCFacilityTypeRegistry.RegisterType<KCCommNetFacility>();
-
             KC_CAB_Facility.addPriorityDefaultFacility("launchpadFacility", 1);
             KC_CAB_Facility.addDefaultFacility("storageFacility", 1);
             KC_CAB_Facility.addDefaultFacility("crewQuarters", 1);

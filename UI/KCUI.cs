@@ -1,5 +1,4 @@
-﻿using KerbalKonstructs.UI;
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace KerbalColonies.UI
 {
@@ -8,10 +7,10 @@ namespace KerbalColonies.UI
         protected GUIStyle LabelGreen;
 
         protected int windowID;
-        internal string title;
+        protected string title;
         private bool guiInitialized;
 
-        internal Rect toolRect = new Rect(100, 100, 330, 100);
+        protected Rect toolRect = new Rect(100, 100, 330, 100);
 
         public override void Draw()
         {
@@ -56,7 +55,7 @@ namespace KerbalColonies.UI
 
                 GUI.enabled = true;
 
-                if (GUILayout.Button("X", UIMain.DeadButtonRed, GUILayout.Height(21)))
+                if (GUILayout.Button("X", UIConfig.DeadButtonRed, GUILayout.Height(21)))
                 {
                     //KerbalKonstructs.KCInstance.saveObjects();
                     this.Close();

@@ -125,11 +125,6 @@ namespace KerbalColonies.colonyFacilities
             return node;
         }
 
-        public override string GetBaseGroupName(int level)
-        {
-            return "KC_CAB";
-        }
-
         private void configNodeLoader(ConfigNode node)
         {
             ConfigNode levelNode = facilityInfo.facilityConfig.GetNode("level");

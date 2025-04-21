@@ -55,6 +55,7 @@ namespace KerbalColonies
         {
             if (groupCenter.Group != buildQueue.Peek().groupName) { return; }
 
+            KerbalKonstructs.API.UnRegisterOnGroupSaved(PlaceNewGroupSave);
             List<KerbalKonstructs.Core.StaticInstance> instances = KerbalKonstructs.API.GetGroupStatics(buildQueue.Peek().groupName).ToList();
 
             foreach (KerbalKonstructs.Core.StaticInstance instance in instances)
@@ -65,7 +66,6 @@ namespace KerbalColonies
             buildQueue.Peek().Facility.enabled = true;
             buildQueue.Peek().Facility.OnGroupPlaced();
 
-            KerbalKonstructs.API.UnRegisterOnGroupSaved(PlaceNewGroupSave);
             KerbalKonstructs.API.Save();
 
             buildQueue.Dequeue();

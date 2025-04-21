@@ -16,36 +16,6 @@ namespace KerbalColonies
     /// </summary>
     public class KCFacilityInfoClass
     {
-        /// <summary>
-        /// This dictionary contains FacilityBase Types as key and the corresponding InfoClass Type as value.
-        /// <para>It's used to create custom InfoClasses to perform the custom check.</para>
-        /// <para>If the facility is not in this dictionary then the default InfoClass will be used</para>
-        /// </summary>
-        public static Dictionary<Type, Type> FacilityBaseInfos { get; private set; } = new Dictionary<Type, Type>();
-
-        public static void RegisterFacilityBaseInfo<T, I>() where T : KCFacilityBase where I : KCFacilityInfoClass
-        {
-            if (!FacilityBaseInfos.ContainsKey(typeof(T)))
-            {
-                FacilityBaseInfos.Add(typeof(T), typeof(I));
-            }
-        }
-
-        public static KCFacilityInfoClass GetInfoClass(ConfigNode node)
-        {
-            Type facilityType = KCFacilityTypeRegistry.GetType(node.GetValue("type"));
-
-            if (FacilityBaseInfos.ContainsKey(facilityType))
-            {
-                return (KCFacilityInfoClass)Activator.CreateInstance(FacilityBaseInfos[facilityType], node);
-            }
-            else
-            {
-                return new KCFacilityInfoClass(node);
-            }
-        }
-
-
         public Type type { get; private set; }
         public ConfigNode facilityConfig { get; private set; }
         public string name { get; private set; }
@@ -157,9 +127,13 @@ namespace KerbalColonies
         {
             facilityConfig = node;
 
-            type = KCFacilityTypeRegistry.GetType(node.GetValue("type"));
+            if (!node.HasValue("name")) throw new MissingFieldException("A config without a name has been found.");
             name = node.GetValue("name");
+            if (!node.HasValue("displayName")) throw new MissingFieldException($"The facility {name} has no displayName.");
             displayName = node.GetValue("displayName");
+
+            if (!node.HasValue("type")) throw new MissingFieldException($"The facility {name} has no type.");
+            type = KCFacilityTypeRegistry.GetType(node.GetValue("type"));
 
             resourceCost = new Dictionary<int, Dictionary<PartResourceDefinition, double>>();
             Electricity = new Dictionary<int, double>();
@@ -167,6 +141,7 @@ namespace KerbalColonies
             UpgradeTypes = new Dictionary<int, UpgradeType>();
             BasegroupNames = new Dictionary<int, string>();
 
+            if (!node.HasNode("level")) throw new MissingFieldException($"The facility {name} has no level node.");
             ConfigNode levelNode = node.GetNode("level");
             levelNode.GetNodes().ToList().ForEach(n =>
             {

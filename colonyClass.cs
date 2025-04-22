@@ -1,4 +1,5 @@
 ﻿using KerbalColonies.colonyFacilities;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -48,8 +49,18 @@ namespace KerbalColonies
             {
                 ConfigNode facilityNode = new ConfigNode("facility");
 
-                facilityNode.AddNode(facility.getConfigNode());
-                node.AddNode(facilityNode);
+                ConfigNode facilityConfigNode = facility.getConfigNode();
+                if (facilityConfigNode.name == "facilityNode")
+                {
+                    facilityNode.AddNode(facilityConfigNode);
+                    node.AddNode(facilityNode);
+                }
+                else
+                {
+                    ConfigFacilityLoader.loaded = false;
+                    ConfigFacilityLoader.failedConfigs.Add(facility.GetType().FullName);
+                    ConfigFacilityLoader.exceptions.Add(new Exception($"The facility {facility.GetType()} does not use the confignode provided by the KCFacilityBase. This will lead to errors when loading again."));
+                }
             }
             return node;
         }

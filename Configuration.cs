@@ -39,10 +39,11 @@ namespace KerbalColonies
             KCgroups.Clear();
             colonyDictionary.Clear();
             GroupFacilities.Clear();
+            writeDebug("scenariomodule load");
+            writeDebug(node.ToString());
             LoadColoniesV3(node);
             LoadConfiguration();
-            writeDebug(node.ToString());
-            writeDebug("scenariomodule load");
+
         }
         public override void OnSave(ConfigNode node)
         {

@@ -24,24 +24,17 @@ namespace KerbalColonies.colonyFacilities
             GUILayout.Label("Stored ore: " + miningFacility.Ore);
             GUILayout.Label("Max ore: " + miningFacility.MaxOre);
             GUILayout.EndHorizontal();
-
             GUILayout.Space(10);
 
             GUILayout.BeginHorizontal();
             GUILayout.Label("Stored metalore: " + miningFacility.MetalOre);
             GUILayout.Label("Max metalore: " + miningFacility.MaxMetalOre);
             GUILayout.EndHorizontal();
-
             GUILayout.Space(10);
 
             kerbalGUI.StaffingInterface();
-
-            GUILayout.BeginHorizontal();
-            if (GUILayout.Button("Retrieve resources"))
-            {
-                miningFacility.RetrieveResources();
-            }
-            GUILayout.EndHorizontal();
+            if (GUILayout.Button("Retrieve ore")) miningFacility.RetrieveOre();
+            if (GUILayout.Button("Retrieve metalore")) miningFacility.RetrieveMetalOre();
         }
 
         protected override void OnClose()
@@ -98,13 +91,8 @@ namespace KerbalColonies.colonyFacilities
             miningFacilityWindow.Toggle();
         }
 
-        public bool RetrieveResources()
+        public bool RetrieveMetalOre()
         {
-            if (ore > 0)
-            {
-                ore = KCStorageFacility.addResourceToColony(PartResourceLibrary.Instance.GetDefinition("Ore"), ore, Colony);
-            }
-
             if (metalOre > 0)
             {
                 metalOre = KCStorageFacility.addResourceToColony(PartResourceLibrary.Instance.GetDefinition("MetalOre"), metalOre, Colony);
@@ -112,9 +100,19 @@ namespace KerbalColonies.colonyFacilities
             return true;
         }
 
+        public bool RetrieveOre()
+        {
+            if (ore > 0)
+            {
+                ore = KCStorageFacility.addResourceToColony(PartResourceLibrary.Instance.GetDefinition("Ore"), ore, Colony);
+            }
+
+            return true;
+        }
+
         public override ConfigNode getConfigNode()
         {
-            ConfigNode node = new ConfigNode();
+            ConfigNode node = base.getConfigNode();
             node.AddValue("ore", ore);
             node.AddValue("metalOre", metalOre);
 

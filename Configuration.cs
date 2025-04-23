@@ -351,7 +351,7 @@ namespace KerbalColonies
         {
             if (Configuration.enableLogging)
             {
-                writeLog(text);
+                writeLog("Debug: " + text);
             }
         }
 

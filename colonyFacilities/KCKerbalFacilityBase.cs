@@ -65,7 +65,7 @@ namespace KerbalColonies.colonyFacilities
             };
         }
 
-        public virtual void AddKerbal(ProtoCrewMember member) { kerbals.Add(member, 0); }
+        public virtual void AddKerbal(ProtoCrewMember member) { if(!kerbals.TryAdd(member, 0)) kerbals[member] = 0; }
 
         public Dictionary<int, List<string>> forbiddenTraits { get; private set; } = new Dictionary<int, List<string>> { };
         public Dictionary<int, List<string>> allowedTraits { get; private set; } = new Dictionary<int, List<string>> { };

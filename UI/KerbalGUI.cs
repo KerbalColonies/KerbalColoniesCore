@@ -1,4 +1,5 @@
 ﻿using KerbalColonies.colonyFacilities;
+using KSP.UI;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -7,6 +8,8 @@ namespace KerbalColonies.UI
 {
     public class KerbalSelectorGUI : KCWindowBase
     {
+        private static KerbalSelectorGUI instance;
+
         public enum SwitchModes
         {
             ActiveVessel,
@@ -34,6 +37,9 @@ namespace KerbalColonies.UI
 
         protected override void OnOpen()
         {
+            if (instance == null) instance = this;
+            else if (instance != null && instance != this) { instance.Close(); instance = this; }
+
             switch (mode)
             {
                 case SwitchModes.ActiveVessel:
@@ -133,6 +139,8 @@ namespace KerbalColonies.UI
             toListModifierList.Clear();
 
             kGUI.transferWindow = false;
+
+            if (instance == this) instance = null;
         }
 
         protected override void CustomWindow()
@@ -141,53 +149,60 @@ namespace KerbalColonies.UI
             ProtoCrewMember toListModifier = null;
 
             GUILayout.BeginHorizontal();
-
-            GUILayout.BeginVertical();
-            GUILayout.Label(fromName, LabelGreen);
-            fromScrollPos = GUILayout.BeginScrollView(fromScrollPos);
-            foreach (ProtoCrewMember k in fromList)
             {
-                if (GUILayout.Button(k.name, GUILayout.Height(23)))
+                GUILayout.BeginVertical(GUILayout.Width(toolRect.width * 0.48f));
                 {
-                    if (toList.Count + 1 <= toCapacity)
+                    GUILayout.Label(fromName, LabelGreen);
+                    fromScrollPos = GUILayout.BeginScrollView(fromScrollPos);
+                    foreach (ProtoCrewMember k in fromList)
                     {
-                        Configuration.writeDebug(k.name);
-                        fromListModifier = k;
-                        fromListModifierList.Add(k);
-                        toList.Add(k);
+                        if (GUILayout.Button(k.name, GUILayout.Height(23)))
+                        {
+                            if (toList.Count + 1 <= toCapacity)
+                            {
+                                Configuration.writeDebug($"Adding Kerbal {k.name} from {toName} to {fromName}");
+                                fromListModifier = k;
+                                fromListModifierList.Add(k);
+                                toList.Add(k);
+                            }
+                        }
                     }
+                    GUILayout.EndScrollView();
                 }
-            }
-            GUILayout.EndScrollView();
-            GUILayout.EndVertical();
+                GUILayout.EndVertical();
 
-            GUILayout.BeginVertical();
-            GUILayout.Label(toName, LabelGreen);
-            toScrollPos = GUILayout.BeginScrollView(toScrollPos);
-            foreach (ProtoCrewMember k in toList)
-            {
-                if (GUILayout.Button(k.name, GUILayout.Height(23)))
+                GUILayout.BeginVertical(GUILayout.Width(toolRect.width * 0.48f));
                 {
-                    if (fromList.Count + 1 <= fromCapacity)
+                    GUILayout.Label(toName, LabelGreen);
+                    toScrollPos = GUILayout.BeginScrollView(toScrollPos);
+                    foreach (ProtoCrewMember k in toList)
                     {
-                        Configuration.writeDebug(k.name);
-                        toListModifier = k;
-                        toListModifierList.Add(k);
-                        fromList.Add(k);
+                        if (GUILayout.Button(k.name, GUILayout.Height(23)))
+                        {
+                            if (fromList.Count + 1 <= fromCapacity)
+                            {
+                                Configuration.writeDebug($"Adding Kerbal {k.name} from {fromName} to {toName}");
+                                toListModifier = k;
+                                toListModifierList.Add(k);
+                                fromList.Add(k);
+                            }
+                        }
                     }
+                    GUILayout.EndScrollView();
                 }
+                GUILayout.EndVertical();
             }
-            GUILayout.EndScrollView();
-            GUILayout.EndVertical();
             GUILayout.EndHorizontal();
 
             if (fromListModifier != null)
             {
                 fromList.Remove(fromListModifier);
+                if (toListModifierList.Contains(fromListModifier)) toListModifierList.Remove(fromListModifier);
             }
             if (toListModifier != null)
             {
                 toList.Remove(toListModifier);
+                if (fromListModifierList.Contains(fromListModifier)) fromListModifierList.Remove(fromListModifier);
             }
         }
 

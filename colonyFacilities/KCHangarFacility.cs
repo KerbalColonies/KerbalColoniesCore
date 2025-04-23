@@ -155,9 +155,10 @@ namespace KerbalColonies.colonyFacilities
 
         public bool StoreVessel(Vessel vessel)
         {
-
             if (CanStoreVessel(vessel))
             {
+                Configuration.writeDebug($"Storing vessel {vessel.GetDisplayName()} in {this.name}");
+
                 Vector3 vesselSize = vessel.vesselSize;
 
                 StoredVessel storedVessel = new StoredVessel
@@ -230,6 +231,7 @@ namespace KerbalColonies.colonyFacilities
                 return null;
             }
 
+            Configuration.writeDebug($"Rolling out vessel {storedVessel.vesselName} from {this.name}");
             ProtoVessel protoVessel = new ProtoVessel(storedVessel.vesselNode, HighLogic.CurrentGame);
             protoVessel.Load(HighLogic.CurrentGame.flightState);
 

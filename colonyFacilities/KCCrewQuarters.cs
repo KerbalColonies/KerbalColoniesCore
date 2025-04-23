@@ -60,6 +60,7 @@ namespace KerbalColonies.colonyFacilities
             {
                 if (crewQuarter.kerbals.Count < crewQuarter.MaxKerbals)
                 {
+                    Configuration.writeDebug($"Adding {kerbal.name} to {crewQuarter.name}");
                     crewQuarter.AddKerbal(kerbal);
                     return true;
                 }

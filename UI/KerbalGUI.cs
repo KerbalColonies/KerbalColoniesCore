@@ -270,7 +270,7 @@ namespace KerbalColonies.UI
                 float CountCurrent = fac.getKerbals().Count;
                 float CountEmpty = fac.MaxKerbals - CountCurrent;
 
-                scrollPos = GUILayout.BeginScrollView(scrollPos, GUILayout.Width(400), GUILayout.Height(400));
+                scrollPos = GUILayout.BeginScrollView(scrollPos);
                 {
                     foreach (ProtoCrewMember pcm in fac.getKerbals())
                     {

@@ -24,7 +24,7 @@ namespace KerbalColonies.colonyFacilities
 {
     public class KCCommNetFacility : KCKerbalFacilityBase
     {
-        public string groundstationUUID;
+        public string groundstationUUID = "";
 
         public override void OnGroupPlaced()
         {

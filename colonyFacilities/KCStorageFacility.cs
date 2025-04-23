@@ -132,7 +132,7 @@ namespace KerbalColonies.colonyFacilities
                 GUILayout.BeginVertical();
                 GUILayout.Label($"{kvp.Key.displayName}: {kvp.Value}", GUILayout.Height(18));
 
-                if (!storageFacility.Colony.CAB.PlayerInColony) { GUI.enabled = false; }
+                if (!storageFacility.Colony.CAB.PlayerInColony && !trashResources) { GUI.enabled = false; }
                 GUILayout.BeginHorizontal();
                 foreach (int i in valueList)
                 {

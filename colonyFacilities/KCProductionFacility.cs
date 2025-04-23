@@ -10,6 +10,8 @@ namespace KerbalColonies.colonyFacilities
     {
         KCProductionFacility facility;
         public KerbalGUI kerbalGUI;
+        Vector2 scrollPosTypes = new Vector2();
+        Vector2 scrollPosUnfinishedFacilities = new Vector2();
 
         protected override void CustomWindow()
         {
@@ -21,9 +23,89 @@ namespace KerbalColonies.colonyFacilities
             }
 
             GUILayout.BeginVertical();
-            GUILayout.Label($"Daily production: {Math.Round(facility.dailyProduction(), 2)}");
 
+            GUILayout.BeginHorizontal(GUILayout.Height(400));
+            GUILayout.BeginVertical(GUILayout.Width(300));
             kerbalGUI.StaffingInterface();
+            GUILayout.EndVertical();
+            GUILayout.BeginVertical(GUILayout.Width(480));
+            GUILayout.Label($"Facility types");
+            scrollPosTypes = GUILayout.BeginScrollView(scrollPosTypes);
+            {
+                foreach (KCFacilityInfoClass t in Configuration.BuildableFacilities)
+                {
+                    GUILayout.BeginHorizontal();
+                    GUILayout.Label($"{t.displayName}\t");
+                    GUILayout.FlexibleSpace();
+                    GUILayout.BeginVertical();
+                    {
+                        for (int i = 0; i < t.resourceCost[0].Count; i++)
+                        {
+                            GUILayout.Label($"{t.resourceCost[0].ElementAt(i).Key.displayName}: {t.resourceCost[0].ElementAt(i).Value}");
+                        }
+                    }
+                    GUILayout.EndVertical();
+                    GUILayout.FlexibleSpace();
+                    GUILayout.BeginVertical();
+                    GUILayout.Label($"Funds: {(t.Funds.Count > 0 ? t.Funds[0] : 0)}");
+                    //GUILayout.Label($"Electricity: {t.Electricity}");
+                    GUILayout.Label($"Time: {t.UpgradeTimes[0]}");
+                    GUILayout.EndVertical();
+
+                    GUILayout.EndHorizontal();
+
+                    GUILayout.Space(10);
+
+                    if (!t.checkResources(0, facility.Colony)) { GUI.enabled = false; }
+
+                    if (GUILayout.Button("Build"))
+                    {
+                        t.removeResources(0, facility.Colony);
+                        KCFacilityBase KCFac = Configuration.CreateInstance(t, facility.Colony, false);
+
+                        facility.Colony.CAB.AddconstructingFacility(KCFac);
+                    }
+                    GUILayout.Space(20);
+                    GUI.enabled = true;
+                }
+            }
+            GUILayout.EndScrollView();
+            GUILayout.EndVertical();
+            GUILayout.EndHorizontal();
+            GUILayout.Space(10);
+            GUILayout.Label($"Daily production: {Math.Round(facility.dailyProduction(), 2)}");
+            GUILayout.Space(10);
+            GUILayout.Label("Unfinished facilities");
+
+            scrollPosUnfinishedFacilities = GUILayout.BeginScrollView(scrollPosUnfinishedFacilities);
+            {
+                GUILayout.Label("Facilities under construction:");
+                GUILayout.BeginVertical();
+                {
+                    GUILayout.Label("Upgrading Facilities:");
+                    facility.Colony.CAB.UpgradingFacilities.ToList().ForEach(pair =>
+                    {
+                        GUILayout.BeginHorizontal();
+                        GUILayout.Label(pair.Key.name);
+                        double max = pair.Key.facilityInfo.UpgradeTimes[pair.Key.level + 1];
+                        GUILayout.Label($"{Math.Round(max - pair.Value, 2)}/{Math.Round(max, 2)}");
+                        GUILayout.EndHorizontal();
+                    });
+
+                    GUILayout.Space(10);
+
+                    facility.Colony.CAB.ConstructingFacilities.ToList().ForEach(pair =>
+                    {
+                        GUILayout.BeginHorizontal();
+                        GUILayout.Label(pair.Key.name);
+                        double max = pair.Key.facilityInfo.UpgradeTimes[0];
+                        GUILayout.Label($"{Math.Round(max - pair.Value, 2)}/{Math.Round(max, 2)}");
+                        GUILayout.EndHorizontal();
+                    });
+                }
+                GUILayout.EndVertical();
+            }
+            GUILayout.EndScrollView();
             GUILayout.EndVertical();
         }
 
@@ -40,7 +122,7 @@ namespace KerbalColonies.colonyFacilities
         {
             this.facility = facility;
             this.kerbalGUI = null;
-            toolRect = new Rect(100, 100, 400, 600);
+            toolRect = new Rect(100, 100, 800, 700);
 
         }
     }

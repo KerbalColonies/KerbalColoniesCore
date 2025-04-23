@@ -62,9 +62,7 @@ namespace KerbalColonies.colonyFacilities
     {
         private KC_CAB_Facility facility;
 
-        Vector2 scrollPosTypes = new Vector2();
         Vector2 scrollPosFacilities = new Vector2();
-        Vector2 scrollPosUnfinishedFacilities = new Vector2();
 
 
         protected override void CustomWindow()
@@ -72,62 +70,15 @@ namespace KerbalColonies.colonyFacilities
             facility.Update();
             bool playerInColony = facility.PlayerInColony;
 
-            GUILayout.Label($"Facility types");
-            scrollPosTypes = GUILayout.BeginScrollView(scrollPosTypes, GUILayout.Height(300));
-            {
-                foreach (KCFacilityInfoClass t in Configuration.BuildableFacilities)
-                {
-                    GUILayout.BeginHorizontal();
-                    GUILayout.Label($"{t.displayName}\t");
-                    GUILayout.FlexibleSpace();
-                    GUILayout.BeginVertical();
-                    {
-                        for (int i = 0; i < t.resourceCost[0].Count; i++)
-                        {
-                            GUILayout.Label($"{t.resourceCost[0].ElementAt(i).Key.displayName}: {t.resourceCost[0].ElementAt(i).Value}");
-                        }
-                    }
-                    GUILayout.EndVertical();
-                    GUILayout.FlexibleSpace();
-                    GUILayout.BeginVertical();
-                    GUILayout.Label($"Funds: {(t.Funds.Count > 0 ? t.Funds[0] : 0)}");
-                    //GUILayout.Label($"Electricity: {t.Electricity}");
-                    GUILayout.Label($"Time: {t.UpgradeTimes[0]}");
-                    GUILayout.EndVertical();
-
-                    GUILayout.EndHorizontal();
-
-                    GUILayout.Space(10);
-
-                    if (!t.checkResources(0, facility.Colony)) { GUI.enabled = false; }
-
-                    if (GUILayout.Button("Build"))
-                    {
-                        t.removeResources(0, facility.Colony);
-                        KCFacilityBase KCFac = Configuration.CreateInstance(t, facility.Colony, false);
-
-                        facility.AddconstructingFacility(KCFac);
-                    }
-                    GUILayout.Space(20);
-                    GUI.enabled = true;
-                }
-            }
-            GUILayout.EndScrollView();
-
-            GUILayout.Space(10);
-
             GUILayout.Label("Facilities in this Colony:");
 
-            scrollPosFacilities = GUILayout.BeginScrollView(scrollPosFacilities, GUILayout.Height(300));
+            scrollPosFacilities = GUILayout.BeginScrollView(scrollPosFacilities);
             {
                 GUILayout.BeginVertical();
                 {
 
                     facility.Colony.Facilities.Where(fac =>
-                        !facility.UpgradingFacilities.ContainsKey(fac) &&
-                        !facility.UpgradedFacilities.Contains(fac) &&
-                        !facility.ConstructingFacilities.ContainsKey(fac) &&
-                        !facility.ConstructedFacilities.Contains(fac)
+                        !facility.ConstructingFacilities.ContainsKey(fac)
                     ).ToList().ForEach(colonyFacility =>
                     {
                         GUILayout.BeginHorizontal();
@@ -136,7 +87,7 @@ namespace KerbalColonies.colonyFacilities
                         GUILayout.Label($"Level: {colonyFacility.level.ToString()}");
                         GUILayout.FlexibleSpace();
                         GUILayout.Label(colonyFacility.GetFacilityProductionDisplay());
-                        if (colonyFacility.AllowRemote)
+                        if (colonyFacility.AllowRemote && !facility.ConstructedFacilities.Contains(colonyFacility))
                         {
                             if (GUILayout.Button("Open", GUILayout.Width(200)))
                             {
@@ -147,11 +98,15 @@ namespace KerbalColonies.colonyFacilities
                         }
                         GUILayout.EndHorizontal();
 
-                        if (colonyFacility.upgradeable && colonyFacility.level < colonyFacility.maxLevel)
+                        if (colonyFacility.upgradeable && colonyFacility.level < colonyFacility.maxLevel &&
+                        !(facility.UpgradingFacilities.ContainsKey(colonyFacility)
+                        || facility.UpgradedFacilities.Contains(colonyFacility)
+                        || facility.ConstructingFacilities.ContainsKey(colonyFacility)
+                        || facility.ConstructedFacilities.Contains(colonyFacility)
+                        ))
                         {
                             KCFacilityInfoClass facilityInfo = Configuration.GetInfoClass(colonyFacility.name);
-
-                            if (!facilityInfo.checkResources(colonyFacility.level + 1, facility.Colony)) GUI.enabled = false;
+                            if (!facilityInfo.checkResources(colonyFacility.level + 1, facility.Colony) || !playerInColony) GUI.enabled = false;
 
                             GUILayout.BeginVertical();
                             {
@@ -162,108 +117,38 @@ namespace KerbalColonies.colonyFacilities
                             }
                             GUILayout.EndVertical();
 
-                            GUILayout.FlexibleSpace();
-
-                            if (!(facility.UpgradingFacilities.ContainsKey(colonyFacility)
-                                || facility.UpgradedFacilities.Contains(colonyFacility)
-                                || facility.ConstructingFacilities.ContainsKey(colonyFacility)
-                                || facility.ConstructedFacilities.Contains(colonyFacility)
-                            ))
+                            if (GUILayout.Button("Upgrade"))
                             {
-                                if (GUILayout.Button("Upgrade"))
-                                {
-                                    facilityInfo.removeResources(colonyFacility.level + 1, facility.Colony);
-                                    if (colonyFacility.facilityInfo.UpgradeTypes[facility.level + 1] == UpgradeType.withGroupChange)
-                                    {
-                                        KCFacilityBase.UpgradeFacilityWithGroupChange(colonyFacility);
-                                    }
-                                    else if (colonyFacility.facilityInfo.UpgradeTypes[facility.level + 1] == UpgradeType.withoutGroupChange)
-                                    {
-                                        KCFacilityBase.UpgradeFacilityWithoutGroupChange(colonyFacility);
-                                    }
-                                    else if (colonyFacility.facilityInfo.UpgradeTypes[facility.level + 1] == UpgradeType.withAdditionalGroup)
-                                    {
-                                        facility.AddUpgradeableFacility(colonyFacility);
+                                facilityInfo.removeResources(colonyFacility.level + 1, facility.Colony);
+                                facility.AddUpgradeableFacility(colonyFacility);
+                            }
+                        }
+                        else if (facility.UpgradedFacilities.Contains(colonyFacility))
+                        {
+                            if (!playerInColony) { GUI.enabled = false; }
+                            if (GUILayout.Button("Place upgrade"))
+                            {
+                                KCFacilityBase.UpgradeFacilityWithAdditionalGroup(colonyFacility);
+                                facility.UpgradedFacilities.Remove(colonyFacility);
+                            }
+                        }
+                        else if (facility.ConstructedFacilities.Contains(colonyFacility))
+                        {
+                            if (!playerInColony) { GUI.enabled = false; }
+                            if (GUILayout.Button("Place"))
+                            {
+                                colonyFacility.enabled = true;
 
-                                        //KCFacilityBase.UpgradeFacilityWithAdditionalGroup(colonyFacility);
-                                    }
-                                }
+                                facility.ConstructedFacilities.Remove(colonyFacility);
+
+                                string newGroupName = $"{facility.Colony.Name}_{colonyFacility.GetType().Name}_0_{KCFacilityBase.CountFacilityType(colonyFacility.GetType(), facility.Colony) + 1}";
+
+                                ColonyBuilding.PlaceNewGroup(colonyFacility, newGroupName);
                             }
                         }
 
                         GUI.enabled = true;
-                    });
-                }
-                GUILayout.EndVertical();
-            }
-            GUILayout.EndScrollView();
-
-            GUILayout.Space(10);
-
-            GUILayout.Label("Unfinished facilities");
-
-            scrollPosUnfinishedFacilities = GUILayout.BeginScrollView(scrollPosUnfinishedFacilities, GUILayout.Height(250));
-            {
-                GUILayout.Label("Facilities under construction:");
-                GUILayout.BeginVertical();
-                {
-                    facility.ConstructingFacilities.ToList().ForEach(pair =>
-                    {
-                        GUILayout.BeginHorizontal();
-                        GUILayout.Label(pair.Key.name);
-                        double max = pair.Key.facilityInfo.UpgradeTimes[0];
-                        GUILayout.Label($"{Math.Round(max - pair.Value, 2)}/{Math.Round(max, 2)}");
-                        GUILayout.EndHorizontal();
-                    });
-
-                    GUILayout.Space(10);
-
-                    GUILayout.Label("Facilities waiting to be placed:");
-                    facility.ConstructedFacilities.ToList().ForEach(newFacility =>
-                    {
-                        GUILayout.BeginHorizontal();
-                        GUILayout.Label(newFacility.name);
-                        if (!playerInColony) { GUI.enabled = false; }
-                        if (GUILayout.Button("Place"))
-                        {
-                            newFacility.enabled = true;
-
-                            facility.ConstructedFacilities.Remove(newFacility);
-
-                            string newGroupName = $"{facility.Colony.Name}_{newFacility.GetType().Name}_0_{KCFacilityBase.CountFacilityType(newFacility.GetType(), facility.Colony) + 1}";
-
-                            ColonyBuilding.PlaceNewGroup(newFacility, newGroupName);
-                        }
-                        GUI.enabled = true;
-                        GUILayout.EndHorizontal();
-                    });
-
-                    GUILayout.Space(10);
-
-                    GUILayout.Label("Upgrading Facilities:");
-                    facility.UpgradingFacilities.ToList().ForEach(pair =>
-                    {
-                        GUILayout.BeginHorizontal();
-                        GUILayout.Label(pair.Key.name);
-                        double max = pair.Key.facilityInfo.UpgradeTimes[pair.Key.level + 1];
-                        GUILayout.Label($"{Math.Round(max - pair.Value, 2)}/{Math.Round(max, 2)}");
-                        GUILayout.EndHorizontal();
-                    });
-
-                    GUILayout.Space(10);
-
-                    GUILayout.Label("Upgraded Facilities:");
-                    facility.UpgradedFacilities.ToList().ForEach(facilityUpgrade =>
-                    {
-                        GUILayout.Label(facilityUpgrade.name);
-
-                        if (!playerInColony) { GUI.enabled = false; }
-                        if (GUILayout.Button("Place upgrade"))
-                        {
-                            KCFacilityBase.UpgradeFacilityWithAdditionalGroup(facilityUpgrade);
-                            facility.UpgradedFacilities.Remove(facilityUpgrade);
-                        }
-                        GUI.enabled = true;
+                        GUILayout.Space(20);
                     });
                 }
                 GUILayout.EndVertical();

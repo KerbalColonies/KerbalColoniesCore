@@ -63,8 +63,11 @@ namespace KerbalColonies.UI
                 {
 
                     InternalSeat seat = member.seat;
-                    seat.part.RemoveCrewmember(member); // Remove from seat
-                    member.seat = null;
+                    if (member.seat != null)
+                    {
+                        seat.part.RemoveCrewmember(member); // Remove from seat
+                        member.seat = null;
+                    }
 
                     foreach (Part p in toVessel.Parts)
                     {

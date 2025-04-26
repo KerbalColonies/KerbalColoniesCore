@@ -87,7 +87,9 @@ namespace KerbalColonies.colonyFacilities
                         GUILayout.Label($"Level: {colonyFacility.level.ToString()}");
                         GUILayout.FlexibleSpace();
                         GUILayout.Label(colonyFacility.GetFacilityProductionDisplay());
-                        if (colonyFacility.AllowRemote && !facility.ConstructedFacilities.Contains(colonyFacility))
+                        if (
+                        ((colonyFacility.AllowClick && playerInColony) || (colonyFacility.AllowRemote && !playerInColony))
+                        && !facility.ConstructedFacilities.Contains(colonyFacility))
                         {
                             if (GUILayout.Button("Open", GUILayout.Width(200)))
                             {
@@ -141,7 +143,7 @@ namespace KerbalColonies.colonyFacilities
 
                                 facility.ConstructedFacilities.Remove(colonyFacility);
 
-                                string newGroupName = $"{facility.Colony.Name}_{colonyFacility.GetType().Name}_0_{KCFacilityBase.CountFacilityType(colonyFacility.GetType(), facility.Colony) + 1}";
+                                string newGroupName = $"{facility.Colony.Name}_{colonyFacility.GetType().Name}_0_{KCFacilityBase.CountFacilityType(colonyFacility.facilityInfo, facility.Colony) + 1}";
 
                                 ColonyBuilding.PlaceNewGroup(colonyFacility, newGroupName);
                             }

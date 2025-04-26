@@ -52,11 +52,19 @@ namespace KerbalColonies.colonyFacilities
         public virtual void OnBuildingClicked() { }
 
         /// <summary>
+        /// Used to check if the facility can be clicked in the CAB window, if false then the open button won't be shown in the CAB window.
+        /// </summary>
+        public bool AllowClick { get; protected set; } = true;
+
+        /// <summary>
         /// This function gets called when the facility is clicked in the CAB window (if the CAB window was opened through the overview)
         /// </summary>
         public virtual void OnRemoteClicked() { }
 
-        public bool AllowRemote = true;
+        /// <summary>
+        /// Used to check if the facility can be used remotely, if false then the open button won't be shown in the CAB window.
+        /// </summary>
+        public bool AllowRemote { get; protected set; } = true;
 
         internal static void OnBuildingClickedHandler(KerbalKonstructs.Core.StaticInstance instance)
         {
@@ -92,14 +100,19 @@ namespace KerbalColonies.colonyFacilities
 
             facility.UpgradeFacility(facility.level + 1);
 
-            ColonyBuilding.PlaceNewGroup(facility, $"{facility.Colony.Name}_{facility.GetType().Name}_{facility.level}_{KCFacilityBase.CountFacilityType(facility.GetType(), facility.Colony)}");
+            ColonyBuilding.PlaceNewGroup(facility, $"{facility.Colony.Name}_{facility.GetType().Name}_{facility.level}_{KCFacilityBase.CountFacilityType(facility.facilityInfo, facility.Colony)}");
 
             return true;
         }
 
-        public static int CountFacilityType(Type faciltyType, colonyClass colony)
+        public static int CountFacilityType(KCFacilityInfoClass faciltyType, colonyClass colony)
         {
-            return colony.Facilities.Count(x => faciltyType.IsInstanceOfType(x));
+            return colony.Facilities.Count(f => f.name == faciltyType.name);
+        }
+
+        public static List<KCFacilityBase> GetFacilityTypeInColony(KCFacilityInfoClass facilityType, colonyClass colony)
+        {
+            return colony.Facilities.Where(f => f.name == facilityType.name).ToList();
         }
 
         public static List<string> GetUUIDbyFacility(KCFacilityBase facility)
@@ -175,6 +188,7 @@ namespace KerbalColonies.colonyFacilities
         {
             ConfigNode node = new ConfigNode("facilityNode");
             node.AddValue("name", name);
+            node.AddValue("displayName", displayName);
             node.AddValue("id", id);
             node.AddValue("enabled", enabled);
             node.AddValue("level", level);
@@ -207,6 +221,7 @@ namespace KerbalColonies.colonyFacilities
             return "";
         }
 
+        #region cabConstructors
         /// <summary>
         /// This constructor is ONLY meant to be used for the CAB facility
         /// <para>DON'T USE IT</para>
@@ -251,6 +266,7 @@ namespace KerbalColonies.colonyFacilities
 
             this.upgradeable = false;
         }
+        #endregion
 
         /// <summary>
         /// This constructor is used for restoring existing facilities during loading.
@@ -261,8 +277,8 @@ namespace KerbalColonies.colonyFacilities
             this.Colony = colony;
             this.facilityInfo = facilityInfo;
 
-            this.name = facilityInfo.facilityConfig.GetValue("name");
-            this.displayName = facilityInfo.facilityConfig.GetValue("displayName");
+            this.name = facilityInfo.name;
+            this.displayName = node.GetValue("displayName");
             this.id = int.Parse(node.GetValue("id"));
             this.enabled = bool.Parse(node.GetValue("enabled"));
             this.level = int.Parse(node.GetValue("level"));
@@ -284,17 +300,15 @@ namespace KerbalColonies.colonyFacilities
         }
 
         /// <summary>
-        /// The base constructor of the kc facilities. It only calls the initialize function.
-        /// You can use a custom constructor but it should only call an overriden initialize function and not the base constructor
-        /// This is necessary because of the serialization.
+        /// The base constructor of the kc facilities.
         /// </summary>
         protected KCFacilityBase(colonyClass colony, KCFacilityInfoClass facilityInfo, bool enabled)
         {
             this.Colony = colony;
             this.facilityInfo = facilityInfo;
 
-            this.name = facilityInfo.facilityConfig.GetValue("name");
-            this.displayName = facilityInfo.facilityConfig.GetValue("displayName");
+            this.name = facilityInfo.name;
+            this.displayName = $"{facilityInfo.displayName} {CountFacilityType(facilityInfo, colony) + 1}";
             this.enabled = enabled;
             this.id = createID();
             this.level = 0;
@@ -311,7 +325,7 @@ namespace KerbalColonies.colonyFacilities
                 this.upgradeable = false;
             }
 
-            colony.Facilities.Add(this);
+            colony.AddFacility(this);
         }
     }
 }

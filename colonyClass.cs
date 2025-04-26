@@ -24,17 +24,20 @@ namespace KerbalColonies
 {
     public class colonyClass
     {
-        public string Name;
+        public string Name { get; private set; }
+        public string DisplayName { get; private set; }
 
-        public KC_CAB_Facility CAB;
+        public KC_CAB_Facility CAB { get; private set; }
 
-        public List<KCFacilityBase> Facilities;
-        public List<ConfigNode> sharedColonyNodes;
+        public List<KCFacilityBase> Facilities { get; private set; }
+        public void AddFacility(KCFacilityBase facility) => Facilities.Add(facility);
+        public List<ConfigNode> sharedColonyNodes { get; set; }
 
         public ConfigNode CreateConfigNode()
         {
             ConfigNode node = new ConfigNode("colonyClass");
             node.AddValue("name", Name);
+            node.AddValue("displayName", DisplayName);
             ConfigNode colonyNodes = new ConfigNode("sharedColonyNodes");
             this.sharedColonyNodes.ForEach(x => colonyNodes.AddNode(x));
             node.AddNode(colonyNodes);
@@ -71,9 +74,10 @@ namespace KerbalColonies
             Facilities.ForEach(f => f.Update());
         }
 
-        public colonyClass(string name, KC_CABInfo CABInfo)
+        public colonyClass(string name, string displayName, KC_CABInfo CABInfo)
         {
             Name = name;
+            DisplayName = displayName;
             CAB = new KC_CAB_Facility(this, CABInfo);
             Facilities = new List<KCFacilityBase>();
             sharedColonyNodes = new List<ConfigNode>();
@@ -82,6 +86,7 @@ namespace KerbalColonies
         public colonyClass(ConfigNode node)
         {
             Name = node.GetValue("name");
+            DisplayName = node.GetValue("displayName");
             Facilities = new List<KCFacilityBase>();
             sharedColonyNodes = node.GetNode("sharedColonyNodes").GetNodes().ToList();
 

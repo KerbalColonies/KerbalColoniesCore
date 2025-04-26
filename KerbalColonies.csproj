@@ -55,6 +55,7 @@
     <Compile Include="ConfigFacilityLoader.cs" />
     <Compile Include="Configuration.cs" />
     <Compile Include="KCPartModule.cs" />
+    <Compile Include="KCLaunchpadPreflightCheck.cs" />
     <Compile Include="UI\KCWindow.cs" />
     <Compile Include="UI\KCWindowManager.cs" />
     <Compile Include="UI\KerbalGUI.cs" />
@@ -72,9 +73,12 @@
       <HintPath>D:\KSP-Test\GameData\000_ClickThroughBlocker\Plugins\ClickThroughBlocker.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="KerbalKonstructs, Version=2.0.0.0, Culture=neutral, processorArchitecture=AMD64">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\Kerbal-Konstructs\GameData\KerbalKonstructs\KerbalKonstructs.dll</HintPath>
+    <Reference Include="CustomPreLaunchChecks">
+      <HintPath>D:\KSP-Test\GameData\CustomPreLaunchChecks\CustomPreLaunchChecks.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="KerbalKonstructs">
+      <HintPath>D:\KSP-Test\GameData\KerbalKonstructs\KerbalKonstructs.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Launchpad">
@@ -89,7 +93,9 @@
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Analyzer Include="D:\KSP-Test\GameData\CustomPreLaunchChecks\CustomPreLaunchChecks.dll" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>

@@ -21,23 +21,25 @@ namespace KerbalColonies
         public string name { get; private set; }
         public string displayName { get; private set; }
 
+        public SortedDictionary<int, ConfigNode> levelNodes { get; private set; } = new SortedDictionary<int, ConfigNode> { };
+
         /// <summary>
         /// Level, Resource, Amount
         /// </summary>
-        public Dictionary<int, Dictionary<PartResourceDefinition, double>> resourceCost { get; private set; }
+        public SortedDictionary<int, Dictionary<PartResourceDefinition, double>> resourceCost { get; private set; }
         /// <summary>
         /// currently unused
         /// </summary>
-        public Dictionary<int, double> Electricity { get; private set; } = new Dictionary<int, double> { };
-        public Dictionary<int, double> Funds { get; private set; } = new Dictionary<int, double> { };
-        public Dictionary<int, UpgradeType> UpgradeTypes { get; private set; } = new Dictionary<int, UpgradeType> { };
-        public Dictionary<int, string> BasegroupNames { get; private set; } = new Dictionary<int, string> { };
+        public SortedDictionary<int, double> Electricity { get; private set; } = new SortedDictionary<int, double> { };
+        public SortedDictionary<int, double> Funds { get; private set; } = new SortedDictionary<int, double> { };
+        public SortedDictionary<int, UpgradeType> UpgradeTypes { get; private set; } = new SortedDictionary<int, UpgradeType> { };
+        public SortedDictionary<int, string> BasegroupNames { get; private set; } = new SortedDictionary<int, string> { };
 
         // 1 Kerbin day = 0.25 days
         // 100 per day * 5 engineers = 500 per day
         // 500 per day * 4 kerbin days = 500
         // 500 per day * 2 kerbin days = 250
-        public Dictionary<int, float> UpgradeTimes { get; private set; } = new Dictionary<int, float> { };
+        public SortedDictionary<int, float> UpgradeTimes { get; private set; } = new SortedDictionary<int, float> { };
 
         /// <summary>
         /// Used for custom checks (e.g. if a specific facility already exists in the colony), returns true if the facility can be built or upgraded.
@@ -135,17 +137,18 @@ namespace KerbalColonies
             if (!node.HasValue("type")) throw new MissingFieldException($"The facility {name} has no type.");
             type = KCFacilityTypeRegistry.GetType(node.GetValue("type"));
 
-            resourceCost = new Dictionary<int, Dictionary<PartResourceDefinition, double>>();
-            Electricity = new Dictionary<int, double>();
-            Funds = new Dictionary<int, double>();
-            UpgradeTypes = new Dictionary<int, UpgradeType>();
-            BasegroupNames = new Dictionary<int, string>();
+            resourceCost = new SortedDictionary<int, Dictionary<PartResourceDefinition, double>>();
+            Electricity = new SortedDictionary<int, double>();
+            Funds = new SortedDictionary<int, double>();
+            UpgradeTypes = new SortedDictionary<int, UpgradeType>();
+            BasegroupNames = new SortedDictionary<int, string>();
 
             if (!node.HasNode("level")) throw new MissingFieldException($"The facility {name} has no level node.");
             ConfigNode levelNode = node.GetNode("level");
             levelNode.GetNodes().ToList().ForEach(n =>
             {
                 int level = int.Parse(n.name);
+                levelNodes.Add(level, n);
                 if (n.HasValue("upgradeType")) UpgradeTypes.Add(level, (UpgradeType)Enum.Parse(typeof(UpgradeType), n.GetValue("upgradeType")));
                 else UpgradeTypes.Add(level, UpgradeType.withoutGroupChange);
 

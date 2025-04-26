@@ -31,7 +31,7 @@ namespace KerbalColonies
     /// <summary>
     /// Reads and holds configuration parameters
     /// </summary> 
-    [KSPScenario(ScenarioCreationOptions.AddToAllGames, GameScenes.SPACECENTER, GameScenes.FLIGHT)]
+    [KSPScenario(ScenarioCreationOptions.AddToAllGames, GameScenes.SPACECENTER, GameScenes.FLIGHT, GameScenes.EDITOR)]
     internal class Configuration : ScenarioModule
     {
         public override void OnLoad(ConfigNode node)

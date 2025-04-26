@@ -1,4 +1,5 @@
-﻿using KerbalColonies.colonyFacilities;
+﻿using CustomPreLaunchChecks;
+using KerbalColonies.colonyFacilities;
 using KerbalColonies.UI;
 using System;
 using System.Collections.Generic;
@@ -105,6 +106,11 @@ namespace KerbalColonies
             KCFacilityTypeRegistry.RegisterType<KCCommNetFacility>();
 
             KCFacilityTypeRegistry.RegisterFacilityInfo<KC_CAB_Facility, KC_CABInfo>();
+            KCFacilityTypeRegistry.RegisterFacilityInfo<KCProductionFacility, KCProductionInfo>();
+
+            CPLC.RegisterCheck(KCHangarPreFlightCheck.GetKCHangarTest);
+            CPLC.RegisterCheck(KCCrewPreFlightCheck.GetKCCrewTest);
+            CPLC.RegisterCheck(KCResourcePreFlightCheck.GetKCCrewTest);
         }
 
         protected void Start()

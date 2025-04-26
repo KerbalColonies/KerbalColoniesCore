@@ -4,6 +4,7 @@ using KSP.UI.Screens;
 using System.Linq;
 using ToolbarControl_NS;
 using UnityEngine;
+using CustomPreLaunchChecks;
 
 // KC: Kerbal Colonies
 // This mod aimes to create a Colony system with Kerbal Konstructs statics
@@ -24,7 +25,7 @@ using UnityEngine;
 
 namespace KerbalColonies
 {
-    [KSPAddon(KSPAddon.Startup.FlightAndKSC, false)]
+    [KSPAddon(KSPAddon.Startup.FlightEditorAndKSC, false)]
     public class KerbalColonies : MonoBehaviour
     {
         double lastTime = 0;
@@ -117,6 +118,7 @@ namespace KerbalColonies
 
         protected void OnDestroy()
         {
+
             toolbarControl.OnDestroy();
             Destroy(toolbarControl);
 

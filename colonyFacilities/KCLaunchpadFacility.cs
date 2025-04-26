@@ -7,39 +7,41 @@ using KerbalColonies.UI;
 
 namespace KerbalColonies.colonyFacilities
 {
-    public class KCLaunchpadFacilityWindow : KCWindowBase
-    {
-        KCLaunchpadFacility launchpad;
+    //public class KCLaunchpadFacilityWindow : KCWindowBase
+    //{
+    //    KCLaunchpadFacility launchpad;
 
-        protected override void CustomWindow()
-        {
-            if (launchpad.Colony.CAB.PlayerInColony)
-            {
-                if (GUILayout.Button("Teleport to Launchpad"))
-                {
-                    KerbalKonstructs.Core.StaticInstance instance = KerbalKonstructs.API.getStaticInstanceByUUID(launchpad.launchSiteUUID);
+    //    protected override void CustomWindow()
+    //    {
+    //        if (launchpad.Colony.CAB.PlayerInColony)
+    //        {
+    //            if (GUILayout.Button("Teleport to Launchpad"))
+    //            {
+    //                KerbalKonstructs.Core.StaticInstance instance = KerbalKonstructs.API.getStaticInstanceByUUID(launchpad.launchSiteUUID);
 
-                    PSystemSetup.SpaceCenterFacility s = instance.launchSite.spaceCenterFacility;
-                    s.GetSpawnPoint(instance.launchSite.LaunchSiteName).GetSpawnPointLatLonAlt(out double lat, out double lon, out double alt);
+    //                PSystemSetup.SpaceCenterFacility s = instance.launchSite.spaceCenterFacility;
+    //                s.GetSpawnPoint(instance.launchSite.LaunchSiteName).GetSpawnPointLatLonAlt(out double lat, out double lon, out double alt);
 
-                    FlightGlobals.fetch.SetVesselPosition(FlightGlobals.GetBodyIndex(instance.launchSite.body), lat, lon, alt + FlightGlobals.ActiveVessel.vesselSize.y, FlightGlobals.ActiveVessel.ReferenceTransform.eulerAngles, false, easeToSurface: true, 0.01);
-                    FloatingOrigin.ResetTerrainShaderOffset();
-                }
-            }
-        }
+    //                Vector3 bounds = instance.mesh.transform.localScale;
+    //                FlightGlobals.fetch.SetVesselPosition(FlightGlobals.GetBodyIndex(instance.launchSite.body), lat, lon, FlightGlobals.ActiveVessel.vesselSize.y / 2 + bounds.y, FlightGlobals.ActiveVessel.ReferenceTransform.eulerAngles, asl: true, easeToSurface: true, 0.05);
+    //                FloatingOrigin.ResetTerrainShaderOffset();
+    //            }
+    //        }
+    //    }
 
-        public KCLaunchpadFacilityWindow(KCLaunchpadFacility launchpad) : base(Configuration.createWindowID(), "Launchpad")
-        {
-            toolRect = new Rect(100, 100, 400, 200);
-            this.launchpad = launchpad;
-        }
-    }
+    //    public KCLaunchpadFacilityWindow(KCLaunchpadFacility launchpad) : base(Configuration.createWindowID(), "Launchpad")
+    //    {
+    //        toolRect = new Rect(100, 100, 400, 200);
+    //        this.launchpad = launchpad;
+    //    }
+    //}
 
     public class KCLaunchpadFacility : KCFacilityBase
     {
-        KCLaunchpadFacilityWindow launchpadWindow;
+        //KCLaunchpadFacilityWindow launchpadWindow;
 
-        public string launchSiteUUID;
+        public string launchSiteUUID { get; private set; } = null;
+        public string launchSiteName { get; private set; } = "";
         public KerbalKonstructs.Core.StaticInstance instance;
 
         public override void OnGroupPlaced()
@@ -61,7 +63,7 @@ namespace KerbalColonies.colonyFacilities
             string oldName = name;
             bool oldState = baseInstance.launchSite.ILSIsActive;
 
-            targetInstance.launchSite.LaunchSiteName = KKgroups[0];
+            targetInstance.launchSite.LaunchSiteName = launchSiteName;
             targetInstance.launchSite.LaunchSiteLength = baseInstance.launchSite.LaunchSiteLength;
             targetInstance.launchSite.LaunchSiteWidth = baseInstance.launchSite.LaunchSiteWidth;
             targetInstance.launchSite.LaunchSiteHeight = baseInstance.launchSite.LaunchSiteHeight;
@@ -125,17 +127,16 @@ namespace KerbalColonies.colonyFacilities
 
         public void LaunchVessel(ProtoVessel vessel)
         {
-            KerbalKonstructs.Core.StaticInstance instance = KerbalKonstructs.API.getStaticInstanceByUUID(launchSiteUUID);
+            //KerbalKonstructs.Core.StaticInstance instance = KerbalKonstructs.API.getStaticInstanceByUUID(launchSiteUUID);
 
-
-            vessel.vesselRef.SetPosition(new Vector3(instance.launchSite.refLat, instance.launchSite.refLon, instance.launchSite.refAlt + 5));
-            vessel.position = new Vector3(instance.launchSite.refLat, instance.launchSite.refLon, instance.launchSite.refAlt + 5);
-            vessel.latitude = instance.launchSite.refLat;
-            vessel.longitude = instance.launchSite.refLon;
-            vessel.altitude = instance.launchSite.refAlt + 5;
-            vessel.vesselRef.latitude = instance.launchSite.refLat;
-            vessel.vesselRef.longitude = instance.launchSite.refLon;
-            vessel.vesselRef.altitude = instance.launchSite.refAlt + 5;
+            ////vessel.vesselRef.SetPosition(new Vector3(instance.launchSite.refLat, instance.launchSite.refLon, instance.launchSite.refAlt));
+            //vessel.position = new Vector3(instance.launchSite.refLat, instance.launchSite.refLon, instance.launchSite.refAlt);
+            //vessel.latitude = instance.launchSite.refLat;
+            //vessel.longitude = instance.launchSite.refLon;
+            //vessel.altitude = instance.launchSite.refAlt + 5;
+            //vessel.vesselRef.latitude = instance.launchSite.refLat;
+            //vessel.vesselRef.longitude = instance.launchSite.refLon;
+            //vessel.vesselRef.altitude = instance.launchSite.refAlt;
 
             GamePersistence.SaveGame("persistent", HighLogic.SaveFolder, SaveMode.OVERWRITE);
 
@@ -154,6 +155,13 @@ namespace KerbalColonies.colonyFacilities
             InputLockManager.ClearControlLocks();
         }
 
+        public static KCLaunchpadFacility GetLaunchpadFacility(string launchSiteName)
+        {
+            return Configuration.colonyDictionary.SelectMany(x => x.Value).SelectMany(c => KCLaunchpadFacility.GetLaunchPadsInColony(c)).FirstOrDefault(l =>
+                l.launchSiteName == launchSiteName
+            );
+        }
+
         public static List<KCLaunchpadFacility> GetLaunchPadsInColony(colonyClass colony)
         {
             return colony.Facilities.Where(x => x is KCLaunchpadFacility).Select(x => (KCLaunchpadFacility)x).ToList();
@@ -163,30 +171,37 @@ namespace KerbalColonies.colonyFacilities
         {
             ConfigNode node = base.getConfigNode();
             node.AddValue("launchSiteUUID", launchSiteUUID);
+            node.AddValue("launchSiteName", launchSiteName);
             return node;
         }
 
         public override void OnBuildingClicked()
         {
-            launchpadWindow.Toggle();
+            //launchpadWindow.Toggle();
         }
 
         public override void OnRemoteClicked()
         {
-            if (Colony.CAB.PlayerInColony) launchpadWindow.Toggle();
-            else launchpadWindow.Close();
+            //if (Colony.CAB.PlayerInColony) launchpadWindow.Toggle();
+            //else launchpadWindow.Close();
         }
 
         public KCLaunchpadFacility(colonyClass colony, KCFacilityInfoClass facilityInfo, ConfigNode node) : base(colony, facilityInfo, node)
         {
             launchSiteUUID = node.GetValue("launchSiteUUID");
+            launchSiteName = node.GetValue("launchSiteName");
             instance = KerbalKonstructs.API.getStaticInstanceByUUID(launchSiteUUID);
-            launchpadWindow = new KCLaunchpadFacilityWindow(this);
+            //launchpadWindow = new KCLaunchpadFacilityWindow(this);
+            AllowClick = false;
+            AllowRemote = false;
         }
 
         public KCLaunchpadFacility(colonyClass colony, KCFacilityInfoClass facilityInfo, bool enabled) : base(colony, facilityInfo, enabled)
         {
-            launchpadWindow = new KCLaunchpadFacilityWindow(this);
+            AllowClick = false;
+            AllowRemote = false;
+            launchSiteName = $"{colony.DisplayName} {displayName}";
+            //launchpadWindow = new KCLaunchpadFacilityWindow(this);
         }
     }
 }

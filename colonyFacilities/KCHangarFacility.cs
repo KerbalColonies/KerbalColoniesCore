@@ -102,6 +102,9 @@ namespace KerbalColonies.colonyFacilities
 
     public class KCHangarFacility : KCFacilityBase
     {
+        public static List<KCHangarFacility> GetHangarsInColony(colonyClass colony) => colony.Facilities.Where(f => f is KCHangarFacility).Select(f => (KCHangarFacility)f).ToList();
+
+
         KCHangarFacilityWindow hangarWindow;
 
         public Dictionary<int, float> x { get; private set; } = new Dictionary<int, float> { };
@@ -146,6 +149,34 @@ namespace KerbalColonies.colonyFacilities
             }
 
             if (KCCrewQuarters.ColonyKerbalCapacity(Colony) - KCCrewQuarters.GetAllKerbalsInColony(Colony).Count < vessel.GetCrewCount())
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        public bool CanStoreShipConstruct(ShipConstruct ship)
+        {
+            if (ship == null) return false;
+            if (ship.Parts.Count == 0) return false;
+            if (vesselCapacity[level] <= storedVessels.Count) return false;
+
+            Vector3 vesselSize = ShipConstruction.CalculateCraftSize(ship);
+            if (vesselSize.x > x[level] || vesselSize.y > y[level] || vesselSize.z > z[level])
+            {
+                return false;
+            }
+
+            double vesselVolume = (vesselSize.x * vesselSize.y * vesselSize.z) * 0.8;
+            if (vesselVolume > Volume - getStoredVolume())
+            {
+                return false;
+            }
+
+            List<ProtoCrewMember> nullList = ShipConstruction.ShipManifest.GetAllCrew(true);
+            List<ProtoCrewMember> noNullList = ShipConstruction.ShipManifest.GetAllCrew(false);
+            if (KCCrewQuarters.ColonyKerbalCapacity(Colony) - KCCrewQuarters.GetAllKerbalsInColony(Colony).Count < nullList.Count)
             {
                 return false;
             }

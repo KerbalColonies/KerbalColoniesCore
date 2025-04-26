@@ -228,7 +228,7 @@ namespace KerbalColonies
                 Configuration.colonyDictionary.Add(FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody), new List<colonyClass> { });
             }
 
-            int colonyCount = Configuration.colonyDictionary[FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody)].Count;
+            int colonyCount = Configuration.colonyDictionary[FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody)].Count + 1;
 
             if (colonyCount >= Configuration.maxColoniesPerBody)
             {
@@ -249,12 +249,14 @@ namespace KerbalColonies
 
         internal static void BuildColony(KC_CABInfo CABInfo)
         {
-            int colonyCount = Configuration.colonyDictionary[FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody)].Count;
+            int colonyCount = Configuration.colonyDictionary[FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody)].Count + 1;
 
             string colonyName = $"KC_{HighLogic.CurrentGame.Seed.ToString()}_{FlightGlobals.currentMainBody.name}_{colonyCount}";
             string groupName = $"{colonyName}_CAB";
 
-            colonyClass colony = new colonyClass(colonyName, CABInfo);
+            string colonyDisplayName = $"{FlightGlobals.currentMainBody.name} colony {colonyCount}";
+
+            colonyClass colony = new colonyClass(colonyName, colonyDisplayName, CABInfo);
 
             Configuration.colonyDictionary[FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody)].Add(colony);
 
@@ -265,7 +267,7 @@ namespace KerbalColonies
                 for (int i = 0; i < kvp.Value; i++)
                 {
                     KCFacilityBase KCFac = Configuration.CreateInstance(kvp.Key, colony, false);
-                    string facilityGroupName = $"{colonyName}_{KCFac.GetType().Name}_0_{KCFacilityBase.CountFacilityType(KCFac.GetType(), colony) + 1}";
+                    string facilityGroupName = $"{colonyName}_{KCFac.GetType().Name}_0_{KCFacilityBase.CountFacilityType(KCFac.facilityInfo, colony) + 1}";
 
                     PlaceNewGroup(KCFac, facilityGroupName);
                 }
@@ -278,7 +280,7 @@ namespace KerbalColonies
                 for (int i = 0; i < kvp.Value; i++)
                 {
                     KCFacilityBase KCFac = Configuration.CreateInstance(kvp.Key, colony, false);
-                    string facilityGroupName = $"{colonyName}_{KCFac.GetType().Name}_0_{KCFacilityBase.CountFacilityType(KCFac.GetType(), colony) + 1}";
+                    string facilityGroupName = $"{colonyName}_{KCFac.GetType().Name}_0_{KCFacilityBase.CountFacilityType(KCFac.facilityInfo, colony) + 1}";
 
                     PlaceNewGroup(KCFac, facilityGroupName);
                 }

@@ -74,6 +74,8 @@ namespace KerbalColonies.colonyFacilities
 
         public override void Update()
         {
+            //ResourceMap
+
             double deltaTime = Planetarium.GetUniversalTime() - lastUpdateTime;
 
             lastUpdateTime = Planetarium.GetUniversalTime();

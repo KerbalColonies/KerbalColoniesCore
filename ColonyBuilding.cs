@@ -267,7 +267,7 @@ namespace KerbalColonies
                 for (int i = 0; i < kvp.Value; i++)
                 {
                     KCFacilityBase KCFac = Configuration.CreateInstance(kvp.Key, colony, false);
-                    string facilityGroupName = $"{colonyName}_{KCFac.GetType().Name}_0_{KCFacilityBase.CountFacilityType(KCFac.facilityInfo, colony) + 1}";
+                    string facilityGroupName = $"{colonyName}_{KCFac.name}_0_{KCFac.facilityTypeNumber}";
 
                     PlaceNewGroup(KCFac, facilityGroupName);
                 }
@@ -280,7 +280,7 @@ namespace KerbalColonies
                 for (int i = 0; i < kvp.Value; i++)
                 {
                     KCFacilityBase KCFac = Configuration.CreateInstance(kvp.Key, colony, false);
-                    string facilityGroupName = $"{colonyName}_{KCFac.GetType().Name}_0_{KCFacilityBase.CountFacilityType(KCFac.facilityInfo, colony) + 1}";
+                    string facilityGroupName = $"{colonyName}_{KCFac.name}_0_{KCFac.facilityTypeNumber}";
 
                     PlaceNewGroup(KCFac, facilityGroupName);
                 }

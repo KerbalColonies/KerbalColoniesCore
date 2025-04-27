@@ -41,19 +41,14 @@ namespace KerbalColonies
                 return;
             }
 
-            PartResourceDefinition oreResource = PartResourceLibrary.Instance.GetDefinition("Ore");
-
-            part.vessel.GetConnectedResourceTotals(oreResource.id, false, out double amount, out double maxAmount);
             if (ColonyBuilding.CreateColony())
             {
                 writeLog("Creating Colony");
                 ScreenMessages.PostScreenMessage($"Creating a Colony on {part.vessel.mainBody.name}", 10f, ScreenMessageStyle.UPPER_RIGHT);
-                //FlightGlobals.fetch.SetVesselPosition(FlightGlobals.GetBodyIndex(FlightGlobals.currentMainBody), FlightGlobals.ship_latitude, FlightGlobals.ship_longitude, FlightGlobals.ship_altitude + Configuration.spawnHeight, FlightGlobals.ActiveVessel.ReferenceTransform.eulerAngles, false, easeToSurface: true, 0.01);
-                //FloatingOrigin.ResetTerrainShaderOffset();
             }
             else
             {
-                ScreenMessages.PostScreenMessage($"Not enough ore: {amount}/{Configuration.oreRequiredPerColony}", 10f, ScreenMessageStyle.UPPER_RIGHT);
+                ScreenMessages.PostScreenMessage($"Not enough resources", 10f, ScreenMessageStyle.UPPER_RIGHT);
             }
         }
 

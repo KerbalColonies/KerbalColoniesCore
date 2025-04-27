@@ -107,10 +107,6 @@ namespace KerbalColonies
 
             KCFacilityTypeRegistry.RegisterFacilityInfo<KC_CAB_Facility, KC_CABInfo>();
             KCFacilityTypeRegistry.RegisterFacilityInfo<KCProductionFacility, KCProductionInfo>();
-
-            CPLC.RegisterCheck(KCHangarPreFlightCheck.GetKCHangarTest);
-            CPLC.RegisterCheck(KCCrewPreFlightCheck.GetKCCrewTest);
-            CPLC.RegisterCheck(KCResourcePreFlightCheck.GetKCCrewTest);
         }
 
         protected void Start()

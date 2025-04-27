@@ -38,6 +38,11 @@ namespace KerbalColonies.colonyFacilities
         public int maxLevel = 0;
         public bool upgradeable = false;
         public bool built = false;
+        /// <summary>
+        /// This number is represents when the facility was built, e.g. if it was the first of its type it will be 1, if it was the second it will be 2, ...
+        /// <para>It's used for the additional groups</para>
+        /// </summary>
+        public int facilityTypeNumber { get; protected set; } = 0;
 
         /// <summary>
         /// The KK group name and the body id
@@ -100,7 +105,7 @@ namespace KerbalColonies.colonyFacilities
 
             facility.UpgradeFacility(facility.level + 1);
 
-            ColonyBuilding.PlaceNewGroup(facility, $"{facility.Colony.Name}_{facility.GetType().Name}_{facility.level}_{KCFacilityBase.CountFacilityType(facility.facilityInfo, facility.Colony)}");
+            ColonyBuilding.PlaceNewGroup(facility, $"{facility.Colony.Name}_{facility.name}_{facility.level}_{facility.facilityTypeNumber}");
 
             return true;
         }
@@ -195,6 +200,7 @@ namespace KerbalColonies.colonyFacilities
             node.AddValue("creationTime", creationTime);
             node.AddValue("lastUpdateTime", lastUpdateTime);
             node.AddValue("built", built.ToString());
+            node.AddValue("facilityTypeNumber", facilityTypeNumber.ToString());
 
             KKgroups.ForEach(x =>
             {
@@ -237,6 +243,7 @@ namespace KerbalColonies.colonyFacilities
             this.id = createID();
             this.level = 0;
             this.maxLevel = 0;
+            this.facilityTypeNumber = 0;
             creationTime = Planetarium.GetUniversalTime();
             lastUpdateTime = Planetarium.GetUniversalTime();
 
@@ -258,6 +265,7 @@ namespace KerbalColonies.colonyFacilities
             this.enabled = bool.Parse(node.GetValue("enabled"));
             this.level = 0;
             this.maxLevel = 0;
+            this.facilityTypeNumber = 0;
             this.creationTime = double.Parse(node.GetValue("creationTime"));
             this.lastUpdateTime = double.Parse(node.GetValue("lastUpdateTime"));
             this.built = bool.Parse(node.GetValue("built"));
@@ -286,6 +294,7 @@ namespace KerbalColonies.colonyFacilities
             this.creationTime = double.Parse(node.GetValue("creationTime"));
             this.lastUpdateTime = double.Parse(node.GetValue("lastUpdateTime"));
             this.built = bool.Parse(node.GetValue("built"));
+            this.facilityTypeNumber = int.Parse(node.GetValue("facilityTypeNumber"));
             this.KKgroups = new List<string> { };
             node.GetNodes("kkGroupNode").ToList().ForEach(n => KKgroups.Add(n.GetValue("groupName")));
 
@@ -313,6 +322,7 @@ namespace KerbalColonies.colonyFacilities
             this.id = createID();
             this.level = 0;
             this.maxLevel = facilityInfo.BasegroupNames.Count - 1;
+            this.facilityTypeNumber = CountFacilityType(facilityInfo, colony) + 1;
             creationTime = Planetarium.GetUniversalTime();
             lastUpdateTime = Planetarium.GetUniversalTime();
 

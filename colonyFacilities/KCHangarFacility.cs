@@ -1,9 +1,8 @@
-﻿using KerbalKonstructs.Core;
+﻿using KerbalColonies.UI;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using KerbalColonies.UI;
 
 // KC: Kerbal Colonies
 // This mod aimes to create a Colony system with Kerbal Konstructs statics
@@ -98,6 +97,8 @@ namespace KerbalColonies.colonyFacilities
         internal ConfigNode vesselNode;
 
         internal double vesselVolume;
+        internal double? vesselBuildTime;
+        internal double? entireVesselBuildTime;
     }
 
     public class KCHangarFacility : KCFacilityBase
@@ -184,7 +185,7 @@ namespace KerbalColonies.colonyFacilities
             return true;
         }
 
-        public bool StoreVessel(Vessel vessel)
+        public bool StoreVessel(Vessel vessel, bool buildVessel)
         {
             if (CanStoreVessel(vessel))
             {
@@ -199,6 +200,16 @@ namespace KerbalColonies.colonyFacilities
 
                     vesselVolume = (vesselSize.x * vesselSize.y * vesselSize.z) * 0.8
                 };
+
+                if (!buildVessel)
+                {
+                    storedVessel.vesselBuildTime = null;
+                    storedVessel.entireVesselBuildTime = null;
+                }
+                else
+                {
+                    // TODO: calculate the build time of the vessel
+                }
 
                 //get the experience and assign the crew to the rooster
                 foreach (Part part in vessel.parts)
@@ -285,9 +296,15 @@ namespace KerbalColonies.colonyFacilities
             {
                 ConfigNode vesselNode = new ConfigNode("vessel");
 
-                vesselNode.SetValue("VesselID", vessel.uuid.ToString(), true);
-                vesselNode.SetValue("VesselName", vessel.vesselName, true);
+                vesselNode.AddValue("VesselID", vessel.uuid.ToString());
+                vesselNode.AddValue("VesselName", vessel.vesselName);
                 vesselNode.AddNode(vessel.vesselNode);
+                vesselNode.AddValue("VesselVolume", vessel.vesselVolume);
+                if (vessel.vesselBuildTime != null)
+                {
+                    vesselNode.AddValue("VesselBuildTime", vessel.vesselBuildTime);
+                    vesselNode.AddValue("VesselEntireBuildTime", vessel.entireVesselBuildTime);
+                }
 
                 node.AddNode(vesselNode);
             }
@@ -312,7 +329,7 @@ namespace KerbalColonies.colonyFacilities
             {
                 ConfigNode iLevel = levelNode.GetNode(i.ToString());
 
-                if (iLevel.HasValue("x")) x[i] =  float.Parse(iLevel.GetValue("x"));
+                if (iLevel.HasValue("x")) x[i] = float.Parse(iLevel.GetValue("x"));
                 else if (i > 0) x[i] = x[i - 1];
                 else throw new MissingFieldException($"The facility {facilityInfo.name} (type: {facilityInfo.type}) has no x value (at least for level 0).");
 

@@ -143,14 +143,16 @@ namespace KerbalColonies.colonyFacilities
 
                                 facility.ConstructedFacilities.Remove(colonyFacility);
 
-                                string newGroupName = $"{facility.Colony.Name}_{colonyFacility.GetType().Name}_0_{KCFacilityBase.CountFacilityType(colonyFacility.facilityInfo, facility.Colony) + 1}";
+                                string newGroupName = $"{facility.Colony.Name}_{colonyFacility.name}_0_{colonyFacility.facilityTypeNumber}";
 
                                 ColonyBuilding.PlaceNewGroup(colonyFacility, newGroupName);
                             }
                         }
 
                         GUI.enabled = true;
-                        GUILayout.Space(20);
+                        GUILayout.Space(10);
+                        GUILayout.Box("", GUILayout.ExpandWidth(true), GUILayout.Height(1));
+                        GUILayout.Space(10);
                     });
                 }
                 GUILayout.EndVertical();

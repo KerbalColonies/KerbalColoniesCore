@@ -125,11 +125,8 @@ namespace KerbalColonies
         internal static Type CrewQuarterType { get { return crewQuarterType; } set { if (typeof(KCCrewQuarters).IsAssignableFrom(value)) { crewQuarterType = value; } } }
 
 
-        internal static float spawnHeight = 5;                  // The height the active vessel should be set above the surface, this is done to prevent the vessel getting destroyed by the statics
         internal static int maxColoniesPerBody = 3;              // Limits the amount of colonies per celestial body (planet/moon)
-                                                                 // set it to zero to disable the limit
-        internal static int oreRequiredPerColony = 1000;     // The required amount of ore to start a Colony
-                                                             // It's planned to change this so different resources can be used
+                                                                 // set it to zero to disable the limit                                                             // It's planned to change this so different resources can be used
 #if DEBUG
         internal static bool enableLogging = true;            // Enable this only in debug purposes as it floods the logs very much
 #else
@@ -318,9 +315,7 @@ namespace KerbalColonies
             {
                 return;
             }
-            float.TryParse(nodes[0].GetValue("spawnHeight"), out spawnHeight);
             int.TryParse(nodes[0].GetValue("maxColoniesPerBody"), out maxColoniesPerBody);
-            int.TryParse(nodes[0].GetValue("oreRequiredPerColony"), out oreRequiredPerColony);
 
             bool.TryParse(nodes[0].GetValue("enableLogging"), out enableLogging);
         }
@@ -334,9 +329,7 @@ namespace KerbalColonies
             }
 
             // config params
-            nodes[0].SetValue("spawnHeight", spawnHeight, "The height above the ground at which the active vessel will be set when spawning a new Colony. This is done to prevent the vessel from exploding from the static meshes", createIfNotFound: true);
             nodes[0].SetValue("maxColoniesPerBody", maxColoniesPerBody, "Limits the amount of colonies per celestial body (planet/moon)\n\facilityType// set it to zero to disable the limit", createIfNotFound: true);
-            nodes[0].SetValue("oreRequiredPerColony", oreRequiredPerColony, "The required amount of ore to start a Colony", createIfNotFound: true);
             nodes[0].SetValue("enableLogging", enableLogging, "Enable this only in debug purposes as it floods the logs very much", createIfNotFound: true);
 
             string path = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + "/KC.cfg";

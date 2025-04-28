@@ -21,14 +21,14 @@ namespace KerbalColonies.colonyFacilities
             }
 
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Stored ore: " + miningFacility.Ore);
-            GUILayout.Label("Max ore: " + miningFacility.MaxOre);
+            GUILayout.Label($"Stored ore: {miningFacility.Ore:f2}");
+            GUILayout.Label($"Max ore: {miningFacility.MaxOre:f2}");
             GUILayout.EndHorizontal();
             GUILayout.Space(10);
 
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Stored metalore: " + miningFacility.MetalOre);
-            GUILayout.Label("Max metalore: " + miningFacility.MaxMetalOre);
+            GUILayout.Label($"Stored metalore: {miningFacility.MetalOre:f2}");
+            GUILayout.Label($"Max metalore: {miningFacility.MaxMetalOre:f2}");
             GUILayout.EndHorizontal();
             GUILayout.Space(10);
 

@@ -200,7 +200,7 @@ namespace KerbalColonies.colonyFacilities
         {
             AllowClick = false;
             AllowRemote = false;
-            launchSiteName = $"{colony.DisplayName} {displayName}";
+            launchSiteName = $"KC {HighLogic.CurrentGame.Seed.ToString()} {colony.DisplayName} {displayName}";
             //launchpadWindow = new KCLaunchpadFacilityWindow(this);
         }
     }

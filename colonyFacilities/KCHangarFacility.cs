@@ -45,6 +45,7 @@ namespace KerbalColonies.colonyFacilities
 
         protected override void CustomWindow()
         {
+            hangar.Update();
             List<StoredVessel> vesselList = hangar.storedVessels.ToList();
             scrollPos = GUILayout.BeginScrollView(scrollPos);
             GUILayout.BeginVertical();
@@ -53,9 +54,16 @@ namespace KerbalColonies.colonyFacilities
                 GUILayout.BeginHorizontal();
                 GUILayout.Label(vessel.vesselName);
 
-                if (GUILayout.Button("Load"))
+                if (vessel.vesselBuildTime == null)
                 {
-                    Vessel v = hangar.RollOutVessel(vessel).vesselRef;
+                    if (GUILayout.Button("Load"))
+                    {
+                        Vessel v = hangar.RollOutVessel(vessel).vesselRef;
+                    }
+                }
+                else
+                {
+                    GUILayout.Label($"Build time: {(vessel.entireVesselBuildTime - vessel.vesselBuildTime):f2}/{vessel.entireVesselBuildTime:f2}");
                 }
                 GUILayout.EndHorizontal();
             });
@@ -76,7 +84,7 @@ namespace KerbalColonies.colonyFacilities
 
                 if (GUILayout.Button("Store vessel"))
                 {
-                    hangar.StoreVessel(FlightGlobals.ActiveVessel);
+                    hangar.StoreVessel(FlightGlobals.ActiveVessel, null);
                 }
             }
 
@@ -90,20 +98,78 @@ namespace KerbalColonies.colonyFacilities
         }
     }
 
-    public struct StoredVessel
+    public class StoredVessel
     {
-        internal string vesselName;
-        internal Guid uuid;
-        internal ConfigNode vesselNode;
+        public string vesselName;
+        public Guid uuid;
+        public ConfigNode vesselNode;
 
-        internal double vesselVolume;
-        internal double? vesselBuildTime;
-        internal double? entireVesselBuildTime;
+        public double vesselVolume;
+        public double? vesselBuildTime;
+        public double? entireVesselBuildTime;
+        public double? vesselDryMass;
+
+        public StoredVessel(string vesselName, Guid uuid, double vesselVolume, ConfigNode vesselNode = null, double? vesselBuildTime = null, double? entireVesselBuildTime = null, double? vesselDryMass = null)
+        {
+            this.vesselName = vesselName;
+            this.uuid = uuid;
+            this.vesselNode = vesselNode;
+            this.vesselVolume = vesselVolume;
+            this.vesselBuildTime = vesselBuildTime;
+            this.entireVesselBuildTime = entireVesselBuildTime;
+            this.vesselDryMass = vesselDryMass;
+        }
     }
 
     public class KCHangarFacility : KCFacilityBase
     {
         public static List<KCHangarFacility> GetHangarsInColony(colonyClass colony) => colony.Facilities.Where(f => f is KCHangarFacility).Select(f => (KCHangarFacility)f).ToList();
+
+        public static List<StoredVessel> GetConstructingVessels(colonyClass colony) => GetHangarsInColony(colony).SelectMany(h => h.storedVessels.Where(v => v.vesselBuildTime != null)).ToList();
+
+        public static bool CanBuildVessel(double vesselMass, colonyClass colony)
+        {
+            Configuration.writeDebug($"CanBuildVessel: {vesselMass} in {colony.DisplayName}");
+            KCProductionInfo info = (KCProductionInfo)Configuration.GetInfoClass(colony.sharedColonyNodes.First(n => n.name == "vesselBuildInfo").GetValue("facilityConfig"));
+            if (info == null) return false;
+
+            int level = int.Parse(colony.sharedColonyNodes.First(n => n.name == "vesselBuildInfo").GetValue("facilityLevel"));
+            List<KCProductionFacility> productionFacilitiesInColony = colony.Facilities.Where(f => f is KCProductionFacility).Select(f => (KCProductionFacility)f).Where(f => info.HasSameRecipt(level, f)).ToList();
+
+            if (productionFacilitiesInColony.Count == 0) return false;
+            else if (info.vesselResourceCost[level].Count == 0) return true;
+            else
+            {
+                bool canBuild = true;
+                foreach (KeyValuePair<PartResourceDefinition, double> res in info.vesselResourceCost[level])
+                {
+                    double colonyAmount = KCStorageFacility.colonyResources(res.Key, colony);
+                    Configuration.writeDebug($"resource: {res.Key.name}, amount: {res.Value}, stored in colony: {colonyAmount}");
+                    if (res.Value * vesselMass > colonyAmount)
+                    {
+                        Configuration.writeDebug($"Insufficient resource: {res.Key.name}");
+                        canBuild = false;
+                    }
+                }
+                return canBuild;
+            }
+        }
+
+        public static void BuildVessel(double vesselMass, colonyClass colony)
+        {
+            if (CanBuildVessel(vesselMass, colony))
+            {
+                KCProductionInfo info = (KCProductionInfo)Configuration.GetInfoClass(colony.sharedColonyNodes.First(n => n.name == "vesselBuildInfo").GetValue("facilityConfig"));
+
+                int level = int.Parse(colony.sharedColonyNodes.First(n => n.name == "vesselBuildInfo").GetValue("facilityLevel"));
+                List<KCProductionFacility> productionFacilitiesInColony = colony.Facilities.Where(f => f is KCProductionFacility).Select(f => (KCProductionFacility)f).Where(f => info.HasSameRecipt(level, f)).ToList();
+
+                foreach (KeyValuePair<PartResourceDefinition, double> res in info.vesselResourceCost[level])
+                {
+                    KCStorageFacility.addResourceToColony(res.Key, -res.Value * vesselMass, colony);
+                }
+            }
+        }
 
 
         KCHangarFacilityWindow hangarWindow;
@@ -185,7 +251,7 @@ namespace KerbalColonies.colonyFacilities
             return true;
         }
 
-        public bool StoreVessel(Vessel vessel, bool buildVessel)
+        public bool StoreVessel(Vessel vessel, double? vesselDryMass)
         {
             if (CanStoreVessel(vessel))
             {
@@ -193,22 +259,19 @@ namespace KerbalColonies.colonyFacilities
 
                 Vector3 vesselSize = vessel.vesselSize;
 
-                StoredVessel storedVessel = new StoredVessel
-                {
-                    uuid = vessel.protoVessel.vesselID,
-                    vesselName = vessel.GetDisplayName(),
+                StoredVessel storedVessel = new StoredVessel(vessel.GetDisplayName(), vessel.protoVessel.vesselID, (vesselSize.x * vesselSize.y * vesselSize.z) * 0.8);
 
-                    vesselVolume = (vesselSize.x * vesselSize.y * vesselSize.z) * 0.8
-                };
-
-                if (!buildVessel)
+                if (vesselDryMass == null)
                 {
                     storedVessel.vesselBuildTime = null;
                     storedVessel.entireVesselBuildTime = null;
                 }
                 else
                 {
-                    // TODO: calculate the build time of the vessel
+                    Configuration.writeDebug($"vessel part counts: {vessel.Parts.Count}, mass: {vesselDryMass}");
+                    storedVessel.vesselBuildTime = (vessel.Parts.Count + vesselDryMass) * 10;
+                    storedVessel.entireVesselBuildTime = storedVessel.vesselBuildTime;
+                    storedVessel.vesselDryMass = vesselDryMass;
                 }
 
                 //get the experience and assign the crew to the rooster
@@ -304,6 +367,7 @@ namespace KerbalColonies.colonyFacilities
                 {
                     vesselNode.AddValue("VesselBuildTime", vessel.vesselBuildTime);
                     vesselNode.AddValue("VesselEntireBuildTime", vessel.entireVesselBuildTime);
+                    vesselNode.AddValue("VesselDryMass", vessel.vesselDryMass);
                 }
 
                 node.AddNode(vesselNode);
@@ -355,11 +419,14 @@ namespace KerbalColonies.colonyFacilities
 
             foreach (ConfigNode vesselNode in node.GetNodes("vessel"))
             {
-                StoredVessel vessel = new StoredVessel();
+                StoredVessel vessel = new StoredVessel(vesselNode.GetValue("VesselName"), Guid.Parse(vesselNode.GetValue("VesselID")), double.Parse(vesselNode.GetValue("VesselVolume")), vesselNode.GetNode("VESSEL"));
 
-                vessel.uuid = Guid.Parse(vesselNode.GetValue("VesselID"));
-                vessel.vesselName = vesselNode.GetValue("VesselName");
-                vessel.vesselNode = vesselNode.GetNode("VESSEL");
+                if (vesselNode.HasValue("VesselBuildTime"))
+                {
+                    vessel.vesselBuildTime = double.Parse(vesselNode.GetValue("VesselBuildTime"));
+                    vessel.entireVesselBuildTime = double.Parse(vesselNode.GetValue("VesselEntireBuildTime"));
+                    vessel.vesselDryMass = double.Parse(vesselNode.GetValue("VesselDryMass"));
+                }
 
                 storedVessels.Add(vessel);
             }

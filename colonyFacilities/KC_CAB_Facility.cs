@@ -283,14 +283,43 @@ namespace KerbalColonies.colonyFacilities
             }
 
             double deltaTime = Planetarium.GetUniversalTime() - lastUpdateTime;
+            double totalProduction = Colony.Facilities.Where(f => f is KCProductionFacility).ToList().Sum(facility => ((KCProductionFacility)facility).dailyProduction() * deltaTime / 24 / 60 / 60);
+
+            List<StoredVessel> constructingVessel = KCHangarFacility.GetConstructingVessels(Colony);
+
+            if (constructingVessel.Count > 0)
+            {
+                while (totalProduction > 0 && constructingVessel.Count > 0)
+                {
+                    if (constructingVessel[0].vesselBuildTime > totalProduction)
+                    {
+                        double buildingVesselMass = (double) (constructingVessel[0].vesselDryMass * (totalProduction / constructingVessel[0].entireVesselBuildTime));
+                        if (!KCHangarFacility.CanBuildVessel(buildingVesselMass, Colony)) break;
+
+                        KCHangarFacility.BuildVessel(buildingVesselMass, Colony);
+                        constructingVessel[0].vesselBuildTime -= totalProduction;
+                        totalProduction = 0;
+                        break;
+                    }
+                    else
+                    {
+                        double buildingVesselMass = (double)(constructingVessel[0].vesselDryMass * (constructingVessel[0].vesselBuildTime / constructingVessel[0].entireVesselBuildTime));
+                        if (!KCHangarFacility.CanBuildVessel(buildingVesselMass, Colony)) break;
+
+                        KCHangarFacility.BuildVessel(buildingVesselMass, Colony);
+                        totalProduction -= (double) constructingVessel[0].vesselBuildTime;
+                        constructingVessel[0].vesselBuildTime = null;
+                        constructingVessel[0].entireVesselBuildTime = null;
+                        ScreenMessages.PostScreenMessage($"KC: Vessel {constructingVessel[0].vesselName} was fully built on colony {Colony.DisplayName}", 10f, ScreenMessageStyle.UPPER_RIGHT);
+                    }
+                }
+            }
 
             if (upgradingFacilities.Count > 0 || constructingFacilities.Count > 0)
             {
-                double totalProduction = Colony.Facilities.Where(f => f is KCProductionFacility).ToList().Sum(facility => ((KCProductionFacility)facility).dailyProduction() * deltaTime / 24 / 60 / 60);
 
                 while (totalProduction > 0)
                 {
-
                     if (upgradingFacilities.Count > 0)
                     {
                         if (upgradingFacilities.ElementAt(0).Value > totalProduction)
@@ -304,6 +333,8 @@ namespace KerbalColonies.colonyFacilities
                             KCFacilityBase facility = upgradingFacilities.ElementAt(0).Key;
                             totalProduction -= upgradingFacilities.ElementAt(0).Value;
                             upgradingFacilities.Remove(facility);
+
+                            ScreenMessages.PostScreenMessage($"KC: Facility {facility} was fully upgraded on colony {Colony.DisplayName}", 10f, ScreenMessageStyle.UPPER_RIGHT);
 
                             switch (facility.facilityInfo.UpgradeTypes[facility.level + 1])
                             {
@@ -333,6 +364,7 @@ namespace KerbalColonies.colonyFacilities
                             totalProduction -= constructingFacilities.ElementAt(0).Value;
                             constructingFacilities.Remove(facility);
                             addConstructedFacility(facility);
+                            ScreenMessages.PostScreenMessage($"KC: Facility {facility} was fully built on colony {Colony.DisplayName}", 10f, ScreenMessageStyle.UPPER_RIGHT);
                         }
                     }
                     else

@@ -38,8 +38,8 @@ namespace KerbalColonies.colonyFacilities
             }
 
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Science Points: " + researchFacility.SciencePoints);
-            GUILayout.Label("Max Science Points: " + researchFacility.MaxSciencePoints);
+            GUILayout.Label($"Science Points: {researchFacility.SciencePoints:f2}");
+            GUILayout.Label($"Max Science Points: {researchFacility.MaxSciencePoints:f2}");
             GUILayout.EndHorizontal();
 
             kerbalGUI.StaffingInterface();

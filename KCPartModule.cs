@@ -37,18 +37,18 @@ namespace KerbalColonies
             Vessel vessel = FlightGlobals.ActiveVessel;
             if (vessel.srfSpeed >= 0.5f && !vessel.Landed)
             {
-                ScreenMessages.PostScreenMessage("The current vessel must be landed and have a surface speed slower than 0.5m/s", 10f, ScreenMessageStyle.UPPER_RIGHT);
+                ScreenMessages.PostScreenMessage("KC: The current vessel must be landed and have a surface speed slower than 0.5m/s", 10f, ScreenMessageStyle.UPPER_RIGHT);
                 return;
             }
 
             if (ColonyBuilding.CreateColony())
             {
                 writeLog("Creating Colony");
-                ScreenMessages.PostScreenMessage($"Creating a Colony on {part.vessel.mainBody.name}", 10f, ScreenMessageStyle.UPPER_RIGHT);
+                ScreenMessages.PostScreenMessage($"KC: Creating a Colony on {part.vessel.mainBody.name}", 10f, ScreenMessageStyle.UPPER_RIGHT);
             }
             else
             {
-                ScreenMessages.PostScreenMessage($"Not enough resources", 10f, ScreenMessageStyle.UPPER_RIGHT);
+                ScreenMessages.PostScreenMessage($"KC: Not enough resources", 10f, ScreenMessageStyle.UPPER_RIGHT);
             }
         }
 

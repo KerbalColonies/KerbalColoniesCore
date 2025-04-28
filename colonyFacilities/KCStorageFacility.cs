@@ -116,9 +116,9 @@ namespace KerbalColonies.colonyFacilities
             storageFacility.Update();
             //int maxVolume = (int)Math.Round(KCStorageFacility.maxVolume, 0);
             GUILayout.BeginHorizontal();
-            GUILayout.Label($"MaxVolume: {storageFacility.maxVolume[storageFacility.level]}", LabelGreen, GUILayout.Height(18));
+            GUILayout.Label($"MaxVolume: {storageFacility.maxVolume[storageFacility.level]:f2}", LabelGreen, GUILayout.Height(18));
             GUILayout.FlexibleSpace();
-            GUILayout.Label($"UsedVolume: {storageFacility.getCurrentVolume()}", LabelGreen, GUILayout.Height(18));
+            GUILayout.Label($"UsedVolume: {storageFacility.getCurrentVolume():f2}", LabelGreen, GUILayout.Height(18));
             GUILayout.EndHorizontal();
             GUILayout.Space(2);
             GUI.enabled = true;
@@ -130,7 +130,7 @@ namespace KerbalColonies.colonyFacilities
             {
                 KeyValuePair<PartResourceDefinition, double> kvp = resourceCopy.ElementAt(r);
                 GUILayout.BeginVertical();
-                GUILayout.Label($"{kvp.Key.displayName}: {kvp.Value}", GUILayout.Height(18));
+                GUILayout.Label($"{kvp.Key.displayName}: {kvp.Value:f2}", GUILayout.Height(18));
 
                 if (!storageFacility.Colony.CAB.PlayerInColony && !trashResources) { GUI.enabled = false; }
                 GUILayout.BeginHorizontal();

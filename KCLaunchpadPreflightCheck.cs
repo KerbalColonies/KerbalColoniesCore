@@ -32,7 +32,7 @@ namespace KerbalColonies
         {
             CPLC.RegisterCheck(KCHangarPreFlightCheck.GetKCHangarTest);
             CPLC.RegisterCheck(KCCrewPreFlightCheck.GetKCCrewTest);
-            //CPLC.RegisterCheck(KCResourcePreFlightCheck.GetKCCrewTest);
+            CPLC.RegisterCheck(KCResourcePreFlightCheck.GetKCResourceTest);
         }
     }
 
@@ -41,6 +41,7 @@ namespace KerbalColonies
     {
         internal static string launchPadName { get; set; } = null;
         internal static double funds { get; set; } = 0; // funds needed to launch
+        internal static double vesselMass { get; set; } = 0; // mass of the vessel to be launched
 
         public void Start()
         {
@@ -62,15 +63,17 @@ namespace KerbalColonies
                     Funding.Instance.AddFunds(funds, TransactionReasons.None);
                 }
 
-                KCHangarFacility.GetHangarsInColony(kCLaunchpad.Colony).First(h => h.CanStoreVessel(FlightGlobals.ActiveVessel)).StoreVessel(FlightGlobals.ActiveVessel);
+                KCHangarFacility.GetHangarsInColony(kCLaunchpad.Colony).First(h => h.CanStoreVessel(FlightGlobals.ActiveVessel)).StoreVessel(FlightGlobals.ActiveVessel, vesselMass);
 
                 launchPadName = null;
                 funds = 0;
+                vesselMass = 0;
             }
             else
             {
                 launchPadName = null;
                 funds = 0;
+                vesselMass = 0;
             }
         }
     }
@@ -205,7 +208,6 @@ namespace KerbalColonies
 
         public bool CanBuildVessel(double vesselMass, colonyClass colony)
         {
-            // TODO: Find a way to do this level save (facilties in the colony with the same vessel cost can work toghether)
             KCProductionInfo info = (KCProductionInfo)Configuration.GetInfoClass(colony.sharedColonyNodes.First(n => n.name == "vesselBuildInfo").GetValue("facilityConfig"));
             if (info == null) return false;
 
@@ -219,11 +221,14 @@ namespace KerbalColonies
                 bool canBuild = true;
                 foreach (KeyValuePair<PartResourceDefinition, double> res in info.vesselResourceCost[level])
                 {
-                    if (res.Value * vesselMass > KCStorageFacility.colonyResources(res.Key, colony))
+                    double colonyAmount = KCStorageFacility.colonyResources(res.Key, colony);
+                    Configuration.writeDebug($"resource: {res.Key.name}, amount: {res.Value}, stored in colony: {colonyAmount}");
+                    if (res.Value * vesselMass > colonyAmount)
                     {
+                        Configuration.writeDebug($"Insufficient resource: {res.Key.name}");
                         canBuild = false;
-                        if (!Insufficientresources.ContainsKey(res.Key.name)) Insufficientresources.Add(res.Key.name, res.Value);
-                        else Insufficientresources[res.Key.name] += res.Value;
+                        if (!Insufficientresources.ContainsKey(res.Key.name)) Insufficientresources.Add(res.Key.name, res.Value * vesselMass);
+                        else Insufficientresources[res.Key.name] += res.Value * vesselMass;
                     }
                 }
                 return canBuild;
@@ -240,6 +245,8 @@ namespace KerbalColonies
 
             EditorLogic.fetch.ship.GetShipMass(out float mass, out float wetMass);
             Configuration.writeDebug($"[KCResourcePreFlightCheck] Ship mass: {mass}, wet mass: {wetMass}");
+
+            KCPreFlightWorker.vesselMass = mass;
 
             if (CanBuildVessel(mass, kCLaunchpad.Colony))
             {
@@ -279,7 +286,7 @@ namespace KerbalColonies
         public string GetProceedOption() => "Continue with the launch.";
         public string GetAbortOption() => "Abort launch.";
 
-        public static PreFlightTests.IPreFlightTest GetKCCrewTest(string launchSiteName)
+        public static PreFlightTests.IPreFlightTest GetKCResourceTest(string launchSiteName)
         {
             return new KCResourcePreFlightCheck(launchSiteName);
         }

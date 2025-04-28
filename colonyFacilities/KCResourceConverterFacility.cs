@@ -2,24 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using KerbalColonies.UI;
 
 namespace KerbalColonies.colonyFacilities
 {
-    internal class KCResourceConverterFacilityCost : KCFacilityCostClass
-    {
-        public KCResourceConverterFacilityCost()
-        {
-            resourceCost = new Dictionary<int, Dictionary<PartResourceDefinition, double>> {
-                { 0, new Dictionary<PartResourceDefinition, double> {
-                    { PartResourceLibrary.Instance.GetDefinition("RocketParts"), 500 } } },
-                { 1, new Dictionary<PartResourceDefinition, double> {
-                    { PartResourceLibrary.Instance.GetDefinition("RocketParts"), 1000 } }
-                }
-            };
-        }
-    }
-
-
     internal class RecipeSelectorWindow : KCWindowBase
     {
         KCResourceConverterFacility resourceConverter;
@@ -79,7 +65,7 @@ namespace KerbalColonies.colonyFacilities
             GUILayout.EndScrollView();
         }
 
-        internal RecipeSelectorWindow(KCResourceConverterFacility resourceConverter) : base(Configuration.createWindowID(resourceConverter), "Recipe Selector")
+        internal RecipeSelectorWindow(KCResourceConverterFacility resourceConverter) : base(Configuration.createWindowID(), "Recipe Selector")
         {
             this.resourceConverter = resourceConverter;
             toolRect = new Rect(100, 100, 400, 800);
@@ -151,7 +137,7 @@ namespace KerbalColonies.colonyFacilities
             {
                 GUILayout.Label("This facility is disabled");
 
-                if (resourceConverter.getKerbals().Count() < resourceConverter.maxKerbals)
+                if (resourceConverter.getKerbals().Count() < resourceConverter.MaxKerbals)
                 {
                     GUI.enabled = false;
                 }
@@ -182,9 +168,14 @@ namespace KerbalColonies.colonyFacilities
         protected override void OnClose()
         {
             recipeSelector.Close();
+            if (kerbalGUI != null && kerbalGUI.ksg != null)
+            {
+                kerbalGUI.ksg.Close();
+                kerbalGUI.transferWindow = false;
+            }
         }
 
-        internal KCResourceConverterWindow(KCResourceConverterFacility resourceConverter) : base(Configuration.createWindowID(resourceConverter), "Resourceconverter")
+        internal KCResourceConverterWindow(KCResourceConverterFacility resourceConverter) : base(Configuration.createWindowID(), "Resourceconverter")
         {
             this.resourceConverter = resourceConverter;
             this.recipeSelector = new RecipeSelectorWindow(resourceConverter);
@@ -302,14 +293,14 @@ namespace KerbalColonies.colonyFacilities
         };
 
         public ResourceConversionRate activeRecipe;
-        public int ISRUcount;
+        public Dictionary<int, int> ISRUcount { get; private set; } = new Dictionary<int, int> { };
         private KCResourceConverterWindow kCResourceConverterWindow;
 
         private void executeRecipt(ResourceConversionRate recipt, double dTime)
         {
             foreach (KeyValuePair<PartResourceDefinition, double> kvp in activeRecipe.InputResources)
             {
-                double remainingResource = kvp.Value * dTime * ISRUcount;
+                double remainingResource = kvp.Value * dTime * ISRUcount[level];
 
                 List<KCStorageFacility> facilitiesWithResource = KCStorageFacility.findFacilityWithResourceType(kvp.Key, Colony);
 
@@ -332,7 +323,7 @@ namespace KerbalColonies.colonyFacilities
 
             foreach (KeyValuePair<PartResourceDefinition, double> kvp in activeRecipe.OutputResources)
             {
-                double remainingResource = kvp.Value * dTime * ISRUcount;
+                double remainingResource = kvp.Value * dTime * ISRUcount[level];
 
                 List<KCStorageFacility> facilitiesWithResource = KCStorageFacility.findFacilityWithResourceType(kvp.Key, Colony);
 
@@ -358,7 +349,7 @@ namespace KerbalColonies.colonyFacilities
 
             foreach (KeyValuePair<PartResourceDefinition, double> kvp in activeRecipe.InputResources)
             {
-                double remainingResource = kvp.Value * dTime * ISRUcount;
+                double remainingResource = kvp.Value * dTime * ISRUcount[level];
 
                 List<KCStorageFacility> facilitiesWithResource = KCStorageFacility.findFacilityWithResourceType(kvp.Key, Colony);
 
@@ -382,7 +373,7 @@ namespace KerbalColonies.colonyFacilities
 
             foreach (KeyValuePair<PartResourceDefinition, double> kvp in activeRecipe.OutputResources)
             {
-                double remainingResource = kvp.Value * dTime * ISRUcount;
+                double remainingResource = kvp.Value * dTime * ISRUcount[level];
 
                 List<KCStorageFacility> facilitiesWithResource = KCStorageFacility.findFacilityWithResourceType(kvp.Key, Colony);
                 bool addResource = false;
@@ -411,29 +402,11 @@ namespace KerbalColonies.colonyFacilities
             return canExecute;
         }
 
-        public override List<ProtoCrewMember> filterKerbals(List<ProtoCrewMember> kerbals)
-        {
-            return kerbals.Where(k => k.experienceTrait.Title == "Engineer").ToList();
-        }
-
-        public override int GetUpgradeTime(int level)
-        {
-            // 1 Kerbin day = 0.25 days
-            // 100 per day * 5 engineers = 500 per day
-            // 500 per day * 4 kerbin days = 500
-
-            // 1 Kerbin day = 0.25 days
-            // 100 per day * 5 engineers = 500 per day
-            // 500 per day * 2 kerbin days = 250
-            int[] buildTimes = { 500, 500 };
-            return buildTimes[level];
-        }
-
         public override void Update()
         {
             double dTime = Planetarium.GetUniversalTime() - lastUpdateTime;
 
-            if (getKerbals().Count() < maxKerbals)
+            if (getKerbals().Count() < MaxKerbals)
             {
                 enabled = false;
             }
@@ -456,6 +429,11 @@ namespace KerbalColonies.colonyFacilities
             kCResourceConverterWindow.Toggle();
         }
 
+        public override void OnRemoteClicked()
+        {
+            kCResourceConverterWindow.Toggle();
+        }
+
         public override ConfigNode getConfigNode()
         {
             ConfigNode node = base.getConfigNode();
@@ -464,26 +442,32 @@ namespace KerbalColonies.colonyFacilities
             return node;
         }
 
-        public override string GetBaseGroupName(int level)
+        private void configNodeLoader(ConfigNode node)
         {
-            return "KC_CAB";
+            ConfigNode levelNode = facilityInfo.facilityConfig.GetNode("level");
+            for (int i = 0; i <= maxLevel; i++)
+            {
+                ConfigNode iLevel = levelNode.GetNode(i.ToString());
+                if (iLevel.HasValue("ISRUcount")) ISRUcount[level] = int.Parse(iLevel.GetValue("ISRUcount"));
+                else if (i > 0) ISRUcount = ISRUcount;
+                else throw new MissingFieldException($"The facility {facilityInfo.name} (type: {facilityInfo.type}) has no ISRUcount (at least for level 0).");
+            }
         }
 
-        public KCResourceConverterFacility(colonyClass colony, ConfigNode node) : base(colony, node)
+        public KCResourceConverterFacility(colonyClass colony, KCFacilityInfoClass facilityInfo, ConfigNode node) : base(colony, facilityInfo, node)
         {
+            configNodeLoader(facilityInfo.facilityConfig);
             kCResourceConverterWindow = new KCResourceConverterWindow(this);
 
             activeRecipe = conversionRates.First(recipt => recipt.Key.ReciptName == node.GetValue("recipt")).Key;
-            ISRUcount = new int[2] { 2, 4 }[level];
-
         }
 
-        public KCResourceConverterFacility(colonyClass colony, bool enabled) : base(colony, "KCResourceConverterFacility", enabled, 4, 0, 1)
+        public KCResourceConverterFacility(colonyClass colony, KCFacilityInfoClass facilityInfo, bool enabled) : base(colony, facilityInfo, enabled)
         {
+            configNodeLoader(facilityInfo.facilityConfig);
             kCResourceConverterWindow = new KCResourceConverterWindow(this);
 
             this.activeRecipe = conversionRates.ElementAt(0).Key;
-            ISRUcount = new int[2] { 2, 4 }[level];
         }
     }
 }

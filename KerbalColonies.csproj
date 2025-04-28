@@ -43,7 +43,7 @@
     <Compile Include="colonyFacilities\KCLaunchpadFacility.cs" />
     <Compile Include="colonyFacilities\KCProductionFacility.cs" />
     <Compile Include="colonyFacilities\KCFacilityBase.cs" />
-    <Compile Include="colonyFacilities\KCFacilityCostClass.cs" />
+    <Compile Include="KCFacilityInfoClass.cs" />
     <Compile Include="colonyFacilities\KCHangarFacility.cs" />
     <Compile Include="colonyFacilities\KCKerbalFacilityBase.cs" />
     <Compile Include="colonyFacilities\KCCrewQuarters.cs" />
@@ -52,29 +52,50 @@
     <Compile Include="colonyFacilities\KCStorageFacility.cs" />
     <Compile Include="colonyFacilities\KC_CAB_Facility.cs" />
     <Compile Include="colonyFacilities\KCResourceConverterFacility.cs" />
+    <Compile Include="ConfigFacilityLoader.cs" />
     <Compile Include="Configuration.cs" />
     <Compile Include="KCPartModule.cs" />
-    <Compile Include="KCWindow.cs" />
-    <Compile Include="KCWindowManager.cs" />
-    <Compile Include="KerbalGUI.cs" />
-    <Compile Include="Main.cs" />
+    <Compile Include="KCLaunchpadPreflightCheck.cs" />
+    <Compile Include="UI\KCWindow.cs" />
+    <Compile Include="UI\KCWindowManager.cs" />
+    <Compile Include="UI\KerbalGUI.cs" />
+    <Compile Include="UI\KCGroupEditor.cs" />
+    <Compile Include="KerbalColonies.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="KCUI.cs" />
+    <Compile Include="UI\KCUI.cs" />
     <Compile Include="FacilityTypeRegistry.cs" />
-    <Compile Include="UIConfig.cs" />
+    <Compile Include="UI\UIConfig.cs" />
+    <Compile Include="UI\OverviewWindow.cs" />
+    <Compile Include="UI\ToolbarRegistration.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Reference Include="ClickThroughBlocker">
+      <HintPath>D:\KSP-Test\GameData\000_ClickThroughBlocker\Plugins\ClickThroughBlocker.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="CustomPreLaunchChecks">
+      <HintPath>D:\KSP-Test\GameData\CustomPreLaunchChecks\CustomPreLaunchChecks.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
     <Reference Include="KerbalKonstructs">
       <HintPath>D:\KSP-Test\GameData\KerbalKonstructs\KerbalKonstructs.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="Launchpad">
       <HintPath>D:\KSP-Test\GameData\ExtraplanetaryLaunchpads\Plugins\Launchpad.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="ToolbarControl">
+      <HintPath>D:\KSP-Test\GameData\001_ToolbarControl\Plugins\ToolbarControl.dll</HintPath>
+      <Private>False</Private>
     </Reference>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Analyzer Include="D:\KSP-Test\GameData\CustomPreLaunchChecks\CustomPreLaunchChecks.dll" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>

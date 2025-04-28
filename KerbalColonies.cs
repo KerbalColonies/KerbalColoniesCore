@@ -1,10 +1,10 @@
 ﻿using KerbalColonies.colonyFacilities;
-using KerbalColonies;
-using System.Collections.Generic;
-using UnityEngine;
+using KerbalColonies.UI;
+using KSP.UI.Screens;
 using System.Linq;
-using CommNet.Network;
-using KerbalKonstructs.Modules;
+using ToolbarControl_NS;
+using UnityEngine;
+using CustomPreLaunchChecks;
 
 // KC: Kerbal Colonies
 // This mod aimes to create a Colony system with Kerbal Konstructs statics
@@ -25,41 +25,18 @@ using KerbalKonstructs.Modules;
 
 namespace KerbalColonies
 {
-    [KSPAddon(KSPAddon.Startup.FlightAndKSC, false)]
+    [KSPAddon(KSPAddon.Startup.FlightEditorAndKSC, false)]
     public class KerbalColonies : MonoBehaviour
     {
         double lastTime = 0;
         bool despawned = false;
         int waitCounter = 0;
 
+        internal static ToolbarControl toolbarControl;
+
         protected void Awake()
         {
             KSPLog.print("KC awake");
-            Configuration.LoadConfiguration(Configuration.APP_NAME.ToUpper());
-            KCFacilityTypeRegistry.RegisterType<KCStorageFacility>();
-            KCFacilityTypeRegistry.RegisterType<KCCrewQuarters>();
-            KCFacilityTypeRegistry.RegisterType<KCResearchFacility>();
-            KCFacilityTypeRegistry.RegisterType<KC_CAB_Facility>();
-            KCFacilityTypeRegistry.RegisterType<KCMiningFacility>();
-            KCFacilityTypeRegistry.RegisterType<KCProductionFacility>();
-            KCFacilityTypeRegistry.RegisterType<KCResourceConverterFacility>();
-            KCFacilityTypeRegistry.RegisterType<KCHangarFacility>();
-            KCFacilityTypeRegistry.RegisterType<KCLaunchpadFacility>();
-            KCFacilityTypeRegistry.RegisterType<KCCommNetFacility>();
-            Configuration.RegisterBuildableFacility(typeof(KCStorageFacility), new KCStorageFacilityCost());
-            Configuration.RegisterBuildableFacility(typeof(KCCrewQuarters), new KCCrewQuarterCost());
-            Configuration.RegisterBuildableFacility(typeof(KCResearchFacility), new KCResearchFacilityCost());
-            Configuration.RegisterBuildableFacility(typeof(KCMiningFacility), new KCMiningFacilityCost());
-            Configuration.RegisterBuildableFacility(typeof(KCProductionFacility), new KCProductionFacilityCost());
-            Configuration.RegisterBuildableFacility(typeof(KCResourceConverterFacility), new KCResourceConverterFacilityCost());
-            Configuration.RegisterBuildableFacility(typeof(KCHangarFacility), new KCHangarFacilityCost());
-            Configuration.RegisterBuildableFacility(typeof(KCLaunchpadFacility), new KCLaunchPadCost());
-            Configuration.RegisterBuildableFacility(typeof(KCCommNetFacility), new KCCommNetCost());
-
-            KC_CAB_Facility.addPriorityDefaultFacility(typeof(KCLaunchpadFacility), 1);
-            KC_CAB_Facility.addDefaultFacility(typeof(KCStorageFacility), 1);
-            KC_CAB_Facility.addDefaultFacility(typeof(KCCrewQuarters), 1);
-            KC_CAB_Facility.addDefaultFacility(typeof(KCProductionFacility), 1);
 
             KerbalKonstructs.API.RegisterOnStaticClicked(KCFacilityBase.OnBuildingClickedHandler);
         }
@@ -67,9 +44,20 @@ namespace KerbalColonies
         protected void Start()
         {
             KSPLog.print("KC start");
+            toolbarControl = gameObject.AddComponent<ToolbarControl>();
+            toolbarControl.AddToAllToolbars(
+                OverviewWindow.ToggleWindow,
+                OverviewWindow.ToggleWindow,
+                ApplicationLauncher.AppScenes.ALWAYS,
+                "KerbalColonies_NS",
+                "KerbalColoniesButton",
+                "KerbalColonies/KC",
+                "KerbalColonies/KC",
+                toolTip: "Kerbal Colonies overview"
+            );
         }
 
-        public void FixedUpdate()
+        public void Update()
         {
             if (Planetarium.GetUniversalTime() - lastTime >= 10)
             {
@@ -130,8 +118,12 @@ namespace KerbalColonies
 
         protected void OnDestroy()
         {
+
+            toolbarControl.OnDestroy();
+            Destroy(toolbarControl);
+
             Configuration.KCgroups.SelectMany(x => x.Value.Values.SelectMany(y => y)).ToList()
-                .ForEach(x => KerbalKonstructs.API.ActivateStatic(x));
+                .ForEach(x => KerbalKonstructs.API.GetGroupStatics(x).ForEach(uuid => KerbalKonstructs.API.ActivateStatic(uuid.UUID)));
 
             KerbalKonstructs.API.UnRegisterOnStaticClicked(KCFacilityBase.OnBuildingClickedHandler);
         }

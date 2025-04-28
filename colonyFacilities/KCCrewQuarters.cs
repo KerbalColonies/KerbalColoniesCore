@@ -1,20 +1,10 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using KerbalColonies.UI;
 
 namespace KerbalColonies.colonyFacilities
 {
-    internal class KCCrewQuarterCost : KCFacilityCostClass
-    {
-        public KCCrewQuarterCost()
-        {
-            resourceCost = new Dictionary<int, Dictionary<PartResourceDefinition, double>> {
-                { 0, new Dictionary<PartResourceDefinition, double> { { PartResourceLibrary.Instance.GetDefinition("Ore"), 100 } } }
-            };
-
-        }
-    }
-
     internal class KCCrewQuartersWindow : KCWindowBase
     {
         KCCrewQuarters CrewQuarterFacility;
@@ -22,13 +12,9 @@ namespace KerbalColonies.colonyFacilities
 
         protected override void CustomWindow()
         {
-            GUILayout.Space(2);
-            GUILayout.BeginHorizontal();
-            GUI.enabled = true;
-
+            GUILayout.BeginVertical();
             kerbalGUI.StaffingInterface();
-
-            GUILayout.EndHorizontal();
+            GUILayout.EndVertical();
         }
 
         protected override void OnClose()
@@ -40,11 +26,11 @@ namespace KerbalColonies.colonyFacilities
             }
         }
 
-        public KCCrewQuartersWindow(KCCrewQuarters CrewQuarterFacility) : base(Configuration.createWindowID(CrewQuarterFacility), "Crewquarters")
+        public KCCrewQuartersWindow(KCCrewQuarters CrewQuarterFacility) : base(Configuration.createWindowID(), "Crewquarters")
         {
             this.CrewQuarterFacility = CrewQuarterFacility;
             this.kerbalGUI = new KerbalGUI(CrewQuarterFacility, false);
-            toolRect = new Rect(100, 100, 800, 1200);
+            toolRect = new Rect(100, 100, 400, 600);
         }
     }
 
@@ -57,13 +43,13 @@ namespace KerbalColonies.colonyFacilities
 
         public static int ColonyKerbalCapacity(colonyClass colony)
         {
-            return CrewQuartersInColony(colony).Sum(crewQuarter => crewQuarter.maxKerbals);
+            return CrewQuartersInColony(colony).Sum(crewQuarter => crewQuarter.MaxKerbals);
         }
 
         public static KCCrewQuarters FindKerbalInCrewQuarters(colonyClass colony, ProtoCrewMember kerbal)
         {
             List<KCKerbalFacilityBase> facilitiesWithKerbal = KCKerbalFacilityBase.findKerbal(colony, kerbal);
-            return (KCCrewQuarters) facilitiesWithKerbal.Where(fac => fac is KCCrewQuarters).FirstOrDefault();
+            return (KCCrewQuarters) (facilitiesWithKerbal.Where(fac => fac is KCCrewQuarters).FirstOrDefault());
         }
 
         public static bool AddKerbalToColony(colonyClass colony, ProtoCrewMember kerbal)
@@ -72,8 +58,9 @@ namespace KerbalColonies.colonyFacilities
 
             foreach (KCCrewQuarters crewQuarter in CrewQuartersInColony(colony))
             {
-                if (crewQuarter.kerbals.Count < crewQuarter.maxKerbals)
+                if (crewQuarter.kerbals.Count < crewQuarter.MaxKerbals)
                 {
+                    Configuration.writeDebug($"Adding {kerbal.name} to {crewQuarter.name}");
                     crewQuarter.AddKerbal(kerbal);
                     return true;
                 }
@@ -85,7 +72,7 @@ namespace KerbalColonies.colonyFacilities
         private KCCrewQuartersWindow crewQuartersWindow;
 
         /// <summary>
-        /// Adds the kerbal to this crew quarrter or moves it from another crew quarter over to this one if the kerbal is already assigned to a crew quarter in this Colony
+        /// Adds the member to this crew quarrter or moves it from another crew quarter over to this one if the member is already assigned to a crew quarter in this Colony
         /// </summary>
         /// <param name="kerbal"></param>
         public override void AddKerbal(ProtoCrewMember kerbal)
@@ -105,19 +92,22 @@ namespace KerbalColonies.colonyFacilities
         }
 
         /// <summary>
-        /// Removes the kerbal from the crew quarters and all other facilities that the kerbal is assigned to
+        /// Removes the member from the crew quarters and all other facilities that the member is assigned to
         /// </summary>
-        public override void RemoveKerbal(ProtoCrewMember kerbal)
+        public override void RemoveKerbal(ProtoCrewMember member)
         {
-            if (kerbals.ContainsKey(kerbal))
+            if (kerbals.Any(k => k.Key.name == member.name))
             {
-                KCKerbalFacilityBase.findKerbal(Colony, kerbal).Where(x => !(x is KCCrewQuarters)).ToList().ForEach(facility =>
+                KCKerbalFacilityBase.findKerbal(Colony, member).Where(x => !(x is KCCrewQuarters)).ToList().ForEach(facility =>
                 {
                     facility.Update();
-                    facility.RemoveKerbal(kerbal);
+                    facility.RemoveKerbal(member);
                 });
 
-                kerbals.Remove(kerbal);
+                foreach (ProtoCrewMember key in kerbals.Where(kv => kv.Key.name == member.name).Select(kv => kv.Key).ToList())
+                {
+                    kerbals.Remove(key);
+                };
             }
         }
 
@@ -129,33 +119,21 @@ namespace KerbalColonies.colonyFacilities
         public override void OnBuildingClicked()
         {
             if (crewQuartersWindow == null) crewQuartersWindow = new KCCrewQuartersWindow(this);
-
-            if (crewQuartersWindow.IsOpen())
-            {
-                crewQuartersWindow.Close();
-                if (FlightGlobals.ActiveVessel != null)
-                {
-                    crewQuartersWindow.kerbalGUI.ksg.Close();
-                    crewQuartersWindow.kerbalGUI.transferWindow = false;
-                }
-            }
-            else
-            {
-                crewQuartersWindow.Open();
-            }
+            crewQuartersWindow.Toggle();
         }
 
-        public override string GetBaseGroupName(int level)
+        public override void OnRemoteClicked()
         {
-            return "KC_CAB";
+            if (crewQuartersWindow == null) crewQuartersWindow = new KCCrewQuartersWindow(this);
+            crewQuartersWindow.Toggle();
         }
 
-        public KCCrewQuarters(colonyClass colony, ConfigNode node) : base(colony, node)
+        public KCCrewQuarters(colonyClass colony, KCFacilityInfoClass facilityInfo, ConfigNode node) : base(colony, facilityInfo, node)
         {
             this.crewQuartersWindow = null;
         }
 
-        public KCCrewQuarters(colonyClass colony, bool enabled) : base(colony, "KCCrewQuarters", true, 16)
+        public KCCrewQuarters(colonyClass colony, KCFacilityInfoClass facilityInfo, bool enabled) : base(colony, facilityInfo, true)
         {
             this.crewQuartersWindow = null;
         }

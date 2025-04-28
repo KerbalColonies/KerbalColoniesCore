@@ -1,17 +1,16 @@
-﻿using KerbalKonstructs.UI;
-using UnityEngine;
+﻿using UnityEngine;
 
-namespace KerbalColonies
+namespace KerbalColonies.UI
 {
     public abstract class KCWindowBase : KCWindow
     {
         protected GUIStyle LabelGreen;
 
         protected int windowID;
-        internal string title;
+        protected string title;
         private bool guiInitialized;
 
-        internal Rect toolRect = new Rect(100, 100, 330, 100);
+        protected Rect toolRect = new Rect(100, 100, 330, 100);
 
         public override void Draw()
         {
@@ -56,9 +55,9 @@ namespace KerbalColonies
 
                 GUI.enabled = true;
 
-                if (GUILayout.Button("X", UIMain.DeadButtonRed, GUILayout.Height(21)))
+                if (GUILayout.Button("X", UIConfig.DeadButtonRed, GUILayout.Height(21)))
                 {
-                    //KerbalKonstructs.instance.saveObjects();
+                    //KerbalKonstructs.KCInstance.saveObjects();
                     this.Close();
                 }
             }
@@ -76,62 +75,5 @@ namespace KerbalColonies
             this.windowID = windowID;
             this.title = title;
         }
-    }
-
-    internal class KCUI : KCWindow
-    {
-        private static KCUI _instance = null;
-        public static KCUI instance
-        {
-            get
-            {
-                if (_instance == null)
-                {
-                    _instance = new KCUI();
-
-                }
-                return _instance;
-            }
-        }
-
-        internal Rect toolRect = new Rect(300, 35, 330, 350);
-
-        public override void Draw()
-        {
-            drawEditor();
-        }
-
-
-        internal void drawEditor()
-        {
-            toolRect = GUI.Window(0xB07B1E3, toolRect, TestWindow, "", UIConfig.KKWindow);
-        }
-
-        void TestWindow(int windowID)
-        {
-            GUILayout.BeginHorizontal();
-            {
-                GUI.enabled = false;
-                GUILayout.Button("-KC-", UIConfig.DeadButton, GUILayout.Height(21));
-
-                GUILayout.FlexibleSpace();
-
-                GUILayout.Button("Group Editor", UIConfig.DeadButton, GUILayout.Height(21));
-
-                GUILayout.FlexibleSpace();
-
-                GUI.enabled = true;
-
-                if (GUILayout.Button("X", UIMain.DeadButtonRed, GUILayout.Height(21)))
-                {
-                    //KerbalKonstructs.instance.saveObjects();
-                    this.Close();
-                }
-            }
-            GUILayout.EndHorizontal();
-
-            GUI.DragWindow(new Rect(0, 0, 10000, 10000));
-        }
-
     }
 }

@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using UnityEngine;
+using static Targeting.Sample;
 
 // KC: Kerbal Colonies
 // This mod aimes to create a Colony system with Kerbal Konstructs statics
@@ -30,7 +31,7 @@ namespace KerbalColonies
     /// <summary>
     /// Reads and holds configuration parameters
     /// </summary> 
-    [KSPScenario(ScenarioCreationOptions.AddToAllGames, GameScenes.SPACECENTER, GameScenes.FLIGHT)]
+    [KSPScenario(ScenarioCreationOptions.AddToAllGames, GameScenes.SPACECENTER, GameScenes.FLIGHT, GameScenes.EDITOR)]
     internal class Configuration : ScenarioModule
     {
         public override void OnLoad(ConfigNode node)
@@ -38,9 +39,11 @@ namespace KerbalColonies
             KCgroups.Clear();
             colonyDictionary.Clear();
             GroupFacilities.Clear();
-            LoadColoniesV3(node);
-            writeDebug(node.ToString());
             writeDebug("scenariomodule load");
+            writeDebug(node.ToString());
+            LoadColoniesV3(node);
+            LoadConfiguration();
+
         }
         public override void OnSave(ConfigNode node)
         {
@@ -50,46 +53,71 @@ namespace KerbalColonies
         }
 
 
-        internal static Dictionary<int, KCFacilityBase> windowIDs = new Dictionary<int, KCFacilityBase>();
+        internal static List<int> windowIDs { get; private set; } = new List<int> { }; // list of all window IDs
 
-        internal static int createWindowID(KCFacilityBase facility)
+        internal static int createWindowID()
         {
             System.Random random = new System.Random();
 
             while (true)
             {
                 int id = random.Next(0xCC00000, 0xCCFFFFF);
-                if (!windowIDs.ContainsKey(id))
+                if (!windowIDs.Contains(id))
                 {
-                    windowIDs.Add(id, facility);
+                    windowIDs.Add(id);
                     return id;
                 }
             }
         }
 
-        /// <summary>
-        /// Facilities that can be built from the CAB must be registered here during startup via the RegisterBuildableFacility method.
-        /// </summary>
-        internal static Dictionary<Type, KCFacilityCostClass> BuildableFacilities = new Dictionary<Type, KCFacilityCostClass>();
+        private static List<KC_CABInfo> cabTypes = new List<KC_CABInfo>(); // The list of all available CAB types
+        public static List<KC_CABInfo> CabTypes { get { return cabTypes; } } // The list of all available CAB types
 
-        internal static bool RegisterBuildableFacility(Type facilityType, KCFacilityCostClass cost)
+        public static bool RegisterCabInfo(KC_CABInfo info)
         {
-            if (!BuildableFacilities.ContainsKey(facilityType))
+            if (!cabTypes.Any(c => c.name == info.name))
             {
-                BuildableFacilities.Add(facilityType, cost);
+                cabTypes.Add(info);
                 return true;
             }
             return false;
         }
 
-        internal static KCFacilityBase CreateInstance(Type t, colonyClass colony, bool enabled)
+        /// <summary>
+        /// Facilities that can be built from the CAB must be registered here during startup via the RegisterBuildableFacility method.
+        /// </summary>
+        private static List<KCFacilityInfoClass> buildableFacilities = new List<KCFacilityInfoClass>();
+
+        public static List<KCFacilityInfoClass> BuildableFacilities { get { return buildableFacilities; } }
+
+        public static bool RegisterBuildableFacility(KCFacilityInfoClass info)
         {
-            return (KCFacilityBase)Activator.CreateInstance(t, new object[] { colony, enabled });
+            if (!buildableFacilities.Any(c => c.name == info.name))
+            {
+                buildableFacilities.Add(info);
+                return true;
+            }
+            return false;
         }
 
-        internal static KCFacilityBase CreateInstance(Type t, colonyClass colony, ConfigNode node)
+        public static KC_CABInfo GetCABInfoClass(string name)
         {
-            return (KCFacilityBase)Activator.CreateInstance(t, new object[] { colony, node });
+            return cabTypes.FirstOrDefault(c => c.name == name);
+        }
+
+        public static KCFacilityInfoClass GetInfoClass(string name)
+        {
+            return buildableFacilities.FirstOrDefault(c => c.name == name);
+        }
+
+        internal static KCFacilityBase CreateInstance(KCFacilityInfoClass info, colonyClass colony, bool enabled)
+        {
+            return (KCFacilityBase)Activator.CreateInstance(info.type, new object[] { colony, info, enabled });
+        }
+
+        internal static KCFacilityBase CreateInstance(KCFacilityInfoClass info, colonyClass colony, ConfigNode node)
+        {
+            return (KCFacilityBase)Activator.CreateInstance(info.type, new object[] { colony, info, node });
         }
 
         // configurable parameters
@@ -97,15 +125,13 @@ namespace KerbalColonies
         internal static Type CrewQuarterType { get { return crewQuarterType; } set { if (typeof(KCCrewQuarters).IsAssignableFrom(value)) { crewQuarterType = value; } } }
 
 
-        internal static float spawnHeight = -5;                  // The height the active vessel should be set above the surface, this is done to prevent the vessel getting destroyed by the statics
         internal static int maxColoniesPerBody = 3;              // Limits the amount of colonies per celestial body (planet/moon)
-                                                                 // set it to zero to disable the limit
-        internal static int oreRequiredPerColony = 1000;     // The required amount of ore to start a Colony
-                                                             // It's planned to change this so different resources can be used
+                                                                 // set it to zero to disable the limit                                                             // It's planned to change this so different resources can be used
+#if DEBUG
         internal static bool enableLogging = true;            // Enable this only in debug purposes as it floods the logs very much
-
-        // this is the GAME confignode (the confignode from the save file)
-        internal static ConfigNode gameNode = HighLogic.CurrentGame.config;
+#else
+        internal static bool enableLogging = false;           // Enable this only in debug purposes as it floods the logs very much
+#endif
 
         #region savingV3
         // New saving
@@ -155,6 +181,11 @@ namespace KerbalColonies
         /// </summary>
         internal static Dictionary<int, List<colonyClass>> colonyDictionary = new Dictionary<int, List<colonyClass>> { };
 
+        public static int GetBodyIndex(colonyClass colony)
+        {
+            return colonyDictionary.FirstOrDefault(c => c.Value.Contains(colony)).Key;
+        }
+
         /// <summary>
         /// This dictionary contains all of the facilties attached to a specific KK group. Used for the on click event of the KK statics
         /// <para>the string is the KK group name</para>
@@ -172,25 +203,27 @@ namespace KerbalColonies
                 if (node.GetNodes().Length >= 0)
                 {
                     ConfigNode[] nodes = node.GetNodes();
-
-                    foreach (ConfigNode saveGame in nodes[0].GetNodes())
+                    if (nodes.Length > 0)
                     {
-                        if (!KCgroups.ContainsKey(saveGame.name))
+                        foreach (ConfigNode saveGame in nodes[0].GetNodes())
                         {
-                            KCgroups.Add(saveGame.name, new Dictionary<int, List<string>> { });
-
-                            foreach (ConfigNode bodyId in nodes[0].GetNode(saveGame.name).GetNodes())
+                            if (!KCgroups.ContainsKey(saveGame.name))
                             {
-                                if (!KCgroups[saveGame.name].ContainsKey(int.Parse(bodyId.name)))
-                                {
-                                    KCgroups[saveGame.name].Add(int.Parse(bodyId.name), new List<string> { });
-                                }
+                                KCgroups.Add(saveGame.name, new Dictionary<int, List<string>> { });
 
-                                foreach (ConfigNode group in nodes[0].GetNode(saveGame.name).GetNode(bodyId.name).GetNodes())
+                                foreach (ConfigNode bodyId in nodes[0].GetNode(saveGame.name).GetNodes())
                                 {
-                                    if (!KCgroups[saveGame.name][int.Parse(bodyId.name)].Contains(group.name))
+                                    if (!KCgroups[saveGame.name].ContainsKey(int.Parse(bodyId.name)))
                                     {
-                                        KCgroups[saveGame.name][int.Parse(bodyId.name)].Add(group.name);
+                                        KCgroups[saveGame.name].Add(int.Parse(bodyId.name), new List<string> { });
+                                    }
+
+                                    foreach (ConfigNode group in nodes[0].GetNode(saveGame.name).GetNode(bodyId.name).GetNodes())
+                                    {
+                                        if (!KCgroups[saveGame.name][int.Parse(bodyId.name)].Contains(group.name))
+                                        {
+                                            KCgroups[saveGame.name][int.Parse(bodyId.name)].Add(group.name);
+                                        }
                                     }
                                 }
                             }
@@ -274,33 +307,29 @@ namespace KerbalColonies
         // static parameters
         internal const string APP_NAME = "KerbalColonies";
 
-        public static void LoadConfiguration(string root)
+        public static void LoadConfiguration()
         {
-            ConfigNode[] nodes = GameDatabase.Instance.GetConfigNodes(root);
+            ConfigNode[] nodes = GameDatabase.Instance.GetConfigNodes(APP_NAME.ToUpper());
 
             if ((nodes == null) || (nodes.Length == 0))
             {
                 return;
             }
-            float.TryParse(nodes[0].GetValue("spawnHeight"), out spawnHeight);
             int.TryParse(nodes[0].GetValue("maxColoniesPerBody"), out maxColoniesPerBody);
-            int.TryParse(nodes[0].GetValue("oreRequiredPerColony"), out oreRequiredPerColony);
 
             bool.TryParse(nodes[0].GetValue("enableLogging"), out enableLogging);
         }
 
-        internal static void SaveConfiguration(string root)
+        internal static void SaveConfiguration()
         {
-            ConfigNode[] nodes = GameDatabase.Instance.GetConfigNodes(root);
+            ConfigNode[] nodes = GameDatabase.Instance.GetConfigNodes(APP_NAME.ToUpper());
             if ((nodes == null) || (nodes.Length == 0))
             {
                 return;
             }
 
             // config params
-            nodes[0].SetValue("spawnHeight", spawnHeight, "The height above the ground at which the active vessel will be set when spawning a new Colony. This is done to prevent the vessel from exploding from the static meshes", createIfNotFound: true);
             nodes[0].SetValue("maxColoniesPerBody", maxColoniesPerBody, "Limits the amount of colonies per celestial body (planet/moon)\n\facilityType// set it to zero to disable the limit", createIfNotFound: true);
-            nodes[0].SetValue("oreRequiredPerColony", oreRequiredPerColony, "The required amount of ore to start a Colony", createIfNotFound: true);
             nodes[0].SetValue("enableLogging", enableLogging, "Enable this only in debug purposes as it floods the logs very much", createIfNotFound: true);
 
             string path = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + "/KC.cfg";
@@ -315,7 +344,7 @@ namespace KerbalColonies
         {
             if (Configuration.enableLogging)
             {
-                writeLog(text);
+                writeLog("Debug: " + text);
             }
         }
 

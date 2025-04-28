@@ -37,27 +37,18 @@ namespace KerbalColonies
             Vessel vessel = FlightGlobals.ActiveVessel;
             if (vessel.srfSpeed >= 0.5f && !vessel.Landed)
             {
-                ScreenMessages.PostScreenMessage("The current vessel must be landed and have a surface speed slower than 0.5m/s", 10f, ScreenMessageStyle.UPPER_RIGHT);
+                ScreenMessages.PostScreenMessage("KC: The current vessel must be landed and have a surface speed slower than 0.5m/s", 10f, ScreenMessageStyle.UPPER_RIGHT);
                 return;
             }
 
-            PartResourceDefinition oreResource = PartResourceLibrary.Instance.GetDefinition("Ore");
-
-            part.vessel.GetConnectedResourceTotals(oreResource.id, false, out double amount, out double maxAmount);
-            if (amount >= Configuration.oreRequiredPerColony)
+            if (ColonyBuilding.CreateColony())
             {
-                if (ColonyBuilding.CreateColony())
-                {
-                    part.RequestResource("Ore", (double)Configuration.oreRequiredPerColony);
-                    writeLog("Creating Colony");
-                    ScreenMessages.PostScreenMessage($"Creating a Colony on {part.vessel.mainBody.name}", 10f, ScreenMessageStyle.UPPER_RIGHT);
-                    //FlightGlobals.fetch.SetVesselPosition(FlightGlobals.GetBodyIndex(FlightGlobals.currentMainBody), FlightGlobals.ship_latitude, FlightGlobals.ship_longitude, FlightGlobals.ship_altitude + Configuration.spawnHeight, FlightGlobals.ActiveVessel.ReferenceTransform.eulerAngles, false, easeToSurface: true, 0.01);
-                    //FloatingOrigin.ResetTerrainShaderOffset();
-                }
+                writeLog("Creating Colony");
+                ScreenMessages.PostScreenMessage($"KC: Creating a Colony on {part.vessel.mainBody.name}", 10f, ScreenMessageStyle.UPPER_RIGHT);
             }
             else
             {
-                ScreenMessages.PostScreenMessage($"Not enough ore: {amount}/{Configuration.oreRequiredPerColony}", 10f, ScreenMessageStyle.UPPER_RIGHT);
+                ScreenMessages.PostScreenMessage($"KC: Not enough resources", 10f, ScreenMessageStyle.UPPER_RIGHT);
             }
         }
 

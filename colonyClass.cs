@@ -1,4 +1,5 @@
 ﻿using KerbalColonies.colonyFacilities;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -23,17 +24,20 @@ namespace KerbalColonies
 {
     public class colonyClass
     {
-        public string Name;
+        public string Name { get; private set; }
+        public string DisplayName { get; private set; }
 
-        public KC_CAB_Facility CAB;
+        public KC_CAB_Facility CAB { get; private set; }
 
-        public List<KCFacilityBase> Facilities;
-        public List<ConfigNode> sharedColonyNodes;
+        public List<KCFacilityBase> Facilities { get; private set; }
+        public void AddFacility(KCFacilityBase facility) => Facilities.Add(facility);
+        public List<ConfigNode> sharedColonyNodes { get; set; }
 
         public ConfigNode CreateConfigNode()
         {
             ConfigNode node = new ConfigNode("colonyClass");
             node.AddValue("name", Name);
+            node.AddValue("displayName", DisplayName);
             ConfigNode colonyNodes = new ConfigNode("sharedColonyNodes");
             this.sharedColonyNodes.ForEach(x => colonyNodes.AddNode(x));
             node.AddNode(colonyNodes);
@@ -47,10 +51,19 @@ namespace KerbalColonies
             foreach (KCFacilityBase facility in Facilities)
             {
                 ConfigNode facilityNode = new ConfigNode("facility");
-                facilityNode.AddValue("type", facility.GetType().FullName);
 
-                facilityNode.AddNode(facility.getConfigNode());
-                node.AddNode(facilityNode);
+                ConfigNode facilityConfigNode = facility.getConfigNode();
+                if (facilityConfigNode.name == "facilityNode")
+                {
+                    facilityNode.AddNode(facilityConfigNode);
+                    node.AddNode(facilityNode);
+                }
+                else
+                {
+                    ConfigFacilityLoader.loaded = false;
+                    ConfigFacilityLoader.failedConfigs.Add(facility.GetType().FullName);
+                    ConfigFacilityLoader.exceptions.Add(new Exception($"The facility {facility.GetType()} does not use the confignode provided by the KCFacilityBase. This will lead to errors when loading again."));
+                }
             }
             return node;
         }
@@ -61,10 +74,11 @@ namespace KerbalColonies
             Facilities.ForEach(f => f.Update());
         }
 
-        public colonyClass(string name)
+        public colonyClass(string name, string displayName, KC_CABInfo CABInfo)
         {
             Name = name;
-            CAB = new KC_CAB_Facility(this);
+            DisplayName = displayName;
+            CAB = new KC_CAB_Facility(this, CABInfo);
             Facilities = new List<KCFacilityBase>();
             sharedColonyNodes = new List<ConfigNode>();
         }
@@ -72,15 +86,18 @@ namespace KerbalColonies
         public colonyClass(ConfigNode node)
         {
             Name = node.GetValue("name");
+            DisplayName = node.GetValue("displayName");
             Facilities = new List<KCFacilityBase>();
             sharedColonyNodes = node.GetNode("sharedColonyNodes").GetNodes().ToList();
 
             foreach (ConfigNode facilityNode in node.GetNodes("facility"))
             {
+                ConfigNode facility = facilityNode.GetNode("facilityNode");
+
                 Facilities.Add(Configuration.CreateInstance(
-                    KCFacilityTypeRegistry.GetType(facilityNode.GetValue("type")),
+                    Configuration.GetInfoClass(facility.GetValue("name")),
                     this,
-                    facilityNode.GetNodes().First()
+                    facility
                 ));
             }
 

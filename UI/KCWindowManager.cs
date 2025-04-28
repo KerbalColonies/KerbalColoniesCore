@@ -35,9 +35,9 @@ using UnityEngine;
 
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-namespace KerbalColonies
+namespace KerbalColonies.UI
 {
-    [KSPAddon(KSPAddon.Startup.AllGameScenes, false)]
+    [KSPAddon(KSPAddon.Startup.EveryScene, false)]
     internal class KCWindowManager : MonoBehaviour
     {
 
@@ -59,7 +59,7 @@ namespace KerbalColonies
                 return;
             }
             instance = this;
-            //DontDestroyOnLoad(instance);
+            //DontDestroyOnLoad(KCInstance);
             draw = delegate { };
             openWindows = new List<Action>();
         }

@@ -156,21 +156,21 @@ namespace KerbalColonies
         /// <summary>
         /// This dictionary contains all of the groups across all savegames. It's used to disable the groups from other savegames to enable per savegame colonies
         /// </summary>
-        internal static Dictionary<string, Dictionary<int, List<string>>> KCgroups = new Dictionary<string, Dictionary<int, List<string>>> { };
+        internal static Dictionary<string, Dictionary<int, Dictionary<string, ConfigNode>>> KCgroups = new Dictionary<string, Dictionary<int, Dictionary<string, ConfigNode>>> { };
 
         internal static void AddGroup(int bodyIndex, string groupName, KCFacilityBase faciltiy)
         {
             if (!KCgroups.ContainsKey(HighLogic.CurrentGame.Seed.ToString()))
             {
-                KCgroups.Add(HighLogic.CurrentGame.Seed.ToString(), new Dictionary<int, List<string>> { { bodyIndex, new List<string> { groupName } } });
+                KCgroups.Add(HighLogic.CurrentGame.Seed.ToString(), new Dictionary<int, Dictionary<string, ConfigNode>> { { bodyIndex, new Dictionary<string, ConfigNode> { { groupName, faciltiy.GetSharedNode() } } } });
             }
             else if (!KCgroups[HighLogic.CurrentGame.Seed.ToString()].ContainsKey(bodyIndex))
             {
-                KCgroups[HighLogic.CurrentGame.Seed.ToString()].Add(bodyIndex, new List<string> { groupName });
+                KCgroups[HighLogic.CurrentGame.Seed.ToString()].Add(bodyIndex, new Dictionary<string, ConfigNode> { { groupName, faciltiy.GetSharedNode() } });
             }
-            else if (!KCgroups[HighLogic.CurrentGame.Seed.ToString()][bodyIndex].Contains(groupName))
+            else if (!KCgroups[HighLogic.CurrentGame.Seed.ToString()][bodyIndex].ContainsKey(groupName))
             {
-                KCgroups[HighLogic.CurrentGame.Seed.ToString()][bodyIndex].Add(groupName);
+                KCgroups[HighLogic.CurrentGame.Seed.ToString()][bodyIndex].Add(groupName, faciltiy.GetSharedNode());
             }
 
             GroupFacilities.Add(groupName, faciltiy);
@@ -209,20 +209,21 @@ namespace KerbalColonies
                         {
                             if (!KCgroups.ContainsKey(saveGame.name))
                             {
-                                KCgroups.Add(saveGame.name, new Dictionary<int, List<string>> { });
+                                KCgroups.Add(saveGame.name, new Dictionary<int, Dictionary<string, ConfigNode>> { });
 
                                 foreach (ConfigNode bodyId in nodes[0].GetNode(saveGame.name).GetNodes())
                                 {
                                     if (!KCgroups[saveGame.name].ContainsKey(int.Parse(bodyId.name)))
                                     {
-                                        KCgroups[saveGame.name].Add(int.Parse(bodyId.name), new List<string> { });
+                                        KCgroups[saveGame.name].Add(int.Parse(bodyId.name), new Dictionary<string, ConfigNode> { });
                                     }
 
                                     foreach (ConfigNode group in nodes[0].GetNode(saveGame.name).GetNode(bodyId.name).GetNodes())
                                     {
-                                        if (!KCgroups[saveGame.name][int.Parse(bodyId.name)].Contains(group.name))
+                                        if (!KCgroups[saveGame.name][int.Parse(bodyId.name)].ContainsKey(group.name))
                                         {
-                                            KCgroups[saveGame.name][int.Parse(bodyId.name)].Add(group.name);
+                                            if (group.nodes.Count > 0) KCgroups[saveGame.name][int.Parse(bodyId.name)].Add(group.name, group.GetNodes().FirstOrDefault());
+                                            else KCgroups[saveGame.name][int.Parse(bodyId.name)].Add(group.name, null);
                                         }
                                     }
                                 }
@@ -261,15 +262,17 @@ namespace KerbalColonies
 
             ConfigNode[] nodes = new ConfigNode[1] { new ConfigNode() };
 
-            foreach (KeyValuePair<string, Dictionary<int, List<string>>> gameKVP in KCgroups)
+            foreach (KeyValuePair<string, Dictionary<int, Dictionary<string, ConfigNode>>> gameKVP in KCgroups)
             {
                 ConfigNode saveGameNode = new ConfigNode(gameKVP.Key, "The savegame name");
-                foreach (KeyValuePair<int, List<string>> bodyKVP in gameKVP.Value)
+                foreach (KeyValuePair<int, Dictionary<string, ConfigNode>> bodyKVP in gameKVP.Value)
                 {
                     ConfigNode bodyNode = new ConfigNode(bodyKVP.Key.ToString(), "The celestial body id");
-                    foreach (string groupName in bodyKVP.Value)
+                    foreach (KeyValuePair<string, ConfigNode> groupName in bodyKVP.Value)
                     {
-                        bodyNode.AddNode(groupName, "The KK group name");
+                        ConfigNode groupNode = new ConfigNode(groupName.Key, "The KK group name");
+                        if (groupName.Value != null) groupNode.AddNode(groupName.Value);
+                        bodyNode.AddNode(groupNode);
                     }
                     saveGameNode.AddNode(bodyNode);
                 }
@@ -297,8 +300,8 @@ namespace KerbalColonies
 
             // potentially usefull in the future if any changes to the saving are necessary
             persistentNode.AddValue("majorVersion", 3);
-            persistentNode.AddValue("minorVersion", 0);
-            persistentNode.AddValue("fixVersion", 4);
+            persistentNode.AddValue("minorVersion", 1);
+            persistentNode.AddValue("fixVersion", 0);
 
             persistentNode.AddNode(ColonyDictionaryNode);
         }

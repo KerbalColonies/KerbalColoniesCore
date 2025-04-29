@@ -186,6 +186,13 @@ namespace KerbalColonies.colonyFacilities
         }
 
         /// <summary>
+        /// This method is used to store an additional confignode in the ColonyDataV3 file
+        /// <para>It may be used to store data that is needed between different savegames, e.g. the launchpad UUIDs to disable the launchpads of other savegames</para>
+        /// </summary>
+        /// <returns></returns>
+        public virtual ConfigNode GetSharedNode() => null;
+
+        /// <summary>
         /// This method is used to save all of the persistent facility data.
         /// <para>It's recommended to call this base method as it adds the necessary metadata like name, creationdate, ...</para>
         /// </summary>

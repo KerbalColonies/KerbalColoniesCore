@@ -90,17 +90,29 @@ namespace KerbalColonies
                         .ToDictionary(x => x.Key, x => x.Value).ToList()
                         .ForEach(kvp =>
                         kvp.Value.ToList().ForEach(bodyKVP =>
-                        bodyKVP.Value.ForEach(KKgroup =>
-                        KerbalKonstructs.API.GetGroupStatics(KKgroup).ForEach(s =>
-                        KerbalKonstructs.API.DeactivateStatic(s.UUID)))));
+                        bodyKVP.Value.ToList().ForEach(KKgroup => {
+                            KerbalKonstructs.API.GetGroupStatics(KKgroup.Key).ForEach(s =>
+                            KerbalKonstructs.API.DeactivateStatic(s.UUID));
+
+                            if (KKgroup.Value != null)
+                            {
+                                if (KKgroup.Value.name == "launchpadNode") KerbalKonstructs.Core.LaunchSiteManager.CloseLaunchSite(KerbalKonstructs.Core.LaunchSiteManager.GetLaunchSiteByName(KKgroup.Value.GetValue("launchSiteName")));
+                            }
+                        })));
 
                     Configuration.KCgroups.Where(x => x.Key == HighLogic.CurrentGame.Seed.ToString())
                         .ToDictionary(x => x.Key, x => x.Value).ToList()
                         .ForEach(kvp =>
                         kvp.Value.ToList().ForEach(bodyKVP =>
-                        bodyKVP.Value.ForEach(KKgroup =>
-                        KerbalKonstructs.API.GetGroupStatics(KKgroup).ForEach(s =>
-                        KerbalKonstructs.API.ActivateStatic(s.UUID)))));
+                        bodyKVP.Value.ToList().ForEach(KKgroup => {
+                            KerbalKonstructs.API.GetGroupStatics(KKgroup.Key).ForEach(s =>
+                            KerbalKonstructs.API.ActivateStatic(s.UUID));
+
+                            if (KKgroup.Value != null)
+                            {
+                                if (KKgroup.Value.name == "launchpadNode") KerbalKonstructs.Core.LaunchSiteManager.OpenLaunchSite(KerbalKonstructs.Core.LaunchSiteManager.GetLaunchSiteByName(KKgroup.Value.GetValue("launchSiteName")));
+                            }
+                        })));
 
                     despawned = true;
                 }
@@ -122,7 +134,7 @@ namespace KerbalColonies
             toolbarControl.OnDestroy();
             Destroy(toolbarControl);
 
-            Configuration.KCgroups.SelectMany(x => x.Value.Values.SelectMany(y => y)).ToList()
+            Configuration.KCgroups.SelectMany(x => x.Value.Values.SelectMany(y => y.Keys)).ToList()
                 .ForEach(x => KerbalKonstructs.API.GetGroupStatics(x).ForEach(uuid => KerbalKonstructs.API.ActivateStatic(uuid.UUID)));
 
             KerbalKonstructs.API.UnRegisterOnStaticClicked(KCFacilityBase.OnBuildingClickedHandler);

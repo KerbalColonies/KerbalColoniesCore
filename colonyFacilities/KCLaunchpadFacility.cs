@@ -43,12 +43,14 @@ namespace KerbalColonies.colonyFacilities
         public string launchSiteUUID { get; private set; } = null;
         public string launchSiteName { get; private set; } = "";
         public KerbalKonstructs.Core.StaticInstance instance;
+        public ConfigNode sharedNode = null;
 
         public override void OnGroupPlaced()
         {
             KerbalKonstructs.Core.StaticInstance baseInstance = KerbalKonstructs.API.GetGroupStatics(GetBaseGroupName(level), "Kerbin").Where(s => s.hasLauchSites).First();
             string uuid = GetUUIDbyFacility(this).Where(s => KerbalKonstructs.API.GetModelTitel(s) == KerbalKonstructs.API.GetModelTitel(baseInstance.UUID)).First();
 
+            sharedNode.AddValue("uuid", uuid);
             KerbalKonstructs.Core.StaticInstance targetInstance = KerbalKonstructs.API.getStaticInstanceByUUID(uuid);
             instance = targetInstance;
             if (targetInstance.launchSite == null)
@@ -64,6 +66,7 @@ namespace KerbalColonies.colonyFacilities
             bool oldState = baseInstance.launchSite.ILSIsActive;
 
             targetInstance.launchSite.LaunchSiteName = launchSiteName;
+            sharedNode.AddValue("launchSiteName", launchSiteName);
             targetInstance.launchSite.LaunchSiteLength = baseInstance.launchSite.LaunchSiteLength;
             targetInstance.launchSite.LaunchSiteWidth = baseInstance.launchSite.LaunchSiteWidth;
             targetInstance.launchSite.LaunchSiteHeight = baseInstance.launchSite.LaunchSiteHeight;
@@ -167,6 +170,11 @@ namespace KerbalColonies.colonyFacilities
             return colony.Facilities.Where(x => x is KCLaunchpadFacility).Select(x => (KCLaunchpadFacility)x).ToList();
         }
 
+        public override ConfigNode GetSharedNode()
+        {
+            return sharedNode;
+        }
+
         public override ConfigNode getConfigNode()
         {
             ConfigNode node = base.getConfigNode();
@@ -201,6 +209,7 @@ namespace KerbalColonies.colonyFacilities
             AllowClick = false;
             AllowRemote = false;
             launchSiteName = $"KC {HighLogic.CurrentGame.Seed.ToString()} {colony.DisplayName} {displayName}";
+            sharedNode = new ConfigNode("launchpadNode");
             //launchpadWindow = new KCLaunchpadFacilityWindow(this);
         }
     }

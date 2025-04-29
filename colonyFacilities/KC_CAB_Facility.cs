@@ -298,6 +298,12 @@ namespace KerbalColonies.colonyFacilities
 
                         KCHangarFacility.BuildVessel(buildingVesselMass, Colony);
                         constructingVessel[0].vesselBuildTime -= totalProduction;
+                        if (Math.Round((double)constructingVessel[0].vesselBuildTime, 2) <= 0)
+                        {
+                            constructingVessel[0].vesselBuildTime = null;
+                            constructingVessel[0].entireVesselBuildTime = null;
+                            ScreenMessages.PostScreenMessage($"KC: Vessel {constructingVessel[0].vesselName} was fully built on colony {Colony.DisplayName}", 10f, ScreenMessageStyle.UPPER_RIGHT);
+                        }
                         totalProduction = 0;
                         break;
                     }

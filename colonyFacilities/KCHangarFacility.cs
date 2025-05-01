@@ -161,9 +161,10 @@ namespace KerbalColonies.colonyFacilities
         {
             if (CanBuildVessel(vesselMass, colony))
             {
-                KCProductionInfo info = (KCProductionInfo)Configuration.GetInfoClass(colony.sharedColonyNodes.First(n => n.name == "vesselBuildInfo").GetValue("facilityConfig"));
+                ConfigNode vesselBuildInfoNode = colony.sharedColonyNodes.FirstOrDefault(n => n.name == "vesselBuildInfo");
+                KCProductionInfo info = (KCProductionInfo)Configuration.GetInfoClass(vesselBuildInfoNode.GetValue("facilityConfig"));
+                int level = int.Parse(vesselBuildInfoNode.GetValue("facilityLevel"));
 
-                int level = int.Parse(colony.sharedColonyNodes.First(n => n.name == "vesselBuildInfo").GetValue("facilityLevel"));
                 List<KCProductionFacility> productionFacilitiesInColony = colony.Facilities.Where(f => f is KCProductionFacility).Select(f => (KCProductionFacility)f).Where(f => info.HasSameRecipt(level, f)).ToList();
 
                 foreach (KeyValuePair<PartResourceDefinition, double> res in info.vesselResourceCost[level])

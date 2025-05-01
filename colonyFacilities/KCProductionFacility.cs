@@ -191,14 +191,31 @@ namespace KerbalColonies.colonyFacilities
                     }
                     GUILayout.EndScrollView();
 
-                    ConfigNode colonyNode = facility.Colony.sharedColonyNodes.First(n => n.name == "vesselBuildInfo");
-                    KCProductionInfo info = (KCProductionInfo)Configuration.GetInfoClass(colonyNode.GetValue("facilityConfig"));
-                    if (info.HasSameRecipt(int.Parse(colonyNode.GetValue("facilityLevel")), facility)) GUI.enabled = false;
-                    if (GUILayout.Button("Use this facility type to build vessels"))
+                    ConfigNode colonyNode = facility.Colony.sharedColonyNodes.FirstOrDefault(n => n.name == "vesselBuildInfo");
+                    if (colonyNode != null)
                     {
-                        Configuration.writeDebug($"Facility {facility.name} is now used to build vessels.");
-                        colonyNode.SetValue("facilityConfig", facility.name);
-                        colonyNode.SetValue("facilityLevel", facility.level);
+                        KCProductionInfo info = (KCProductionInfo)Configuration.GetInfoClass(colonyNode.GetValue("facilityConfig"));
+                        if (info != null)
+                        {
+                            if (info.HasSameRecipt(int.Parse(colonyNode.GetValue("facilityLevel")), facility)) GUI.enabled = false;
+                            if (GUILayout.Button("Use this facility type to build vessels"))
+                            {
+                                Configuration.writeDebug($"Facility {facility.name} is now used to build vessels.");
+                                colonyNode.SetValue("facilityConfig", facility.name);
+                                colonyNode.SetValue("facilityLevel", facility.level);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        if (GUILayout.Button("Use this facility type to build vessels"))
+                        {
+                            Configuration.writeDebug($"Facility {facility.name} is now used to build vessels.");
+                            ConfigNode vesselBuildInfo = new ConfigNode("vesselBuildInfo");
+                            vesselBuildInfo.AddValue("facilityConfig", facility.name);
+                            vesselBuildInfo.AddValue("facilityLevel", facility.level);
+                            facility.Colony.sharedColonyNodes.Add(vesselBuildInfo);
+                        }
                     }
                     GUI.enabled = true;
                 }
@@ -231,16 +248,20 @@ namespace KerbalColonies.colonyFacilities
             dailyProduction = 0;
             dailyVesselProduction = 0;
 
-            KCProductionInfo info = (KCProductionInfo)Configuration.GetInfoClass(colony.sharedColonyNodes.First(n => n.name == "vesselBuildInfo").GetValue("facilityConfig"));
-            if (info != null)
-            {
-                int level = int.Parse(colony.sharedColonyNodes.First(n => n.name == "vesselBuildInfo").GetValue("facilityLevel"));
+            ConfigNode vesselBuildInfoNode = colony.sharedColonyNodes.FirstOrDefault(n => n.name == "vesselBuildInfo");
+            KCProductionInfo info = null;
+            int level = 0;
 
-                foreach (KCProductionFacility f in colony.Facilities.Where(f => f is KCProductionFacility).Select(f => (KCProductionFacility)f))
-                {
-                    if (info.HasSameRecipt(level, f)) dailyVesselProduction += f.dailyProduction();
-                    else dailyProduction += f.dailyProduction();
-                }
+            if (vesselBuildInfoNode != null)
+            {
+                info = (KCProductionInfo)Configuration.GetInfoClass(vesselBuildInfoNode.GetValue("facilityConfig"));
+                level = int.Parse(vesselBuildInfoNode.GetValue("facilityLevel"));
+            }
+
+            foreach (KCProductionFacility f in colony.Facilities.Where(f => f is KCProductionFacility).Select(f => (KCProductionFacility)f))
+            {
+                if (info != null && info.HasSameRecipt(level, f)) dailyVesselProduction += f.dailyProduction();
+                else dailyProduction += f.dailyProduction();
             }
         }
 

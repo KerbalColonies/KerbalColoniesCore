@@ -24,6 +24,11 @@ namespace KerbalColonies
 {
     public class colonyClass
     {
+        public static colonyClass GetColony(string name)
+        {
+            return Configuration.colonyDictionary.Values.SelectMany(x => x).FirstOrDefault(c => c.Name == name);
+        }
+
         public string Name { get; private set; }
         public string DisplayName { get; private set; }
 

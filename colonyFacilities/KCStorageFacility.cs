@@ -10,7 +10,6 @@ namespace KerbalColonies.colonyFacilities
     {
         KCStorageFacility storageFacility;
         private static HashSet<PartResourceDefinition> allResources = new HashSet<PartResourceDefinition>();
-        private static HashSet<string> blackListedResources = new HashSet<string> { "ElectricCharge", "IntakeAir" };
         private Vector2 scrollPos;
 
         internal static void GetVesselResources()
@@ -21,7 +20,7 @@ namespace KerbalColonies.colonyFacilities
             double maxAmount = 0;
             foreach (PartResourceDefinition availableResource in PartResourceLibrary.Instance.resourceDefinitions)
             {
-                if (blackListedResources.Contains(availableResource.name)) { continue; }
+                if (KCStorageFacility.blackListedResources.Contains(availableResource.name)) { continue; }
                 foreach (var partSet in FlightGlobals.ActiveVessel.crossfeedSets)
                 {
                     partSet.GetConnectedResourceTotals(availableResource.id, out amount, out maxAmount, true);
@@ -114,7 +113,6 @@ namespace KerbalColonies.colonyFacilities
         protected override void CustomWindow()
         {
             storageFacility.Update();
-            //int maxVolume = (int)Math.Round(KCStorageFacility.maxVolume, 0);
             GUILayout.BeginHorizontal();
             GUILayout.Label($"MaxVolume: {storageFacility.maxVolume[storageFacility.level]:f2}", LabelGreen, GUILayout.Height(18));
             GUILayout.FlexibleSpace();
@@ -250,6 +248,9 @@ namespace KerbalColonies.colonyFacilities
 
     internal class KCStorageFacility : KCFacilityBase
     {
+        public static HashSet<string> blackListedResources = new HashSet<string> { "ElectricCharge", "IntakeAir" };
+
+
         // TODO: add shared colony storage
         public static double colonyResources(PartResourceDefinition resource, colonyClass colony)
         {
@@ -432,6 +433,14 @@ namespace KerbalColonies.colonyFacilities
                 if (resources.ContainsKey(prd)) resources[prd] = double.Parse(value.value);
                 else resources.Add(prd, double.Parse(value.value));
             }
+            foreach (PartResourceDefinition resource in PartResourceLibrary.Instance.resourceDefinitions)
+            {
+                if (blackListedResources.Contains(resource.name)) { continue; }
+                if (!resources.ContainsKey(resource))
+                {
+                    resources.Add(resource, 0);
+                }
+            }
         }
 
         public KCStorageFacility(colonyClass colony, KCFacilityInfoClass facilityInfo, bool enabled) : base(colony, facilityInfo, enabled)
@@ -439,6 +448,15 @@ namespace KerbalColonies.colonyFacilities
             configNodeLoader(facilityInfo.facilityConfig);
             resources = new Dictionary<PartResourceDefinition, double>();
             StorageWindow = new KCStorageFacilityWindow(this);
+
+            foreach (PartResourceDefinition resource in PartResourceLibrary.Instance.resourceDefinitions)
+            {
+                if (blackListedResources.Contains(resource.name)) { continue; }
+                if (!resources.ContainsKey(resource))
+                {
+                    resources.Add(resource, 0);
+                }
+            }
         }
     }
 }

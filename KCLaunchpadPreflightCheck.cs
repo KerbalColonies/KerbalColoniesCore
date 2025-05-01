@@ -1,6 +1,7 @@
 ﻿using CustomPreLaunchChecks;
 using ExtraplanetaryLaunchpads;
 using KerbalColonies.colonyFacilities;
+using KerbalKonstructs.Core;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -42,14 +43,19 @@ namespace KerbalColonies
         internal static string launchPadName { get; set; } = null;
         internal static double funds { get; set; } = 0; // funds needed to launch
         internal static double vesselMass { get; set; } = 0; // mass of the vessel to be launched
+        //internal static string lastColonyName { get; set; } = null; // last colony used to launch the vessel
+        //private bool isFlightScene = false; // used to check if the scene is flight or editor
+        //private int frameCount = 0;
 
         public void Start()
         {
+            //isFlightScene = HighLogic.LoadedSceneIsFlight;
+
             if (HighLogic.LoadedSceneIsFlight && launchPadName != null)
             {
                 KCLaunchpadFacility kCLaunchpad = KCLaunchpadFacility.GetLaunchpadFacility(launchPadName);
 
-                    Configuration.writeDebug($"[KCPreFlightWorker] Launching from {kCLaunchpad.displayName}");
+                Configuration.writeDebug($"[KCPreFlightWorker] Launching from {kCLaunchpad.displayName}");
 
                 // Doesn't account for leaving the editor
                 foreach (PartResourceDefinition item in PartResourceLibrary.Instance.resourceDefinitions)
@@ -76,6 +82,49 @@ namespace KerbalColonies
                 vesselMass = 0;
             }
         }
+
+        // Changing the selected launchsite does not change the dropdown menu in the editor but it does change the used launchsite
+        // This can be confusing for the user so I won't implement this
+        //public void Update()
+        //{
+        //    if (lastColonyName != null)
+        //    {
+        //        if (frameCount < 10)
+        //        {
+        //            frameCount++;
+        //            return;
+        //        }
+        //        Configuration.writeDebug($"[KCPreFlightWorker] Opening editor with lastColony {lastColonyName}");
+        //        colonyClass lastColony = colonyClass.GetColony(lastColonyName);
+        //        if (lastColony != null)
+        //        {
+        //            Configuration.writeDebug($"[KCPreFlightWorker] Found lastColony {lastColony.Name}");
+        //            KCLaunchpadFacility launchPad = KCLaunchpadFacility.GetLaunchPadsInColony(lastColony).FirstOrDefault();
+        //            if (launchPad != null)
+        //            {
+        //                Configuration.writeDebug($"[KCPreFlightWorker] Found launchPad {launchPad.name} (launchsite: {launchPad.launchSiteName})");
+        //                KerbalKonstructs.Core.LaunchSiteManager.setLaunchSite(KerbalKonstructs.Core.LaunchSiteManager.GetLaunchSiteByName(launchPad.launchSiteName));
+
+        //            }
+        //        }
+        //        lastColonyName = null;
+        //    }
+        //}
+
+        //public void OnDestroy()
+        //{
+        //    if (isFlightScene)
+        //    {
+        //        colonyClass lastColony = Configuration.colonyDictionary.Values.SelectMany(x => x).FirstOrDefault(c => c.CAB.PlayerInColony);
+        //        if (lastColony != null)
+        //        {
+        //            lastColonyName = lastColony.Name;
+        //            Configuration.writeDebug($"[KCPreFlightWorker] Leaving colony {lastColonyName}");
+        //        }
+        //    }
+
+        //    isFlightScene = false;
+        //}
     }
 
     /// <summary>
@@ -208,10 +257,12 @@ namespace KerbalColonies
 
         public bool CanBuildVessel(double vesselMass, colonyClass colony)
         {
-            KCProductionInfo info = (KCProductionInfo)Configuration.GetInfoClass(colony.sharedColonyNodes.First(n => n.name == "vesselBuildInfo").GetValue("facilityConfig"));
+            ConfigNode vesselBuildInfoNode = colony.sharedColonyNodes.FirstOrDefault(n => n.name == "vesselBuildInfo");
+            if (vesselBuildInfoNode == null) return false;
+            KCProductionInfo info = (KCProductionInfo)Configuration.GetInfoClass(vesselBuildInfoNode.GetValue("facilityConfig"));
             if (info == null) return false;
 
-            int level = int.Parse(colony.sharedColonyNodes.First(n => n.name == "vesselBuildInfo").GetValue("facilityLevel"));
+            int level = int.Parse(vesselBuildInfoNode.GetValue("facilityLevel"));
             List<KCProductionFacility> productionFacilitiesInColony = colony.Facilities.Where(f => f is KCProductionFacility).Select(f => (KCProductionFacility)f).Where(f => info.HasSameRecipt(level, f)).ToList();
 
             if (productionFacilitiesInColony.Count == 0) return false;

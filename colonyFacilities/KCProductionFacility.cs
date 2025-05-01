@@ -14,8 +14,10 @@ namespace KerbalColonies.colonyFacilities
 
         public bool HasSameRecipt(int level, KCProductionFacility otherFacility)
         {
+            if (!CanBuildVessels(level)) return false;
             Dictionary<PartResourceDefinition, double> vesselCost = vesselResourceCost[level];
             KCProductionInfo otherInfo = (KCProductionInfo)otherFacility.facilityInfo;
+            if (!otherInfo.CanBuildVessels(otherFacility.level)) return false;
             return vesselCost.All(vc => otherInfo.vesselResourceCost[otherFacility.level].ContainsKey(vc.Key) ? otherInfo.vesselResourceCost[otherFacility.level][vc.Key] == vc.Value : false);
         }
 
@@ -224,6 +226,24 @@ namespace KerbalColonies.colonyFacilities
 
     public class KCProductionFacility : KCKerbalFacilityBase
     {
+        public static void DailyProductions(colonyClass colony, out double dailyProduction, out double dailyVesselProduction)
+        {
+            dailyProduction = 0;
+            dailyVesselProduction = 0;
+
+            KCProductionInfo info = (KCProductionInfo)Configuration.GetInfoClass(colony.sharedColonyNodes.First(n => n.name == "vesselBuildInfo").GetValue("facilityConfig"));
+            if (info != null)
+            {
+                int level = int.Parse(colony.sharedColonyNodes.First(n => n.name == "vesselBuildInfo").GetValue("facilityLevel"));
+
+                foreach (KCProductionFacility f in colony.Facilities.Where(f => f is KCProductionFacility).Select(f => (KCProductionFacility)f))
+                {
+                    if (info.HasSameRecipt(level, f)) dailyVesselProduction += f.dailyProduction();
+                    else dailyProduction += f.dailyProduction();
+                }
+            }
+        }
+
         KCProductionWindow prdWindow;
 
         public List<float> baseProduction { get; private set; } = new List<float> { };
@@ -276,6 +296,7 @@ namespace KerbalColonies.colonyFacilities
             {
                 if (!Colony.sharedColonyNodes.Any(n => n.name == "vesselBuildInfo"))
                 {
+                    Configuration.writeDebug($"Facility {name} is now used to build vessels.");
                     ConfigNode vesselBuildInfo = new ConfigNode("vesselBuildInfo");
                     vesselBuildInfo.AddValue("facilityConfig", name);
                     vesselBuildInfo.AddValue("facilityLevel", level);

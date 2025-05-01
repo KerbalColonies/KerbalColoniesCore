@@ -130,10 +130,12 @@ namespace KerbalColonies.colonyFacilities
         public static bool CanBuildVessel(double vesselMass, colonyClass colony)
         {
             Configuration.writeDebug($"CanBuildVessel: {vesselMass} in {colony.DisplayName}");
-            KCProductionInfo info = (KCProductionInfo)Configuration.GetInfoClass(colony.sharedColonyNodes.First(n => n.name == "vesselBuildInfo").GetValue("facilityConfig"));
+            ConfigNode vesselBuildInfoNode = colony.sharedColonyNodes.FirstOrDefault(n => n.name == "vesselBuildInfo");
+            if (vesselBuildInfoNode == null) return false;
+            KCProductionInfo info = (KCProductionInfo)Configuration.GetInfoClass(vesselBuildInfoNode.GetValue("facilityConfig"));
             if (info == null) return false;
 
-            int level = int.Parse(colony.sharedColonyNodes.First(n => n.name == "vesselBuildInfo").GetValue("facilityLevel"));
+            int level = int.Parse(vesselBuildInfoNode.GetValue("facilityLevel"));
             List<KCProductionFacility> productionFacilitiesInColony = colony.Facilities.Where(f => f is KCProductionFacility).Select(f => (KCProductionFacility)f).Where(f => info.HasSameRecipt(level, f)).ToList();
 
             if (productionFacilitiesInColony.Count == 0) return false;

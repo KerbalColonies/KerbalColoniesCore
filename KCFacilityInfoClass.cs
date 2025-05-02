@@ -68,15 +68,15 @@ namespace KerbalColonies
                     vesselAmount = amount;
                 }
 
-                if (vesselAmount >= resource.Value) continue;
-                else if (colonyAmount >= resource.Value) continue;
-                else if (vesselAmount + colonyAmount >= resource.Value) continue;
+                if (vesselAmount >= resource.Value * Configuration.FacilityCostMultiplier) continue;
+                else if (colonyAmount >= resource.Value * Configuration.FacilityCostMultiplier) continue;
+                else if (vesselAmount + colonyAmount >= resource.Value * Configuration.FacilityCostMultiplier) continue;
                 else return false;
             }
 
             if (Funding.Instance != null)
             {
-                if (Funding.Instance.Funds < Funds[level])
+                if (Funding.Instance.Funds < Funds[level] * Configuration.FacilityCostMultiplier)
                 {
                     return false;
                 }
@@ -91,7 +91,7 @@ namespace KerbalColonies
             {
                 foreach (KeyValuePair<PartResourceDefinition, double> resource in resourceCost[level])
                 {
-                    double remainingAmount = resource.Value;
+                    double remainingAmount = resource.Value * Configuration.FacilityCostMultiplier;
 
                     double vesselAmount = 0;
                     double colonyAmount = KCStorageFacility.colonyResources(resource.Key, colony);
@@ -101,9 +101,9 @@ namespace KerbalColonies
                         vesselAmount = amount;
                     }
 
-                    if (vesselAmount >= resource.Value)
+                    if (vesselAmount >= resource.Value * Configuration.FacilityCostMultiplier)
                     {
-                        FlightGlobals.ActiveVessel.RequestResource(FlightGlobals.ActiveVessel.rootPart, resource.Key.id, resource.Value, true);
+                        FlightGlobals.ActiveVessel.RequestResource(FlightGlobals.ActiveVessel.rootPart, resource.Key.id, resource.Value * Configuration.FacilityCostMultiplier, true);
                     }
                     else
                     {
@@ -118,7 +118,7 @@ namespace KerbalColonies
                 }
                 if (Funding.Instance != null)
                 {
-                    Funding.Instance.AddFunds(-Funds[level], TransactionReasons.None);
+                    Funding.Instance.AddFunds(-Funds[level] * Configuration.FacilityCostMultiplier, TransactionReasons.None);
                 }
                 return true;
             }

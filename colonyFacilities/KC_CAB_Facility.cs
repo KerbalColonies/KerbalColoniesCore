@@ -407,7 +407,7 @@ namespace KerbalColonies.colonyFacilities
             }
             else
             {
-                addUpgradingFacility(facility, facility.facilityInfo.UpgradeTimes[facility.level + 1]);
+                addUpgradingFacility(facility, facility.facilityInfo.UpgradeTimes[facility.level + 1] * Configuration.FacilityTimeMultiplier);
             }
         }
 
@@ -419,7 +419,7 @@ namespace KerbalColonies.colonyFacilities
             }
             else
             {
-                addConstructingFacility(facility, facility.facilityInfo.UpgradeTimes[0]);
+                addConstructingFacility(facility, facility.facilityInfo.UpgradeTimes[0] * Configuration.FacilityTimeMultiplier);
             }
         }
 

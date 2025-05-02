@@ -49,13 +49,13 @@ namespace KerbalColonies
                 FlightGlobals.ActiveVessel.GetConnectedResourceTotals(resource.Key.id, out double amount, out double maxAmount);
                 vesselAmount = amount;
 
-                if (vesselAmount >= resource.Value) continue;
+                if (vesselAmount >= resource.Value * Configuration.FacilityCostMultiplier) continue;
                 else return false;
             }
 
             if (Funding.Instance != null)
             {
-                if (Funding.Instance.Funds < info.Funds[0])
+                if (Funding.Instance.Funds < info.Funds[0] * Configuration.FacilityCostMultiplier)
                 {
                     return false;
                 }
@@ -68,14 +68,12 @@ namespace KerbalColonies
         {
             foreach (KeyValuePair<PartResourceDefinition, double> resource in info.resourceCost[0])
             {
-                double remainingAmount = resource.Value;
-
-                FlightGlobals.ActiveVessel.RequestResource(FlightGlobals.ActiveVessel.rootPart, resource.Key.id, resource.Value, true);
+                FlightGlobals.ActiveVessel.RequestResource(FlightGlobals.ActiveVessel.rootPart, resource.Key.id, resource.Value * Configuration.FacilityCostMultiplier, true);
             }
 
             if (Funding.Instance != null)
             {
-                Funding.Instance.AddFunds(-info.Funds[0], TransactionReasons.None);
+                Funding.Instance.AddFunds(-info.Funds[0] * Configuration.FacilityCostMultiplier, TransactionReasons.None);
             }
         }
 
@@ -101,7 +99,6 @@ namespace KerbalColonies
                     GUILayout.BeginVertical();
                     GUILayout.Label($"Funds: {(info.Funds.Count > 0 ? info.Funds[0] : 0)}");
                     //GUILayout.Label($"Electricity: {t.Electricity}");
-                    GUILayout.Label($"Time: {info.UpgradeTimes[0]}");
                     GUILayout.EndVertical();
 
                     GUILayout.EndHorizontal();
@@ -230,7 +227,7 @@ namespace KerbalColonies
 
             int colonyCount = Configuration.colonyDictionary[FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody)].Count + 1;
 
-            if (colonyCount >= Configuration.maxColoniesPerBody)
+            if (colonyCount >= Configuration.MaxColoniesPerBody || Configuration.MaxColoniesPerBody == 0)
             {
                 return false;
             }

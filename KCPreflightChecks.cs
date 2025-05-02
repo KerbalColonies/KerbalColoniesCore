@@ -263,7 +263,7 @@ namespace KerbalColonies
             if (info == null) return false;
 
             int level = int.Parse(vesselBuildInfoNode.GetValue("facilityLevel"));
-            List<KCProductionFacility> productionFacilitiesInColony = colony.Facilities.Where(f => f is KCProductionFacility).Select(f => (KCProductionFacility)f).Where(f => info.HasSameRecipt(level, f)).ToList();
+            List<KCProductionFacility> productionFacilitiesInColony = colony.Facilities.Where(f => f is KCProductionFacility).Select(f => (KCProductionFacility)f).Where(f => info.HasSameRecipe(level, f)).ToList();
 
             if (productionFacilitiesInColony.Count == 0) return false;
             else if (info.vesselResourceCost[level].Count == 0) return true;

@@ -120,18 +120,20 @@ namespace KerbalColonies
             return (KCFacilityBase)Activator.CreateInstance(info.type, new object[] { colony, info, node });
         }
 
+        #region parameters
         // configurable parameters
-        private static Type crewQuarterType = typeof(KCCrewQuarters); // The default type for crew quarters, I want that other mods can change this. The only restriction is that it must be derived from KCCrewQuarters
-        internal static Type CrewQuarterType { get { return crewQuarterType; } set { if (typeof(KCCrewQuarters).IsAssignableFrom(value)) { crewQuarterType = value; } } }
-
-
-        internal static int maxColoniesPerBody = 3;              // Limits the amount of colonies per celestial body (planet/moon)
-                                                                 // set it to zero to disable the limit                                                             // It's planned to change this so different resources can be used
+        public static int MaxColoniesPerBody = 3;              // Limits the amount of colonies per celestial body (planet/moon)
+                                                                                     // set it to zero to disable the limit
+        public static double FacilityCostMultiplier = 1.0; // Multiplier for the cost of the facilities
+        public static double FacilityTimeMultiplier = 1.0; // Multiplier for the time of the facilities
+        public static double VesselCostMultiplier = 1.0; // Multiplier for the cost of the vessels
+        public static double VesselTimeMultiplier = 1.0; // Multiplier for the time of the vessels
 #if DEBUG
-        internal static bool enableLogging = true;            // Enable this only in debug purposes as it floods the logs very much
+        public static bool enableLogging = true;            // Enable this only in debug purposes as it floods the logs very much
 #else
-        internal static bool enableLogging = false;           // Enable this only in debug purposes as it floods the logs very much
+        public static bool enableLogging = false;           // Enable this only in debug purposes as it floods the logs very much
 #endif
+        #endregion
 
         #region savingV3
         // New saving
@@ -318,7 +320,7 @@ namespace KerbalColonies
             {
                 return;
             }
-            int.TryParse(nodes[0].GetValue("maxColoniesPerBody"), out maxColoniesPerBody);
+            int.TryParse(nodes[0].GetValue("MaxColoniesPerBody"), out MaxColoniesPerBody);
 
             bool.TryParse(nodes[0].GetValue("enableLogging"), out enableLogging);
         }
@@ -332,7 +334,7 @@ namespace KerbalColonies
             }
 
             // config params
-            nodes[0].SetValue("maxColoniesPerBody", maxColoniesPerBody, "Limits the amount of colonies per celestial body (planet/moon)\n\facilityType// set it to zero to disable the limit", createIfNotFound: true);
+            nodes[0].SetValue("MaxColoniesPerBody", MaxColoniesPerBody, "Limits the amount of colonies per celestial body (planet/moon)\n\facilityType// set it to zero to disable the limit", createIfNotFound: true);
             nodes[0].SetValue("enableLogging", enableLogging, "Enable this only in debug purposes as it floods the logs very much", createIfNotFound: true);
 
             string path = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + "/KC.cfg";

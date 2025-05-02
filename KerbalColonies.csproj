@@ -55,7 +55,7 @@
     <Compile Include="ConfigFacilityLoader.cs" />
     <Compile Include="Configuration.cs" />
     <Compile Include="KCPartModule.cs" />
-    <Compile Include="KCLaunchpadPreflightCheck.cs" />
+    <Compile Include="KCPreflightChecks.cs" />
     <Compile Include="UI\KCWindow.cs" />
     <Compile Include="UI\KCWindowManager.cs" />
     <Compile Include="UI\KerbalGUI.cs" />

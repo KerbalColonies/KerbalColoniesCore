@@ -4,7 +4,6 @@ using KSP.UI.Screens;
 using System.Linq;
 using ToolbarControl_NS;
 using UnityEngine;
-using CustomPreLaunchChecks;
 
 // KC: Kerbal Colonies
 // This mod aimes to create a Colony system with Kerbal Konstructs statics
@@ -77,7 +76,7 @@ namespace KerbalColonies
                 }
             }
 
-            if (waitCounter < 10)
+            if (waitCounter < 2)
             {
                 waitCounter++;
                 return;
@@ -90,7 +89,8 @@ namespace KerbalColonies
                         .ToDictionary(x => x.Key, x => x.Value).ToList()
                         .ForEach(kvp =>
                         kvp.Value.ToList().ForEach(bodyKVP =>
-                        bodyKVP.Value.ToList().ForEach(KKgroup => {
+                        bodyKVP.Value.ToList().ForEach(KKgroup =>
+                        {
                             KerbalKonstructs.API.GetGroupStatics(KKgroup.Key).ForEach(s =>
                             KerbalKonstructs.API.DeactivateStatic(s.UUID));
 
@@ -104,13 +104,16 @@ namespace KerbalColonies
                         .ToDictionary(x => x.Key, x => x.Value).ToList()
                         .ForEach(kvp =>
                         kvp.Value.ToList().ForEach(bodyKVP =>
-                        bodyKVP.Value.ToList().ForEach(KKgroup => {
+                        bodyKVP.Value.ToList().ForEach(KKgroup =>
+                        {
                             KerbalKonstructs.API.GetGroupStatics(KKgroup.Key).ForEach(s =>
                             KerbalKonstructs.API.ActivateStatic(s.UUID));
 
                             if (KKgroup.Value != null)
                             {
-                                if (KKgroup.Value.name == "launchpadNode") KerbalKonstructs.Core.LaunchSiteManager.OpenLaunchSite(KerbalKonstructs.Core.LaunchSiteManager.GetLaunchSiteByName(KKgroup.Value.GetValue("launchSiteName")));
+                                if (KKgroup.Value.name == "launchpadNode")
+                                    if (HighLogic.LoadedScene != GameScenes.SPACECENTER) KerbalKonstructs.Core.LaunchSiteManager.OpenLaunchSite(KerbalKonstructs.Core.LaunchSiteManager.GetLaunchSiteByName(KKgroup.Value.GetValue("launchSiteName")));
+                                    else KerbalKonstructs.Core.LaunchSiteManager.CloseLaunchSite(KerbalKonstructs.Core.LaunchSiteManager.GetLaunchSiteByName(KKgroup.Value.GetValue("launchSiteName")));
                             }
                         })));
 
@@ -120,7 +123,6 @@ namespace KerbalColonies
 
             if (Input.GetKeyDown(KeyCode.U))
             {
-                KCResourceConverterFacility.resourceTypes.ToString();
             }
         }
 

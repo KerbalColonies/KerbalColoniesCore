@@ -12,7 +12,7 @@ namespace KerbalColonies.colonyFacilities
 
         public bool CanBuildVessels(int level) => vesselResourceCost.ContainsKey(level);
 
-        public bool HasSameRecipt(int level, KCProductionFacility otherFacility)
+        public bool HasSameRecipe(int level, KCProductionFacility otherFacility)
         {
             if (!CanBuildVessels(level)) return false;
             Dictionary<PartResourceDefinition, double> vesselCost = vesselResourceCost[level];
@@ -91,7 +91,7 @@ namespace KerbalColonies.colonyFacilities
                                 GUILayout.BeginVertical();
                                 GUILayout.Label($"Funds: {(t.Funds.Count > 0 ? t.Funds[0] : 0)}");
                                 //GUILayout.Label($"Electricity: {t.Electricity}");
-                                GUILayout.Label($"Time: {t.UpgradeTimes[0]}");
+                                GUILayout.Label($"Time: {t.UpgradeTimes[0] * Configuration.FacilityTimeMultiplier}");
                                 GUILayout.EndVertical();
 
                                 GUILayout.EndHorizontal();
@@ -134,7 +134,7 @@ namespace KerbalColonies.colonyFacilities
                         {
                             GUILayout.BeginHorizontal();
                             GUILayout.Label(pair.Key.displayName);
-                            double max = pair.Key.facilityInfo.UpgradeTimes[pair.Key.level + 1];
+                            double max = pair.Key.facilityInfo.UpgradeTimes[pair.Key.level + 1] * Configuration.FacilityTimeMultiplier;
                             GUILayout.Label($"{Math.Round(max - pair.Value, 2)}/{Math.Round(max, 2)}");
                             GUILayout.EndHorizontal();
                             GUILayout.Box("", GUILayout.ExpandWidth(true), GUILayout.Height(1));
@@ -146,7 +146,7 @@ namespace KerbalColonies.colonyFacilities
                         {
                             GUILayout.BeginHorizontal();
                             GUILayout.Label(pair.Key.displayName);
-                            double max = pair.Key.facilityInfo.UpgradeTimes[0];
+                            double max = pair.Key.facilityInfo.UpgradeTimes[0] * Configuration.FacilityTimeMultiplier;
                             GUILayout.Label($"{Math.Round(max - pair.Value, 2)}/{Math.Round(max, 2)}");
                             GUILayout.EndHorizontal();
                             GUILayout.Space(10);
@@ -197,7 +197,7 @@ namespace KerbalColonies.colonyFacilities
                         KCProductionInfo info = (KCProductionInfo)Configuration.GetInfoClass(colonyNode.GetValue("facilityConfig"));
                         if (info != null)
                         {
-                            if (info.HasSameRecipt(int.Parse(colonyNode.GetValue("facilityLevel")), facility)) GUI.enabled = false;
+                            if (info.HasSameRecipe(int.Parse(colonyNode.GetValue("facilityLevel")), facility)) GUI.enabled = false;
                             if (GUILayout.Button("Use this facility type to build vessels"))
                             {
                                 Configuration.writeDebug($"Facility {facility.name} is now used to build vessels.");
@@ -260,7 +260,7 @@ namespace KerbalColonies.colonyFacilities
 
             foreach (KCProductionFacility f in colony.Facilities.Where(f => f is KCProductionFacility).Select(f => (KCProductionFacility)f))
             {
-                if (info != null && info.HasSameRecipt(level, f)) dailyVesselProduction += f.dailyProduction();
+                if (info != null && info.HasSameRecipe(level, f)) dailyVesselProduction += f.dailyProduction();
                 else dailyProduction += f.dailyProduction();
             }
         }

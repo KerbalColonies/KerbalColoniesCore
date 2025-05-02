@@ -107,6 +107,18 @@ namespace KerbalColonies
 
             KCFacilityTypeRegistry.RegisterFacilityInfo<KC_CAB_Facility, KC_CABInfo>();
             KCFacilityTypeRegistry.RegisterFacilityInfo<KCProductionFacility, KCProductionInfo>();
+            KCFacilityTypeRegistry.RegisterFacilityInfo<KCResourceConverterFacility, KCResourceConverterInfo>();
+
+            try
+            {
+                KCResourceConverterFacility.LoadResourceConversionLists();
+            }
+            catch (Exception e)
+            {
+                exceptions.Add(e);
+                failedConfigs.Add("ResourceConversionLists");
+                Configuration.writeLog($"Error while loading the resource conversion lists: {e}");
+            }
         }
 
         protected void Start()
@@ -121,7 +133,6 @@ namespace KerbalColonies
 
         public static void LoadFacilityConfigs()
         {
-            failedConfigs.Clear();
             ConfigNode[] facilityConfigs = GameDatabase.Instance.GetConfigNodes("facilityConfigs");
             foreach (ConfigNode node in facilityConfigs)
             {
@@ -130,8 +141,11 @@ namespace KerbalColonies
                     try
                     {
                         KCFacilityInfoClass facilityInfo = (KCFacilityInfoClass)Activator.CreateInstance(KCFacilityTypeRegistry.GetInfoType(KCFacilityTypeRegistry.GetType(facilityNode.GetValue("type"))), new object[] { facilityNode });
-                        
-                        if (!(facilityInfo is KC_CABInfo)) Configuration.RegisterBuildableFacility(facilityInfo);
+
+                        if (!(facilityInfo is KC_CABInfo))
+                        {
+                            if (!Configuration.RegisterBuildableFacility(facilityInfo)) throw new Exception($"A facility with the name {facilityInfo.name} already exists.");
+                        }
                         else Configuration.RegisterCabInfo(facilityInfo as KC_CABInfo);
                     }
                     catch (Exception e)

@@ -1,10 +1,9 @@
 ﻿using KerbalKonstructs.Modules;
-using System.Collections.Generic;
 using System.Linq;
 
 // KC: Kerbal Colonies
 // This mod aimes to create a Colony system with Kerbal Konstructs statics
-// Copyright (C) 2024 AMPW, Halengar
+// Copyright (c) 2024-2025 AMPW, Halengar
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -53,11 +52,14 @@ namespace KerbalColonies.colonyFacilities
         public KCCommNetFacility(colonyClass colony, KCFacilityInfoClass facilityInfo, ConfigNode node) : base(colony, facilityInfo, node)
         {
             groundstationUUID = node.GetValue("groundstationUUID");
+            AllowClick = false;
+            AllowRemote = false;
         }
 
         public KCCommNetFacility(colonyClass colony, KCFacilityInfoClass facilityInfo, bool enabled) : base(colony, facilityInfo, enabled)
         {
-
+            AllowClick = false;
+            AllowRemote = false;
         }
     }
 }

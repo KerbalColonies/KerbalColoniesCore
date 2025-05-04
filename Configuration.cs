@@ -1,16 +1,13 @@
 ﻿using KerbalColonies.colonyFacilities;
-using KerbalColonies;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using UnityEngine;
-using static Targeting.Sample;
 
 // KC: Kerbal Colonies
 // This mod aimes to create a Colony system with Kerbal Konstructs statics
-// Copyright (C) 2024 AMPW, Halengar
+// Copyright (c) 2024-2025 AMPW, Halengar
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -123,7 +120,7 @@ namespace KerbalColonies
         #region parameters
         // configurable parameters
         public static int MaxColoniesPerBody = 3;              // Limits the amount of colonies per celestial body (planet/moon)
-                                                                                     // set it to zero to disable the limit
+                                                               // set it to zero to disable the limit
         public static double FacilityCostMultiplier = 1.0; // Multiplier for the cost of the facilities
         public static double FacilityTimeMultiplier = 1.0; // Multiplier for the time of the facilities
         public static double VesselCostMultiplier = 1.0; // Multiplier for the cost of the vessels

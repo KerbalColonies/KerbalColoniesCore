@@ -2,6 +2,23 @@
 using System.Collections.Generic;
 using System.Linq;
 
+// KC: Kerbal Colonies
+// This mod aimes to create a Colony system with Kerbal Konstructs statics
+// Copyright (c) 2024-2025 AMPW, Halengar
+
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/
+
 namespace KerbalColonies.colonyFacilities
 {
     public class KCProtoCrewMemberComparer : IEqualityComparer<ProtoCrewMember>
@@ -79,7 +96,7 @@ namespace KerbalColonies.colonyFacilities
             };
         }
 
-        public virtual void AddKerbal(ProtoCrewMember member) { if(!kerbals.TryAdd(member, 0)) kerbals[member] = 0; }
+        public virtual void AddKerbal(ProtoCrewMember member) { if (!kerbals.TryAdd(member, 0)) kerbals[member] = 0; }
 
         public Dictionary<int, List<string>> forbiddenTraits { get; private set; } = new Dictionary<int, List<string>> { };
         public Dictionary<int, List<string>> allowedTraits { get; private set; } = new Dictionary<int, List<string>> { };

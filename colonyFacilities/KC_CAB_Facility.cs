@@ -4,6 +4,23 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
+// KC: Kerbal Colonies
+// This mod aimes to create a Colony system with Kerbal Konstructs statics
+// Copyright (c) 2024-2025 AMPW, Halengar
+
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/
+
 namespace KerbalColonies.colonyFacilities
 {
     public class KC_CABInfo : KCFacilityInfoClass
@@ -295,7 +312,7 @@ namespace KerbalColonies.colonyFacilities
                 {
                     if (constructingVessel[0].vesselBuildTime > dailyVesselProduction)
                     {
-                        double buildingVesselMass = (double) (constructingVessel[0].vesselDryMass * (dailyVesselProduction / constructingVessel[0].entireVesselBuildTime));
+                        double buildingVesselMass = (double)(constructingVessel[0].vesselDryMass * (dailyVesselProduction / constructingVessel[0].entireVesselBuildTime));
                         if (!KCHangarFacility.CanBuildVessel(buildingVesselMass, Colony)) break;
 
                         KCHangarFacility.BuildVessel(buildingVesselMass, Colony);
@@ -316,7 +333,7 @@ namespace KerbalColonies.colonyFacilities
                         if (!KCHangarFacility.CanBuildVessel(buildingVesselMass, Colony)) break;
 
                         KCHangarFacility.BuildVessel(buildingVesselMass, Colony);
-                        dailyVesselProduction -= (double) constructingVessel[0].vesselBuildTime;
+                        dailyVesselProduction -= (double)constructingVessel[0].vesselBuildTime;
                         constructingVessel[0].vesselBuildTime = null;
                         constructingVessel[0].entireVesselBuildTime = null;
                         ScreenMessages.PostScreenMessage($"KC: Vessel {constructingVessel[0].vesselName} was fully built on colony {Colony.DisplayName}", 10f, ScreenMessageStyle.UPPER_RIGHT);

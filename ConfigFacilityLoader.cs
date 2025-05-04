@@ -106,6 +106,8 @@ namespace KerbalColonies
             KCFacilityTypeRegistry.RegisterFacilityInfo<KC_CAB_Facility, KC_CABInfo>();
             KCFacilityTypeRegistry.RegisterFacilityInfo<KCProductionFacility, KCProductionInfo>();
             KCFacilityTypeRegistry.RegisterFacilityInfo<KCResourceConverterFacility, KCResourceConverterInfo>();
+            KCFacilityTypeRegistry.RegisterFacilityInfo<KCLaunchpadFacility, KCZeroUpgradeInfoClass>();
+            KCFacilityTypeRegistry.RegisterFacilityInfo<KCCommNetFacility, KCZeroUpgradeInfoClass>();
 
             try
             {

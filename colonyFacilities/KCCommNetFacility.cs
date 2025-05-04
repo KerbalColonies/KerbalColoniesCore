@@ -1,4 +1,5 @@
 ﻿using KerbalKonstructs.Modules;
+using System;
 using System.Linq;
 
 // KC: Kerbal Colonies
@@ -24,12 +25,14 @@ namespace KerbalColonies.colonyFacilities
     public class KCCommNetFacility : KCKerbalFacilityBase
     {
         public string groundstationUUID = "";
+        public ConfigNode sharedNode = null;
 
         public override void OnGroupPlaced()
         {
             KerbalKonstructs.Core.StaticInstance baseInstance = KerbalKonstructs.API.GetGroupStatics(GetBaseGroupName(0), "Kerbin").Where(s => s.facilityType == KerbalKonstructs.Modules.KKFacilityType.GroundStation).First();
             groundstationUUID = GetUUIDbyFacility(this).Where(s => KerbalKonstructs.API.GetModelTitel(s) == KerbalKonstructs.API.GetModelTitel(baseInstance.UUID)).First();
 
+            sharedNode.AddValue("uuid", groundstationUUID);
             KerbalKonstructs.Core.StaticInstance targetInstance = KerbalKonstructs.API.getStaticInstanceByUUID(groundstationUUID);
 
             targetInstance.facilityType = KKFacilityType.GroundStation;
@@ -39,6 +42,11 @@ namespace KerbalColonies.colonyFacilities
             GroundStation targetStation = targetInstance.myFacilities[0] as GroundStation;
 
             targetStation.TrackingShort = baseStation.TrackingShort;
+        }
+
+        public override ConfigNode GetSharedNode()
+        {
+            return sharedNode;
         }
 
         public override ConfigNode getConfigNode()
@@ -58,6 +66,7 @@ namespace KerbalColonies.colonyFacilities
 
         public KCCommNetFacility(colonyClass colony, KCFacilityInfoClass facilityInfo, bool enabled) : base(colony, facilityInfo, enabled)
         {
+            sharedNode = new ConfigNode("commnetNode");
             AllowClick = false;
             AllowRemote = false;
         }

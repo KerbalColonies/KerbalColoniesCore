@@ -4,6 +4,20 @@ using System.Linq;
 
 namespace KerbalColonies.colonyFacilities
 {
+    public class KCProtoCrewMemberComparer : IEqualityComparer<ProtoCrewMember>
+    {
+        public bool Equals(ProtoCrewMember x, ProtoCrewMember y)
+        {
+            if (ReferenceEquals(x, null) && ReferenceEquals(y, null)) return true;
+            else if (ReferenceEquals(x, null) || ReferenceEquals(y, null)) return false;
+            return x.name == y.name;
+        }
+        public int GetHashCode(ProtoCrewMember obj)
+        {
+            return obj.name.GetHashCode();
+        }
+    }
+
     public abstract class KCKerbalFacilityBase : KCFacilityBase
     {
 

@@ -1,7 +1,5 @@
 ﻿using CustomPreLaunchChecks;
-using ExtraplanetaryLaunchpads;
 using KerbalColonies.colonyFacilities;
-using KerbalKonstructs.Core;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -51,29 +49,69 @@ namespace KerbalColonies
         {
             //isFlightScene = HighLogic.LoadedSceneIsFlight;
 
-            if (HighLogic.LoadedSceneIsFlight && launchPadName != null)
+            if (HighLogic.LoadedSceneIsFlight)
             {
-                KCLaunchpadFacility kCLaunchpad = KCLaunchpadFacility.GetLaunchpadFacility(launchPadName);
-
-                Configuration.writeDebug($"[KCPreFlightWorker] Launching from {kCLaunchpad.displayName}");
-
-                // Doesn't account for leaving the editor
-                foreach (PartResourceDefinition item in PartResourceLibrary.Instance.resourceDefinitions)
+                if (launchPadName != null)
                 {
-                    FlightGlobals.ActiveVessel.GetConnectedResourceTotals(item.id, out double amount, out double max, true);
-                    FlightGlobals.ActiveVessel.RequestResource(FlightGlobals.ActiveVessel.rootPart, item.id, amount, false);
-                }
+                    KCLaunchpadFacility kCLaunchpad = KCLaunchpadFacility.GetLaunchpadFacility(launchPadName);
 
-                if (Funding.Instance != null)
+                    Configuration.writeDebug($"[KCPreFlightWorker] Launching from {kCLaunchpad.displayName}");
+
+                    // Doesn't account for leaving the editor
+                    foreach (PartResourceDefinition item in PartResourceLibrary.Instance.resourceDefinitions)
+                    {
+                        FlightGlobals.ActiveVessel.GetConnectedResourceTotals(item.id, out double amount, out double max, true);
+                        FlightGlobals.ActiveVessel.RequestResource(FlightGlobals.ActiveVessel.rootPart, item.id, amount, false);
+                    }
+
+                    if (Funding.Instance != null)
+                    {
+                        Funding.Instance.AddFunds(funds, TransactionReasons.None);
+                    }
+
+                    KCHangarFacility.GetHangarsInColony(kCLaunchpad.Colony).First(h => h.CanStoreVessel(FlightGlobals.ActiveVessel)).StoreVessel(FlightGlobals.ActiveVessel, vesselMass);
+
+                    launchPadName = null;
+                    funds = 0;
+                    vesselMass = 0;
+                }
+                else
                 {
-                    Funding.Instance.AddFunds(funds, TransactionReasons.None);
+                    List<ProtoCrewMember> kerbalsInColonies = Configuration.colonyDictionary.Values.SelectMany(c => c).SelectMany(c => KCCrewQuarters.GetAllKerbalsInColony(c).Keys).ToList();
+                    FlightGlobals.Vessels.ForEach(v =>
+                    {
+                        List<ProtoCrewMember> pcmInVessel = v.GetVesselCrew().Intersect(kerbalsInColonies, new KCProtoCrewMemberComparer()).ToList();
+                        Configuration.writeDebug($"[KCPreFlightWorker] Found {pcmInVessel.Count} kerbals in {v.name} that are in colonies");
+                        pcmInVessel.ForEach(pcm =>
+                        {
+                            Configuration.writeDebug($"[KCPreFlightWorker] Found {pcm.name} in {v.name} that is in a colony");
+                            InternalSeat seat = pcm.seat;
+                            if (pcm.seat != null)
+                            {
+                                seat.part.RemoveCrewmember(pcm); // Remove from seat
+                                pcm.seat = null;
+                            }
+
+                            foreach (Part p in v.Parts)
+                            {
+                                if (p.protoModuleCrew.Contains(pcm))
+                                {
+                                    p.protoModuleCrew.Remove(pcm);
+                                    int index = p.protoPartSnapshot.GetCrewIndex(pcm.name);
+                                    p.protoPartSnapshot.RemoveCrew(pcm);
+                                    p.RemoveCrewmember(pcm);
+                                    p.ModulesOnUpdate();
+                                    break;
+                                }
+                            }
+
+                            v.RemoveCrew(pcm);
+                            HighLogic.CurrentGame.CrewRoster.AddCrewMember(pcm);
+
+                            v.SpawnCrew();
+                        });
+                    });
                 }
-
-                KCHangarFacility.GetHangarsInColony(kCLaunchpad.Colony).First(h => h.CanStoreVessel(FlightGlobals.ActiveVessel)).StoreVessel(FlightGlobals.ActiveVessel, vesselMass);
-
-                launchPadName = null;
-                funds = 0;
-                vesselMass = 0;
             }
             else
             {

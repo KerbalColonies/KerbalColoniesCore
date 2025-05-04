@@ -33,6 +33,12 @@ namespace KerbalColonies
             _registeredTypes[key] = typeof(T);
         }
 
+        public static bool RemoveType<T>() where T : KCFacilityBase
+        {
+            string key = typeof(T).FullName;
+            return _registeredTypes.Remove(key);
+        }
+
         // Get a registered type by key
         public static Type GetType(string typeName)
         {
@@ -60,6 +66,12 @@ namespace KerbalColonies
             {
                 _registeredInfoTypes[facilityType] = infoType;
             }
+        }
+
+        public static bool RemoveFacilityInfo<T>() where T : KCFacilityBase
+        {
+            Type facilityType = typeof(T);
+            return _registeredInfoTypes.Remove(facilityType);
         }
 
         // Get the info type for a registered facility type, returns the default info type if not found

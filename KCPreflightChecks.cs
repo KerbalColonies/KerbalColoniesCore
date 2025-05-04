@@ -242,6 +242,7 @@ namespace KerbalColonies
     {
         string launchSiteName;
         bool allowLaunch = false;
+        List<ProtoCrewMember> invalidKerbals;
 
         public bool Test()
         {
@@ -249,7 +250,12 @@ namespace KerbalColonies
             if (allowLaunch) return true;
 
             KCLaunchpadFacility kCLaunchpad = KCLaunchpadFacility.GetLaunchpadFacility(launchSiteName);
-            if (kCLaunchpad == null) return true;
+            if (kCLaunchpad == null)
+            {
+                List<ProtoCrewMember> kerbalsInColonies = Configuration.colonyDictionary.Values.SelectMany(c => c).SelectMany(c => KCCrewQuarters.GetAllKerbalsInColony(c).Keys).ToList();
+                ShipConstruction.ShipManifest.GetAllCrew(false).Intersect(kerbalsInColonies, new KCProtoCrewMemberComparer()).ToList().ForEach(pcm => invalidKerbals.Add(pcm));
+                return invalidKerbals.Count == 0;
+            }
 
             if (ShipConstruction.ShipManifest.CrewCount > 0) return false;
 
@@ -262,8 +268,22 @@ namespace KerbalColonies
             return ("KC crew prelaunch check");
         }
 
-        public string GetWarningDescription() => $"Due to current limitations of the vessel storage there must be no crew assigned to the vessel while launching.";
-        public string GetProceedOption() => null;
+        public string GetWarningDescription()
+        {
+            if (invalidKerbals.Count == 0) return "Due to current limitations of the vessel storage there must be no crew assigned to the vessel while launching.";
+            else
+            {
+                StringBuilder sb = new StringBuilder();
+                sb.AppendLine("The following kerbals are already in Colonies:");
+                foreach (ProtoCrewMember pcm in invalidKerbals)
+                {
+                    sb.AppendLine($"-{pcm.name}");
+                }
+                sb.AppendLine("You can continue with the launch but these kerbals will be removed from the vessel.");
+                return sb.ToString();
+            }
+        }
+        public string GetProceedOption() => "Continue launch.";
         public string GetAbortOption() => "Abort launch.";
 
         public static PreFlightTests.IPreFlightTest GetKCCrewTest(string launchSiteName)

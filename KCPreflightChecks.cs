@@ -242,7 +242,7 @@ namespace KerbalColonies
     {
         string launchSiteName;
         bool allowLaunch = false;
-        List<ProtoCrewMember> invalidKerbals;
+        List<ProtoCrewMember> invalidKerbals = new List<ProtoCrewMember> { };
 
         public bool Test()
         {

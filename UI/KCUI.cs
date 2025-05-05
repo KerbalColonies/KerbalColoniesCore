@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using ClickThroughFix;
 
 // KC: Kerbal Colonies
 // This mod aimes to create a Colony system with Kerbal Konstructs statics
@@ -52,7 +53,8 @@ namespace KerbalColonies.UI
 
         internal void drawEditor()
         {
-            toolRect = GUI.Window(windowID, toolRect, KCWindow, "", UIConfig.KKWindow);
+            
+            toolRect = ClickThruBlocker.GUIWindow(windowID, toolRect, KCWindow, "", UIConfig.KKWindow);
         }
 
         protected abstract void CustomWindow();

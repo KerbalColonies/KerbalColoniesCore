@@ -85,39 +85,38 @@ namespace KerbalColonies
             {
                 if (!despawned)
                 {
+                    despawned = true;
                     Configuration.KCgroups.Where(x => x.Key != HighLogic.CurrentGame.Seed.ToString())
-                        .ToDictionary(x => x.Key, x => x.Value).ToList()
-                        .ForEach(kvp =>
-                        kvp.Value.ToList().ForEach(bodyKVP =>
-                        bodyKVP.Value.ToList().ForEach(KKgroup =>
-                        {
-                            KerbalKonstructs.API.GetGroupStatics(KKgroup.Key).ForEach(s =>
-                            KerbalKonstructs.API.DeactivateStatic(s.UUID));
+                    .ToDictionary(x => x.Key, x => x.Value).ToList()
+                    .ForEach(kvp =>
+                    kvp.Value.ToList().ForEach(bodyKVP =>
+                    bodyKVP.Value.ToList().ForEach(KKgroup =>
+                    {
+                        KerbalKonstructs.API.GetGroupStatics(KKgroup.Key).ForEach(s =>
+                        KerbalKonstructs.API.DeactivateStatic(s.UUID));
 
-                            if (KKgroup.Value != null)
-                            {
-                                if (KKgroup.Value.name == "launchpadNode") KerbalKonstructs.Core.LaunchSiteManager.CloseLaunchSite(KerbalKonstructs.Core.LaunchSiteManager.GetLaunchSiteByName(KKgroup.Value.GetValue("launchSiteName")));
-                            }
-                        })));
+                        if (KKgroup.Value != null)
+                        {
+                            if (KKgroup.Value.name == "launchpadNode" && KerbalKonstructs.Core.LaunchSiteManager.GetLaunchSiteByName(KKgroup.Value.GetValue("launchSiteName")) != null) KerbalKonstructs.Core.LaunchSiteManager.CloseLaunchSite(KerbalKonstructs.Core.LaunchSiteManager.GetLaunchSiteByName(KKgroup.Value.GetValue("launchSiteName")));
+                        }
+                    })));
 
                     Configuration.KCgroups.Where(x => x.Key == HighLogic.CurrentGame.Seed.ToString())
-                        .ToDictionary(x => x.Key, x => x.Value).ToList()
-                        .ForEach(kvp =>
-                        kvp.Value.ToList().ForEach(bodyKVP =>
-                        bodyKVP.Value.ToList().ForEach(KKgroup =>
+                    .ToDictionary(x => x.Key, x => x.Value).ToList()
+                    .ForEach(kvp =>
+                    kvp.Value.ToList().ForEach(bodyKVP =>
+                    bodyKVP.Value.ToList().ForEach(KKgroup =>
+                    {
+                        KerbalKonstructs.API.GetGroupStatics(KKgroup.Key).ForEach(s =>
+                        KerbalKonstructs.API.ActivateStatic(s.UUID));
+
+                        if (KKgroup.Value != null)
                         {
-                            KerbalKonstructs.API.GetGroupStatics(KKgroup.Key).ForEach(s =>
-                            KerbalKonstructs.API.ActivateStatic(s.UUID));
-
-                            if (KKgroup.Value != null)
-                            {
-                                if (KKgroup.Value.name == "launchpadNode")
-                                    if (HighLogic.LoadedScene != GameScenes.SPACECENTER) KerbalKonstructs.Core.LaunchSiteManager.OpenLaunchSite(KerbalKonstructs.Core.LaunchSiteManager.GetLaunchSiteByName(KKgroup.Value.GetValue("launchSiteName")));
-                                    else KerbalKonstructs.Core.LaunchSiteManager.CloseLaunchSite(KerbalKonstructs.Core.LaunchSiteManager.GetLaunchSiteByName(KKgroup.Value.GetValue("launchSiteName")));
-                            }
-                        })));
-
-                    despawned = true;
+                            if (KKgroup.Value.name == "launchpadNode" && KerbalKonstructs.Core.LaunchSiteManager.GetLaunchSiteByName(KKgroup.Value.GetValue("launchSiteName")) != null)
+                                if (HighLogic.LoadedScene != GameScenes.SPACECENTER) KerbalKonstructs.Core.LaunchSiteManager.OpenLaunchSite(KerbalKonstructs.Core.LaunchSiteManager.GetLaunchSiteByName(KKgroup.Value.GetValue("launchSiteName")));
+                                else KerbalKonstructs.Core.LaunchSiteManager.CloseLaunchSite(KerbalKonstructs.Core.LaunchSiteManager.GetLaunchSiteByName(KKgroup.Value.GetValue("launchSiteName")));
+                        }
+                    })));
                 }
             }
 

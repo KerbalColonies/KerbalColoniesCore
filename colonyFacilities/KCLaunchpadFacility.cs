@@ -1,4 +1,5 @@
 ﻿using KerbalKonstructs;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -61,85 +62,167 @@ namespace KerbalColonies.colonyFacilities
 
         public override void OnGroupPlaced()
         {
-            KerbalKonstructs.Core.StaticInstance baseInstance = KerbalKonstructs.API.GetGroupStatics(GetBaseGroupName(level), "Kerbin").Where(s => s.hasLauchSites).First();
-            string uuid = GetUUIDbyFacility(this).Where(s => KerbalKonstructs.API.GetModelTitel(s) == KerbalKonstructs.API.GetModelTitel(baseInstance.UUID)).First();
-
-            sharedNode.AddValue("uuid", uuid);
-            KerbalKonstructs.Core.StaticInstance targetInstance = KerbalKonstructs.API.getStaticInstanceByUUID(uuid);
-            instance = targetInstance;
-            if (targetInstance.launchSite == null)
+            KerbalKonstructs.Core.StaticInstance baseInstance = KerbalKonstructs.API.GetGroupStatics(GetBaseGroupName(level), "Kerbin").Where(s => s.hasLauchSites).FirstOrDefault();
+            if (baseInstance != null)
             {
-                targetInstance.launchSite = new KerbalKonstructs.Core.KKLaunchSite();
-                targetInstance.hasLauchSites = true;
+                string uuid = GetUUIDbyFacility(this).Where(s => KerbalKonstructs.API.GetModelTitel(s) == KerbalKonstructs.API.GetModelTitel(baseInstance.UUID)).FirstOrDefault();
+                if (uuid == null) GetUUIDbyFacility(this).FirstOrDefault();
+                if (uuid == null) throw new System.Exception("KC Launchpadfacility: unable to find any KK static for the launchpad.");
 
-                targetInstance.launchSite.staticInstance = targetInstance;
-                targetInstance.launchSite.body = targetInstance.CelestialBody;
-            }
-
-            string oldName = name;
-            bool oldState = baseInstance.launchSite.ILSIsActive;
-
-            targetInstance.launchSite.LaunchSiteName = launchSiteName;
-            sharedNode.AddValue("launchSiteName", launchSiteName);
-            targetInstance.launchSite.LaunchSiteLength = baseInstance.launchSite.LaunchSiteLength;
-            targetInstance.launchSite.LaunchSiteWidth = baseInstance.launchSite.LaunchSiteWidth;
-            targetInstance.launchSite.LaunchSiteHeight = baseInstance.launchSite.LaunchSiteHeight;
-
-            targetInstance.launchSite.MaxCraftMass = baseInstance.launchSite.MaxCraftMass;
-            targetInstance.launchSite.MaxCraftParts = baseInstance.launchSite.MaxCraftParts;
-
-            targetInstance.launchSite.LaunchSiteType = baseInstance.launchSite.LaunchSiteType;
-            targetInstance.launchSite.LaunchPadTransform = baseInstance.launchSite.LaunchPadTransform;
-            targetInstance.launchSite.LaunchSiteDescription = baseInstance.launchSite.LaunchSiteDescription;
-            targetInstance.launchSite.OpenCost = 0;
-            targetInstance.launchSite.CloseValue = 0;
-            targetInstance.launchSite.LaunchSiteIsHidden = false;
-            targetInstance.launchSite.ILSIsActive = baseInstance.launchSite.ILSIsActive;
-            targetInstance.launchSite.LaunchSiteAuthor = baseInstance.launchSite.LaunchSiteAuthor;
-            targetInstance.launchSite.refLat = (float)targetInstance.RefLatitude;
-            targetInstance.launchSite.refLon = (float)targetInstance.RefLongitude;
-            targetInstance.launchSite.refAlt = (float)targetInstance.CelestialBody.GetAltitude(targetInstance.position);
-            targetInstance.launchSite.sitecategory = baseInstance.launchSite.sitecategory;
-            targetInstance.launchSite.InitialCameraRotation = baseInstance.launchSite.InitialCameraRotation;
-
-            targetInstance.launchSite.ToggleLaunchPositioning = baseInstance.launchSite.ToggleLaunchPositioning;
-
-            targetInstance.launchSite.isOpen = true;
-            targetInstance.launchSite.OpenCloseState = "open";
-
-
-            if (ILSConfig.DetectNavUtils())
-            {
-                bool regenerateILSConfig = false;
-
-                if (oldName != null && !oldName.Equals(name))
+                sharedNode.AddValue("uuid", uuid);
+                KerbalKonstructs.Core.StaticInstance targetInstance = KerbalKonstructs.API.getStaticInstanceByUUID(uuid);
+                instance = targetInstance;
+                if (targetInstance.launchSite == null)
                 {
-                    ILSConfig.RenameSite(targetInstance.launchSite.LaunchSiteName, name);
-                    regenerateILSConfig = true;
+                    targetInstance.launchSite = new KerbalKonstructs.Core.KKLaunchSite();
+                    targetInstance.hasLauchSites = true;
+
+                    targetInstance.launchSite.staticInstance = targetInstance;
+                    targetInstance.launchSite.body = targetInstance.CelestialBody;
+                }
+
+                string oldName = name;
+                bool oldState = baseInstance.launchSite.ILSIsActive;
+
+                targetInstance.launchSite.LaunchSiteName = launchSiteName;
+                sharedNode.AddValue("launchSiteName", launchSiteName);
+                targetInstance.launchSite.LaunchSiteLength = baseInstance.launchSite.LaunchSiteLength;
+                targetInstance.launchSite.LaunchSiteWidth = baseInstance.launchSite.LaunchSiteWidth;
+                targetInstance.launchSite.LaunchSiteHeight = baseInstance.launchSite.LaunchSiteHeight;
+
+                targetInstance.launchSite.MaxCraftMass = baseInstance.launchSite.MaxCraftMass;
+                targetInstance.launchSite.MaxCraftParts = baseInstance.launchSite.MaxCraftParts;
+
+                targetInstance.launchSite.LaunchSiteType = baseInstance.launchSite.LaunchSiteType;
+                targetInstance.launchSite.LaunchPadTransform = baseInstance.launchSite.LaunchPadTransform;
+                targetInstance.launchSite.LaunchSiteDescription = baseInstance.launchSite.LaunchSiteDescription;
+                targetInstance.launchSite.OpenCost = 0;
+                targetInstance.launchSite.CloseValue = 0;
+                targetInstance.launchSite.LaunchSiteIsHidden = false;
+                targetInstance.launchSite.ILSIsActive = baseInstance.launchSite.ILSIsActive;
+                targetInstance.launchSite.LaunchSiteAuthor = baseInstance.launchSite.LaunchSiteAuthor;
+                targetInstance.launchSite.refLat = (float)targetInstance.RefLatitude;
+                targetInstance.launchSite.refLon = (float)targetInstance.RefLongitude;
+                targetInstance.launchSite.refAlt = (float)targetInstance.CelestialBody.GetAltitude(targetInstance.position);
+                targetInstance.launchSite.sitecategory = baseInstance.launchSite.sitecategory;
+                targetInstance.launchSite.InitialCameraRotation = baseInstance.launchSite.InitialCameraRotation;
+
+                targetInstance.launchSite.ToggleLaunchPositioning = baseInstance.launchSite.ToggleLaunchPositioning;
+
+                targetInstance.launchSite.isOpen = true;
+                targetInstance.launchSite.OpenCloseState = "open";
+
+
+                if (ILSConfig.DetectNavUtils())
+                {
+                    bool regenerateILSConfig = false;
+
+                    if (oldName != null && !oldName.Equals(name))
+                    {
+                        ILSConfig.RenameSite(targetInstance.launchSite.LaunchSiteName, name);
+                        regenerateILSConfig = true;
+                    }
+
+
+                    bool state = baseInstance.launchSite.ILSIsActive;
+                    if (oldState != state || regenerateILSConfig)
+                    {
+                        if (state)
+                            ILSConfig.GenerateFullILSConfig(targetInstance);
+                        else
+                            ILSConfig.DropILSConfig(targetInstance.launchSite.LaunchSiteName, true);
+                    }
                 }
 
 
-                bool state = baseInstance.launchSite.ILSIsActive;
-                if (oldState != state || regenerateILSConfig)
-                {
-                    if (state)
-                        ILSConfig.GenerateFullILSConfig(targetInstance);
-                    else
-                        ILSConfig.DropILSConfig(targetInstance.launchSite.LaunchSiteName, true);
-                }
+                targetInstance.launchSite.ParseLSConfig(targetInstance, null);
+                targetInstance.SaveConfig();
+                KerbalKonstructs.UI.EditorGUI.instance.enableColliders = true;
+                targetInstance.ToggleAllColliders(true);
+                KerbalKonstructs.Core.LaunchSiteManager.RegisterLaunchSite(targetInstance.launchSite);
+
+                targetInstance.SaveConfig();
+
+                launchSiteUUID = uuid;
+                instance = KerbalKonstructs.API.getStaticInstanceByUUID(launchSiteUUID);
             }
+            else
+            {
+                // Untested and should not be used but just in case there's no launchsite in a base group
+                Configuration.writeLog($"{GetBaseGroupName(level)} contains no launchsite, using default configs for the first static instead");
+                string uuid = GetUUIDbyFacility(this).FirstOrDefault() ?? throw new System.Exception("KC Launchpadfacility: unable to find any KK static for the launchpad.");
+
+                sharedNode.AddValue("uuid", uuid);
+                KerbalKonstructs.Core.StaticInstance targetInstance = KerbalKonstructs.API.getStaticInstanceByUUID(uuid);
+                instance = targetInstance;
+                if (targetInstance.launchSite == null)
+                {
+                    targetInstance.launchSite = new KerbalKonstructs.Core.KKLaunchSite();
+                    targetInstance.hasLauchSites = true;
+
+                    targetInstance.launchSite.staticInstance = targetInstance;
+                    targetInstance.launchSite.body = targetInstance.CelestialBody;
+                }
+
+                string oldName = name;
+                bool oldState = false;
+
+                targetInstance.launchSite.LaunchSiteName = launchSiteName;
+                sharedNode.AddValue("launchSiteName", launchSiteName);
+                targetInstance.launchSite.LaunchSiteLength = 0;
+                targetInstance.launchSite.LaunchSiteWidth = 0;
+                targetInstance.launchSite.LaunchSiteHeight = 0;
+
+                targetInstance.launchSite.MaxCraftMass = 0;
+                targetInstance.launchSite.MaxCraftParts = 0;
+
+                targetInstance.launchSite.LaunchSiteType = KerbalKonstructs.Core.SiteType.Any;
+                targetInstance.launchSite.LaunchSiteDescription = "KC default launchpad config";
+                targetInstance.launchSite.OpenCost = 0;
+                targetInstance.launchSite.CloseValue = 0;
+                targetInstance.launchSite.LaunchSiteIsHidden = false;
+                targetInstance.launchSite.ILSIsActive = false;
+                targetInstance.launchSite.LaunchSiteAuthor = "AMPW";
+                targetInstance.launchSite.refLat = (float)targetInstance.RefLatitude;
+                targetInstance.launchSite.refLon = (float)targetInstance.RefLongitude;
+                targetInstance.launchSite.refAlt = (float)targetInstance.CelestialBody.GetAltitude(targetInstance.position);
+                targetInstance.launchSite.sitecategory = KerbalKonstructs.Core.LaunchSiteCategory.Other;
+                targetInstance.launchSite.InitialCameraRotation = 0;
+
+                targetInstance.launchSite.ToggleLaunchPositioning = false;
+
+                targetInstance.launchSite.isOpen = true;
+                targetInstance.launchSite.OpenCloseState = "open";
 
 
-            targetInstance.launchSite.ParseLSConfig(targetInstance, null);
-            targetInstance.SaveConfig();
-            KerbalKonstructs.UI.EditorGUI.instance.enableColliders = true;
-            targetInstance.ToggleAllColliders(true);
-            KerbalKonstructs.Core.LaunchSiteManager.RegisterLaunchSite(targetInstance.launchSite);
+                if (ILSConfig.DetectNavUtils())
+                {
+                    bool regenerateILSConfig = false;
 
-            targetInstance.SaveConfig();
+                    if (oldName != null && !oldName.Equals(name))
+                    {
+                        ILSConfig.RenameSite(targetInstance.launchSite.LaunchSiteName, name);
+                        regenerateILSConfig = true;
+                    }
 
-            launchSiteUUID = uuid;
-            instance = KerbalKonstructs.API.getStaticInstanceByUUID(launchSiteUUID);
+                    if (regenerateILSConfig)
+                    {
+                            ILSConfig.GenerateFullILSConfig(targetInstance);
+                    }
+                }
+
+
+                targetInstance.launchSite.ParseLSConfig(targetInstance, null);
+                targetInstance.SaveConfig();
+                KerbalKonstructs.UI.EditorGUI.instance.enableColliders = true;
+                targetInstance.ToggleAllColliders(true);
+                KerbalKonstructs.Core.LaunchSiteManager.RegisterLaunchSite(targetInstance.launchSite);
+
+                targetInstance.SaveConfig();
+
+                launchSiteUUID = uuid;
+                instance = KerbalKonstructs.API.getStaticInstanceByUUID(launchSiteUUID);
+            }
         }
 
         public void LaunchVessel(ProtoVessel vessel)

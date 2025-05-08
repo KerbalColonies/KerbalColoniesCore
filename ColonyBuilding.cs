@@ -191,6 +191,7 @@ namespace KerbalColonies
 
         internal static void QueuePlacer()
         {
+            ColonyBuilding.placedGroup = false;
             if (buildQueue.Count() > 0)
             {
                 KerbalKonstructs.API.RemoveGroup(ColonyBuilding.buildQueue.Peek().groupName); // remove the group if it exists
@@ -209,7 +210,6 @@ namespace KerbalColonies
                 ColonyBuilding.buildQueue.Peek().Facility.KKgroups.Add(ColonyBuilding.buildQueue.Peek().groupName); // add the group to the facility groups
                 Configuration.AddGroup(FlightGlobals.GetBodyIndex(FlightGlobals.currentMainBody), ColonyBuilding.buildQueue.Peek().groupName, ColonyBuilding.buildQueue.Peek().Facility);
             }
-            ColonyBuilding.placedGroup = false;
         }
 
         /// <summary>

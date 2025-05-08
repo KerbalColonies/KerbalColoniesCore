@@ -29,19 +29,37 @@ namespace KerbalColonies.colonyFacilities
 
         public override void OnGroupPlaced()
         {
-            KerbalKonstructs.Core.StaticInstance baseInstance = KerbalKonstructs.API.GetGroupStatics(GetBaseGroupName(0), "Kerbin").Where(s => s.facilityType == KerbalKonstructs.Modules.KKFacilityType.GroundStation).First();
-            groundstationUUID = GetUUIDbyFacility(this).Where(s => KerbalKonstructs.API.GetModelTitel(s) == KerbalKonstructs.API.GetModelTitel(baseInstance.UUID)).First();
+            KerbalKonstructs.Core.StaticInstance baseInstance = KerbalKonstructs.API.GetGroupStatics(GetBaseGroupName(0), "Kerbin").Where(s => s.facilityType == KerbalKonstructs.Modules.KKFacilityType.GroundStation).FirstOrDefault();
+            if (baseInstance != null)
+            {
+                groundstationUUID = GetUUIDbyFacility(this).Where(s => KerbalKonstructs.API.GetModelTitel(s) == KerbalKonstructs.API.GetModelTitel(baseInstance.UUID)).FirstOrDefault() ?? throw new Exception("No matching static found in the group");
 
-            sharedNode.AddValue("uuid", groundstationUUID);
-            KerbalKonstructs.Core.StaticInstance targetInstance = KerbalKonstructs.API.getStaticInstanceByUUID(groundstationUUID);
+                sharedNode.AddValue("uuid", groundstationUUID);
+                KerbalKonstructs.Core.StaticInstance targetInstance = KerbalKonstructs.API.getStaticInstanceByUUID(groundstationUUID);
 
-            targetInstance.facilityType = KKFacilityType.GroundStation;
-            targetInstance.myFacilities.Add(targetInstance.gameObject.AddComponent<GroundStation>().ParseConfig(new ConfigNode()));
+                targetInstance.facilityType = KKFacilityType.GroundStation;
+                targetInstance.myFacilities.Add(targetInstance.gameObject.AddComponent<GroundStation>().ParseConfig(new ConfigNode()));
 
-            GroundStation baseStation = baseInstance.myFacilities[0] as GroundStation;
-            GroundStation targetStation = targetInstance.myFacilities[0] as GroundStation;
+                GroundStation baseStation = baseInstance.myFacilities[0] as GroundStation;
+                GroundStation targetStation = targetInstance.myFacilities[0] as GroundStation;
 
-            targetStation.TrackingShort = baseStation.TrackingShort;
+                targetStation.TrackingShort = baseStation.TrackingShort;
+            }
+            else
+            {
+                groundstationUUID = GetUUIDbyFacility(this).FirstOrDefault() ?? throw new Exception($"Launchpadfacility: No statics in group {GetBaseGroupName(level)}");
+
+                Configuration.writeLog($"Launchpadfacility: using default configs for {GetBaseGroupName(level)}");
+                sharedNode.AddValue("uuid", groundstationUUID);
+                KerbalKonstructs.Core.StaticInstance targetInstance = KerbalKonstructs.API.getStaticInstanceByUUID(groundstationUUID);
+
+                targetInstance.facilityType = KKFacilityType.GroundStation;
+                targetInstance.myFacilities.Add(targetInstance.gameObject.AddComponent<GroundStation>().ParseConfig(new ConfigNode()));
+
+                GroundStation targetStation = targetInstance.myFacilities[0] as GroundStation;
+
+                targetStation.TrackingShort = 100000;
+            }
         }
 
         public override ConfigNode GetSharedNode()

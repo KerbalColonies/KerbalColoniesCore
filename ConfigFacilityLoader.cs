@@ -133,34 +133,32 @@ namespace KerbalColonies
 
         public static void LoadFacilityConfigs()
         {
-            ConfigNode[] facilityConfigs = GameDatabase.Instance.GetConfigNodes("facilityConfigs");
+            ConfigNode[] facilityConfigs = GameDatabase.Instance.GetConfigNodes("KCFacilityConfig");
             foreach (ConfigNode node in facilityConfigs)
             {
-                foreach (ConfigNode facilityNode in node.GetNodes("facility"))
-                {
-                    try
-                    {
-                        KCFacilityInfoClass facilityInfo = (KCFacilityInfoClass)Activator.CreateInstance(KCFacilityTypeRegistry.GetInfoType(KCFacilityTypeRegistry.GetType(facilityNode.GetValue("type"))), new object[] { facilityNode });
 
-                        if (!(facilityInfo is KC_CABInfo))
-                        {
-                            if (!Configuration.RegisterBuildableFacility(facilityInfo)) throw new Exception($"A facility with the name {facilityInfo.name} already exists.");
-                        }
-                        else Configuration.RegisterCabInfo(facilityInfo as KC_CABInfo);
-                    }
-                    catch (Exception e)
+                try
+                {
+                    KCFacilityInfoClass facilityInfo = (KCFacilityInfoClass)Activator.CreateInstance(KCFacilityTypeRegistry.GetInfoType(KCFacilityTypeRegistry.GetType(node.GetValue("type"))), new object[] { node });
+
+                    if (!(facilityInfo is KC_CABInfo))
                     {
-                        exceptions.Add(e);
-                        if (facilityNode.HasValue("name"))
-                        {
-                            failedConfigs.Add(facilityNode.GetValue("name"));
-                            Configuration.writeLog($"Invalid facility config: {facilityNode.GetValue("name")} \n\nConfig: {facilityNode.ToString()} \n\nException: {e}");
-                        }
-                        else
-                        {
-                            failedConfigs.Add("Unknown");
-                            Configuration.writeLog($"Invalid facility config without a name: {facilityNode.ToString()} \n\nException: {e}");
-                        }
+                        if (!Configuration.RegisterBuildableFacility(facilityInfo)) throw new Exception($"A facility with the name {facilityInfo.name} already exists.");
+                    }
+                    else Configuration.RegisterCabInfo(facilityInfo as KC_CABInfo);
+                }
+                catch (Exception e)
+                {
+                    exceptions.Add(e);
+                    if (node.HasValue("name"))
+                    {
+                        failedConfigs.Add(node.GetValue("name"));
+                        Configuration.writeLog($"Invalid facility config: {node.GetValue("name")} \n\nConfig: {node.ToString()} \n\nException: {e}");
+                    }
+                    else
+                    {
+                        failedConfigs.Add("Unknown");
+                        Configuration.writeLog($"Invalid facility config without a name: {node.ToString()} \n\nException: {e}");
                     }
                 }
             }

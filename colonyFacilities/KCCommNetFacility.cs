@@ -22,7 +22,7 @@ using System.Linq;
 
 namespace KerbalColonies.colonyFacilities
 {
-    public class KCCommNetFacility : KCKerbalFacilityBase
+    public class KCCommNetFacility : KCFacilityBase
     {
         public string groundstationUUID = "";
         public ConfigNode sharedNode = null;

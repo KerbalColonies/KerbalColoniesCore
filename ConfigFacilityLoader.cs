@@ -6,7 +6,7 @@ using UnityEngine;
 
 // KC: Kerbal Colonies
 // This mod aimes to create a Colony system with Kerbal Konstructs statics
-// Copyright (c) 2024-2025 AMPW, Halengar
+// Copyright (f) 2024-2025 AMPW, Halengar
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -162,6 +162,42 @@ namespace KerbalColonies
                     }
                 }
             }
+
+            List<KCFacilityInfoClass> invalidFacilities = new List<KCFacilityInfoClass> { };
+            Configuration.BuildableFacilities.ForEach(f =>
+            {
+                try
+                {
+                    f.lateInit();
+                }
+                catch (Exception e)
+                {
+                    invalidFacilities.Add(f);
+                    exceptions.Add(e);
+                    failedConfigs.Add(f.name);
+                    Configuration.writeLog($"Invalid facility config: {f.name} \n\nConfig: {f.ToString()} \n\nException: {e}");
+                }
+            });
+            List<KC_CABInfo> invalidCABInfos = new List<KC_CABInfo>();
+            Configuration.CabTypes.ForEach(f =>
+            {
+                try
+                {
+                    f.lateInit();
+                }
+                catch (Exception e)
+                {
+                    invalidCABInfos.Add(f);
+                    exceptions.Add(e);
+                    failedConfigs.Add(f.name);
+                    Configuration.writeLog($"Invalid CAB config: {f.name} \n\nConfig: {f.ToString()} \n\nException: {e}");
+                }
+            });
+            invalidCABInfos.ForEach(f =>
+            {
+                Configuration.UnregisterCabInfo(f);
+                Configuration.writeLog($"Removed invalid CAB config: {f.name}");
+            });
         }
     }
 }

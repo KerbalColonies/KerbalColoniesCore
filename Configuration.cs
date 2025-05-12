@@ -72,9 +72,19 @@ namespace KerbalColonies
 
         public static bool RegisterCabInfo(KC_CABInfo info)
         {
-            if (!cabTypes.Any(c => c.name == info.name))
+            if (!cabTypes.Contains(info))
             {
                 cabTypes.Add(info);
+                return true;
+            }
+            return false;
+        }
+
+        public static bool UnregisterCabInfo(KC_CABInfo info)
+        {
+            if (cabTypes.Contains(info))
+            {
+                cabTypes.Remove(info);
                 return true;
             }
             return false;
@@ -89,9 +99,19 @@ namespace KerbalColonies
 
         public static bool RegisterBuildableFacility(KCFacilityInfoClass info)
         {
-            if (!buildableFacilities.Any(c => c.name == info.name))
+            if (!buildableFacilities.Contains(info))
             {
                 buildableFacilities.Add(info);
+                return true;
+            }
+            return false;
+        }
+
+        public static bool UnregisterBuildableFacility(KCFacilityInfoClass info)
+        {
+            if (buildableFacilities.Contains(info))
+            {
+                buildableFacilities.Remove(info);
                 return true;
             }
             return false;

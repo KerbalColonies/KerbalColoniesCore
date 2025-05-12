@@ -260,9 +260,7 @@ namespace KerbalColonies.colonyFacilities
 
         public override bool Equals(object obj)
         {
-            ResourceConversionRate rcr = obj as ResourceConversionRate;
-            if (rcr == null) return false;
-            else return rcr.recipeName == this.recipeName;
+            return obj is ResourceConversionRate && ((ResourceConversionRate)obj).recipeName == this.recipeName;
         }
 
         public override int GetHashCode()
@@ -313,9 +311,7 @@ namespace KerbalColonies.colonyFacilities
         }
         public override bool Equals(object obj)
         {
-            ResourceConversionList rcl = obj as ResourceConversionList;
-            if (rcl == null) return false;
-            else return rcl.Name == this.Name;
+            return obj is ResourceConversionList && ((ResourceConversionList)obj).Name == this.Name;
         }
 
         public override int GetHashCode()

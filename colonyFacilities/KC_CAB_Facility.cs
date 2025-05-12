@@ -48,6 +48,26 @@ namespace KerbalColonies.colonyFacilities
             }
         }
 
+        private Dictionary<string, int> defaultFacilityStrings = new Dictionary<string, int>();
+        private Dictionary<string, int> priorityDefaultFacilityStrings = new Dictionary<string, int>();
+
+        public override void lateInit()
+        {
+            priorityDefaultFacilityStrings.ToList().ForEach(priorityFac =>
+            {
+                KCFacilityInfoClass priorityInfo = Configuration.GetInfoClass(priorityFac.Key);
+                if (priorityInfo == null) throw new MissingFieldException($"The priority facility type {priorityFac.Key} was not found");
+                else addPriorityDefaultFacility(priorityInfo, priorityFac.Value);
+            });
+
+            defaultFacilityStrings.ToList().ForEach(defaultFac =>
+            {
+                KCFacilityInfoClass defaultInfo = Configuration.GetInfoClass(defaultFac.Key);
+                if (defaultInfo == null) throw new MissingFieldException($"The default facility type {defaultFac.Key} was not found");
+                else addDefaultFacility(defaultInfo, defaultFac.Value);
+            });
+        }
+
         public KC_CABInfo(ConfigNode node) : base(node)
         {
 
@@ -56,9 +76,8 @@ namespace KerbalColonies.colonyFacilities
                 ConfigNode priorityNode = node.GetNode("priorityDefaultFacilities");
                 foreach (ConfigNode.Value v in priorityNode.values)
                 {
-                    KCFacilityInfoClass priorityInfo = Configuration.GetInfoClass(v.name);
-                    if (priorityInfo == null) throw new MissingFieldException($"The priority facility type {v.name} was not found");
-                    else addPriorityDefaultFacility(priorityInfo, int.Parse(v.value));
+                    priorityDefaultFacilityStrings.Add(v.name, int.Parse(v.value));
+
                 }
             }
 
@@ -67,9 +86,7 @@ namespace KerbalColonies.colonyFacilities
                 ConfigNode defaultNode = node.GetNode("defaultFacilities");
                 foreach (ConfigNode.Value v in defaultNode.values)
                 {
-                    KCFacilityInfoClass defaultInfo = Configuration.GetInfoClass(v.name);
-                    if (defaultInfo == null) throw new MissingFieldException($"The default facility type {v.name} was not found");
-                    else addDefaultFacility(defaultInfo, int.Parse(v.value));
+                    defaultFacilityStrings.Add(v.name, int.Parse(v.value));
                 }
             }
         }

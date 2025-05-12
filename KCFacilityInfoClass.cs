@@ -33,6 +33,30 @@ namespace KerbalColonies
     /// </summary>
     public class KCFacilityInfoClass
     {
+        public static bool operator ==(KCFacilityInfoClass leftInfo, KCFacilityInfoClass rightInfo)
+        {
+            if (ReferenceEquals(leftInfo, null) && ReferenceEquals(rightInfo, null)) return true;
+            else if (ReferenceEquals(leftInfo, null) || ReferenceEquals(rightInfo, null)) return false;
+            else return leftInfo.name == rightInfo.name;
+        }
+
+        public static bool operator !=(KCFacilityInfoClass leftInfo, KCFacilityInfoClass rightInfo)
+        {
+            if (ReferenceEquals(leftInfo, null) && ReferenceEquals(rightInfo, null)) return false;
+            else if (ReferenceEquals(leftInfo, null) || ReferenceEquals(rightInfo, null)) return true;
+            else return leftInfo.name != rightInfo.name;
+        }
+
+        public override bool Equals(object obj)
+        {
+            return obj is KCFacilityInfoClass && ((KCFacilityInfoClass)obj).name == name;
+        }
+
+        public override int GetHashCode()
+        {
+            return name.GetHashCode();
+        }
+
         public Type type { get; protected set; }
         public ConfigNode facilityConfig { get; protected set; }
         public string name { get; protected set; }
@@ -64,6 +88,14 @@ namespace KerbalColonies
         public virtual bool customCheck(int level, colonyClass colony)
         {
             return true;
+        }
+
+        /// <summary>
+        /// Called after all configs are loaded but the order of the lateInit is not guaranteed.
+        /// </summary>
+        public virtual void lateInit()
+        {
+
         }
 
         public bool checkResources(int level, colonyClass colony)

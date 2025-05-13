@@ -93,8 +93,8 @@ namespace KerbalColonies.colonyFacilities
             if (facility.facilityInfo.UpgradeTypes[facility.level + 1] != UpgradeType.withGroupChange || !facility.upgradeable) { return false; }
 
             facility.UpgradeFacility(facility.level + 1);
-            KerbalKonstructs.API.GetGroupStatics(facility.KKgroups.First()).ToList().ForEach(x => KerbalKonstructs.API.RemoveStatic(x.UUID));
-            KerbalKonstructs.API.CopyGroup(facility.KKgroups.First(), facility.GetBaseGroupName(facility.level), fromBodyName: "Kerbin");
+            KerbalKonstructs.API.GetGroupStatics(facility.KKgroups.Last()).ToList().ForEach(x => KerbalKonstructs.API.RemoveStatic(x.UUID));
+            KerbalKonstructs.API.CopyGroup(facility.KKgroups.Last(), facility.GetBaseGroupName(facility.level), fromBodyName: "Kerbin");
 
             return true;
         }

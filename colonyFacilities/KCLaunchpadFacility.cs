@@ -133,7 +133,7 @@ namespace KerbalColonies.colonyFacilities
                             ILSConfig.DropILSConfig(targetInstance.launchSite.LaunchSiteName, true);
                     }
                 }
-
+                
 
                 targetInstance.launchSite.ParseLSConfig(targetInstance, null);
                 targetInstance.SaveConfig();
@@ -148,7 +148,11 @@ namespace KerbalColonies.colonyFacilities
             }
             else
             {
-                // Untested and should not be used but just in case there's no launchsite in a base group
+                Configuration.writeLog($"{GetBaseGroupName(level)} contains no launchsite, unable to create the launchsite");
+                ScreenMessages.PostScreenMessage($"KC: the launchpad basegroup {GetBaseGroupName(level)} contains no launchsite", 20f, ScreenMessageStyle.KERBAL_EVA, color: UnityEngine.Color.red);
+                /*
+                // Intended default config for launchpad incase no launchsite is found
+                // The launchsite transform can't be set, this would require changes to KK which I don't wanna do before the release
                 Configuration.writeLog($"{GetBaseGroupName(level)} contains no launchsite, using default configs for the first static instead");
                 string uuid = GetUUIDbyFacility(this).FirstOrDefault() ?? throw new System.Exception("KC Launchpadfacility: unable to find any KK static for the launchpad.");
 
@@ -177,6 +181,7 @@ namespace KerbalColonies.colonyFacilities
                 targetInstance.launchSite.MaxCraftParts = 0;
 
                 targetInstance.launchSite.LaunchSiteType = KerbalKonstructs.Core.SiteType.Any;
+                targetInstance.launchSite.LaunchPadTransform = ;
                 targetInstance.launchSite.LaunchSiteDescription = "KC default launchpad config";
                 targetInstance.launchSite.OpenCost = 0;
                 targetInstance.launchSite.CloseValue = 0;
@@ -222,6 +227,7 @@ namespace KerbalColonies.colonyFacilities
 
                 launchSiteUUID = uuid;
                 instance = KerbalKonstructs.API.getStaticInstanceByUUID(launchSiteUUID);
+                */
             }
         }
 
@@ -275,8 +281,11 @@ namespace KerbalColonies.colonyFacilities
         public override ConfigNode getConfigNode()
         {
             ConfigNode node = base.getConfigNode();
-            node.AddValue("launchSiteUUID", launchSiteUUID);
-            node.AddValue("launchSiteName", launchSiteName);
+            if (launchSiteUUID != null)
+            {
+                node.AddValue("launchSiteUUID", launchSiteUUID);
+                node.AddValue("launchSiteName", launchSiteName);
+            }
             return node;
         }
 

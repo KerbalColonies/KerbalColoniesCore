@@ -198,6 +198,10 @@ namespace KerbalColonies
             {
                 int level = int.Parse(n.name);
                 levelNodes.Add(level, n);
+            });
+            levelNodes.ToList().ForEach(kvp => {
+                ConfigNode n = kvp.Value;
+                int level = kvp.Key;
                 if (n.HasValue("upgradeType")) UpgradeTypes.Add(level, (UpgradeType)Enum.Parse(typeof(UpgradeType), n.GetValue("upgradeType")));
                 else UpgradeTypes.Add(level, UpgradeType.withoutGroupChange);
 

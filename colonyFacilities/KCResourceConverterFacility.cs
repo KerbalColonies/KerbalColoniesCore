@@ -141,6 +141,15 @@ namespace KerbalColonies.colonyFacilities
             }
 
             ResourceConversionRate recipe = resourceConverter.activeRecipe;
+            if (recipe == null)
+            {
+                GUILayout.Label($"Failed to load a recipe");
+                if (GUILayout.Button("Select a new Recipe:"))
+                {
+                    recipeSelector.Open();
+                }
+                return;
+            }
 
             GUILayout.Label($"Current recipe: {recipe.RecipeName}");
 
@@ -416,6 +425,11 @@ namespace KerbalColonies.colonyFacilities
                     List<string> conversionList = new List<string> { };
                     if (conversionListName != null) conversionList = conversionListName.Split(',').ToList().Select(s => s.Trim()).ToList();
 
+                    if (conversionList.Count == 0 && recipeNames.Count == 0)
+                    {
+                        throw new MissingFieldException($"The conversionlist {node.GetValue("name")} has no conversion list or recipe names.");
+                    }
+
                     new ResourceConversionList(conversionName, conversionList, recipeNames);
                 }
             }
@@ -427,8 +441,9 @@ namespace KerbalColonies.colonyFacilities
         public int ISRUcount() => ((KCResourceConverterInfo)facilityInfo).ISRUcount[level];
         private KCResourceConverterWindow kCResourceConverterWindow;
 
-        private void executeRecipe(ResourceConversionRate recipe, double dTime)
+        private void executeRecipe(double dTime)
         {
+            if (activeRecipe == null) return;
             foreach (KeyValuePair<PartResourceDefinition, double> kvp in activeRecipe.InputResources)
             {
                 double remainingResource = kvp.Value * dTime * ISRUcount();
@@ -474,8 +489,9 @@ namespace KerbalColonies.colonyFacilities
             }
         }
 
-        private bool canExecuteRecipe(ResourceConversionRate recipe, double dTime)
+        public bool canExecuteRecipe(double dTime)
         {
+            if (activeRecipe == null) return false;
             bool canExecute = true;
 
             foreach (KeyValuePair<PartResourceDefinition, double> kvp in activeRecipe.InputResources)
@@ -545,9 +561,9 @@ namespace KerbalColonies.colonyFacilities
 
             if (enabled)
             {
-                if (canExecuteRecipe(activeRecipe, dTime))
+                if (canExecuteRecipe(dTime))
                 {
-                    executeRecipe(activeRecipe, dTime);
+                    executeRecipe(dTime);
                 }
                 else { enabled = false; }
             }
@@ -568,7 +584,8 @@ namespace KerbalColonies.colonyFacilities
         public override ConfigNode getConfigNode()
         {
             ConfigNode node = base.getConfigNode();
-            node.AddValue("recipe", activeRecipe.RecipeName);
+            if (activeRecipe != null)
+                node.AddValue("recipe", activeRecipe.RecipeName);
 
             return node;
         }
@@ -577,7 +594,8 @@ namespace KerbalColonies.colonyFacilities
         {
             kCResourceConverterWindow = new KCResourceConverterWindow(this);
 
-            activeRecipe = ResourceConversionRate.GetConversionRate(node.GetValue("recipe"));
+            if (node.GetValue("recipe") == null) activeRecipe = availableRecipes().GetRecipes().FirstOrDefault();
+            else activeRecipe = ResourceConversionRate.GetConversionRate(node.GetValue("recipe"));
             if (activeRecipe == null)
             {
                 throw new MissingFieldException($"The facility {facilityInfo.name} (type: {facilityInfo.type}) has no recipe called {node.GetValue("recipe")}.");
@@ -589,10 +607,7 @@ namespace KerbalColonies.colonyFacilities
             kCResourceConverterWindow = new KCResourceConverterWindow(this);
 
             HashSet<ResourceConversionRate> rates = availableRecipes().GetRecipes();
-            if (rates.Count > 0)
-            {
-                activeRecipe = rates.First();
-            }
+            activeRecipe = rates.FirstOrDefault();
         }
     }
 }

@@ -36,10 +36,11 @@ namespace KerbalColonies
             KCgroups.Clear();
             colonyDictionary.Clear();
             GroupFacilities.Clear();
+            ColonyBuilding.buildQueue.Clear();
+            LoadConfiguration();
             writeDebug("scenariomodule load");
             writeDebug(node.ToString());
             LoadColoniesV3(node);
-            LoadConfiguration();
 
         }
         public override void OnSave(ConfigNode node)
@@ -207,7 +208,7 @@ namespace KerbalColonies
         }
 
         /// <summary>
-        /// This dictionary contains all of the facilties attached to a specific KK group. Used for the on click event of the KK statics
+        /// This dictionary contains the facility attached to a specific KK group. Used for the on click event of the KK statics
         /// <para>the string is the KK group name</para>
         /// </summary>
         internal static Dictionary<string, KCFacilityBase> GroupFacilities = new Dictionary<string, KCFacilityBase> { };
@@ -332,15 +333,20 @@ namespace KerbalColonies
 
         public static void LoadConfiguration()
         {
-            ConfigNode[] nodes = GameDatabase.Instance.GetConfigNodes(APP_NAME.ToUpper());
+            ConfigNode[] nodes = GameDatabase.Instance.GetConfigNodes(APP_NAME);
 
             if ((nodes == null) || (nodes.Length == 0))
             {
+                writeLog("No configuration file found, using default values");
                 return;
             }
+
+            writeLog("Loading configuration file");
+            writeLog(nodes[0].ToString());
             int.TryParse(nodes[0].GetValue("MaxColoniesPerBody"), out MaxColoniesPerBody);
 
             bool.TryParse(nodes[0].GetValue("enableLogging"), out enableLogging);
+            writeLog($"Configuration loaded: MaxColoniesPerBody = {MaxColoniesPerBody}, enableLogging = {enableLogging}");
         }
 
         internal static void SaveConfiguration()

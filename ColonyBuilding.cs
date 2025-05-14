@@ -42,6 +42,7 @@ namespace KerbalColonies
 
         public static bool checkVesselResources(KCFacilityInfoClass info)
         {
+            Configuration.writeLog($"Checking resources for {info.displayName}");
             foreach (KeyValuePair<PartResourceDefinition, double> resource in info.resourceCost[0])
             {
                 double vesselAmount = 0;
@@ -49,12 +50,15 @@ namespace KerbalColonies
                 FlightGlobals.ActiveVessel.GetConnectedResourceTotals(resource.Key.id, out double amount, out double maxAmount);
                 vesselAmount = amount;
 
+                Configuration.writeLog($"{resource.Key.displayName}: {vesselAmount} / {resource.Value * Configuration.FacilityCostMultiplier}");
+
                 if (vesselAmount >= resource.Value * Configuration.FacilityCostMultiplier) continue;
                 else return false;
             }
 
             if (Funding.Instance != null)
             {
+                Configuration.writeLog($"Funds: {Funding.Instance.Funds} / {info.Funds[0] * Configuration.FacilityCostMultiplier}");
                 if (Funding.Instance.Funds < info.Funds[0] * Configuration.FacilityCostMultiplier)
                 {
                     return false;
@@ -227,7 +231,7 @@ namespace KerbalColonies
 
             int colonyCount = Configuration.colonyDictionary[FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody)].Count + 1;
 
-            if (colonyCount >= Configuration.MaxColoniesPerBody || Configuration.MaxColoniesPerBody == 0)
+            if (colonyCount >= Configuration.MaxColoniesPerBody && Configuration.MaxColoniesPerBody != 0)
             {
                 return false;
             }

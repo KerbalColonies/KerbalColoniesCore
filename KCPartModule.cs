@@ -22,7 +22,7 @@ namespace KerbalColonies
         [KSPField]
         public bool IsActivate = false;
 
-        [KSPEvent(name = "Activate", guiName = "Activate", active = true, guiActive = true)]
+        [KSPEvent(name = "Activate", guiName = "Build colony", active = true, guiActive = true)]
         public void Activate()
         {
             Vessel vessel = FlightGlobals.ActiveVessel;

@@ -164,6 +164,17 @@ namespace KerbalColonies.UI
 
         protected override void CustomWindow()
         {
+            if (mode == SwitchModes.ActiveVessel)
+            {
+                this.fromCapacity = toVessel.GetCrewCapacity();
+                this.toCapacity = fromFac.MaxKerbals;
+            }
+            else
+            {
+                this.fromCapacity = KCCrewQuarters.ColonyKerbalCapacity(colony);
+                this.toCapacity = fromFac.MaxKerbals;
+            }
+
             ProtoCrewMember fromListModifier = null;
             ProtoCrewMember toListModifier = null;
 
@@ -225,12 +236,12 @@ namespace KerbalColonies.UI
             }
         }
 
-        internal KerbalSelectorGUI(KCKerbalFacilityBase fac, KerbalGUI kGUI, string fromName, string toName, Vessel fromVessel) : base(Configuration.createWindowID(), fac.name)
+        internal KerbalSelectorGUI(KCKerbalFacilityBase fac, KerbalGUI kGUI, Vessel fromVessel) : base(Configuration.createWindowID(), fac.name)
         {
             this.fromFac = fac;
             toolRect = new Rect(100, 100, 500, 500);
-            this.fromName = fromName;
-            this.toName = toName;
+            this.fromName = fromVessel.GetDisplayName();
+            this.toName = fac.displayName;
             this.fromList = fac.filterKerbals(fromVessel.GetVesselCrew());
             this.toVessel = fromVessel;
             this.kGUI = kGUI;
@@ -240,19 +251,19 @@ namespace KerbalColonies.UI
             this.toCapacity = fac.MaxKerbals;
         }
 
-        internal KerbalSelectorGUI(KCKerbalFacilityBase fac, KerbalGUI kGUI, colonyClass colony, string toName) : base(Configuration.createWindowID(), fac.name)
+        internal KerbalSelectorGUI(KCKerbalFacilityBase fac, KerbalGUI kGUI) : base(Configuration.createWindowID(), fac.name)
         {
             this.fromFac = fac;
+            this.colony = fromFac.Colony;
             toolRect = new Rect(100, 100, 500, 500);
             this.fromName = colony.Name;
-            this.toName = toName;
-            this.fromList = fac.filterKerbals(KCKerbalFacilityBase.GetAllKerbalsInColony(colony).Where(kvp => kvp.Value == 0).ToDictionary(i => i.Key, i => i.Value).Keys.ToList());
-            this.toList = fac.getKerbals();
+            this.toName = fac.displayName;
+            this.fromList = fromFac.filterKerbals(KCKerbalFacilityBase.GetAllKerbalsInColony(colony).Where(kvp => kvp.Value == 0).ToDictionary(i => i.Key, i => i.Value).Keys.ToList());
+            this.toList = fromFac.getKerbals();
             this.kGUI = kGUI;
-            this.colony = colony;
             this.mode = SwitchModes.Colony;
             this.fromCapacity = KCCrewQuarters.ColonyKerbalCapacity(colony);
-            this.toCapacity = fac.MaxKerbals;
+            this.toCapacity = fromFac.MaxKerbals;
         }
     }
 
@@ -376,13 +387,13 @@ namespace KerbalColonies.UI
 
             if (fromColony)
             {
-                this.ksg = new KerbalSelectorGUI(fac, this, fac.Colony, fac.name);
+                this.ksg = new KerbalSelectorGUI(fac, this);
             }
             else
             {
                 if (FlightGlobals.ActiveVessel != null)
                 {
-                    this.ksg = new KerbalSelectorGUI(fac, this, "current ship", fac.name, FlightGlobals.ActiveVessel);
+                    this.ksg = new KerbalSelectorGUI(fac, this, FlightGlobals.ActiveVessel);
                 }
                 else
                 {

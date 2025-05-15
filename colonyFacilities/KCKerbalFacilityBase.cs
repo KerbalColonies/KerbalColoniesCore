@@ -21,6 +21,31 @@ using System.Linq;
 
 namespace KerbalColonies.colonyFacilities
 {
+    public class KCKerbalFacilityInfoClass : KCFacilityInfoClass
+    {
+        public SortedDictionary<int, int> maxKerbalsPerLevel = new SortedDictionary<int, int> { };
+        public SortedDictionary<int, List<string>> allowedTraits = new SortedDictionary<int, List<string>> { };
+        public SortedDictionary<int, List<string>> forbiddenTraits = new SortedDictionary<int, List<string>> { };
+
+        public KCKerbalFacilityInfoClass(ConfigNode node) : base(node)
+        {
+            levelNodes.ToList().ForEach(n =>
+            {
+                if (n.Value.HasValue("maxKerbals")) maxKerbalsPerLevel.Add(n.Key, int.Parse(n.Value.GetValue("maxKerbals")));
+                else if (n.Key > 0) maxKerbalsPerLevel.Add(n.Key, maxKerbalsPerLevel[n.Key - 1]);
+                else throw new MissingFieldException($"The facility {name} (type: {type}) has no maxKerbals (at least for level 0).");
+
+                if (n.Value.HasValue("allowedTraits")) allowedTraits[n.Key] = n.Value.GetValue("allowedTraits").Split(',').ToList().Select(s => s.Trim().ToLower()).ToList();
+                else if (n.Key > 0) allowedTraits[n.Key] = allowedTraits[n.Key - 1];
+                else allowedTraits[n.Key] = new List<string> { };
+
+                if (n.Value.HasValue("forbiddenTraits")) forbiddenTraits[n.Key] = n.Value.GetValue("forbiddenTraits").Split(',').ToList().Select(s => s.Trim().ToLower()).ToList();
+                else if (n.Key > 0) forbiddenTraits[n.Key] = forbiddenTraits[n.Key - 1];
+                else forbiddenTraits[n.Key] = new List<string> { };
+            });
+        }
+    }
+
     public class KCProtoCrewMemberComparer : IEqualityComparer<ProtoCrewMember>
     {
         public bool Equals(ProtoCrewMember x, ProtoCrewMember y)
@@ -65,9 +90,9 @@ namespace KerbalColonies.colonyFacilities
             return colony.Facilities.Where(f => f is KCKerbalFacilityBase).Select(f => (KCKerbalFacilityBase)f).Where(f => f.kerbals.Select(k => k.Key.name).ToList().Contains(kerbal.name)).ToList();
         }
 
-        private Dictionary<int, int> maxKerbalsPerLevel = new Dictionary<int, int> { };
+        public int MaxKerbals { get { return kerbalFacilityInfoClass.maxKerbalsPerLevel[level]; } }
 
-        public int MaxKerbals { get { return maxKerbalsPerLevel[level]; } }
+        public KCKerbalFacilityInfoClass kerbalFacilityInfoClass { get { return (KCKerbalFacilityInfoClass)facilityInfo; } }
 
         /// <summary>
         /// A list of kerbals in the facility and their current status
@@ -98,15 +123,12 @@ namespace KerbalColonies.colonyFacilities
 
         public virtual void AddKerbal(ProtoCrewMember member) { if (!kerbals.TryAdd(member, 0)) kerbals[member] = 0; }
 
-        public Dictionary<int, List<string>> forbiddenTraits { get; private set; } = new Dictionary<int, List<string>> { };
-        public Dictionary<int, List<string>> allowedTraits { get; private set; } = new Dictionary<int, List<string>> { };
-
         public virtual List<ProtoCrewMember> filterKerbals(List<ProtoCrewMember> kerbals)
         {
             // Either the trait is not in forbiddenTraits and it's not set to only allow specific traits or the trait is in allowedTraits
-            return kerbals.Where(k => allowedTraits[level].Count == 0 ?
-            !forbiddenTraits[level].Any(s => s.Contains(k.experienceTrait.Title.ToLower()))
-            : allowedTraits[level].Any(s => s.Contains(k.experienceTrait.Title.ToLower()))
+            return kerbals.Where(k => kerbalFacilityInfoClass.allowedTraits[level].Count == 0 ?
+            !kerbalFacilityInfoClass.forbiddenTraits[level].Any(s => s.Contains(k.experienceTrait.Title.ToLower()))
+            : kerbalFacilityInfoClass.allowedTraits[level].Any(s => s.Contains(k.experienceTrait.Title.ToLower()))
             ).ToList();
         }
 
@@ -156,36 +178,13 @@ namespace KerbalColonies.colonyFacilities
             return node;
         }
 
-        private void configLoader(ConfigNode node)
-        {
-            ConfigNode levelNode = facilityInfo.facilityConfig.GetNode("level");
-            for (int i = 0; i <= maxLevel; i++)
-            {
-                ConfigNode iLevel = levelNode.GetNode(i.ToString());
-
-                if (iLevel.HasValue("maxKerbals")) maxKerbalsPerLevel.Add(i, int.Parse(iLevel.GetValue("maxKerbals")));
-                else if (i > 0) maxKerbalsPerLevel.Add(i, maxKerbalsPerLevel[i - 1]);
-                else throw new MissingFieldException($"The facility {facilityInfo.name} (type: {facilityInfo.type}) has no maxKerbals (at least for level 0).");
-
-                if (iLevel.HasValue("allowedTraits")) allowedTraits[i] = iLevel.GetValue("allowedTraits").Split(',').ToList().Select(s => s.Trim().ToLower()).ToList();
-                else if (i > 0) allowedTraits[i] = allowedTraits[i - 1];
-                else allowedTraits[i] = new List<string> { };
-
-                if (iLevel.HasValue("forbiddenTraits")) forbiddenTraits[i] = iLevel.GetValue("forbiddenTraits").Split(',').ToList().Select(s => s.Trim().ToLower()).ToList();
-                else if (i > 0) forbiddenTraits[i] = forbiddenTraits[i - 1];
-                else forbiddenTraits[i] = new List<string> { };
-            }
-        }
-
         public KCKerbalFacilityBase(colonyClass colony, KCFacilityInfoClass facilityInfo, ConfigNode node) : base(colony, facilityInfo, node)
         {
-            configLoader(facilityInfo.facilityConfig);
             loadKerbalNode(node.GetNode("KerbalNode"));
         }
 
         public KCKerbalFacilityBase(colonyClass colony, KCFacilityInfoClass facilityInfo, bool enabled) : base(colony, facilityInfo, enabled)
         {
-            configLoader(facilityInfo.facilityConfig);
             kerbals = new Dictionary<ProtoCrewMember, int> { };
         }
     }

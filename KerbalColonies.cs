@@ -24,7 +24,7 @@ using UnityEngine;
 
 namespace KerbalColonies
 {
-    [KSPAddon(KSPAddon.Startup.FlightEditorAndKSC, false)]
+    [KSPAddon(KSPAddon.Startup.AllGameScenes, false)]
     public class KerbalColonies : MonoBehaviour
     {
         double lastTime = 0;

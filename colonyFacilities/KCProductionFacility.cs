@@ -23,7 +23,7 @@ using UnityEngine;
 
 namespace KerbalColonies.colonyFacilities
 {
-    public class KCProductionInfo : KCFacilityInfoClass
+    public class KCProductionInfo : KCKerbalFacilityInfoClass
     {
         public Dictionary<int, Dictionary<PartResourceDefinition, double>> vesselResourceCost { get; private set; } = new Dictionary<int, Dictionary<PartResourceDefinition, double>> { };
 

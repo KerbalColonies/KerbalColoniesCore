@@ -23,7 +23,7 @@ using UnityEngine;
 
 namespace KerbalColonies.colonyFacilities
 {
-    public class KCResourceConverterInfo : KCFacilityInfoClass
+    public class KCResourceConverterInfo : KCKerbalFacilityInfoClass
     {
         public Dictionary<int, ResourceConversionList> availableRecipes { get; private set; } = new Dictionary<int, ResourceConversionList> { };
         public Dictionary<int, int> ISRUcount { get; private set; } = new Dictionary<int, int> { };

@@ -283,19 +283,35 @@ namespace KerbalColonies.colonyFacilities
 
             foreach (KCStorageFacility storage in storages)
             {
-                double tempAmount = storage.getEmptyAmount(resource);
-                if (amount <= tempAmount)
+                if (amount < 0)
                 {
-                    storage.changeAmount(resource, (float)amount);
-                    return 0;
+                    double tempAmount = storage.getRessources()[resource];
+                    if (tempAmount >= -amount)
+                    {
+                        storage.changeAmount(resource, (float)amount);
+                        return 0;
+                    }
+                    else
+                    {
+                        storage.changeAmount(resource, (float)-tempAmount);
+                        amount += tempAmount;
+                    }
                 }
                 else
                 {
-                    storage.changeAmount(resource, (float)tempAmount);
-                    amount -= tempAmount;
+                    double tempAmount = storage.getEmptyAmount(resource);
+                    if (amount <= tempAmount)
+                    {
+                        storage.changeAmount(resource, (float)amount);
+                        return 0;
+                    }
+                    else
+                    {
+                        storage.changeAmount(resource, (float)tempAmount);
+                        amount -= tempAmount;
+                    }
                 }
             }
-
             return amount;
         }
 

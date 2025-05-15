@@ -1,7 +1,10 @@
 ﻿using KerbalColonies.UI;
+using Steamworks;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
+using static KSP.UI.Screens.SpaceCenter.BuildingPicker;
 
 // KC: Kerbal Colonies
 // This mod aimes to create a Colony system with Kerbal Konstructs statics
@@ -22,7 +25,27 @@ using UnityEngine;
 
 namespace KerbalColonies.colonyFacilities
 {
-    internal class KCResearchFacilityWindow : KCWindowBase
+    public class KCResearchFacilityInfoClass : KCKerbalFacilityInfoClass
+    {
+        public SortedDictionary<int, float> maxSciencePoints = new SortedDictionary<int, float>();
+        public SortedDictionary<int, float> sciencePointsPerDayperResearcher = new SortedDictionary<int, float>();
+
+        public KCResearchFacilityInfoClass(ConfigNode node) : base(node)
+        {
+            levelNodes.ToList().ForEach(n =>
+            {
+                if (n.Value.HasValue("scienceRate")) sciencePointsPerDayperResearcher[n.Key] = float.Parse(n.Value.GetValue("scienceRate"));
+                else if (n.Key > 0) sciencePointsPerDayperResearcher[n.Key] = sciencePointsPerDayperResearcher[n.Key - 1];
+                else throw new MissingFieldException($"The facility {name} (type: {type}) has no scienceRate (at least for level 0).");
+
+                if (n.Value.HasValue("maxScience")) maxSciencePoints[n.Key] = float.Parse(n.Value.GetValue("maxScience"));
+                else if (n.Key > 0) maxSciencePoints[n.Key] = maxSciencePoints[n.Key - 1];
+                else throw new MissingFieldException($"The facility {name} (type: {type}) has no maxScience (at least for level 0).");
+            });
+        }
+    }
+
+    public class KCResearchFacilityWindow : KCWindowBase
     {
         KCResearchFacility researchFacility;
         public KerbalGUI kerbalGUI;
@@ -69,25 +92,23 @@ namespace KerbalColonies.colonyFacilities
     }
 
 
-    internal class KCResearchFacility : KCKerbalFacilityBase
+    public class KCResearchFacility : KCKerbalFacilityBase
     {
-        private KCResearchFacilityWindow researchFacilityWindow;
+        protected KCResearchFacilityWindow researchFacilityWindow;
 
-        private float sciencePoints;
+        public KCResearchFacilityInfoClass researchFacilityInfo { get { return (KCResearchFacilityInfoClass)facilityInfo; } }
 
-        public float MaxSciencePoints { get { return maxSciencePointList[level]; } }
+        protected float sciencePoints;
+
+        public float MaxSciencePoints { get { return researchFacilityInfo.maxSciencePoints[level]; } }
         public float SciencePoints { get { return sciencePoints; } }
-
-        private List<float> maxSciencePointList = new List<float> { };
-        private List<float> researchpointsPerDayperResearcher = new List<float> { };
-        private List<int> maxKerbalsPerLevel = new List<int> { };
 
         public override void Update()
         {
             double deltaTime = Planetarium.GetUniversalTime() - lastUpdateTime;
 
             lastUpdateTime = Planetarium.GetUniversalTime();
-            sciencePoints = Math.Min(maxSciencePointList[level], sciencePoints + (float)((researchpointsPerDayperResearcher[level] / 24 / 60 / 60) * deltaTime) * kerbals.Count);
+            sciencePoints = Math.Min(researchFacilityInfo.maxSciencePoints[level], sciencePoints + (float)((researchFacilityInfo.sciencePointsPerDayperResearcher[level] / 24 / 60 / 60) * deltaTime) * kerbals.Count);
         }
 
         public override void OnBuildingClicked()
@@ -124,36 +145,16 @@ namespace KerbalColonies.colonyFacilities
             return node;
         }
 
-        public void configNodeLoader(ConfigNode node)
-        {
-            ConfigNode levelNode = node.GetNode("level");
-            for (int i = 0; i <= maxLevel; i++)
-            {
-                ConfigNode iLevel = levelNode.GetNode(i.ToString());
-
-                if (iLevel.HasValue("scienceRate")) researchpointsPerDayperResearcher[i] = float.Parse(iLevel.GetValue("scienceRate"));
-                else if (i > 0) researchpointsPerDayperResearcher[i] = researchpointsPerDayperResearcher[i - 1];
-                else throw new MissingFieldException($"The facility {facilityInfo.name} (type: {facilityInfo.type}) has no scienceRate (at least for level 0).");
-
-                if (iLevel.HasValue("maxScience")) maxSciencePointList[i] = float.Parse(iLevel.GetValue("maxScience"));
-                else if (i > 0) maxSciencePointList[i] = maxSciencePointList[i - 1];
-                else throw new MissingFieldException($"The facility {facilityInfo.name} (type: {facilityInfo.type}) has no maxScience (at least for level 0).");
-            }
-        }
-
         public KCResearchFacility(colonyClass colony, KCFacilityInfoClass facilityInfo, ConfigNode node) : base(colony, facilityInfo, node)
         {
-            configNodeLoader(facilityInfo.facilityConfig);
             sciencePoints = float.Parse(node.GetValue("sciencePoints"));
             this.researchFacilityWindow = new KCResearchFacilityWindow(this);
         }
 
         public KCResearchFacility(colonyClass colony, KCFacilityInfoClass facilityInfo, bool enabled) : base(colony, facilityInfo, enabled)
         {
-            configNodeLoader(facilityInfo.facilityConfig);
             sciencePoints = 0;
             this.researchFacilityWindow = new KCResearchFacilityWindow(this);
-
         }
     }
 }

@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using static KSP.UI.Screens.SpaceCenter.BuildingPicker;
 
 // KC: Kerbal Colonies
 // This mod aimes to create a Colony system with Kerbal Konstructs statics
@@ -23,13 +24,28 @@ using UnityEngine;
 
 namespace KerbalColonies.colonyFacilities
 {
-    internal class KCStorageFacilityWindow : KCWindowBase
+    public class KCStorageFacilityInfo : KCFacilityInfoClass
+    {
+        public SortedDictionary<int, double> maxVolume = new SortedDictionary<int, double> { };
+
+        public KCStorageFacilityInfo(ConfigNode node) : base(node)
+        {
+            levelNodes.ToList().ForEach(n =>
+            {
+                if (n.Value.HasValue("maxVolume")) maxVolume[n.Key] = float.Parse(n.Value.GetValue("maxVolume"));
+                else if (n.Key > 0) maxVolume[n.Key] = maxVolume[n.Key - 1];
+                else throw new MissingFieldException($"The facility {name} (type: {type}) has no maxVolume (at least for level 0).");
+            });
+        }
+    }
+
+    public class KCStorageFacilityWindow : KCWindowBase
     {
         KCStorageFacility storageFacility;
-        private static HashSet<PartResourceDefinition> allResources = new HashSet<PartResourceDefinition>();
-        private Vector2 scrollPos;
+        public static HashSet<PartResourceDefinition> allResources = new HashSet<PartResourceDefinition>();
+        protected Vector2 scrollPos;
 
-        internal static void GetVesselResources()
+        public static void GetVesselResources()
         {
             if (FlightGlobals.ActiveVessel == null) { return; }
 
@@ -51,7 +67,7 @@ namespace KerbalColonies.colonyFacilities
             }
         }
 
-        private bool vesselHasRessources(Vessel v, PartResourceDefinition resource, float amount)
+        public bool vesselHasRessources(Vessel v, PartResourceDefinition resource, float amount)
         {
             v.GetConnectedResourceTotals(resource.id, false, out double vesselAmount, out double vesselMaxAmount);
             if (vesselAmount >= amount)
@@ -64,13 +80,13 @@ namespace KerbalColonies.colonyFacilities
             }
         }
 
-        private double getVesselRessources(Vessel v, PartResourceDefinition resource)
+        public double getVesselRessources(Vessel v, PartResourceDefinition resource)
         {
             v.GetConnectedResourceTotals(resource.id, false, out double vesselAmount, out double vesselMaxAmount);
             return vesselAmount;
         }
 
-        private bool facilityHasRessources(PartResourceDefinition resouce, float amount)
+        public bool facilityHasRessources(PartResourceDefinition resouce, float amount)
         {
             if (storageFacility.getRessources()[resouce] >= amount)
             {
@@ -82,12 +98,12 @@ namespace KerbalColonies.colonyFacilities
             }
         }
 
-        private double getFacilityResource(PartResourceDefinition resource)
+        public double getFacilityResource(PartResourceDefinition resource)
         {
             return storageFacility.getRessources()[resource];
         }
 
-        private double getFacilitySpace(PartResourceDefinition resource)
+        public double getFacilitySpace(PartResourceDefinition resource)
         {
             return storageFacility.getEmptyAmount(resource);
         }
@@ -95,7 +111,7 @@ namespace KerbalColonies.colonyFacilities
         /// <summary>
         /// checks if the vessel v has enough space to add amount of r to it.
         /// </summary>
-        private bool vesselHasSpace(Vessel v, PartResourceDefinition r, float amount)
+        public bool vesselHasSpace(Vessel v, PartResourceDefinition r, float amount)
         {
             v.GetConnectedResourceTotals(r.id, false, out double vesselAmount, out double vesselMaxAmount);
             if (vesselMaxAmount - vesselAmount >= amount)
@@ -107,13 +123,13 @@ namespace KerbalColonies.colonyFacilities
                 return false;
             }
         }
-        private double getVesselSpace(Vessel v, PartResourceDefinition r)
+        public double getVesselSpace(Vessel v, PartResourceDefinition r)
         {
             v.GetConnectedResourceTotals(r.id, false, out double vesselAmount, out double vesselMaxAmount);
             return vesselMaxAmount - vesselAmount;
         }
 
-        private bool facilityHasSpace(PartResourceDefinition resource, float amount)
+        public bool facilityHasSpace(PartResourceDefinition resource, float amount)
         {
             if (storageFacility.getMaxVolume() - storageFacility.getCurrentVolume() >= KCStorageFacility.getVolumeForAmount(resource, amount))
             {
@@ -131,7 +147,7 @@ namespace KerbalColonies.colonyFacilities
         {
             storageFacility.Update();
             GUILayout.BeginHorizontal();
-            GUILayout.Label($"MaxVolume: {storageFacility.maxVolume[storageFacility.level]:f2}", LabelGreen, GUILayout.Height(18));
+            GUILayout.Label($"MaxVolume: {storageFacility.storageInfo.maxVolume[storageFacility.level]:f2}", LabelGreen, GUILayout.Height(18));
             GUILayout.FlexibleSpace();
             GUILayout.Label($"UsedVolume: {storageFacility.getCurrentVolume():f2}", LabelGreen, GUILayout.Height(18));
             GUILayout.EndHorizontal();
@@ -263,7 +279,7 @@ namespace KerbalColonies.colonyFacilities
         }
     }
 
-    internal class KCStorageFacility : KCFacilityBase
+    public class KCStorageFacility : KCFacilityBase
     {
         public static HashSet<string> blackListedResources = new HashSet<string> { "ElectricCharge", "IntakeAir" };
 
@@ -330,12 +346,12 @@ namespace KerbalColonies.colonyFacilities
         /// </summary>
         public static List<KCStorageFacility> findEmptyStorageFacilities(colonyClass colony)
         {
-            return GetStoragesInColony(colony).Where(f => f.currentVolume < f.maxVolume[f.level]).ToList();
+            return GetStoragesInColony(colony).Where(f => f.currentVolume < f.storageInfo.maxVolume[f.level]).ToList();
         }
 
+        public KCStorageFacilityInfo storageInfo { get { return (KCStorageFacilityInfo)facilityInfo; } }
         public Dictionary<PartResourceDefinition, double> resources;
 
-        public Dictionary<int, float> maxVolume { get; private set; } = new Dictionary<int, float> { };
         public double currentVolume
         {
             get
@@ -370,14 +386,14 @@ namespace KerbalColonies.colonyFacilities
         }
         public double getMaxVolume()
         {
-            return maxVolume[level];
+            return storageInfo.maxVolume[level];
         }
 
         public static double getVolumeForAmount(PartResourceDefinition resource, double amount) { return amount * resource.volume; }
 
         public double getEmptyAmount(PartResourceDefinition resource)
         {
-            return (maxVolume[level] - currentVolume) / resource.volume;
+            return (storageInfo.maxVolume[level] - currentVolume) / resource.volume;
         }
 
         private KCStorageFacilityWindow StorageWindow;
@@ -399,7 +415,7 @@ namespace KerbalColonies.colonyFacilities
         /// <summary>
         /// changes the stored amount by a given value. Returns false if more is pulled out than stored.
         /// </summary>
-        internal bool changeAmount(PartResourceDefinition resource, double amount)
+        public bool changeAmount(PartResourceDefinition resource, double amount)
         {
             if (amount < 0)
             {
@@ -414,7 +430,7 @@ namespace KerbalColonies.colonyFacilities
             }
             else
             {
-                if (this.currentVolume + getVolumeForAmount(resource, amount) <= this.maxVolume[level])
+                if (this.currentVolume + getVolumeForAmount(resource, amount) <= this.storageInfo.maxVolume[level])
                 {
                     if (this.resources.ContainsKey(resource))
                     {
@@ -441,27 +457,15 @@ namespace KerbalColonies.colonyFacilities
             StorageWindow.Toggle();
         }
 
-        private void configNodeLoader(ConfigNode node)
-        {
-            ConfigNode levelNode = node.GetNode("level");
-            for (int i = 0; i <= maxLevel; i++)
-            {
-                ConfigNode iLevel = levelNode.GetNode(i.ToString());
-                if (iLevel.HasValue("maxVolume")) maxVolume[i] = float.Parse(iLevel.GetValue("maxVolume"));
-                else if (i > 0) maxVolume[i] = maxVolume[i - 1];
-                else throw new MissingFieldException($"The facility {facilityInfo.name} (type: {facilityInfo.type}) has no maxVolume (at least for level 0).");
-            }
-        }
-
         public KCStorageFacility(colonyClass colony, KCFacilityInfoClass facilityInfo, ConfigNode node) : base(colony, facilityInfo, node)
         {
-            configNodeLoader(facilityInfo.facilityConfig);
             resources = new Dictionary<PartResourceDefinition, double>();
             StorageWindow = new KCStorageFacilityWindow(this);
 
             foreach (ConfigNode.Value value in node.GetNode("resources").values)
             {
                 PartResourceDefinition prd = PartResourceLibrary.Instance.GetDefinition(value.name);
+                if (prd == null) continue;
 
                 if (resources.ContainsKey(prd)) resources[prd] = double.Parse(value.value);
                 else resources.Add(prd, double.Parse(value.value));
@@ -478,7 +482,6 @@ namespace KerbalColonies.colonyFacilities
 
         public KCStorageFacility(colonyClass colony, KCFacilityInfoClass facilityInfo, bool enabled) : base(colony, facilityInfo, enabled)
         {
-            configNodeLoader(facilityInfo.facilityConfig);
             resources = new Dictionary<PartResourceDefinition, double>();
             StorageWindow = new KCStorageFacilityWindow(this);
 

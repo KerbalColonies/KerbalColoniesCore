@@ -32,14 +32,29 @@ namespace KerbalColonies
                 return;
             }
 
-            if (ColonyBuilding.CreateColony())
+            int result = ColonyBuilding.CreateColony();
+            switch (result)
             {
-                writeLog("Creating Colony");
-                ScreenMessages.PostScreenMessage($"KC: Creating a Colony on {part.vessel.mainBody.name}", 10f, ScreenMessageStyle.UPPER_RIGHT);
-            }
-            else
-            {
-                ScreenMessages.PostScreenMessage($"KC: Not enough resources", 10f, ScreenMessageStyle.UPPER_RIGHT);
+                case 0:
+                    Configuration.writeLog($"Creating a Colony on {part.vessel.mainBody.name}");
+                    ScreenMessages.PostScreenMessage($"KC: Creating a Colony on {part.vessel.mainBody.name}", 10f, ScreenMessageStyle.UPPER_RIGHT);
+                    break;
+                case 1:
+                    Configuration.writeLog($"Not enough resources to create a colony on {part.vessel.mainBody.name}");
+                    ScreenMessages.PostScreenMessage("KC: Not enough resources", 10f, ScreenMessageStyle.UPPER_RIGHT);
+                    break;
+                case 2:
+                    Configuration.writeLog($"Unable to create a colony because there are too many colonies on {part.vessel.mainBody.name}");
+                    ScreenMessages.PostScreenMessage("KC: Too many colonies on this celestial body.", 10f, ScreenMessageStyle.UPPER_RIGHT);
+                    break;
+                case 3:
+                    Configuration.writeLog($"Unable to create a colony one {part.vessel.mainBody.name} because the cab selector is open");
+                    ScreenMessages.PostScreenMessage("KC: cab selector is open", 10f, ScreenMessageStyle.UPPER_RIGHT);
+                    break;
+                default:
+                    Configuration.writeLog($"Unknown error in ColonyBuilding.CreateColony(), no colony was built on {part.vessel.mainBody.name}");
+                    ScreenMessages.PostScreenMessage("KC: Unknown error", 10f, ScreenMessageStyle.UPPER_RIGHT);
+                    break;
             }
         }
 

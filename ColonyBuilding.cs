@@ -219,10 +219,11 @@ namespace KerbalColonies
         /// <summary>
         /// This function creates a new Colony.
         /// It's meant to be used by the partmodule only.
+        /// 0 = success, 1 = insufficient resources, 2 = too many colonies, 3 cabselector open
         /// </summary>
-        internal static bool CreateColony()
+        internal static int CreateColony()
         {
-            if (CABSelectorWindow.Instance.IsOpen()) { return false; }
+            if (CABSelectorWindow.Instance.IsOpen()) { return 3; }
 
             if (!Configuration.colonyDictionary.ContainsKey(FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody)))
             {
@@ -233,19 +234,19 @@ namespace KerbalColonies
 
             if (colonyCount >= Configuration.MaxColoniesPerBody && Configuration.MaxColoniesPerBody != 0)
             {
-                return false;
+                return 2;
             }
 
             if (Configuration.CabTypes.Count == 1)
             {
-                if (!CABSelectorWindow.checkVesselResources(Configuration.CabTypes[0])) { return false; }
+                if (!CABSelectorWindow.checkVesselResources(Configuration.CabTypes[0])) { return 1; }
                 KC_CABInfo info = Configuration.CabTypes[0];
                 CABSelectorWindow.removeVesselResources(info);
                 BuildColony(info);
             }
             else CABSelectorWindow.Instance.Open();
 
-            return true;
+            return 0;
         }
 
         internal static void BuildColony(KC_CABInfo CABInfo)

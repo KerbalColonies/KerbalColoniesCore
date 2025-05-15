@@ -304,6 +304,7 @@ namespace KerbalColonies.colonyFacilities
         {
             launchSiteUUID = node.GetValue("launchSiteUUID");
             launchSiteName = node.GetValue("launchSiteName");
+            if (launchSiteUUID != null)
             instance = KerbalKonstructs.API.getStaticInstanceByUUID(launchSiteUUID);
             //launchpadWindow = new KCLaunchpadFacilityWindow(this);
             AllowClick = false;

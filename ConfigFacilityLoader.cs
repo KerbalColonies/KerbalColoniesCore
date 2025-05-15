@@ -111,6 +111,7 @@ namespace KerbalColonies
             KCFacilityTypeRegistry.RegisterFacilityInfo<KCResearchFacility, KCResearchFacilityInfoClass>();
             KCFacilityTypeRegistry.RegisterFacilityInfo<KCCrewQuarters, KCKerbalFacilityInfoClass>();
             KCFacilityTypeRegistry.RegisterFacilityInfo<KCMiningFacility, KCMiningFacilityInfo>();
+            KCFacilityTypeRegistry.RegisterFacilityInfo<KCStorageFacility, KCStorageFacilityInfo>();
 
             try
             {

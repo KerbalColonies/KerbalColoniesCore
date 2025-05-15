@@ -262,7 +262,15 @@ namespace KerbalColonies
                     colonyDictionary.Add(int.Parse(bodyNode.name), new List<colonyClass> { });
                     foreach (ConfigNode colonyNode in bodyNode.GetNodes())
                     {
-                        colonyDictionary[int.Parse(bodyNode.name)].Add(new colonyClass(colonyNode));
+                        try
+                        {
+                            colonyDictionary[int.Parse(bodyNode.name)].Add(new colonyClass(colonyNode));
+                        }
+                        catch (Exception e)
+                        {
+                            writeLog($"Error while loading the colony {colonyNode.name} on body {bodyNode.name}: {e}");
+                            writeLog(colonyNode.ToString());
+                        }
                     }
                 }
 
@@ -313,10 +321,18 @@ namespace KerbalColonies
                 ConfigNode bodyNode = new ConfigNode(bodyKVP.Key.ToString(), "The celestial body id");
                 foreach (colonyClass colony in bodyKVP.Value)
                 {
-                    ConfigNode colonyNode = colony.CreateConfigNode();
-                    bodyNode.AddNode(colonyNode);
+                    try
+                    {
+                        ConfigNode colonyNode = colony.CreateConfigNode();
+                        bodyNode.AddNode(colonyNode);
+                    }
+                    catch (Exception e)
+                    {
+                        writeLog($"Error while saving the colony {colony.Name} on body {bodyKVP.Key}: {e}");
+                        writeLog(colony.ToString());
+                    }
+                    ColonyDictionaryNode.AddNode(bodyNode);
                 }
-                ColonyDictionaryNode.AddNode(bodyNode);
             }
 
             // potentially usefull in the future if any changes to the saving are necessary

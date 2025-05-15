@@ -55,19 +55,26 @@ namespace KerbalColonies
 
             foreach (KCFacilityBase facility in Facilities)
             {
-                ConfigNode facilityNode = new ConfigNode("facility");
+                try
+                {
+                    ConfigNode facilityNode = new ConfigNode("facility");
 
-                ConfigNode facilityConfigNode = facility.getConfigNode();
-                if (facilityConfigNode.name == "facilityNode")
-                {
-                    facilityNode.AddNode(facilityConfigNode);
-                    node.AddNode(facilityNode);
+                    ConfigNode facilityConfigNode = facility.getConfigNode();
+                    if (facilityConfigNode.name == "facilityNode")
+                    {
+                        facilityNode.AddNode(facilityConfigNode);
+                        node.AddNode(facilityNode);
+                    }
+                    else
+                    {
+                        ConfigFacilityLoader.loaded = false;
+                        ConfigFacilityLoader.failedConfigs.Add(facility.GetType().FullName);
+                        ConfigFacilityLoader.exceptions.Add(new Exception($"The facility {facility.GetType()} does not use the confignode provided by the KCFacilityBase. This will lead to errors when loading again."));
+                    }
                 }
-                else
+                catch (Exception e)
                 {
-                    ConfigFacilityLoader.loaded = false;
-                    ConfigFacilityLoader.failedConfigs.Add(facility.GetType().FullName);
-                    ConfigFacilityLoader.exceptions.Add(new Exception($"The facility {facility.GetType()} does not use the confignode provided by the KCFacilityBase. This will lead to errors when loading again."));
+                    Configuration.writeLog($"Unable to save the facility {facility.name}: {e}");
                 }
             }
             return node;
@@ -99,16 +106,24 @@ namespace KerbalColonies
             {
                 ConfigNode facility = facilityNode.GetNode("facilityNode");
 
-                Facilities.Add(Configuration.CreateInstance(
-                    Configuration.GetInfoClass(facility.GetValue("name")),
-                    this,
-                    facility
-                ));
+                try
+                {
+                    Facilities.Add(Configuration.CreateInstance(
+                        Configuration.GetInfoClass(facility.GetValue("name")),
+                        this,
+                        facility
+                    ));
+                }
+                catch (Exception e)
+                {
+                    Configuration.writeLog($"Unable to load the facility {facility.name}: {e}");
+                    Configuration.writeLog($"ConfigNode: {facility.ToString()}");
+                }
+
+                ConfigNode CABNode = node.GetNode("CAB");
+
+                CAB = new KC_CAB_Facility(this, CABNode.GetNodes().First());
             }
-
-            ConfigNode CABNode = node.GetNode("CAB");
-
-            CAB = new KC_CAB_Facility(this, CABNode.GetNodes().First());
         }
     }
 }

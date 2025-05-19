@@ -405,7 +405,15 @@ namespace KerbalColonies.colonyFacilities
                         double amount = double.Parse(v.value);
                         OutputResources.Add(resourceDef, amount);
                     }
-                    new ResourceConversionRate(conversionName, displayName, InputResources, OutputResources);
+                    try
+                    {
+                        new ResourceConversionRate(conversionName, displayName, InputResources, OutputResources);
+                    }
+                    catch(Exception e)
+                    {
+                        ConfigFacilityLoader.exceptions.Add(e);
+                        ConfigFacilityLoader.failedConfigs.Add($"ResourceConversionRate: {conversionName}");
+                    }
                 }
             }
 
@@ -430,7 +438,15 @@ namespace KerbalColonies.colonyFacilities
                         throw new MissingFieldException($"The conversionlist {node.GetValue("name")} has no conversion list or recipe names.");
                     }
 
-                    new ResourceConversionList(conversionName, conversionList, recipeNames);
+                    try
+                    {
+                        new ResourceConversionList(conversionName, conversionList, recipeNames);
+                    }
+                    catch (Exception e)
+                    {
+                        ConfigFacilityLoader.exceptions.Add(e);
+                        ConfigFacilityLoader.failedConfigs.Add($"ResourceConversionList: {conversionName}");
+                    }
                 }
             }
 

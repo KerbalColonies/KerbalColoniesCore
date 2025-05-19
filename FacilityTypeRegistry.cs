@@ -5,7 +5,7 @@ using System.Linq;
 
 // KC: Kerbal Colonies
 // This mod aimes to create a Colony system with Kerbal Konstructs statics
-// Copyright (C) 2024 AMPW, Halengar
+// Copyright (c) 2024-2025 AMPW, Halengar
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -31,6 +31,12 @@ namespace KerbalColonies
         {
             string key = typeof(T).FullName;
             _registeredTypes[key] = typeof(T);
+        }
+
+        public static bool RemoveType<T>() where T : KCFacilityBase
+        {
+            string key = typeof(T).FullName;
+            return _registeredTypes.Remove(key);
         }
 
         // Get a registered type by key
@@ -60,6 +66,12 @@ namespace KerbalColonies
             {
                 _registeredInfoTypes[facilityType] = infoType;
             }
+        }
+
+        public static bool RemoveFacilityInfo<T>() where T : KCFacilityBase
+        {
+            Type facilityType = typeof(T);
+            return _registeredInfoTypes.Remove(facilityType);
         }
 
         // Get the info type for a registered facility type, returns the default info type if not found

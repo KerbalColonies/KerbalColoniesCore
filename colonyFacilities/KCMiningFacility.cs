@@ -1,12 +1,59 @@
-﻿using System;
+﻿using KerbalColonies.UI;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using KerbalColonies.UI;
+
+// KC: Kerbal Colonies
+// This mod aimes to create a Colony system with Kerbal Konstructs statics
+// Copyright (c) 2024-2025 AMPW, Halengar
+
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/
 
 namespace KerbalColonies.colonyFacilities
 {
-    internal class KCMiningFacilityWindow : KCWindowBase
+    public class KCMiningFacilityInfo : KCKerbalFacilityInfoClass
+    {
+        public SortedDictionary<int, float> maxOre = new SortedDictionary<int, float>();
+        public SortedDictionary<int, float> maxMetalOre = new SortedDictionary<int, float>();
+        public SortedDictionary<int, float> orePerDayperEngineer = new SortedDictionary<int, float>();
+        public SortedDictionary<int, float> metalOrePerDayperEngineer = new SortedDictionary<int, float>();
+
+        public KCMiningFacilityInfo(ConfigNode node) : base(node)
+        {
+            levelNodes.ToList().ForEach(n =>
+            {
+                if (n.Value.HasValue("maxOre")) maxOre[n.Key] = int.Parse(n.Value.GetValue("maxOre"));
+                else if (n.Key > 0) maxOre[n.Key] = maxOre[n.Key - 1];
+                else throw new MissingFieldException($"The facility {name} (type: {type}) has no maxOre (at least for level 0).");
+
+                if (n.Value.HasValue("maxMetalOre")) maxMetalOre[n.Key] = int.Parse(n.Value.GetValue("maxMetalOre"));
+                else if (n.Key > 0) maxMetalOre[n.Key] = maxMetalOre[n.Key - 1];
+                else throw new MissingFieldException($"The facility {name}  (type:  {type}) has no maxMetalOre (at least for level 0).");
+
+                if (n.Value.HasValue("oreRate")) orePerDayperEngineer[n.Key] = float.Parse(n.Value.GetValue("oreRate"));
+                else if (n.Key > 0) orePerDayperEngineer[n.Key] = orePerDayperEngineer[n.Key - 1];
+                else throw new MissingFieldException($"The facility {name}  (type:  {type}) has no oreRate (at least for level 0).");
+
+                if (n.Value.HasValue("metalOreRate")) metalOrePerDayperEngineer[n.Key] = float.Parse(n.Value.GetValue("metalOreRate"));
+                else if (n.Key > 0) metalOrePerDayperEngineer[n.Key] = metalOrePerDayperEngineer[n.Key - 1];
+                else throw new MissingFieldException($"The facility {name}   (type:   {type}) has no metalOreRate (at least for level 0).");
+            });
+        }
+    }
+
+    public class KCMiningFacilityWindow : KCWindowBase
     {
         KCMiningFacility miningFacility;
         public KerbalGUI kerbalGUI;
@@ -55,22 +102,22 @@ namespace KerbalColonies.colonyFacilities
         }
     }
 
-    internal class KCMiningFacility : KCKerbalFacilityBase
+    public class KCMiningFacility : KCKerbalFacilityBase
     {
-        private KCMiningFacilityWindow miningFacilityWindow;
+        protected KCMiningFacilityWindow miningFacilityWindow;
 
-        double ore;
-        double metalOre;
+        public KCMiningFacilityInfo miningFacilityInfo { get { return (KCMiningFacilityInfo)facilityInfo; } }
+
+
+        protected double ore;
+        protected double metalOre;
 
         public double Ore { get { return ore; } }
         public double MetalOre { get { return metalOre; } }
-        public double MaxOre { get { return maxOreList[level]; } }
-        public double MaxMetalOre { get { return maxMetalOretList[level]; } }
-
-        public Dictionary<int, float> maxOreList { get; private set; } = new Dictionary<int, float> { };
-        public Dictionary<int, float> maxMetalOretList { get; private set; } = new Dictionary<int, float> { };
-        public Dictionary<int, float> OrePerDayperEngineer { get; private set; } = new Dictionary<int, float> { };
-        public Dictionary<int, float> MetalOrePerDayperEngineer { get; private set; } = new Dictionary<int, float> { };
+        public double MaxOre { get { return miningFacilityInfo.maxOre[level]; } }
+        public double MaxMetalOre { get { return miningFacilityInfo.maxMetalOre[level]; } }
+        public double OrePerDayPerEngineer { get { return miningFacilityInfo.orePerDayperEngineer[level]; } }
+        public double MetalOrePerDayPerEngineer { get { return miningFacilityInfo.metalOrePerDayperEngineer[level]; } }
 
         public override void Update()
         {
@@ -79,8 +126,8 @@ namespace KerbalColonies.colonyFacilities
             double deltaTime = Planetarium.GetUniversalTime() - lastUpdateTime;
 
             lastUpdateTime = Planetarium.GetUniversalTime();
-            ore = Math.Min(maxOreList[level], ore + (float)((OrePerDayperEngineer[level] / 24 / 60 / 60) * deltaTime) * kerbals.Count);
-            metalOre = Math.Min(maxMetalOretList[level], metalOre + (float)((MetalOrePerDayperEngineer[level] / 24 / 60 / 60) * deltaTime) * kerbals.Count);
+            ore = Math.Min(MaxOre, ore + (float)((OrePerDayPerEngineer / 24 / 60 / 60) * deltaTime) * kerbals.Count);
+            metalOre = Math.Min(MaxMetalOre, metalOre + (float)((MetalOrePerDayPerEngineer / 24 / 60 / 60) * deltaTime) * kerbals.Count);
         }
 
         public override void OnBuildingClicked()
@@ -125,35 +172,8 @@ namespace KerbalColonies.colonyFacilities
             return node;
         }
 
-        private void configNodeLoader(ConfigNode node)
-        {
-            ConfigNode levelNode = facilityInfo.facilityConfig.GetNode("level");
-            for (int i = 0; i <= maxLevel; i++)
-            {
-                ConfigNode iLevel = levelNode.GetNode(i.ToString());
-
-                if (iLevel.HasValue("maxOre")) maxOreList[i] = int.Parse(iLevel.GetValue("maxOre"));
-                else if (i > 0) maxOreList[i] = maxOreList[i - 1];
-                else throw new MissingFieldException($"The facility {facilityInfo.name} (type: {facilityInfo.type}) has no maxOre (at least for level 0).");
-
-                if (iLevel.HasValue("maxMetalOre")) maxMetalOretList[i] = int.Parse(iLevel.GetValue("maxMetalOre"));
-                else if (i > 0) maxMetalOretList[i] = maxMetalOretList[i - 1];
-                else throw new MissingFieldException($"The facility {facilityInfo.name} (type: {facilityInfo.type}) has no maxMetalOre (at least for level 0).");
-
-                if (iLevel.HasValue("oreRate")) OrePerDayperEngineer[i] = float.Parse(iLevel.GetValue("oreRate"));
-                else if (i > 0) OrePerDayperEngineer[i] = OrePerDayperEngineer[i - 1];
-                else throw new MissingFieldException($"The facility {facilityInfo.name} (type: {facilityInfo.type}) has no oreRate (at least for level 0).");
-
-                if (iLevel.HasValue("metalOreRate")) MetalOrePerDayperEngineer[i] = float.Parse(iLevel.GetValue("metalOreRate"));
-                else if (i > 0) MetalOrePerDayperEngineer[i] = MetalOrePerDayperEngineer[i - 1];
-                else throw new MissingFieldException($"The facility {facilityInfo.name} (type: {facilityInfo.type}) has no metalOreRate (at least for level 0).");
-            }
-        }
-
         public KCMiningFacility(colonyClass colony, KCFacilityInfoClass facilityInfo, ConfigNode node) : base(colony, facilityInfo, node)
         {
-            configNodeLoader(facilityInfo.facilityConfig);
-
             ore = double.Parse(node.GetValue("ore"));
             metalOre = double.Parse(node.GetValue("metalOre"));
             miningFacilityWindow = new KCMiningFacilityWindow(this);
@@ -161,7 +181,6 @@ namespace KerbalColonies.colonyFacilities
 
         public KCMiningFacility(colonyClass colony, KCFacilityInfoClass facilityInfo, bool enabled) : base(colony, facilityInfo, enabled)
         {
-            configNodeLoader(facilityInfo.facilityConfig);
             miningFacilityWindow = new KCMiningFacilityWindow(this);
 
             ore = 0;

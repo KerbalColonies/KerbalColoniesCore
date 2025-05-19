@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="packages\KSPBuildTools.0.0.2\build\KSPBuildTools.props" Condition="Exists('packages\KSPBuildTools.0.0.2\build\KSPBuildTools.props')" />
+  <Import Project="packages\KSPBuildTools.0.0.3\build\KSPBuildTools.props" Condition="Exists('packages\KSPBuildTools.0.0.3\build\KSPBuildTools.props')" />
   <Import Project="packages\JsonPoke.1.2.0\build\JsonPoke.props" Condition="Exists('packages\JsonPoke.1.2.0\build\JsonPoke.props')" />
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
@@ -26,6 +26,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <PlatformTarget>x64</PlatformTarget>
+    <BinariesOutputRelativePath>\GameData\KerbalColonies\Plugins\</BinariesOutputRelativePath>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -35,6 +36,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <PlatformTarget>x64</PlatformTarget>
+    <BinariesOutputRelativePath>\GameData\KerbalColonies\Plugins\</BinariesOutputRelativePath>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="ColonyBuilding.cs" />
@@ -55,7 +57,7 @@
     <Compile Include="ConfigFacilityLoader.cs" />
     <Compile Include="Configuration.cs" />
     <Compile Include="KCPartModule.cs" />
-    <Compile Include="KCLaunchpadPreflightCheck.cs" />
+    <Compile Include="KCPreflightChecks.cs" />
     <Compile Include="UI\KCWindow.cs" />
     <Compile Include="UI\KCWindowManager.cs" />
     <Compile Include="UI\KerbalGUI.cs" />
@@ -70,23 +72,19 @@
   </ItemGroup>
   <ItemGroup>
     <Reference Include="ClickThroughBlocker">
-      <HintPath>D:\KSP-Test\GameData\000_ClickThroughBlocker\Plugins\ClickThroughBlocker.dll</HintPath>
+      <HintPath>$(KSPRoot)\GameData\000_ClickThroughBlocker\Plugins\ClickThroughBlocker.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="CustomPreLaunchChecks">
-      <HintPath>D:\KSP-Test\GameData\CustomPreLaunchChecks\CustomPreLaunchChecks.dll</HintPath>
+      <HintPath>$(KSPRoot)\GameData\CustomPreLaunchChecks\CustomPreLaunchChecks.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="KerbalKonstructs">
-      <HintPath>D:\KSP-Test\GameData\KerbalKonstructs\KerbalKonstructs.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="Launchpad">
-      <HintPath>D:\KSP-Test\GameData\ExtraplanetaryLaunchpads\Plugins\Launchpad.dll</HintPath>
+      <HintPath>$(KSPRoot)\GameData\KerbalKonstructs\KerbalKonstructs.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="ToolbarControl">
-      <HintPath>D:\KSP-Test\GameData\001_ToolbarControl\Plugins\ToolbarControl.dll</HintPath>
+      <HintPath>$(KSPRoot)\GameData\001_ToolbarControl\Plugins\ToolbarControl.dll</HintPath>
       <Private>False</Private>
     </Reference>
   </ItemGroup>
@@ -103,9 +101,22 @@
     </PropertyGroup>
     <Error Condition="!Exists('packages\JsonPoke.1.2.0\build\JsonPoke.props')" Text="$([System.String]::Format('$(ErrorText)', 'packages\JsonPoke.1.2.0\build\JsonPoke.props'))" />
     <Error Condition="!Exists('packages\JsonPoke.1.2.0\build\JsonPoke.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\JsonPoke.1.2.0\build\JsonPoke.targets'))" />
-    <Error Condition="!Exists('packages\KSPBuildTools.0.0.2\build\KSPBuildTools.props')" Text="$([System.String]::Format('$(ErrorText)', 'packages\KSPBuildTools.0.0.2\build\KSPBuildTools.props'))" />
-    <Error Condition="!Exists('packages\KSPBuildTools.0.0.2\build\KSPBuildTools.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\KSPBuildTools.0.0.2\build\KSPBuildTools.targets'))" />
   </Target>
   <Import Project="packages\JsonPoke.1.2.0\build\JsonPoke.targets" Condition="Exists('packages\JsonPoke.1.2.0\build\JsonPoke.targets')" />
-  <Import Project="packages\KSPBuildTools.0.0.2\build\KSPBuildTools.targets" Condition="Exists('packages\KSPBuildTools.0.0.2\build\KSPBuildTools.targets')" />
+  <ItemGroup>
+    <PackageReference Include="KSPBuildTools">
+      <Version>0.0.3</Version>
+    </PackageReference>
+  </ItemGroup>
+  <!-- Version Files -->
+  <ItemGroup>
+    <KSPVersionFile Include=".">
+      <Destination>$(RepoRootPath)GameData/KerbalColonies/KerbalColonies.version</Destination>
+      <URL>https://github.com/AMPW-german/KerbalColonies/releases/latest/download/KerbalColonies.version</URL>
+      <Download>https://github.com/AMPW-german/KerbalColonies/releases/latest</Download>
+      <Version>1.0.0</Version>
+      <KSP_VERSION>1.12.5</KSP_VERSION>
+      <KSP_VERSION_MAX>1.12.5</KSP_VERSION_MAX>
+    </KSPVersionFile>
+  </ItemGroup>
 </Project>

@@ -1,14 +1,12 @@
-﻿using CustomPreLaunchChecks;
-using KerbalColonies.colonyFacilities;
+﻿using KerbalColonies.colonyFacilities;
 using KerbalColonies.UI;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 
 // KC: Kerbal Colonies
 // This mod aimes to create a Colony system with Kerbal Konstructs statics
-// Copyright (C) 2024 AMPW, Halengar
+// Copyright (f) 2024-2025 AMPW, Halengar
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -107,6 +105,24 @@ namespace KerbalColonies
 
             KCFacilityTypeRegistry.RegisterFacilityInfo<KC_CAB_Facility, KC_CABInfo>();
             KCFacilityTypeRegistry.RegisterFacilityInfo<KCProductionFacility, KCProductionInfo>();
+            KCFacilityTypeRegistry.RegisterFacilityInfo<KCResourceConverterFacility, KCResourceConverterInfo>();
+            KCFacilityTypeRegistry.RegisterFacilityInfo<KCLaunchpadFacility, KCZeroUpgradeInfoClass>();
+            KCFacilityTypeRegistry.RegisterFacilityInfo<KCCommNetFacility, KCZeroUpgradeInfoClass>();
+            KCFacilityTypeRegistry.RegisterFacilityInfo<KCResearchFacility, KCResearchFacilityInfoClass>();
+            KCFacilityTypeRegistry.RegisterFacilityInfo<KCCrewQuarters, KCKerbalFacilityInfoClass>();
+            KCFacilityTypeRegistry.RegisterFacilityInfo<KCMiningFacility, KCMiningFacilityInfo>();
+            KCFacilityTypeRegistry.RegisterFacilityInfo<KCStorageFacility, KCStorageFacilityInfo>();
+
+            try
+            {
+                KCResourceConverterFacility.LoadResourceConversionLists();
+            }
+            catch (Exception e)
+            {
+                exceptions.Add(e);
+                failedConfigs.Add("ResourceConversionLists");
+                Configuration.writeLog($"Error while loading the resource conversion lists: {e}");
+            }
         }
 
         protected void Start()
@@ -121,35 +137,71 @@ namespace KerbalColonies
 
         public static void LoadFacilityConfigs()
         {
-            failedConfigs.Clear();
-            ConfigNode[] facilityConfigs = GameDatabase.Instance.GetConfigNodes("facilityConfigs");
+            ConfigNode[] facilityConfigs = GameDatabase.Instance.GetConfigNodes("KCFacilityConfig");
             foreach (ConfigNode node in facilityConfigs)
             {
-                foreach (ConfigNode facilityNode in node.GetNodes("facility"))
+
+                try
                 {
-                    try
+                    KCFacilityInfoClass facilityInfo = (KCFacilityInfoClass)Activator.CreateInstance(KCFacilityTypeRegistry.GetInfoType(KCFacilityTypeRegistry.GetType(node.GetValue("type"))), new object[] { node });
+
+                    if (!(facilityInfo is KC_CABInfo))
                     {
-                        KCFacilityInfoClass facilityInfo = (KCFacilityInfoClass)Activator.CreateInstance(KCFacilityTypeRegistry.GetInfoType(KCFacilityTypeRegistry.GetType(facilityNode.GetValue("type"))), new object[] { facilityNode });
-                        
-                        if (!(facilityInfo is KC_CABInfo)) Configuration.RegisterBuildableFacility(facilityInfo);
-                        else Configuration.RegisterCabInfo(facilityInfo as KC_CABInfo);
+                        if (!Configuration.RegisterBuildableFacility(facilityInfo)) throw new Exception($"A facility with the name {facilityInfo.name} already exists.");
                     }
-                    catch (Exception e)
+                    else Configuration.RegisterCabInfo(facilityInfo as KC_CABInfo);
+                }
+                catch (Exception e)
+                {
+                    exceptions.Add(e);
+                    if (node.HasValue("name"))
                     {
-                        exceptions.Add(e);
-                        if (facilityNode.HasValue("name"))
-                        {
-                            failedConfigs.Add(facilityNode.GetValue("name"));
-                            Configuration.writeLog($"Invalid facility config: {facilityNode.GetValue("name")} \n\nConfig: {facilityNode.ToString()} \n\nException: {e}");
-                        }
-                        else
-                        {
-                            failedConfigs.Add("Unknown");
-                            Configuration.writeLog($"Invalid facility config without a name: {facilityNode.ToString()} \n\nException: {e}");
-                        }
+                        failedConfigs.Add(node.GetValue("name"));
+                        Configuration.writeLog($"Invalid facility config: {node.GetValue("name")} \n\nConfig: {node.ToString()} \n\nException: {e}");
+                    }
+                    else
+                    {
+                        failedConfigs.Add("Unknown");
+                        Configuration.writeLog($"Invalid facility config without a name: {node.ToString()} \n\nException: {e}");
                     }
                 }
             }
+
+            List<KCFacilityInfoClass> invalidFacilities = new List<KCFacilityInfoClass> { };
+            Configuration.BuildableFacilities.ForEach(f =>
+            {
+                try
+                {
+                    f.lateInit();
+                }
+                catch (Exception e)
+                {
+                    invalidFacilities.Add(f);
+                    exceptions.Add(e);
+                    failedConfigs.Add(f.name);
+                    Configuration.writeLog($"Invalid facility config: {f.name} \n\nConfig: {f.ToString()} \n\nException: {e}");
+                }
+            });
+            List<KC_CABInfo> invalidCABInfos = new List<KC_CABInfo>();
+            Configuration.CabTypes.ForEach(f =>
+            {
+                try
+                {
+                    f.lateInit();
+                }
+                catch (Exception e)
+                {
+                    invalidCABInfos.Add(f);
+                    exceptions.Add(e);
+                    failedConfigs.Add(f.name);
+                    Configuration.writeLog($"Invalid CAB config: {f.name} \n\nConfig: {f.ToString()} \n\nException: {e}");
+                }
+            });
+            invalidCABInfos.ForEach(f =>
+            {
+                Configuration.UnregisterCabInfo(f);
+                Configuration.writeLog($"Removed invalid CAB config: {f.name}");
+            });
         }
     }
 }

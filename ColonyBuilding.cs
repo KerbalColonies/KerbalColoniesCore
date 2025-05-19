@@ -8,7 +8,7 @@ using UnityEngine;
 
 // KC: Kerbal Colonies
 // This mod aimes to create a Colony system with Kerbal Konstructs statics
-// Copyright (C) 2024 AMPW, Halengar
+// Copyright (c) 2024-2025 AMPW, Halengar
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -21,7 +21,7 @@ using UnityEngine;
 // GNU General Public License for more details.
 
 // You should have received a copy of the GNU General Public License
-// along with this program. If not, see <https://www.gnu.org/licenses/
+// along with this program.  If not, see <https://www.gnu.org/licenses/
 
 namespace KerbalColonies
 {
@@ -42,6 +42,7 @@ namespace KerbalColonies
 
         public static bool checkVesselResources(KCFacilityInfoClass info)
         {
+            Configuration.writeLog($"Checking resources for {info.displayName}");
             foreach (KeyValuePair<PartResourceDefinition, double> resource in info.resourceCost[0])
             {
                 double vesselAmount = 0;
@@ -49,13 +50,16 @@ namespace KerbalColonies
                 FlightGlobals.ActiveVessel.GetConnectedResourceTotals(resource.Key.id, out double amount, out double maxAmount);
                 vesselAmount = amount;
 
-                if (vesselAmount >= resource.Value) continue;
+                Configuration.writeLog($"{resource.Key.displayName}: {vesselAmount} / {resource.Value * Configuration.FacilityCostMultiplier}");
+
+                if (vesselAmount >= resource.Value * Configuration.FacilityCostMultiplier) continue;
                 else return false;
             }
 
             if (Funding.Instance != null)
             {
-                if (Funding.Instance.Funds < info.Funds[0])
+                Configuration.writeLog($"Funds: {Funding.Instance.Funds} / {info.Funds[0] * Configuration.FacilityCostMultiplier}");
+                if (Funding.Instance.Funds < info.Funds[0] * Configuration.FacilityCostMultiplier)
                 {
                     return false;
                 }
@@ -68,14 +72,12 @@ namespace KerbalColonies
         {
             foreach (KeyValuePair<PartResourceDefinition, double> resource in info.resourceCost[0])
             {
-                double remainingAmount = resource.Value;
-
-                FlightGlobals.ActiveVessel.RequestResource(FlightGlobals.ActiveVessel.rootPart, resource.Key.id, resource.Value, true);
+                FlightGlobals.ActiveVessel.RequestResource(FlightGlobals.ActiveVessel.rootPart, resource.Key.id, resource.Value * Configuration.FacilityCostMultiplier, true);
             }
 
             if (Funding.Instance != null)
             {
-                Funding.Instance.AddFunds(-info.Funds[0], TransactionReasons.None);
+                Funding.Instance.AddFunds(-info.Funds[0] * Configuration.FacilityCostMultiplier, TransactionReasons.None);
             }
         }
 
@@ -101,7 +103,6 @@ namespace KerbalColonies
                     GUILayout.BeginVertical();
                     GUILayout.Label($"Funds: {(info.Funds.Count > 0 ? info.Funds[0] : 0)}");
                     //GUILayout.Label($"Electricity: {t.Electricity}");
-                    GUILayout.Label($"Time: {info.UpgradeTimes[0]}");
                     GUILayout.EndVertical();
 
                     GUILayout.EndHorizontal();
@@ -194,6 +195,7 @@ namespace KerbalColonies
 
         internal static void QueuePlacer()
         {
+            ColonyBuilding.placedGroup = false;
             if (buildQueue.Count() > 0)
             {
                 KerbalKonstructs.API.RemoveGroup(ColonyBuilding.buildQueue.Peek().groupName); // remove the group if it exists
@@ -212,16 +214,16 @@ namespace KerbalColonies
                 ColonyBuilding.buildQueue.Peek().Facility.KKgroups.Add(ColonyBuilding.buildQueue.Peek().groupName); // add the group to the facility groups
                 Configuration.AddGroup(FlightGlobals.GetBodyIndex(FlightGlobals.currentMainBody), ColonyBuilding.buildQueue.Peek().groupName, ColonyBuilding.buildQueue.Peek().Facility);
             }
-            ColonyBuilding.placedGroup = false;
         }
 
         /// <summary>
         /// This function creates a new Colony.
         /// It's meant to be used by the partmodule only.
+        /// 0 = success, 1 = insufficient resources, 2 = too many colonies, 3 cabselector open
         /// </summary>
-        internal static bool CreateColony()
+        internal static int CreateColony()
         {
-            if (CABSelectorWindow.Instance.IsOpen()) { return false; }
+            if (CABSelectorWindow.Instance.IsOpen()) { return 3; }
 
             if (!Configuration.colonyDictionary.ContainsKey(FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody)))
             {
@@ -230,21 +232,21 @@ namespace KerbalColonies
 
             int colonyCount = Configuration.colonyDictionary[FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody)].Count + 1;
 
-            if (colonyCount >= Configuration.maxColoniesPerBody)
+            if (colonyCount >= Configuration.MaxColoniesPerBody && Configuration.MaxColoniesPerBody != 0)
             {
-                return false;
+                return 2;
             }
 
             if (Configuration.CabTypes.Count == 1)
             {
-                if (!CABSelectorWindow.checkVesselResources(Configuration.CabTypes[0])) { return false; }
+                if (!CABSelectorWindow.checkVesselResources(Configuration.CabTypes[0])) { return 1; }
                 KC_CABInfo info = Configuration.CabTypes[0];
                 CABSelectorWindow.removeVesselResources(info);
                 BuildColony(info);
             }
             else CABSelectorWindow.Instance.Open();
 
-            return true;
+            return 0;
         }
 
         internal static void BuildColony(KC_CABInfo CABInfo)

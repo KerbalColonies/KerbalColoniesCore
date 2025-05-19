@@ -4,18 +4,37 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
+// KC: Kerbal Colonies
+// This mod aimes to create a Colony system with Kerbal Konstructs statics
+// Copyright (c) 2024-2025 AMPW, Halengar
+
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/
+
 namespace KerbalColonies.colonyFacilities
 {
-    public class KCProductionInfo : KCFacilityInfoClass
+    public class KCProductionInfo : KCKerbalFacilityInfoClass
     {
         public Dictionary<int, Dictionary<PartResourceDefinition, double>> vesselResourceCost { get; private set; } = new Dictionary<int, Dictionary<PartResourceDefinition, double>> { };
 
         public bool CanBuildVessels(int level) => vesselResourceCost.ContainsKey(level);
 
-        public bool HasSameRecipt(int level, KCProductionFacility otherFacility)
+        public bool HasSameRecipe(int level, KCProductionFacility otherFacility)
         {
+            if (!CanBuildVessels(level)) return false;
             Dictionary<PartResourceDefinition, double> vesselCost = vesselResourceCost[level];
             KCProductionInfo otherInfo = (KCProductionInfo)otherFacility.facilityInfo;
+            if (!otherInfo.CanBuildVessels(otherFacility.level)) return false;
             return vesselCost.All(vc => otherInfo.vesselResourceCost[otherFacility.level].ContainsKey(vc.Key) ? otherInfo.vesselResourceCost[otherFacility.level][vc.Key] == vc.Value : false);
         }
 
@@ -89,7 +108,7 @@ namespace KerbalColonies.colonyFacilities
                                 GUILayout.BeginVertical();
                                 GUILayout.Label($"Funds: {(t.Funds.Count > 0 ? t.Funds[0] : 0)}");
                                 //GUILayout.Label($"Electricity: {t.Electricity}");
-                                GUILayout.Label($"Time: {t.UpgradeTimes[0]}");
+                                GUILayout.Label($"Time: {t.UpgradeTimes[0] * Configuration.FacilityTimeMultiplier}");
                                 GUILayout.EndVertical();
 
                                 GUILayout.EndHorizontal();
@@ -132,7 +151,7 @@ namespace KerbalColonies.colonyFacilities
                         {
                             GUILayout.BeginHorizontal();
                             GUILayout.Label(pair.Key.displayName);
-                            double max = pair.Key.facilityInfo.UpgradeTimes[pair.Key.level + 1];
+                            double max = pair.Key.facilityInfo.UpgradeTimes[pair.Key.level + 1] * Configuration.FacilityTimeMultiplier;
                             GUILayout.Label($"{Math.Round(max - pair.Value, 2)}/{Math.Round(max, 2)}");
                             GUILayout.EndHorizontal();
                             GUILayout.Box("", GUILayout.ExpandWidth(true), GUILayout.Height(1));
@@ -144,7 +163,7 @@ namespace KerbalColonies.colonyFacilities
                         {
                             GUILayout.BeginHorizontal();
                             GUILayout.Label(pair.Key.displayName);
-                            double max = pair.Key.facilityInfo.UpgradeTimes[0];
+                            double max = pair.Key.facilityInfo.UpgradeTimes[0] * Configuration.FacilityTimeMultiplier;
                             GUILayout.Label($"{Math.Round(max - pair.Value, 2)}/{Math.Round(max, 2)}");
                             GUILayout.EndHorizontal();
                             GUILayout.Space(10);
@@ -189,14 +208,31 @@ namespace KerbalColonies.colonyFacilities
                     }
                     GUILayout.EndScrollView();
 
-                    ConfigNode colonyNode = facility.Colony.sharedColonyNodes.First(n => n.name == "vesselBuildInfo");
-                    KCProductionInfo info = (KCProductionInfo)Configuration.GetInfoClass(colonyNode.GetValue("facilityConfig"));
-                    if (info.HasSameRecipt(int.Parse(colonyNode.GetValue("facilityLevel")), facility)) GUI.enabled = false;
-                    if (GUILayout.Button("Use this facility type to build vessels"))
+                    ConfigNode colonyNode = facility.Colony.sharedColonyNodes.FirstOrDefault(n => n.name == "vesselBuildInfo");
+                    if (colonyNode != null)
                     {
-                        Configuration.writeDebug($"Facility {facility.name} is now used to build vessels.");
-                        colonyNode.SetValue("facilityConfig", facility.name);
-                        colonyNode.SetValue("facilityLevel", facility.level);
+                        KCProductionInfo info = (KCProductionInfo)Configuration.GetInfoClass(colonyNode.GetValue("facilityConfig"));
+                        if (info != null)
+                        {
+                            if (info.HasSameRecipe(int.Parse(colonyNode.GetValue("facilityLevel")), facility)) GUI.enabled = false;
+                            if (GUILayout.Button("Use this facility type to build vessels"))
+                            {
+                                Configuration.writeDebug($"Facility {facility.name} is now used to build vessels.");
+                                colonyNode.SetValue("facilityConfig", facility.name);
+                                colonyNode.SetValue("facilityLevel", facility.level);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        if (GUILayout.Button("Use this facility type to build vessels"))
+                        {
+                            Configuration.writeDebug($"Facility {facility.name} is now used to build vessels.");
+                            ConfigNode vesselBuildInfo = new ConfigNode("vesselBuildInfo");
+                            vesselBuildInfo.AddValue("facilityConfig", facility.name);
+                            vesselBuildInfo.AddValue("facilityLevel", facility.level);
+                            facility.Colony.sharedColonyNodes.Add(vesselBuildInfo);
+                        }
                     }
                     GUI.enabled = true;
                 }
@@ -224,6 +260,28 @@ namespace KerbalColonies.colonyFacilities
 
     public class KCProductionFacility : KCKerbalFacilityBase
     {
+        public static void DailyProductions(colonyClass colony, out double dailyProduction, out double dailyVesselProduction)
+        {
+            dailyProduction = 0;
+            dailyVesselProduction = 0;
+
+            ConfigNode vesselBuildInfoNode = colony.sharedColonyNodes.FirstOrDefault(n => n.name == "vesselBuildInfo");
+            KCProductionInfo info = null;
+            int level = 0;
+
+            if (vesselBuildInfoNode != null)
+            {
+                info = (KCProductionInfo)Configuration.GetInfoClass(vesselBuildInfoNode.GetValue("facilityConfig"));
+                level = int.Parse(vesselBuildInfoNode.GetValue("facilityLevel"));
+            }
+
+            foreach (KCProductionFacility f in colony.Facilities.Where(f => f is KCProductionFacility).Select(f => (KCProductionFacility)f))
+            {
+                if (info != null && info.HasSameRecipe(level, f)) dailyVesselProduction += f.dailyProduction();
+                else dailyProduction += f.dailyProduction();
+            }
+        }
+
         KCProductionWindow prdWindow;
 
         public List<float> baseProduction { get; private set; } = new List<float> { };
@@ -276,6 +334,7 @@ namespace KerbalColonies.colonyFacilities
             {
                 if (!Colony.sharedColonyNodes.Any(n => n.name == "vesselBuildInfo"))
                 {
+                    Configuration.writeDebug($"Facility {name} is now used to build vessels.");
                     ConfigNode vesselBuildInfo = new ConfigNode("vesselBuildInfo");
                     vesselBuildInfo.AddValue("facilityConfig", name);
                     vesselBuildInfo.AddValue("facilityLevel", level);

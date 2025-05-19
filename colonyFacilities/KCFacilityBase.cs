@@ -1,7 +1,23 @@
-﻿using KerbalKonstructs.Modules;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+
+// KC: Kerbal Colonies
+// This mod aimes to create a Colony system with Kerbal Konstructs statics
+// Copyright (c) 2024-2025 AMPW, Halengar
+
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/
 
 namespace KerbalColonies.colonyFacilities
 {
@@ -13,15 +29,7 @@ namespace KerbalColonies.colonyFacilities
     }
 
     /// <summary>
-    /// <para>The KCFaciltiyBase class is used to create custom KCFacilities, you must register your types in the typeregistry at startup with the AWAKE method.</para>
-    /// <para>If the facility can be built from the CAB it must be registered with a KCFacilityInfoClass in the Configuration.BuildableFacilities dictionary via the RegisterBuildableFacility method.</para>
-    /// <para>If the faciltiy can be upgraded from the CAB it must be registered with the inclusive maximum level in the Configuration. UpgradeableFacilities Dictionary</para>
-    /// <para>If you have custom fields that you want to save overwrite the encode and decode string methods and save the values of your custom fields in the facilityData string.</para>
-    /// <para>Public fields are saved during the serialization but they are NOT loaded.</para>
-    /// <para>You can encode the data however you want but you are not allowed to use "{", "}", ",", ":", "=" and "//"</para>
-    /// <para>This is because the datastring is saved as a value in a KSP confignode and using these symbols can mess up the loading<para>
-    /// <para>I recommend using "|" as seperator and "&" instead of "="</para>
-    /// <para>It's NOT checked if the datastring contains any of these symbols!</para>
+    /// The KCFaciltiyBase class is used to create custom KCFacilities, you must register your types in the typeregistry at the mainmenu Awake
     /// </summary>
     public abstract class KCFacilityBase
     {
@@ -85,8 +93,8 @@ namespace KerbalColonies.colonyFacilities
             if (facility.facilityInfo.UpgradeTypes[facility.level + 1] != UpgradeType.withGroupChange || !facility.upgradeable) { return false; }
 
             facility.UpgradeFacility(facility.level + 1);
-            KerbalKonstructs.API.GetGroupStatics(facility.KKgroups.First()).ToList().ForEach(x => KerbalKonstructs.API.RemoveStatic(x.UUID));
-            KerbalKonstructs.API.CopyGroup(facility.KKgroups.First(), facility.GetBaseGroupName(facility.level), fromBodyName: "Kerbin");
+            KerbalKonstructs.API.GetGroupStatics(facility.KKgroups.Last()).ToList().ForEach(x => KerbalKonstructs.API.RemoveStatic(x.UUID));
+            KerbalKonstructs.API.CopyGroup(facility.KKgroups.Last(), facility.GetBaseGroupName(facility.level), fromBodyName: "Kerbin");
 
             return true;
         }
@@ -184,6 +192,13 @@ namespace KerbalColonies.colonyFacilities
         {
             lastUpdateTime = Planetarium.GetUniversalTime();
         }
+
+        /// <summary>
+        /// This method is used to store an additional confignode in the ColonyDataV3 file
+        /// <para>It may be used to store data that is needed between different savegames, e.g. the launchpad UUIDs to disable the launchpads of other savegames</para>
+        /// </summary>
+        /// <returns></returns>
+        public virtual ConfigNode GetSharedNode() => null;
 
         /// <summary>
         /// This method is used to save all of the persistent facility data.

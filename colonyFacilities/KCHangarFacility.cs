@@ -6,7 +6,7 @@ using UnityEngine;
 
 // KC: Kerbal Colonies
 // This mod aimes to create a Colony system with Kerbal Konstructs statics
-// Copyright (C) 2024 AMPW, Halengar
+// Copyright (c) 2024-2025 AMPW, Halengar
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -130,11 +130,13 @@ namespace KerbalColonies.colonyFacilities
         public static bool CanBuildVessel(double vesselMass, colonyClass colony)
         {
             Configuration.writeDebug($"CanBuildVessel: {vesselMass} in {colony.DisplayName}");
-            KCProductionInfo info = (KCProductionInfo)Configuration.GetInfoClass(colony.sharedColonyNodes.First(n => n.name == "vesselBuildInfo").GetValue("facilityConfig"));
+            ConfigNode vesselBuildInfoNode = colony.sharedColonyNodes.FirstOrDefault(n => n.name == "vesselBuildInfo");
+            if (vesselBuildInfoNode == null) return false;
+            KCProductionInfo info = (KCProductionInfo)Configuration.GetInfoClass(vesselBuildInfoNode.GetValue("facilityConfig"));
             if (info == null) return false;
 
-            int level = int.Parse(colony.sharedColonyNodes.First(n => n.name == "vesselBuildInfo").GetValue("facilityLevel"));
-            List<KCProductionFacility> productionFacilitiesInColony = colony.Facilities.Where(f => f is KCProductionFacility).Select(f => (KCProductionFacility)f).Where(f => info.HasSameRecipt(level, f)).ToList();
+            int level = int.Parse(vesselBuildInfoNode.GetValue("facilityLevel"));
+            List<KCProductionFacility> productionFacilitiesInColony = colony.Facilities.Where(f => f is KCProductionFacility).Select(f => (KCProductionFacility)f).Where(f => info.HasSameRecipe(level, f)).ToList();
 
             if (productionFacilitiesInColony.Count == 0) return false;
             else if (info.vesselResourceCost[level].Count == 0) return true;
@@ -144,8 +146,8 @@ namespace KerbalColonies.colonyFacilities
                 foreach (KeyValuePair<PartResourceDefinition, double> res in info.vesselResourceCost[level])
                 {
                     double colonyAmount = KCStorageFacility.colonyResources(res.Key, colony);
-                    Configuration.writeDebug($"resource: {res.Key.name}, amount: {res.Value}, stored in colony: {colonyAmount}");
-                    if (res.Value * vesselMass > colonyAmount)
+                    Configuration.writeDebug($"resource: {res.Key.name}, amount: {res.Value * Configuration.VesselCostMultiplier}, stored in colony: {colonyAmount}");
+                    if (res.Value * Configuration.VesselCostMultiplier * vesselMass > colonyAmount)
                     {
                         Configuration.writeDebug($"Insufficient resource: {res.Key.name}");
                         canBuild = false;
@@ -159,14 +161,15 @@ namespace KerbalColonies.colonyFacilities
         {
             if (CanBuildVessel(vesselMass, colony))
             {
-                KCProductionInfo info = (KCProductionInfo)Configuration.GetInfoClass(colony.sharedColonyNodes.First(n => n.name == "vesselBuildInfo").GetValue("facilityConfig"));
+                ConfigNode vesselBuildInfoNode = colony.sharedColonyNodes.FirstOrDefault(n => n.name == "vesselBuildInfo");
+                KCProductionInfo info = (KCProductionInfo)Configuration.GetInfoClass(vesselBuildInfoNode.GetValue("facilityConfig"));
+                int level = int.Parse(vesselBuildInfoNode.GetValue("facilityLevel"));
 
-                int level = int.Parse(colony.sharedColonyNodes.First(n => n.name == "vesselBuildInfo").GetValue("facilityLevel"));
-                List<KCProductionFacility> productionFacilitiesInColony = colony.Facilities.Where(f => f is KCProductionFacility).Select(f => (KCProductionFacility)f).Where(f => info.HasSameRecipt(level, f)).ToList();
+                List<KCProductionFacility> productionFacilitiesInColony = colony.Facilities.Where(f => f is KCProductionFacility).Select(f => (KCProductionFacility)f).Where(f => info.HasSameRecipe(level, f)).ToList();
 
                 foreach (KeyValuePair<PartResourceDefinition, double> res in info.vesselResourceCost[level])
                 {
-                    KCStorageFacility.addResourceToColony(res.Key, -res.Value * vesselMass, colony);
+                    KCStorageFacility.addResourceToColony(res.Key, -res.Value * Configuration.VesselCostMultiplier * vesselMass, colony);
                 }
             }
         }
@@ -269,7 +272,7 @@ namespace KerbalColonies.colonyFacilities
                 else
                 {
                     Configuration.writeDebug($"vessel part counts: {vessel.Parts.Count}, mass: {vesselDryMass}");
-                    storedVessel.vesselBuildTime = (vessel.Parts.Count + vesselDryMass) * 10;
+                    storedVessel.vesselBuildTime = (vessel.Parts.Count + vesselDryMass) * 10 * Configuration.VesselTimeMultiplier;
                     storedVessel.entireVesselBuildTime = storedVessel.vesselBuildTime;
                     storedVessel.vesselDryMass = vesselDryMass;
                 }

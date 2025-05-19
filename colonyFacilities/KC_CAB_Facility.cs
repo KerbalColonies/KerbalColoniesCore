@@ -4,6 +4,23 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
+// KC: Kerbal Colonies
+// This mod aimes to create a Colony system with Kerbal Konstructs statics
+// Copyright (c) 2024-2025 AMPW, Halengar
+
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/
+
 namespace KerbalColonies.colonyFacilities
 {
     public class KC_CABInfo : KCFacilityInfoClass
@@ -31,6 +48,26 @@ namespace KerbalColonies.colonyFacilities
             }
         }
 
+        private Dictionary<string, int> defaultFacilityStrings = new Dictionary<string, int>();
+        private Dictionary<string, int> priorityDefaultFacilityStrings = new Dictionary<string, int>();
+
+        public override void lateInit()
+        {
+            priorityDefaultFacilityStrings.ToList().ForEach(priorityFac =>
+            {
+                KCFacilityInfoClass priorityInfo = Configuration.GetInfoClass(priorityFac.Key);
+                if (priorityInfo == null) throw new MissingFieldException($"The priority facility type {priorityFac.Key} was not found");
+                else addPriorityDefaultFacility(priorityInfo, priorityFac.Value);
+            });
+
+            defaultFacilityStrings.ToList().ForEach(defaultFac =>
+            {
+                KCFacilityInfoClass defaultInfo = Configuration.GetInfoClass(defaultFac.Key);
+                if (defaultInfo == null) throw new MissingFieldException($"The default facility type {defaultFac.Key} was not found");
+                else addDefaultFacility(defaultInfo, defaultFac.Value);
+            });
+        }
+
         public KC_CABInfo(ConfigNode node) : base(node)
         {
 
@@ -39,9 +76,8 @@ namespace KerbalColonies.colonyFacilities
                 ConfigNode priorityNode = node.GetNode("priorityDefaultFacilities");
                 foreach (ConfigNode.Value v in priorityNode.values)
                 {
-                    KCFacilityInfoClass priorityInfo = Configuration.GetInfoClass(v.name);
-                    if (priorityInfo == null) throw new MissingFieldException($"The priority facility type {v.name} was not found");
-                    else addPriorityDefaultFacility(priorityInfo, int.Parse(v.value));
+                    priorityDefaultFacilityStrings.Add(v.name, int.Parse(v.value));
+
                 }
             }
 
@@ -50,9 +86,7 @@ namespace KerbalColonies.colonyFacilities
                 ConfigNode defaultNode = node.GetNode("defaultFacilities");
                 foreach (ConfigNode.Value v in defaultNode.values)
                 {
-                    KCFacilityInfoClass defaultInfo = Configuration.GetInfoClass(v.name);
-                    if (defaultInfo == null) throw new MissingFieldException($"The default facility type {v.name} was not found");
-                    else addDefaultFacility(defaultInfo, int.Parse(v.value));
+                    defaultFacilityStrings.Add(v.name, int.Parse(v.value));
                 }
             }
         }
@@ -84,9 +118,9 @@ namespace KerbalColonies.colonyFacilities
                         GUILayout.BeginHorizontal();
 
                         GUILayout.Label(colonyFacility.displayName);
+                        GUILayout.FlexibleSpace();
                         GUILayout.Label($"Level: {colonyFacility.level.ToString()}");
                         GUILayout.FlexibleSpace();
-                        GUILayout.Label(colonyFacility.GetFacilityProductionDisplay());
                         if (
                         ((colonyFacility.AllowClick && playerInColony) || (colonyFacility.AllowRemote && !playerInColony))
                         && !facility.ConstructedFacilities.Contains(colonyFacility))
@@ -112,10 +146,12 @@ namespace KerbalColonies.colonyFacilities
 
                             GUILayout.BeginVertical();
                             {
+                                GUILayout.Label("Upgrade cost:");
                                 facilityInfo.resourceCost[colonyFacility.level + 1].ToList().ForEach(pair =>
                                 {
                                     GUILayout.Label($"{pair.Key.displayName}: {pair.Value}");
                                 });
+                                if (facilityInfo.Funds[colonyFacility.level + 1] != 0) GUILayout.Label($"Funds: {facilityInfo.Funds[colonyFacility.level + 1]}");
                             }
                             GUILayout.EndVertical();
 
@@ -283,31 +319,40 @@ namespace KerbalColonies.colonyFacilities
             }
 
             double deltaTime = Planetarium.GetUniversalTime() - lastUpdateTime;
-            double totalProduction = Colony.Facilities.Where(f => f is KCProductionFacility).ToList().Sum(facility => ((KCProductionFacility)facility).dailyProduction() * deltaTime / 24 / 60 / 60);
+            KCProductionFacility.DailyProductions(Colony, out double dailyProduction, out double dailyVesselProduction);
+            dailyProduction = (((dailyProduction * deltaTime) / 6) / 60) / 60; // convert from Kerbin days (6 hours) to seconds
+            dailyVesselProduction = (((dailyVesselProduction * deltaTime) / 6) / 60) / 60;
 
             List<StoredVessel> constructingVessel = KCHangarFacility.GetConstructingVessels(Colony);
 
             if (constructingVessel.Count > 0)
             {
-                while (totalProduction > 0 && constructingVessel.Count > 0)
+                while (dailyVesselProduction > 0 && constructingVessel.Count > 0)
                 {
-                    if (constructingVessel[0].vesselBuildTime > totalProduction)
+                    if (constructingVessel[0].vesselBuildTime > dailyVesselProduction)
                     {
-                        double buildingVesselMass = (double) (constructingVessel[0].vesselDryMass * (totalProduction / constructingVessel[0].entireVesselBuildTime));
+                        double buildingVesselMass = (double)(constructingVessel[0].vesselDryMass * (dailyVesselProduction / constructingVessel[0].entireVesselBuildTime));
                         if (!KCHangarFacility.CanBuildVessel(buildingVesselMass, Colony)) break;
 
                         KCHangarFacility.BuildVessel(buildingVesselMass, Colony);
-                        constructingVessel[0].vesselBuildTime -= totalProduction;
-                        totalProduction = 0;
+                        constructingVessel[0].vesselBuildTime -= dailyVesselProduction;
+                        if (Math.Round((double)constructingVessel[0].vesselBuildTime, 2) <= 0)
+                        {
+                            constructingVessel[0].vesselBuildTime = null;
+                            constructingVessel[0].entireVesselBuildTime = null;
+                            ScreenMessages.PostScreenMessage($"KC: Vessel {constructingVessel[0].vesselName} was fully built on colony {Colony.DisplayName}", 10f, ScreenMessageStyle.UPPER_RIGHT);
+                        }
+                        dailyVesselProduction = 0;
                         break;
                     }
                     else
                     {
+                        if (constructingVessel[0].vesselBuildTime == null) { constructingVessel.RemoveAt(0); continue; }
                         double buildingVesselMass = (double)(constructingVessel[0].vesselDryMass * (constructingVessel[0].vesselBuildTime / constructingVessel[0].entireVesselBuildTime));
                         if (!KCHangarFacility.CanBuildVessel(buildingVesselMass, Colony)) break;
 
                         KCHangarFacility.BuildVessel(buildingVesselMass, Colony);
-                        totalProduction -= (double) constructingVessel[0].vesselBuildTime;
+                        dailyVesselProduction -= (double)constructingVessel[0].vesselBuildTime;
                         constructingVessel[0].vesselBuildTime = null;
                         constructingVessel[0].entireVesselBuildTime = null;
                         ScreenMessages.PostScreenMessage($"KC: Vessel {constructingVessel[0].vesselName} was fully built on colony {Colony.DisplayName}", 10f, ScreenMessageStyle.UPPER_RIGHT);
@@ -315,26 +360,28 @@ namespace KerbalColonies.colonyFacilities
                 }
             }
 
+            dailyProduction += dailyVesselProduction;
+
             if (upgradingFacilities.Count > 0 || constructingFacilities.Count > 0)
             {
 
-                while (totalProduction > 0)
+                while (dailyProduction > 0)
                 {
                     if (upgradingFacilities.Count > 0)
                     {
-                        if (upgradingFacilities.ElementAt(0).Value > totalProduction)
+                        if (upgradingFacilities.ElementAt(0).Value > dailyProduction)
                         {
-                            upgradingFacilities[upgradingFacilities.ElementAt(0).Key] -= totalProduction;
-                            totalProduction = 0;
+                            upgradingFacilities[upgradingFacilities.ElementAt(0).Key] -= dailyProduction;
+                            dailyProduction = 0;
                             break;
                         }
                         else
                         {
                             KCFacilityBase facility = upgradingFacilities.ElementAt(0).Key;
-                            totalProduction -= upgradingFacilities.ElementAt(0).Value;
+                            dailyProduction -= upgradingFacilities.ElementAt(0).Value;
                             upgradingFacilities.Remove(facility);
 
-                            ScreenMessages.PostScreenMessage($"KC: Facility {facility} was fully upgraded on colony {Colony.DisplayName}", 10f, ScreenMessageStyle.UPPER_RIGHT);
+                            ScreenMessages.PostScreenMessage($"KC: Facility {facility.displayName} was fully upgraded on colony {Colony.DisplayName}", 10f, ScreenMessageStyle.UPPER_RIGHT);
 
                             switch (facility.facilityInfo.UpgradeTypes[facility.level + 1])
                             {
@@ -352,19 +399,19 @@ namespace KerbalColonies.colonyFacilities
                     }
                     else if (constructingFacilities.Count > 0)
                     {
-                        if (constructingFacilities.ElementAt(0).Value > totalProduction)
+                        if (constructingFacilities.ElementAt(0).Value > dailyProduction)
                         {
-                            constructingFacilities[constructingFacilities.ElementAt(0).Key] -= totalProduction;
-                            totalProduction = 0;
+                            constructingFacilities[constructingFacilities.ElementAt(0).Key] -= dailyProduction;
+                            dailyProduction = 0;
                             break;
                         }
                         else
                         {
                             KCFacilityBase facility = constructingFacilities.ElementAt(0).Key;
-                            totalProduction -= constructingFacilities.ElementAt(0).Value;
+                            dailyProduction -= constructingFacilities.ElementAt(0).Value;
                             constructingFacilities.Remove(facility);
                             addConstructedFacility(facility);
-                            ScreenMessages.PostScreenMessage($"KC: Facility {facility} was fully built on colony {Colony.DisplayName}", 10f, ScreenMessageStyle.UPPER_RIGHT);
+                            ScreenMessages.PostScreenMessage($"KC: Facility {facility.displayName} was fully built on colony {Colony.DisplayName}", 10f, ScreenMessageStyle.UPPER_RIGHT);
                         }
                     }
                     else
@@ -396,7 +443,7 @@ namespace KerbalColonies.colonyFacilities
             }
             else
             {
-                addUpgradingFacility(facility, facility.facilityInfo.UpgradeTimes[facility.level + 1]);
+                addUpgradingFacility(facility, facility.facilityInfo.UpgradeTimes[facility.level + 1] * Configuration.FacilityTimeMultiplier);
             }
         }
 
@@ -408,7 +455,7 @@ namespace KerbalColonies.colonyFacilities
             }
             else
             {
-                addConstructingFacility(facility, facility.facilityInfo.UpgradeTimes[0]);
+                addConstructingFacility(facility, facility.facilityInfo.UpgradeTimes[0] * Configuration.FacilityTimeMultiplier);
             }
         }
 

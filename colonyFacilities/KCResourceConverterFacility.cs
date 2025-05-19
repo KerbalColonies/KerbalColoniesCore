@@ -1,12 +1,61 @@
-﻿using System;
+﻿using KerbalColonies.UI;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using KerbalColonies.UI;
+
+// KC: Kerbal Colonies
+// This mod aimes to create a Colony system with Kerbal Konstructs statics
+// Copyright (c) 2024-2025 AMPW, Halengar
+
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/
 
 namespace KerbalColonies.colonyFacilities
 {
-    internal class RecipeSelectorWindow : KCWindowBase
+    public class KCResourceConverterInfo : KCKerbalFacilityInfoClass
+    {
+        public Dictionary<int, ResourceConversionList> availableRecipes { get; private set; } = new Dictionary<int, ResourceConversionList> { };
+        public Dictionary<int, int> ISRUcount { get; private set; } = new Dictionary<int, int> { };
+
+        public KCResourceConverterInfo(ConfigNode node) : base(node)
+        {
+            foreach (KeyValuePair<int, ConfigNode> levelNode in levelNodes)
+            {
+                if (levelNode.Value.HasValue("conversionList"))
+                {
+                    string conversionListName = levelNode.Value.GetValue("conversionList");
+                    ResourceConversionList conversionList = ResourceConversionList.GetConversionList(conversionListName);
+                    if (conversionList != null)
+                    {
+                        availableRecipes.Add(levelNode.Key, conversionList);
+                    }
+                    else
+                    {
+                        throw new MissingFieldException($"The facility {name} (type: {type}) has no conversion list called {conversionListName}.");
+                    }
+                }
+                else if (levelNode.Key > 0) availableRecipes.Add(levelNode.Key, availableRecipes[levelNode.Key - 1]);
+                else throw new MissingFieldException($"The facility {name} (type: {type}) has no conversion list (at least for level 0).");
+
+                if (levelNode.Value.HasValue("ISRUcount")) ISRUcount[levelNode.Key] = int.Parse(levelNode.Value.GetValue("ISRUcount"));
+                else if (levelNode.Key > 0) ISRUcount[levelNode.Key] = ISRUcount[levelNode.Key - 1];
+                else throw new MissingFieldException($"The facility {name} has no ISRUcount (at least for level 0).");
+            }
+        }
+    }
+
+    public class RecipeSelectorWindow : KCWindowBase
     {
         KCResourceConverterFacility resourceConverter;
 
@@ -16,9 +65,9 @@ namespace KerbalColonies.colonyFacilities
         {
             scrollPos = GUILayout.BeginScrollView(scrollPos);
             GUILayout.BeginVertical();
-            foreach (ResourceConversionRate recipe in KCResourceConverterFacility.conversionRates.Where(kvp => kvp.Value <= resourceConverter.level).ToDictionary(i => i.Key, i => i.Value).Keys)
+            foreach (ResourceConversionRate recipe in resourceConverter.availableRecipes().GetRecipes())
             {
-                GUILayout.Label(recipe.ReciptName);
+                GUILayout.Label(recipe.DisplayName);
                 GUILayout.BeginHorizontal();
 
                 GUILayout.BeginVertical();
@@ -55,11 +104,14 @@ namespace KerbalColonies.colonyFacilities
 
                 GUILayout.EndHorizontal();
 
-                if (GUILayout.Button("Use this recipt"))
+                if (GUILayout.Button("Use this recipe"))
                 {
                     resourceConverter.activeRecipe = recipe;
                     this.Close();
                 }
+                GUILayout.Space(10);
+                GUILayout.Box("", GUILayout.ExpandWidth(true), GUILayout.Height(1));
+                GUILayout.Space(10);
             }
             GUILayout.EndVertical();
             GUILayout.EndScrollView();
@@ -89,8 +141,17 @@ namespace KerbalColonies.colonyFacilities
             }
 
             ResourceConversionRate recipe = resourceConverter.activeRecipe;
+            if (recipe == null)
+            {
+                GUILayout.Label($"Failed to load a recipe");
+                if (GUILayout.Button("Select a new Recipe:"))
+                {
+                    recipeSelector.Open();
+                }
+                return;
+            }
 
-            GUILayout.Label($"Current recipe: {recipe.ReciptName}");
+            GUILayout.Label($"Current recipe: {recipe.RecipeName}");
 
             GUILayout.BeginHorizontal();
 
@@ -163,6 +224,8 @@ namespace KerbalColonies.colonyFacilities
             }
 
             kerbalGUI.StaffingInterface();
+
+            GUILayout.Label($"For operations this facility must have the maximum number of kerbals assigned.");
         }
 
         protected override void OnClose()
@@ -187,8 +250,37 @@ namespace KerbalColonies.colonyFacilities
 
     public class ResourceConversionRate
     {
-        private string reciptName;
-        public string ReciptName { get { return reciptName; } }
+        public static HashSet<ResourceConversionRate> conversionRates = new HashSet<ResourceConversionRate> { };
+
+        public static ResourceConversionRate GetConversionRate(string name) => conversionRates.FirstOrDefault(rcr => rcr.RecipeName == name);
+
+        public static bool operator ==(ResourceConversionRate a, ResourceConversionRate b)
+        {
+            if (ReferenceEquals(a, null) && ReferenceEquals(b, null)) return true;
+            else if (ReferenceEquals(a, null) || ReferenceEquals(b, null)) return false;
+            return a.RecipeName == b.RecipeName;
+        }
+        public static bool operator !=(ResourceConversionRate a, ResourceConversionRate b)
+        {
+            if (ReferenceEquals(a, null) && ReferenceEquals(b, null)) return false;
+            else if (ReferenceEquals(a, null) || ReferenceEquals(b, null)) return true;
+            return a.RecipeName != b.RecipeName;
+        }
+
+        public override bool Equals(object obj)
+        {
+            return obj is ResourceConversionRate && ((ResourceConversionRate)obj).recipeName == this.recipeName;
+        }
+
+        public override int GetHashCode()
+        {
+            return recipeName.GetHashCode();
+        }
+
+        private string recipeName;
+        public string RecipeName { get { return recipeName; } }
+
+        public string DisplayName;
 
         private Dictionary<PartResourceDefinition, double> inputResources;
         private Dictionary<PartResourceDefinition, double> outputResources;
@@ -196,111 +288,181 @@ namespace KerbalColonies.colonyFacilities
         public Dictionary<PartResourceDefinition, double> InputResources { get => inputResources; }
         public Dictionary<PartResourceDefinition, double> OutputResources { get => outputResources; }
 
-        public void addInputResource(PartResourceDefinition resource, double amount)
+        public ResourceConversionRate(string recipeName, string displayName, Dictionary<PartResourceDefinition, double> inputResources, Dictionary<PartResourceDefinition, double> outputResources)
         {
-            inputResources.Add(resource, amount);
-        }
-        public void addOutputResource(PartResourceDefinition resource, double amount)
-        {
-            outputResources.Add(resource, amount);
-        }
-
-        public ResourceConversionRate(string reciptName) { this.reciptName = reciptName; }
-
-        public ResourceConversionRate(string reciptName, Dictionary<PartResourceDefinition, double> inputResources, Dictionary<PartResourceDefinition, double> outputResources)
-        {
-            this.reciptName = reciptName;
+            this.recipeName = recipeName;
+            this.DisplayName = displayName;
             this.inputResources = inputResources;
             this.outputResources = outputResources;
+
+            if (!conversionRates.Contains(this)) conversionRates.Add(this);
+            else throw new Exception($"The recipe {recipeName} already exists in the list of conversion rates. Please check your config file.");
+        }
+    }
+
+    public class ResourceConversionList
+    {
+        public static HashSet<ResourceConversionList> AllConversionLists = new HashSet<ResourceConversionList> { }; // all the lists of recipes
+
+        public static ResourceConversionList GetConversionList(string name) => AllConversionLists.FirstOrDefault(rcl => rcl.Name == name);
+
+        public static bool operator ==(ResourceConversionList a, ResourceConversionList b)
+        {
+            if (ReferenceEquals(a, null) && ReferenceEquals(b, null)) return true;
+            else if (ReferenceEquals(a, null) || ReferenceEquals(b, null)) return false;
+            return a.Name == b.Name;
+        }
+        public static bool operator !=(ResourceConversionList a, ResourceConversionList b)
+        {
+            if (ReferenceEquals(a, null) && ReferenceEquals(b, null)) return false;
+            else if (ReferenceEquals(a, null) || ReferenceEquals(b, null)) return true;
+            return a.Name != b.Name;
+        }
+        public override bool Equals(object obj)
+        {
+            return obj is ResourceConversionList && ((ResourceConversionList)obj).Name == this.Name;
+        }
+
+        public override int GetHashCode()
+        {
+            return Name.GetHashCode();
+        }
+
+        public string Name { get; set; } // the name of the list
+        public List<string> ConversionList { get; set; } = new List<string> { }; // the names of other lists
+        public List<string> RecipeNames { get; set; } = new List<string> { }; // the names of the recipes
+
+        public HashSet<ResourceConversionRate> GetRecipes()
+        {
+            HashSet<ResourceConversionRate> resourceConversionRates = new HashSet<ResourceConversionRate>();
+            RecipeNames.ForEach(r =>
+            {
+                ResourceConversionRate rcr = ResourceConversionRate.GetConversionRate(r);
+                if (rcr != null) resourceConversionRates.Add(rcr);
+            });
+            ConversionList.ForEach(l =>
+            {
+                ResourceConversionList rcl = AllConversionLists.FirstOrDefault(r => r.Name == l);
+                if (rcl != null)
+                {
+                    resourceConversionRates.UnionWith(rcl.GetRecipes());
+                }
+            });
+
+            return resourceConversionRates;
+        }
+
+        public ResourceConversionList(string name, List<string> ConversionList = null, List<string> RecipeNames = null)
+        {
+            Name = name;
+            if (ConversionList != null) this.ConversionList = ConversionList;
+            if (RecipeNames != null) this.RecipeNames = RecipeNames;
+
+            if (!AllConversionLists.Contains(this)) AllConversionLists.Add(this);
+            else throw new Exception($"The recipe list {name} already exists in the list of conversion lists. Please check your config file.");
         }
     }
 
     public class KCResourceConverterFacility : KCKerbalFacilityBase
     {
-        public static Dictionary<string, PartResourceDefinition> resourceTypes = new Dictionary<string, PartResourceDefinition>
+        public static void LoadResourceConversionLists()
         {
-            { "Ore", PartResourceLibrary.Instance.GetDefinition("Ore") },
-            { "LiquidFuel", PartResourceLibrary.Instance.GetDefinition("LiquidFuel") },
-            { "Oxidizer", PartResourceLibrary.Instance.GetDefinition("Oxidizer") },
-            { "Monopropellant", PartResourceLibrary.Instance.GetDefinition("MonoPropellant") },
-            { "MetalOre", PartResourceLibrary.Instance.GetDefinition("MetalOre") },
-            { "Metal", PartResourceLibrary.Instance.GetDefinition("Metal") },
-            { "ScrapMetal", PartResourceLibrary.Instance.GetDefinition("ScrapMetal") },
-            { "RocketParts", PartResourceLibrary.Instance.GetDefinition("RocketParts") },
-        };
+            ConfigNode[] nodes = GameDatabase.Instance.GetConfigNodes("KCResourceConversionRate");
+            if (nodes != null && nodes.Length > 0)
+            {
+                foreach (ConfigNode node in nodes)
+                {
+                    string conversionName = node.GetValue("name");
+                    if (string.IsNullOrEmpty(conversionName)) throw new MissingFieldException($"The facility {node.GetValue("name")} has no name.");
+                    Configuration.writeDebug($"Loading conversion rate {conversionName}");
+                    string displayName = node.GetValue("displayName");
+                    Dictionary<PartResourceDefinition, double> InputResources = new Dictionary<PartResourceDefinition, double>();
+                    Dictionary<PartResourceDefinition, double> OutputResources = new Dictionary<PartResourceDefinition, double>();
 
-        /// <summary>
-        /// Conversionrate per second + minimum converter level. The conversionrate are the stock ones for the Convert-O-Tron 250 and some from the extraplanetary launchpads mod, a facility has multiple simulated ones
-        /// </summary>
-        public static Dictionary<ResourceConversionRate, int> conversionRates = new Dictionary<ResourceConversionRate, int>
-        {
-            {
-               new ResourceConversionRate(
-                   "Ore2LfOx",
-                   new Dictionary<PartResourceDefinition, double> { { resourceTypes["Ore"], 0.5 }, },
-                   new Dictionary<PartResourceDefinition, double> { { resourceTypes["LiquidFuel"], 0.45 }, { resourceTypes["Oxidizer"], 0.55 }, }
-               ), 0
-            },
-            {
-                new ResourceConversionRate(
-                    "Ore2Monoprop",
-                   new Dictionary<PartResourceDefinition, double> { { resourceTypes["Ore"], 0.5 }, },
-                   new Dictionary<PartResourceDefinition, double> { { resourceTypes["Monopropellant"], 1 }, }
-               ), 0
-            },
-            {
-               new ResourceConversionRate(
-                   "Ore2Lf",
-                   new Dictionary<PartResourceDefinition, double> { { resourceTypes["Ore"], 0.5 }, },
-                   new Dictionary<PartResourceDefinition, double> { { resourceTypes["LiquidFuel"], 0.9 }, }
-               ), 0
-            },
-            {
-               new ResourceConversionRate(
-                   "Ore2Ox",
-                   new Dictionary<PartResourceDefinition, double> { { resourceTypes["Ore"], 0.5 }, },
-                   new Dictionary<PartResourceDefinition, double> { { resourceTypes["Oxidizer"], 1.1 }, }
-               ), 0
-            },
-            {
-               new ResourceConversionRate(
-                   "MetalOre2Metal",
-                   new Dictionary<PartResourceDefinition, double> { { resourceTypes["MetalOre"], 0.05110022 }, { resourceTypes["LiquidFuel"], 0.00480766 }, },
-                   new Dictionary<PartResourceDefinition, double> { { resourceTypes["Metal"], 0.0357408 }, }
-               ), 0
-            },
-            {
-               new ResourceConversionRate(
-                   "ScrapMetal2Metal",
-                   new Dictionary<PartResourceDefinition, double> { { resourceTypes["ScrapMetal"], 0.05 }, },
-                   new Dictionary<PartResourceDefinition, double> { { resourceTypes["Metal"], 0.05 }, }
-               ), 0
-            },
-            {
-               new ResourceConversionRate(
-                   "Metal2RocketsParts",
-                   new Dictionary<PartResourceDefinition, double> { { resourceTypes["Metal"], 0.0312 }, },
-                   new Dictionary<PartResourceDefinition, double> { { resourceTypes["RocketParts"], 0.7 }, { resourceTypes["ScrapMetal"], 0.295 }, }
-               ), 0
-            },
-            {
-               new ResourceConversionRate(
-                   "ScrapMetal2RocketsParts",
-                   new Dictionary<PartResourceDefinition, double> { { resourceTypes["ScrapMetal"], 0.005 }, },
-                   new Dictionary<PartResourceDefinition, double> { { resourceTypes["RocketParts"], 0.495 }, }
-               ), 0
-            },
-        };
+                    ConfigNode inputNode = node.GetNode("inputResources");
+                    foreach (ConfigNode.Value v in inputNode.values)
+                    {
+                        Configuration.writeDebug($"Loading input resource {v.name} with amount {v.value}");
+                        PartResourceDefinition resourceDef = PartResourceLibrary.Instance.GetDefinition(v.name);
+                        if (resourceDef == null)
+                        {
+                            Configuration.writeDebug($"The PartResourceLibrary contains no definition for {v.name}.");
+                            throw new MissingFieldException($"{conversionName} contains an invalid input resource name {v.name}.");
+                        }
+                        double amount = double.Parse(v.value);
+                        InputResources.Add(resourceDef, amount);
+                    }
+                    ConfigNode outputNode = node.GetNode("outputResources");
+                    foreach (ConfigNode.Value v in outputNode.values)
+                    {
+                        Configuration.writeDebug($"Loading output resource {v.name} with amount {v.value}");
+                        PartResourceDefinition resourceDef = PartResourceLibrary.Instance.GetDefinition(v.name);
+                        if (resourceDef == null)
+                        {
+                            Configuration.writeDebug($"The PartResourceLibrary contains no definition for {v.name}.");
+                            throw new MissingFieldException($"{conversionName} contains an invalid output resource name {v.name}.");
+                        }
+                        double amount = double.Parse(v.value);
+                        OutputResources.Add(resourceDef, amount);
+                    }
+                    try
+                    {
+                        new ResourceConversionRate(conversionName, displayName, InputResources, OutputResources);
+                    }
+                    catch(Exception e)
+                    {
+                        ConfigFacilityLoader.exceptions.Add(e);
+                        ConfigFacilityLoader.failedConfigs.Add($"ResourceConversionRate: {conversionName}");
+                    }
+                }
+            }
 
+            ConfigNode[] conversionListNodes = GameDatabase.Instance.GetConfigNodes("KCResourceConversionList");
+            if (conversionListNodes != null && conversionListNodes.Length > 0)
+            {
+                foreach (ConfigNode node in conversionListNodes)
+                {
+                    string conversionName = node.GetValue("name");
+                    if (string.IsNullOrEmpty(conversionName)) throw new MissingFieldException($"The facility {node.GetValue("name")} has no name.");
+
+                    string recipeName = node.GetValue("recipeName");
+                    List<string> recipeNames = new List<string> { };
+                    if (recipeName != null) recipeNames = recipeName.Split(',').ToList().Select(s => s.Trim()).ToList();
+
+                    string conversionListName = node.GetValue("conversionList");
+                    List<string> conversionList = new List<string> { };
+                    if (conversionListName != null) conversionList = conversionListName.Split(',').ToList().Select(s => s.Trim()).ToList();
+
+                    if (conversionList.Count == 0 && recipeNames.Count == 0)
+                    {
+                        throw new MissingFieldException($"The conversionlist {node.GetValue("name")} has no conversion list or recipe names.");
+                    }
+
+                    try
+                    {
+                        new ResourceConversionList(conversionName, conversionList, recipeNames);
+                    }
+                    catch (Exception e)
+                    {
+                        ConfigFacilityLoader.exceptions.Add(e);
+                        ConfigFacilityLoader.failedConfigs.Add($"ResourceConversionList: {conversionName}");
+                    }
+                }
+            }
+
+        }
+
+        public ResourceConversionList availableRecipes() => ((KCResourceConverterInfo)facilityInfo).availableRecipes[level];
         public ResourceConversionRate activeRecipe;
-        public Dictionary<int, int> ISRUcount { get; private set; } = new Dictionary<int, int> { };
+        public int ISRUcount() => ((KCResourceConverterInfo)facilityInfo).ISRUcount[level];
         private KCResourceConverterWindow kCResourceConverterWindow;
 
-        private void executeRecipt(ResourceConversionRate recipt, double dTime)
+        private void executeRecipe(double dTime)
         {
+            if (activeRecipe == null) return;
             foreach (KeyValuePair<PartResourceDefinition, double> kvp in activeRecipe.InputResources)
             {
-                double remainingResource = kvp.Value * dTime * ISRUcount[level];
+                double remainingResource = kvp.Value * dTime * ISRUcount();
 
                 List<KCStorageFacility> facilitiesWithResource = KCStorageFacility.findFacilityWithResourceType(kvp.Key, Colony);
 
@@ -323,7 +485,7 @@ namespace KerbalColonies.colonyFacilities
 
             foreach (KeyValuePair<PartResourceDefinition, double> kvp in activeRecipe.OutputResources)
             {
-                double remainingResource = kvp.Value * dTime * ISRUcount[level];
+                double remainingResource = kvp.Value * dTime * ISRUcount();
 
                 List<KCStorageFacility> facilitiesWithResource = KCStorageFacility.findFacilityWithResourceType(kvp.Key, Colony);
 
@@ -343,13 +505,14 @@ namespace KerbalColonies.colonyFacilities
             }
         }
 
-        private bool canExecuteRecipt(ResourceConversionRate recipt, double dTime)
+        public bool canExecuteRecipe(double dTime)
         {
+            if (activeRecipe == null) return false;
             bool canExecute = true;
 
             foreach (KeyValuePair<PartResourceDefinition, double> kvp in activeRecipe.InputResources)
             {
-                double remainingResource = kvp.Value * dTime * ISRUcount[level];
+                double remainingResource = kvp.Value * dTime * ISRUcount();
 
                 List<KCStorageFacility> facilitiesWithResource = KCStorageFacility.findFacilityWithResourceType(kvp.Key, Colony);
 
@@ -373,7 +536,7 @@ namespace KerbalColonies.colonyFacilities
 
             foreach (KeyValuePair<PartResourceDefinition, double> kvp in activeRecipe.OutputResources)
             {
-                double remainingResource = kvp.Value * dTime * ISRUcount[level];
+                double remainingResource = kvp.Value * dTime * ISRUcount();
 
                 List<KCStorageFacility> facilitiesWithResource = KCStorageFacility.findFacilityWithResourceType(kvp.Key, Colony);
                 bool addResource = false;
@@ -414,9 +577,9 @@ namespace KerbalColonies.colonyFacilities
 
             if (enabled)
             {
-                if (canExecuteRecipt(activeRecipe, dTime))
+                if (canExecuteRecipe(dTime))
                 {
-                    executeRecipt(activeRecipe, dTime);
+                    executeRecipe(dTime);
                 }
                 else { enabled = false; }
             }
@@ -437,37 +600,30 @@ namespace KerbalColonies.colonyFacilities
         public override ConfigNode getConfigNode()
         {
             ConfigNode node = base.getConfigNode();
-            node.AddValue("recipt", activeRecipe.ReciptName);
+            if (activeRecipe != null)
+                node.AddValue("recipe", activeRecipe.RecipeName);
 
             return node;
         }
 
-        private void configNodeLoader(ConfigNode node)
-        {
-            ConfigNode levelNode = facilityInfo.facilityConfig.GetNode("level");
-            for (int i = 0; i <= maxLevel; i++)
-            {
-                ConfigNode iLevel = levelNode.GetNode(i.ToString());
-                if (iLevel.HasValue("ISRUcount")) ISRUcount[level] = int.Parse(iLevel.GetValue("ISRUcount"));
-                else if (i > 0) ISRUcount = ISRUcount;
-                else throw new MissingFieldException($"The facility {facilityInfo.name} (type: {facilityInfo.type}) has no ISRUcount (at least for level 0).");
-            }
-        }
-
         public KCResourceConverterFacility(colonyClass colony, KCFacilityInfoClass facilityInfo, ConfigNode node) : base(colony, facilityInfo, node)
         {
-            configNodeLoader(facilityInfo.facilityConfig);
             kCResourceConverterWindow = new KCResourceConverterWindow(this);
 
-            activeRecipe = conversionRates.First(recipt => recipt.Key.ReciptName == node.GetValue("recipt")).Key;
+            if (node.GetValue("recipe") == null) activeRecipe = availableRecipes().GetRecipes().FirstOrDefault();
+            else activeRecipe = ResourceConversionRate.GetConversionRate(node.GetValue("recipe"));
+            if (activeRecipe == null)
+            {
+                throw new MissingFieldException($"The facility {facilityInfo.name} (type: {facilityInfo.type}) has no recipe called {node.GetValue("recipe")}.");
+            }
         }
 
         public KCResourceConverterFacility(colonyClass colony, KCFacilityInfoClass facilityInfo, bool enabled) : base(colony, facilityInfo, enabled)
         {
-            configNodeLoader(facilityInfo.facilityConfig);
             kCResourceConverterWindow = new KCResourceConverterWindow(this);
 
-            this.activeRecipe = conversionRates.ElementAt(0).Key;
+            HashSet<ResourceConversionRate> rates = availableRecipes().GetRecipes();
+            activeRecipe = rates.FirstOrDefault();
         }
     }
 }

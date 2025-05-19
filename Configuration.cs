@@ -1,16 +1,13 @@
 ﻿using KerbalColonies.colonyFacilities;
-using KerbalColonies;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using UnityEngine;
-using static Targeting.Sample;
 
 // KC: Kerbal Colonies
 // This mod aimes to create a Colony system with Kerbal Konstructs statics
-// Copyright (C) 2024 AMPW, Halengar
+// Copyright (c) 2024-2025 AMPW, Halengar
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -31,7 +28,7 @@ namespace KerbalColonies
     /// <summary>
     /// Reads and holds configuration parameters
     /// </summary> 
-    [KSPScenario(ScenarioCreationOptions.AddToAllGames, GameScenes.SPACECENTER, GameScenes.FLIGHT, GameScenes.EDITOR)]
+    [KSPScenario(ScenarioCreationOptions.AddToAllGames, GameScenes.SPACECENTER, GameScenes.FLIGHT, GameScenes.EDITOR, GameScenes.TRACKSTATION)]
     internal class Configuration : ScenarioModule
     {
         public override void OnLoad(ConfigNode node)
@@ -39,10 +36,11 @@ namespace KerbalColonies
             KCgroups.Clear();
             colonyDictionary.Clear();
             GroupFacilities.Clear();
+            ColonyBuilding.buildQueue.Clear();
+            LoadConfiguration();
             writeDebug("scenariomodule load");
             writeDebug(node.ToString());
             LoadColoniesV3(node);
-            LoadConfiguration();
 
         }
         public override void OnSave(ConfigNode node)
@@ -75,9 +73,19 @@ namespace KerbalColonies
 
         public static bool RegisterCabInfo(KC_CABInfo info)
         {
-            if (!cabTypes.Any(c => c.name == info.name))
+            if (!cabTypes.Contains(info))
             {
                 cabTypes.Add(info);
+                return true;
+            }
+            return false;
+        }
+
+        public static bool UnregisterCabInfo(KC_CABInfo info)
+        {
+            if (cabTypes.Contains(info))
+            {
+                cabTypes.Remove(info);
                 return true;
             }
             return false;
@@ -92,9 +100,19 @@ namespace KerbalColonies
 
         public static bool RegisterBuildableFacility(KCFacilityInfoClass info)
         {
-            if (!buildableFacilities.Any(c => c.name == info.name))
+            if (!buildableFacilities.Contains(info))
             {
                 buildableFacilities.Add(info);
+                return true;
+            }
+            return false;
+        }
+
+        public static bool UnregisterBuildableFacility(KCFacilityInfoClass info)
+        {
+            if (buildableFacilities.Contains(info))
+            {
+                buildableFacilities.Remove(info);
                 return true;
             }
             return false;
@@ -120,18 +138,20 @@ namespace KerbalColonies
             return (KCFacilityBase)Activator.CreateInstance(info.type, new object[] { colony, info, node });
         }
 
+        #region parameters
         // configurable parameters
-        private static Type crewQuarterType = typeof(KCCrewQuarters); // The default type for crew quarters, I want that other mods can change this. The only restriction is that it must be derived from KCCrewQuarters
-        internal static Type CrewQuarterType { get { return crewQuarterType; } set { if (typeof(KCCrewQuarters).IsAssignableFrom(value)) { crewQuarterType = value; } } }
-
-
-        internal static int maxColoniesPerBody = 3;              // Limits the amount of colonies per celestial body (planet/moon)
-                                                                 // set it to zero to disable the limit                                                             // It's planned to change this so different resources can be used
+        public static int MaxColoniesPerBody = 3;              // Limits the amount of colonies per celestial body (planet/moon)
+                                                               // set it to zero to disable the limit
+        public static double FacilityCostMultiplier = 1.0; // Multiplier for the cost of the facilities
+        public static double FacilityTimeMultiplier = 1.0; // Multiplier for the time of the facilities
+        public static double VesselCostMultiplier = 1.0; // Multiplier for the cost of the vessels
+        public static double VesselTimeMultiplier = 1.0; // Multiplier for the time of the vessels
 #if DEBUG
-        internal static bool enableLogging = true;            // Enable this only in debug purposes as it floods the logs very much
+        public static bool enableLogging = true;            // Enable this only in debug purposes as it floods the logs very much
 #else
-        internal static bool enableLogging = false;           // Enable this only in debug purposes as it floods the logs very much
+        public static bool enableLogging = false;           // Enable this only in debug purposes as it floods the logs very much
 #endif
+        #endregion
 
         #region savingV3
         // New saving
@@ -156,24 +176,25 @@ namespace KerbalColonies
         /// <summary>
         /// This dictionary contains all of the groups across all savegames. It's used to disable the groups from other savegames to enable per savegame colonies
         /// </summary>
-        internal static Dictionary<string, Dictionary<int, List<string>>> KCgroups = new Dictionary<string, Dictionary<int, List<string>>> { };
+        internal static Dictionary<string, Dictionary<int, Dictionary<string, ConfigNode>>> KCgroups = new Dictionary<string, Dictionary<int, Dictionary<string, ConfigNode>>> { };
 
         internal static void AddGroup(int bodyIndex, string groupName, KCFacilityBase faciltiy)
         {
             if (!KCgroups.ContainsKey(HighLogic.CurrentGame.Seed.ToString()))
             {
-                KCgroups.Add(HighLogic.CurrentGame.Seed.ToString(), new Dictionary<int, List<string>> { { bodyIndex, new List<string> { groupName } } });
+                KCgroups.Add(HighLogic.CurrentGame.Seed.ToString(), new Dictionary<int, Dictionary<string, ConfigNode>> { { bodyIndex, new Dictionary<string, ConfigNode> { { groupName, faciltiy.GetSharedNode() } } } });
             }
             else if (!KCgroups[HighLogic.CurrentGame.Seed.ToString()].ContainsKey(bodyIndex))
             {
-                KCgroups[HighLogic.CurrentGame.Seed.ToString()].Add(bodyIndex, new List<string> { groupName });
+                KCgroups[HighLogic.CurrentGame.Seed.ToString()].Add(bodyIndex, new Dictionary<string, ConfigNode> { { groupName, faciltiy.GetSharedNode() } });
             }
-            else if (!KCgroups[HighLogic.CurrentGame.Seed.ToString()][bodyIndex].Contains(groupName))
+            else if (!KCgroups[HighLogic.CurrentGame.Seed.ToString()][bodyIndex].ContainsKey(groupName))
             {
-                KCgroups[HighLogic.CurrentGame.Seed.ToString()][bodyIndex].Add(groupName);
+                KCgroups[HighLogic.CurrentGame.Seed.ToString()][bodyIndex].Add(groupName, faciltiy.GetSharedNode());
             }
 
-            GroupFacilities.Add(groupName, faciltiy);
+            if (!GroupFacilities.ContainsKey(groupName)) GroupFacilities.Add(groupName, faciltiy);
+            else GroupFacilities[groupName] = faciltiy;
         }
 
         /// <summary>
@@ -187,14 +208,14 @@ namespace KerbalColonies
         }
 
         /// <summary>
-        /// This dictionary contains all of the facilties attached to a specific KK group. Used for the on click event of the KK statics
+        /// This dictionary contains the facility attached to a specific KK group. Used for the on click event of the KK statics
         /// <para>the string is the KK group name</para>
         /// </summary>
         internal static Dictionary<string, KCFacilityBase> GroupFacilities = new Dictionary<string, KCFacilityBase> { };
 
         public static void LoadColoniesV3(ConfigNode persistentNode)
         {
-            string path = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + "\\ColonyDataV3.cfg";
+            string path = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + "\\..\\Configs\\ColonyDataV3.cfg";
 
             ConfigNode node = ConfigNode.Load(path);
 
@@ -209,20 +230,21 @@ namespace KerbalColonies
                         {
                             if (!KCgroups.ContainsKey(saveGame.name))
                             {
-                                KCgroups.Add(saveGame.name, new Dictionary<int, List<string>> { });
+                                KCgroups.Add(saveGame.name, new Dictionary<int, Dictionary<string, ConfigNode>> { });
 
                                 foreach (ConfigNode bodyId in nodes[0].GetNode(saveGame.name).GetNodes())
                                 {
                                     if (!KCgroups[saveGame.name].ContainsKey(int.Parse(bodyId.name)))
                                     {
-                                        KCgroups[saveGame.name].Add(int.Parse(bodyId.name), new List<string> { });
+                                        KCgroups[saveGame.name].Add(int.Parse(bodyId.name), new Dictionary<string, ConfigNode> { });
                                     }
 
                                     foreach (ConfigNode group in nodes[0].GetNode(saveGame.name).GetNode(bodyId.name).GetNodes())
                                     {
-                                        if (!KCgroups[saveGame.name][int.Parse(bodyId.name)].Contains(group.name))
+                                        if (!KCgroups[saveGame.name][int.Parse(bodyId.name)].ContainsKey(group.name))
                                         {
-                                            KCgroups[saveGame.name][int.Parse(bodyId.name)].Add(group.name);
+                                            if (group.nodes.Count > 0) KCgroups[saveGame.name][int.Parse(bodyId.name)].Add(group.name, group.GetNodes().FirstOrDefault());
+                                            else KCgroups[saveGame.name][int.Parse(bodyId.name)].Add(group.name, null);
                                         }
                                     }
                                 }
@@ -240,7 +262,15 @@ namespace KerbalColonies
                     colonyDictionary.Add(int.Parse(bodyNode.name), new List<colonyClass> { });
                     foreach (ConfigNode colonyNode in bodyNode.GetNodes())
                     {
-                        colonyDictionary[int.Parse(bodyNode.name)].Add(new colonyClass(colonyNode));
+                        try
+                        {
+                            colonyDictionary[int.Parse(bodyNode.name)].Add(new colonyClass(colonyNode));
+                        }
+                        catch (Exception e)
+                        {
+                            writeLog($"Error while loading the colony {colonyNode.name} on body {bodyNode.name}: {e}");
+                            writeLog(colonyNode.ToString());
+                        }
                     }
                 }
 
@@ -261,22 +291,24 @@ namespace KerbalColonies
 
             ConfigNode[] nodes = new ConfigNode[1] { new ConfigNode() };
 
-            foreach (KeyValuePair<string, Dictionary<int, List<string>>> gameKVP in KCgroups)
+            foreach (KeyValuePair<string, Dictionary<int, Dictionary<string, ConfigNode>>> gameKVP in KCgroups)
             {
                 ConfigNode saveGameNode = new ConfigNode(gameKVP.Key, "The savegame name");
-                foreach (KeyValuePair<int, List<string>> bodyKVP in gameKVP.Value)
+                foreach (KeyValuePair<int, Dictionary<string, ConfigNode>> bodyKVP in gameKVP.Value)
                 {
                     ConfigNode bodyNode = new ConfigNode(bodyKVP.Key.ToString(), "The celestial body id");
-                    foreach (string groupName in bodyKVP.Value)
+                    foreach (KeyValuePair<string, ConfigNode> groupName in bodyKVP.Value)
                     {
-                        bodyNode.AddNode(groupName, "The KK group name");
+                        ConfigNode groupNode = new ConfigNode(groupName.Key, "The KK group name");
+                        if (groupName.Value != null) groupNode.AddNode(groupName.Value);
+                        bodyNode.AddNode(groupNode);
                     }
                     saveGameNode.AddNode(bodyNode);
                 }
                 nodes[0].AddNode(saveGameNode);
             }
 
-            string path = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + "/ColonyDataV3.cfg";
+            string path = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + "\\..\\Configs\\ColonyDataV3.cfg";
 
             ConfigNode node = new ConfigNode();
             nodes[0].name = root;
@@ -289,16 +321,24 @@ namespace KerbalColonies
                 ConfigNode bodyNode = new ConfigNode(bodyKVP.Key.ToString(), "The celestial body id");
                 foreach (colonyClass colony in bodyKVP.Value)
                 {
-                    ConfigNode colonyNode = colony.CreateConfigNode();
-                    bodyNode.AddNode(colonyNode);
+                    try
+                    {
+                        ConfigNode colonyNode = colony.CreateConfigNode();
+                        bodyNode.AddNode(colonyNode);
+                    }
+                    catch (Exception e)
+                    {
+                        writeLog($"Error while saving the colony {colony.Name} on body {bodyKVP.Key}: {e}");
+                        writeLog(colony.ToString());
+                    }
+                    ColonyDictionaryNode.AddNode(bodyNode);
                 }
-                ColonyDictionaryNode.AddNode(bodyNode);
             }
 
             // potentially usefull in the future if any changes to the saving are necessary
             persistentNode.AddValue("majorVersion", 3);
-            persistentNode.AddValue("minorVersion", 0);
-            persistentNode.AddValue("fixVersion", 4);
+            persistentNode.AddValue("minorVersion", 1);
+            persistentNode.AddValue("fixVersion", 0);
 
             persistentNode.AddNode(ColonyDictionaryNode);
         }
@@ -309,15 +349,20 @@ namespace KerbalColonies
 
         public static void LoadConfiguration()
         {
-            ConfigNode[] nodes = GameDatabase.Instance.GetConfigNodes(APP_NAME.ToUpper());
+            ConfigNode[] nodes = GameDatabase.Instance.GetConfigNodes(APP_NAME);
 
             if ((nodes == null) || (nodes.Length == 0))
             {
+                writeLog("No configuration file found, using default values");
                 return;
             }
-            int.TryParse(nodes[0].GetValue("maxColoniesPerBody"), out maxColoniesPerBody);
+
+            writeLog("Loading configuration file");
+            writeLog(nodes[0].ToString());
+            int.TryParse(nodes[0].GetValue("MaxColoniesPerBody"), out MaxColoniesPerBody);
 
             bool.TryParse(nodes[0].GetValue("enableLogging"), out enableLogging);
+            writeLog($"Configuration loaded: MaxColoniesPerBody = {MaxColoniesPerBody}, enableLogging = {enableLogging}");
         }
 
         internal static void SaveConfiguration()
@@ -329,10 +374,10 @@ namespace KerbalColonies
             }
 
             // config params
-            nodes[0].SetValue("maxColoniesPerBody", maxColoniesPerBody, "Limits the amount of colonies per celestial body (planet/moon)\n\facilityType// set it to zero to disable the limit", createIfNotFound: true);
+            nodes[0].SetValue("MaxColoniesPerBody", MaxColoniesPerBody, "Limits the amount of colonies per celestial body (planet/moon)\n\facilityType// set it to zero to disable the limit", createIfNotFound: true);
             nodes[0].SetValue("enableLogging", enableLogging, "Enable this only in debug purposes as it floods the logs very much", createIfNotFound: true);
 
-            string path = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + "/KC.cfg";
+            string path = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + "\\..\\Configs\\KC.cfg";
 
             ConfigNode node = new ConfigNode();
             nodes[0].name = "KC";

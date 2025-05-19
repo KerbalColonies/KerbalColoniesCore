@@ -153,7 +153,7 @@ namespace KerbalColonies.colonyFacilities
             GUILayout.EndHorizontal();
             GUILayout.Space(2);
             GUI.enabled = true;
-            List<int> valueList = new List<int> { -100, -10, -1, 1, 10, 100 };
+            List<int> valueList = new List<int> { -10000, -1000, -100, -10, -1, 1, 10, 100, 1000, 10000 };
 
             scrollPos = GUILayout.BeginScrollView(scrollPos);
             Dictionary<PartResourceDefinition, double> resourceCopy = storageFacility.getRessources();
@@ -275,7 +275,7 @@ namespace KerbalColonies.colonyFacilities
             {
                 storageFacility.addRessource(resource);
             }
-            toolRect = new Rect(100, 100, 330, 600);
+            toolRect = new Rect(100, 100, 400, 600);
         }
     }
 

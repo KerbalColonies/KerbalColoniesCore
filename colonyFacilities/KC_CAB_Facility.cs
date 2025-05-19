@@ -118,9 +118,9 @@ namespace KerbalColonies.colonyFacilities
                         GUILayout.BeginHorizontal();
 
                         GUILayout.Label(colonyFacility.displayName);
+                        GUILayout.FlexibleSpace();
                         GUILayout.Label($"Level: {colonyFacility.level.ToString()}");
                         GUILayout.FlexibleSpace();
-                        GUILayout.Label(colonyFacility.GetFacilityProductionDisplay());
                         if (
                         ((colonyFacility.AllowClick && playerInColony) || (colonyFacility.AllowRemote && !playerInColony))
                         && !facility.ConstructedFacilities.Contains(colonyFacility))
@@ -146,10 +146,12 @@ namespace KerbalColonies.colonyFacilities
 
                             GUILayout.BeginVertical();
                             {
+                                GUILayout.Label("Upgrade cost:");
                                 facilityInfo.resourceCost[colonyFacility.level + 1].ToList().ForEach(pair =>
                                 {
                                     GUILayout.Label($"{pair.Key.displayName}: {pair.Value}");
                                 });
+                                if (facilityInfo.Funds[colonyFacility.level + 1] != 0) GUILayout.Label($"Funds: {facilityInfo.Funds[colonyFacility.level + 1]}");
                             }
                             GUILayout.EndVertical();
 

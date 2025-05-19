@@ -58,7 +58,7 @@ namespace KerbalColonies.UI
             Configuration.colonyDictionary.SelectMany(x => x.Value).ToList().ForEach(colony =>
             {
                 GUILayout.BeginHorizontal(borderOnlyStyle);
-                GUILayout.Label(colony.Name);
+                GUILayout.Label(colony.DisplayName);
                 GUILayout.FlexibleSpace();
                 if (GUILayout.Button("Open CAB"))
                 {

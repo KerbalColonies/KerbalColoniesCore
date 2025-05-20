@@ -45,6 +45,9 @@ namespace KerbalColonies
         //private bool isFlightScene = false; // used to check if the scene is flight or editor
         //private int frameCount = 0;
 
+        internal static int? hangarId;
+        internal static Vector3? vesselSize;
+
         public void Start()
         {
             //isFlightScene = HighLogic.LoadedSceneIsFlight;
@@ -69,7 +72,16 @@ namespace KerbalColonies
                         Funding.Instance.AddFunds(funds, TransactionReasons.None);
                     }
 
-                    KCHangarFacility.GetHangarsInColony(kCLaunchpad.Colony).First(h => h.CanStoreVessel(FlightGlobals.ActiveVessel)).StoreVessel(FlightGlobals.ActiveVessel, vesselMass);
+                    KCHangarFacility destinationHangar = KCHangarFacility.GetHangarsInColony(kCLaunchpad.Colony).FirstOrDefault(h => h.CanStoreVessel(FlightGlobals.ActiveVessel));
+                    if (destinationHangar != null) destinationHangar.StoreVessel(FlightGlobals.ActiveVessel, vesselMass);
+                    else if (hangarId != null)
+                    {
+                        Configuration.writeLog($"[KCPreFlightWorker] Force storing vessel in hangar {hangarId} with size {vesselSize}");
+                        KCHangarFacility hangar = KCFacilityBase.GetFacilityByID((int) hangarId) as KCHangarFacility;
+                        hangar.StoreVesselOverride(FlightGlobals.ActiveVessel, vesselSize, vesselMass);
+                        hangarId = null;
+                        vesselSize = null;
+                    }
 
                     launchPadName = null;
                     funds = 0;
@@ -202,13 +214,21 @@ namespace KerbalColonies
 
 
             colony = kCLaunchpad.Colony;
-            if (!KCHangarFacility.GetHangarsInColony(kCLaunchpad.Colony).Any(h => h.CanStoreShipConstruct(EditorLogic.fetch.ship)))
+            KCHangarFacility suitableHangar = KCHangarFacility.GetHangarsInColony(kCLaunchpad.Colony).FirstOrDefault(h => h.CanStoreShipConstruct(EditorLogic.fetch.ship));
+            if (suitableHangar != null)
             {
-                Configuration.writeDebug($"[KCLaunchpadPreflightCheck] No hangars found for {launchSiteName}");
+                KCPreFlightWorker.hangarId = suitableHangar.id;
+                KCPreFlightWorker.vesselSize = EditorLogic.fetch.ship.shipSize;
+                Configuration.writeLog($"[KCHangarPreFlightCheck] Found hangar {suitableHangar.name} for {launchSiteName}");
+                return true;
+            }
+            else
+            {
+                Configuration.writeLog($"[KCHangarPreFlightCheck] No suitable hangar found for {launchSiteName}");
+                KCPreFlightWorker.hangarId = null;
+                KCPreFlightWorker.vesselSize = null;
                 return false;
             }
-            Configuration.writeDebug("[KCHangarPreFlightCheck] No issues found");
-            return true;
         }
 
         public string GetWarningTitle()
@@ -243,24 +263,25 @@ namespace KerbalColonies
         string launchSiteName;
         bool allowLaunch = false;
         List<ProtoCrewMember> invalidKerbals = new List<ProtoCrewMember> { };
+        KCLaunchpadFacility kCLaunchpad;
 
         public bool Test()
         {
-            Configuration.writeDebug($"[KCCrewPreFlightCheck] crew test for {launchSiteName}");
+            Configuration.writeLog($"[KCCrewPreFlightCheck] crew test for {launchSiteName}");
             if (allowLaunch) return true;
 
-            KCLaunchpadFacility kCLaunchpad = KCLaunchpadFacility.GetLaunchpadFacility(launchSiteName);
+            kCLaunchpad = KCLaunchpadFacility.GetLaunchpadFacility(launchSiteName);
             if (kCLaunchpad == null)
             {
                 List<ProtoCrewMember> kerbalsInColonies = Configuration.colonyDictionary.Values.SelectMany(c => c).SelectMany(c => KCCrewQuarters.GetAllKerbalsInColony(c).Keys).ToList();
                 ShipConstruction.ShipManifest.GetAllCrew(false).Intersect(kerbalsInColonies, new KCProtoCrewMemberComparer()).ToList().ForEach(pcm => invalidKerbals.Add(pcm));
+                Configuration.writeLog($"[KCCrewPreFlightCheck] Found {invalidKerbals.Count} kerbals in {launchSiteName} that are in colonies");
                 return invalidKerbals.Count == 0;
             }
 
-            if (ShipConstruction.ShipManifest.CrewCount > 0) return false;
+            Configuration.writeDebug($"[KCCewPreFlightCheck] vessel crew count: {ShipConstruction.ShipManifest.CrewCount}");
 
-            Configuration.writeDebug("[KCCrewPreFlightCheck] No issues found");
-            return true;
+            return ShipConstruction.ShipManifest.CrewCount == 0;
         }
 
         public string GetWarningTitle()
@@ -283,7 +304,7 @@ namespace KerbalColonies
                 return sb.ToString();
             }
         }
-        public string GetProceedOption() => "Continue launch.";
+        public string GetProceedOption() => kCLaunchpad == null ? "Continue launch." : null;
         public string GetAbortOption() => "Abort launch.";
 
         public static PreFlightTests.IPreFlightTest GetKCCrewTest(string launchSiteName)
@@ -312,19 +333,22 @@ namespace KerbalColonies
         bool allowLaunch = false;
         private colonyClass colony;
         private Dictionary<string, double> Insufficientresources = new Dictionary<string, double>();
+        private string message = string.Empty;
+        private bool canProceed = false;
 
-        public bool CanBuildVessel(double vesselMass, colonyClass colony)
+        public int CanBuildVessel(double vesselMass, colonyClass colony)
         {
             ConfigNode vesselBuildInfoNode = colony.sharedColonyNodes.FirstOrDefault(n => n.name == "vesselBuildInfo");
-            if (vesselBuildInfoNode == null) return false;
+            if (vesselBuildInfoNode == null) return 1;
             KCProductionInfo info = (KCProductionInfo)Configuration.GetInfoClass(vesselBuildInfoNode.GetValue("facilityConfig"));
-            if (info == null) return false;
+            if (info == null) return 1;
+            Configuration.writeDebug($"[KCResourcePreFlightCheck] Found vesselBuildInfo node for {info.name} in {colony.Name}");
 
             int level = int.Parse(vesselBuildInfoNode.GetValue("facilityLevel"));
             List<KCProductionFacility> productionFacilitiesInColony = colony.Facilities.Where(f => f is KCProductionFacility).Select(f => (KCProductionFacility)f).Where(f => info.HasSameRecipe(level, f)).ToList();
 
-            if (productionFacilitiesInColony.Count == 0) return false;
-            else if (info.vesselResourceCost[level].Count == 0) return true;
+            if (productionFacilitiesInColony.Count == 0) return 2;
+            else if (info.vesselResourceCost[level].Count == 0) return 0;
             else
             {
                 bool canBuild = true;
@@ -340,39 +364,50 @@ namespace KerbalColonies
                         else Insufficientresources[res.Key.name] += res.Value * vesselMass;
                     }
                 }
-                return canBuild;
+                return canBuild ? 0 : 3;
             }
         }
 
         public bool Test()
         {
-            Configuration.writeDebug($"[KCResourcePreFlightCheck] resource test for {launchSiteName}");
+            Configuration.writeLog($"[KCResourcePreFlightCheck] resource test for {launchSiteName}");
             if (allowLaunch) return true;
 
             KCLaunchpadFacility kCLaunchpad = KCLaunchpadFacility.GetLaunchpadFacility(launchSiteName);
             if (kCLaunchpad == null) return true;
 
             EditorLogic.fetch.ship.GetShipMass(out float mass, out float wetMass);
-            Configuration.writeDebug($"[KCResourcePreFlightCheck] Ship mass: {mass}, wet mass: {wetMass}");
+            Configuration.writeLog($"[KCResourcePreFlightCheck] Ship mass: {mass}, wet mass: {wetMass}");
 
             KCPreFlightWorker.vesselMass = mass;
 
-            if (CanBuildVessel(mass, kCLaunchpad.Colony))
+            switch (CanBuildVessel(mass, kCLaunchpad.Colony))
             {
-                Configuration.writeDebug("[KCResourcePreFlightCheck] No issues found, enough resources are available");
-                return true;
-            }
-            else
-            {
-                Configuration.writeDebug("[KCResourcePreFlightCheck] Not enough resources available to build the vessel");
-                StringBuilder message = new StringBuilder();
-                message.AppendLine("The following resources are missing:");
-                foreach (KeyValuePair<string, double> res in Insufficientresources)
-                {
-                    message.AppendLine($"{res.Key}: {res.Value}");
-                }
-                Configuration.writeDebug($"[KCResourcePreFlightCheck] {message.ToString()}");
-                return false;
+                case 0:
+                    message = "[KCResourcePreFlightCheck] No issues found, enough resources are available";
+                    Configuration.writeDebug($"[KCResourcePreFlightCheck] {message}");
+                    return true;
+                case 1:
+                    message = "[KCResourcePreFlightCheck] No production facilities that can build vessels in the colony";
+                    Configuration.writeDebug($"[KCResourcePreFlightCheck] {message}");
+                    return false;
+                case 2:
+                    message = "[KCResourcePreFlightCheck] No production facilities with the selected recipe";
+                    Configuration.writeDebug($"[KCResourcePreFlightCheck] {message}");
+                    return false;
+                case 3:
+                    StringBuilder messageBuilder = new StringBuilder();
+                    messageBuilder.AppendLine("The following resources are missing:");
+                    foreach (KeyValuePair<string, double> res in Insufficientresources)
+                    {
+                        messageBuilder.AppendLine($"-{res.Key}: {res.Value}");
+                    }
+                    message = messageBuilder.ToString();
+                    Configuration.writeDebug($"[KCResourcePreFlightCheck] {message}");
+                    canProceed = true;
+                    return false;
+                default:
+                    return false; // this should never happen
             }
         }
 
@@ -381,18 +416,8 @@ namespace KerbalColonies
             return ("KC resources prelaunch check");
         }
 
-        public string GetWarningDescription()
-        {
-            StringBuilder message = new StringBuilder();
-            message.AppendLine("The current resources in the colony are insufficient to build this vessel. You can proceed and start building the vessel while gathering more resources.");
-            message.AppendLine("The following resources are missing:");
-            foreach (KeyValuePair<string, double> res in Insufficientresources)
-            {
-                message.AppendLine($"-{res.Key}: {res.Value}");
-            }
-            return message.ToString();
-        }
-        public string GetProceedOption() => "Continue with the launch.";
+        public string GetWarningDescription() => message;
+        public string GetProceedOption() => canProceed ? "Continue with the launch" : null;
         public string GetAbortOption() => "Abort launch.";
 
         public static PreFlightTests.IPreFlightTest GetKCResourceTest(string launchSiteName)

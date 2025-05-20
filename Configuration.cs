@@ -359,10 +359,10 @@ namespace KerbalColonies
 
             writeLog("Loading configuration file");
             writeLog(nodes[0].ToString());
-            int.TryParse(nodes[0].GetValue("MaxColoniesPerBody"), out MaxColoniesPerBody);
+            int.TryParse(nodes[0].GetValue("maxColoniesPerBody"), out MaxColoniesPerBody);
 
             bool.TryParse(nodes[0].GetValue("enableLogging"), out enableLogging);
-            writeLog($"Configuration loaded: MaxColoniesPerBody = {MaxColoniesPerBody}, enableLogging = {enableLogging}");
+            writeLog($"Configuration loaded: maxColoniesPerBody = {MaxColoniesPerBody}, enableLogging = {enableLogging}");
         }
 
         internal static void SaveConfiguration()
@@ -374,7 +374,7 @@ namespace KerbalColonies
             }
 
             // config params
-            nodes[0].SetValue("MaxColoniesPerBody", MaxColoniesPerBody, "Limits the amount of colonies per celestial body (planet/moon)\n\facilityType// set it to zero to disable the limit", createIfNotFound: true);
+            nodes[0].SetValue("maxColoniesPerBody", MaxColoniesPerBody, "Limits the amount of colonies per celestial body (planet/moon)\n\facilityType// set it to zero to disable the limit", createIfNotFound: true);
             nodes[0].SetValue("enableLogging", enableLogging, "Enable this only in debug purposes as it floods the logs very much", createIfNotFound: true);
 
             string path = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + "\\..\\Configs\\KC.cfg";

@@ -201,56 +201,60 @@ namespace KerbalColonies.colonyFacilities
         // TODO: make it so the vessel oriantation doesn't matter, e.g. if the hangar has dimensions of 10, 5, 5 and a vessel with 4, 8, 4 (x, y, z in meters) it should work
         public bool CanStoreVessel(Vessel vessel)
         {
+            Configuration.writeLog($"CanStoreVessel: {this.name}");
             if (vesselCapacity[level] <= storedVessels.Count)
             {
                 return false;
             }
 
+            vessel.UpdateVesselSize();
             Vector3 vesselSize = vessel.vesselSize;
             if (vesselSize.x > x[level] || vesselSize.y > y[level] || vesselSize.z > z[level])
             {
+                Configuration.writeLog($"Vessel size: {vesselSize.x}, {vesselSize.y}, {vesselSize.z} is too big for the hangar: {x[level]}, {y[level]}, {z[level]}");
                 return false;
             }
 
             double vesselVolume = (vesselSize.x * vesselSize.y * vesselSize.z) * 0.8;
             if (vesselVolume > Volume - getStoredVolume())
             {
+                Configuration.writeLog($"Vessel volume: {vesselVolume} is too big for the hangar: {Volume - getStoredVolume()}");
                 return false;
             }
 
             if (KCCrewQuarters.ColonyKerbalCapacity(Colony) - KCCrewQuarters.GetAllKerbalsInColony(Colony).Count < vessel.GetCrewCount())
             {
+                Configuration.writeLog($"Not enough space for the crew: {vessel.GetCrewCount()} in the colony: {KCCrewQuarters.ColonyKerbalCapacity(Colony)}");
                 return false;
             }
 
+            Configuration.writeLog($"CanStoreVessel: {this.name} is ok for the vessel: {vessel.GetDisplayName()}");
             return true;
         }
 
         public bool CanStoreShipConstruct(ShipConstruct ship)
         {
+            Configuration.writeLog($"CanStoreShipConstruct: {this.name}");
             if (ship == null) return false;
             if (ship.Parts.Count == 0) return false;
             if (vesselCapacity[level] <= storedVessels.Count) return false;
 
-            Vector3 vesselSize = ShipConstruction.CalculateCraftSize(ship);
+            Vector3 vesselSize = ship.shipSize;
+            Configuration.writeDebug($"vessel size: {vesselSize.x}, {vesselSize.y}, {vesselSize.z}");
             if (vesselSize.x > x[level] || vesselSize.y > y[level] || vesselSize.z > z[level])
             {
+                Configuration.writeLog($"Vessel size: {vesselSize.x}, {vesselSize.y}, {vesselSize.z} is too big for the hangar: {x[level]}, {y[level]}, {z[level]}");
                 return false;
             }
 
             double vesselVolume = (vesselSize.x * vesselSize.y * vesselSize.z) * 0.8;
             if (vesselVolume > Volume - getStoredVolume())
             {
+                Configuration.writeLog($"Vessel volume: {vesselVolume} is too big for the hangar: {Volume - getStoredVolume()}");
                 return false;
             }
 
-            List<ProtoCrewMember> nullList = ShipConstruction.ShipManifest.GetAllCrew(true);
-            List<ProtoCrewMember> noNullList = ShipConstruction.ShipManifest.GetAllCrew(false);
-            if (KCCrewQuarters.ColonyKerbalCapacity(Colony) - KCCrewQuarters.GetAllKerbalsInColony(Colony).Count < nullList.Count)
-            {
-                return false;
-            }
-
+            Configuration.writeLog($"CanStoreShipConstruct: {this.name} is ok for the ship: {ship.shipName}");
             return true;
         }
 
@@ -258,7 +262,7 @@ namespace KerbalColonies.colonyFacilities
         {
             if (CanStoreVessel(vessel))
             {
-                Configuration.writeDebug($"Storing vessel {vessel.GetDisplayName()} in {this.name}");
+                Configuration.writeLog($"Storing vessel {vessel.GetDisplayName()} in {this.name}");
 
                 Vector3 vesselSize = vessel.vesselSize;
 
@@ -330,6 +334,78 @@ namespace KerbalColonies.colonyFacilities
             return false;
         }
 
+        /// <summary>
+        /// Force stores the vessel in the hangar ignoring the restrictions
+        /// </summary>
+        public void StoreVesselOverride(Vessel vessel, Vector3? vesselsize, double? vesselDryMass)
+        {
+            Configuration.writeLog($"Force storing vessel {vessel.GetDisplayName()} in {this.name}");
+
+            if (vesselsize == null) vesselsize = vessel.vesselSize;
+            Vector3 vesselSize = (Vector3)vesselsize;
+
+            StoredVessel storedVessel = new StoredVessel(vessel.GetDisplayName(), vessel.protoVessel.vesselID, (vesselSize.x * vesselSize.y * vesselSize.z) * 0.8);
+
+            if (vesselDryMass == null)
+            {
+                storedVessel.vesselBuildTime = null;
+                storedVessel.entireVesselBuildTime = null;
+            }
+            else
+            {
+                Configuration.writeDebug($"vessel part counts: {vessel.Parts.Count}, mass: {vesselDryMass}");
+                storedVessel.vesselBuildTime = (vessel.Parts.Count + vesselDryMass) * 10 * Configuration.VesselTimeMultiplier;
+                storedVessel.entireVesselBuildTime = storedVessel.vesselBuildTime;
+                storedVessel.vesselDryMass = vesselDryMass;
+            }
+
+            //get the experience and assign the crew to the rooster
+            foreach (Part part in vessel.parts)
+            {
+                int count = part.protoModuleCrew.Count;
+
+                if (count != 0)
+                {
+                    ProtoCrewMember[] crewList = part.protoModuleCrew.ToArray();
+
+                    for (int i = 0; i < count; i++)
+                    {
+                        crewList[i].flightLog.AddEntryUnique(FlightLog.EntryType.Recover);
+                        crewList[i].flightLog.AddEntryUnique(FlightLog.EntryType.Land, FlightGlobals.currentMainBody.name);
+                        crewList[i].ArchiveFlightLog();
+
+                        // remove the crew from the ship
+                        part.RemoveCrewmember(crewList[i]);
+                        KCCrewQuarters.AddKerbalToColony(Colony, crewList[i]);
+                    }
+                }
+            }
+
+            // save the ship
+            storedVessel.vesselNode = new ConfigNode("VESSEL");
+
+            //create a backup of the current state, then save that state
+            ProtoVessel backup = vessel.BackupVessel();
+            backup.Save(storedVessel.vesselNode);
+
+            // save the stored information in the hangar
+            storedVessels.Add(storedVessel);
+
+            // remove the stored vessel from the game
+            vessel.MakeInactive();
+            vessel.Unload();
+
+            FlightGlobals.RemoveVessel(vessel);
+            if (vessel != null)
+            {
+                vessel.protoVessel.Clean();
+            }
+
+            KerbalKonstructs.KerbalKonstructs.instance.UpdateCache();
+
+            GamePersistence.SaveGame("persistent", HighLogic.SaveFolder, SaveMode.OVERWRITE);
+            HighLogic.LoadScene(GameScenes.SPACECENTER);
+        }
 
         public ProtoVessel RollOutVessel(StoredVessel storedVessel)
         {

@@ -48,7 +48,6 @@ namespace KerbalColonies
             node.AddNode(colonyNodes);
 
             ConfigNode CABNode = new ConfigNode("CAB");
-            CABNode.AddValue("type", CAB.GetType().FullName);
 
             CABNode.AddNode(CAB.getConfigNode());
             node.AddNode(CABNode);

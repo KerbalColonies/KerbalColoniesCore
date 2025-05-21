@@ -130,11 +130,13 @@ namespace KerbalColonies
 
         internal static KCFacilityBase CreateInstance(KCFacilityInfoClass info, colonyClass colony, bool enabled)
         {
+            Configuration.writeLog($"Creating a new instance of type {info.name} for {colony.Name} with enabled = {enabled}");
             return (KCFacilityBase)Activator.CreateInstance(info.type, new object[] { colony, info, enabled });
         }
 
         internal static KCFacilityBase CreateInstance(KCFacilityInfoClass info, colonyClass colony, ConfigNode node)
         {
+            Configuration.writeLog($"Loading an instance of type {info.name} for {colony.Name} with node = {node.ToString()}");
             return (KCFacilityBase)Activator.CreateInstance(info.type, new object[] { colony, info, node });
         }
 
@@ -259,7 +261,7 @@ namespace KerbalColonies
                 ConfigNode primaryNode = persistentNode.GetNode("colonyNode");
                 foreach (ConfigNode bodyNode in primaryNode.GetNodes())
                 {
-                    colonyDictionary.Add(int.Parse(bodyNode.name), new List<colonyClass> { });
+                    colonyDictionary.TryAdd(int.Parse(bodyNode.name), new List<colonyClass> { });
                     foreach (ConfigNode colonyNode in bodyNode.GetNodes())
                     {
                         try
@@ -279,7 +281,7 @@ namespace KerbalColonies
                     colony.CAB.KKgroups.ForEach(group => GroupFacilities.Add(group, colony.CAB));
                     colony.Facilities.ForEach(facility =>
                     {
-                        facility.KKgroups.ForEach(group => GroupFacilities.Add(group, facility));
+                        facility.KKgroups.ForEach(group => GroupFacilities.TryAdd(group, facility));
                     });
                 }));
             }
@@ -331,14 +333,14 @@ namespace KerbalColonies
                         writeLog($"Error while saving the colony {colony.Name} on body {bodyKVP.Key}: {e}");
                         writeLog(colony.ToString());
                     }
-                    ColonyDictionaryNode.AddNode(bodyNode);
                 }
+                ColonyDictionaryNode.AddNode(bodyNode);
             }
 
             // potentially usefull in the future if any changes to the saving are necessary
             persistentNode.AddValue("majorVersion", 3);
             persistentNode.AddValue("minorVersion", 1);
-            persistentNode.AddValue("fixVersion", 0);
+            persistentNode.AddValue("fixVersion", 1);
 
             persistentNode.AddNode(ColonyDictionaryNode);
         }
@@ -361,7 +363,11 @@ namespace KerbalColonies
             writeLog(nodes[0].ToString());
             int.TryParse(nodes[0].GetValue("maxColoniesPerBody"), out MaxColoniesPerBody);
 
+#if DEBUG
+            enableLogging = true;
+#else
             bool.TryParse(nodes[0].GetValue("enableLogging"), out enableLogging);
+#endif
             writeLog($"Configuration loaded: maxColoniesPerBody = {MaxColoniesPerBody}, enableLogging = {enableLogging}");
         }
 

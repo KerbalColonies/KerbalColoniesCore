@@ -100,6 +100,8 @@ namespace KerbalColonies
             DisplayName = node.GetValue("displayName");
             Facilities = new List<KCFacilityBase>();
             sharedColonyNodes = node.GetNode("sharedColonyNodes").GetNodes().ToList();
+            Configuration.writeDebug($"Loading colony {Name} with {sharedColonyNodes.Count} shared nodes");
+            sharedColonyNodes.ForEach(x => Configuration.writeDebug($"Shared node: {x.name}\n{x.ToString()}"));
 
             foreach (ConfigNode facilityNode in node.GetNodes("facility"))
             {

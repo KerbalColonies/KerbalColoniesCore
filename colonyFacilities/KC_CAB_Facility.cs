@@ -315,6 +315,11 @@ namespace KerbalColonies.colonyFacilities
             else
             {
                 KerbalKonstructs.Core.StaticInstance staticInstance = KerbalKonstructs.API.GetGroupStatics(KKgroups[0], FlightGlobals.Bodies.First(b => FlightGlobals.GetBodyIndex(b) == Configuration.GetBodyIndex(Colony)).name).FirstOrDefault();
+                if (staticInstance == null)
+                {
+                    PlayerInColony = false;
+                    Configuration.writeLog($"KC: Unable to find any static instance for {name} in {Colony.Name} (kkgroup 0: {KKgroups[0]}");
+                }
                 PlayerInColony = Vector3.Distance(KerbalKonstructs.API.GetGameObject(staticInstance.UUID).transform.position, FlightGlobals.ship_position) < 1000 ? true : false;
             }
 

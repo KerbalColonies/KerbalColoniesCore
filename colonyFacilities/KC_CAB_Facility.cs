@@ -320,7 +320,8 @@ namespace KerbalColonies.colonyFacilities
                     PlayerInColony = false;
                     Configuration.writeLog($"KC: Unable to find any static instance for {name} in {Colony.Name} (kkgroup 0: {KKgroups[0]}");
                 }
-                PlayerInColony = Vector3.Distance(KerbalKonstructs.API.GetGameObject(staticInstance.UUID).transform.position, FlightGlobals.ship_position) < 1000 ? true : false;
+                else
+                    PlayerInColony = Vector3.Distance(KerbalKonstructs.API.GetGameObject(staticInstance.UUID).transform.position, FlightGlobals.ship_position) < 1000 ? true : false;
             }
 
             double deltaTime = Planetarium.GetUniversalTime() - lastUpdateTime;

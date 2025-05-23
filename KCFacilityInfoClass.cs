@@ -80,7 +80,7 @@ namespace KerbalColonies
         // 100 per day * 5 engineers = 500 per day
         // 500 per day * 4 kerbin days = 500
         // 500 per day * 2 kerbin days = 250
-        public SortedDictionary<int, float> UpgradeTimes { get; protected set; } = new SortedDictionary<int, float> { };
+        public SortedDictionary<int, double> UpgradeTimes { get; protected set; } = new SortedDictionary<int, double> { };
 
         /// <summary>
         /// Used for custom checks (e.g. if a specific facility already exists in the colony), returns true if the facility can be built or upgraded.
@@ -190,6 +190,7 @@ namespace KerbalColonies
             Electricity = new SortedDictionary<int, double>();
             Funds = new SortedDictionary<int, double>();
             UpgradeTypes = new SortedDictionary<int, UpgradeType>();
+            UpgradeTimes = new SortedDictionary<int, double>();
             BasegroupNames = new SortedDictionary<int, string>();
 
             if (!node.HasNode("level")) throw new MissingFieldException($"The facility {name} has no level node.");
@@ -232,7 +233,7 @@ namespace KerbalColonies
                 if (n.HasValue("Funds")) Funds.Add(level, double.Parse(n.GetValue("Funds")));
                 else Funds.Add(level, 0);
 
-                if (n.HasValue("upgradeTime")) UpgradeTimes.Add(level, float.Parse(n.GetValue("upgradeTime")));
+                if (n.HasValue("upgradeTime")) UpgradeTimes.Add(level, double.Parse(n.GetValue("upgradeTime")));
                 else UpgradeTimes.Add(level, 0);
             });
         }
@@ -249,7 +250,7 @@ namespace KerbalColonies
             if (Funds.Count > 0) Funds = new SortedDictionary<int, double> { { 0, Funds[0] } };
             if (UpgradeTypes.Count > 0) UpgradeTypes = new SortedDictionary<int, UpgradeType> { { 0, UpgradeTypes[0] } };
             if (BasegroupNames.Count > 0) BasegroupNames = new SortedDictionary<int, string> { { 0, BasegroupNames[0] } };
-            if (UpgradeTimes.Count > 0) UpgradeTimes = new SortedDictionary<int, float> { { 0, UpgradeTimes[0] } };
+            if (UpgradeTimes.Count > 0) UpgradeTimes = new SortedDictionary<int, double> { { 0, UpgradeTimes[0] } };
         }
     }
 }

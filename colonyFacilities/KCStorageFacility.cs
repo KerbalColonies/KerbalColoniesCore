@@ -32,7 +32,7 @@ namespace KerbalColonies.colonyFacilities
         {
             levelNodes.ToList().ForEach(n =>
             {
-                if (n.Value.HasValue("maxVolume")) maxVolume[n.Key] = float.Parse(n.Value.GetValue("maxVolume"));
+                if (n.Value.HasValue("maxVolume")) maxVolume[n.Key] = double.Parse(n.Value.GetValue("maxVolume"));
                 else if (n.Key > 0) maxVolume[n.Key] = maxVolume[n.Key - 1];
                 else throw new MissingFieldException($"The facility {name} (type: {type}) has no maxVolume (at least for level 0).");
             });

@@ -25,28 +25,28 @@ namespace KerbalColonies.colonyFacilities
 {
     public class KCMiningFacilityInfo : KCKerbalFacilityInfoClass
     {
-        public SortedDictionary<int, float> maxOre = new SortedDictionary<int, float>();
-        public SortedDictionary<int, float> maxMetalOre = new SortedDictionary<int, float>();
-        public SortedDictionary<int, float> orePerDayperEngineer = new SortedDictionary<int, float>();
-        public SortedDictionary<int, float> metalOrePerDayperEngineer = new SortedDictionary<int, float>();
+        public SortedDictionary<int, double> maxOre = new SortedDictionary<int, double>();
+        public SortedDictionary<int, double> maxMetalOre = new SortedDictionary<int, double>();
+        public SortedDictionary<int, double> orePerDayperEngineer = new SortedDictionary<int, double>();
+        public SortedDictionary<int, double> metalOrePerDayperEngineer = new SortedDictionary<int, double>();
 
         public KCMiningFacilityInfo(ConfigNode node) : base(node)
         {
             levelNodes.ToList().ForEach(n =>
             {
-                if (n.Value.HasValue("maxOre")) maxOre[n.Key] = int.Parse(n.Value.GetValue("maxOre"));
+                if (n.Value.HasValue("maxOre")) maxOre[n.Key] = double.Parse(n.Value.GetValue("maxOre"));
                 else if (n.Key > 0) maxOre[n.Key] = maxOre[n.Key - 1];
                 else throw new MissingFieldException($"The facility {name} (type: {type}) has no maxOre (at least for level 0).");
 
-                if (n.Value.HasValue("maxMetalOre")) maxMetalOre[n.Key] = int.Parse(n.Value.GetValue("maxMetalOre"));
+                if (n.Value.HasValue("maxMetalOre")) maxMetalOre[n.Key] = double.Parse(n.Value.GetValue("maxMetalOre"));
                 else if (n.Key > 0) maxMetalOre[n.Key] = maxMetalOre[n.Key - 1];
                 else throw new MissingFieldException($"The facility {name}  (type:  {type}) has no maxMetalOre (at least for level 0).");
 
-                if (n.Value.HasValue("oreRate")) orePerDayperEngineer[n.Key] = float.Parse(n.Value.GetValue("oreRate"));
+                if (n.Value.HasValue("oreRate")) orePerDayperEngineer[n.Key] = double.Parse(n.Value.GetValue("oreRate"));
                 else if (n.Key > 0) orePerDayperEngineer[n.Key] = orePerDayperEngineer[n.Key - 1];
                 else throw new MissingFieldException($"The facility {name}  (type:  {type}) has no oreRate (at least for level 0).");
 
-                if (n.Value.HasValue("metalOreRate")) metalOrePerDayperEngineer[n.Key] = float.Parse(n.Value.GetValue("metalOreRate"));
+                if (n.Value.HasValue("metalOreRate")) metalOrePerDayperEngineer[n.Key] = double.Parse(n.Value.GetValue("metalOreRate"));
                 else if (n.Key > 0) metalOrePerDayperEngineer[n.Key] = metalOrePerDayperEngineer[n.Key - 1];
                 else throw new MissingFieldException($"The facility {name}   (type:   {type}) has no metalOreRate (at least for level 0).");
             });
@@ -126,8 +126,8 @@ namespace KerbalColonies.colonyFacilities
             double deltaTime = Planetarium.GetUniversalTime() - lastUpdateTime;
 
             lastUpdateTime = Planetarium.GetUniversalTime();
-            ore = Math.Min(MaxOre, ore + (float)((OrePerDayPerEngineer / 24 / 60 / 60) * deltaTime) * kerbals.Count);
-            metalOre = Math.Min(MaxMetalOre, metalOre + (float)((MetalOrePerDayPerEngineer / 24 / 60 / 60) * deltaTime) * kerbals.Count);
+            ore = Math.Min(MaxOre, ore + ((OrePerDayPerEngineer / 6 / 60 / 60) * deltaTime) * kerbals.Count);
+            metalOre = Math.Min(MaxMetalOre, metalOre + ((MetalOrePerDayPerEngineer / 6 / 60 / 60) * deltaTime) * kerbals.Count);
         }
 
         public override void OnBuildingClicked()

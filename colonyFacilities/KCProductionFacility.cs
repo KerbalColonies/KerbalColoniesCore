@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using static KSP.UI.Screens.SpaceCenter.BuildingPicker;
 
 // KC: Kerbal Colonies
 // This mod aimes to create a Colony system with Kerbal Konstructs statics
@@ -25,7 +26,11 @@ namespace KerbalColonies.colonyFacilities
 {
     public class KCProductionInfo : KCKerbalFacilityInfoClass
     {
-        public Dictionary<int, Dictionary<PartResourceDefinition, double>> vesselResourceCost { get; private set; } = new Dictionary<int, Dictionary<PartResourceDefinition, double>> { };
+        public SortedDictionary<int, Dictionary<PartResourceDefinition, double>> vesselResourceCost { get; private set; } = new SortedDictionary<int, Dictionary<PartResourceDefinition, double>> { };
+
+        public SortedDictionary<int, double> baseProduction { get; private set; } = new SortedDictionary<int, double> { };
+        public SortedDictionary<int, double> experienceMultiplier { get; private set; } = new SortedDictionary<int, double> { };
+        public SortedDictionary<int, double> facilityLevelMultiplier { get; private set; } = new SortedDictionary<int, double> { };
 
         public bool CanBuildVessels(int level) => vesselResourceCost.ContainsKey(level);
 
@@ -40,11 +45,24 @@ namespace KerbalColonies.colonyFacilities
 
         public KCProductionInfo(ConfigNode node) : base(node)
         {
-            foreach (KeyValuePair<int, ConfigNode> levelNode in levelNodes)
+            levelNodes.ToList().ForEach(n =>
             {
-                if (levelNode.Value.HasNode("vesselResourceCost"))
+                ConfigNode iLevel = n.Value;
+                if (iLevel.HasValue("baseProduction")) baseProduction.Add(n.Key, double.Parse(iLevel.GetValue("baseProduction")));
+                else if (n.Key > 0) baseProduction.Add(n.Key, baseProduction[n.Key - 1]);
+                else throw new MissingFieldException($"The facility {name} (type: {type}) has no baseProduction (at least for level 0).");
+
+                if (iLevel.HasValue("experienceMultiplier")) experienceMultiplier.Add(n.Key, double.Parse(iLevel.GetValue("experienceMultiplier")));
+                else if (n.Key > 0) experienceMultiplier.Add(n.Key, experienceMultiplier[n.Key - 1]);
+                else experienceMultiplier.Add(0, 0);
+
+                if (iLevel.HasValue("facilityLevelMultiplier")) facilityLevelMultiplier.Add(n.Key, double.Parse(iLevel.GetValue("facilityLevelMultiplier")));
+                else if (n.Key > 0) facilityLevelMultiplier.Add(n.Key, facilityLevelMultiplier[n.Key - 1]);
+                else facilityLevelMultiplier.Add(0, 0);
+
+                if (n.Value.HasNode("vesselResourceCost"))
                 {
-                    ConfigNode craftResourceNode = levelNode.Value.GetNode("vesselResourceCost");
+                    ConfigNode craftResourceNode = n.Value.GetNode("vesselResourceCost");
                     Dictionary<PartResourceDefinition, double> resourceList = new Dictionary<PartResourceDefinition, double>();
                     foreach (ConfigNode.Value v in craftResourceNode.values)
                     {
@@ -52,10 +70,10 @@ namespace KerbalColonies.colonyFacilities
                         double amount = double.Parse(v.value);
                         resourceList.Add(resourceDef, amount);
                     }
-                    vesselResourceCost.Add(levelNode.Key, resourceList);
+                    vesselResourceCost.Add(n.Key, resourceList);
                 }
-                else if (levelNode.Key > 0 && vesselResourceCost.ContainsKey(levelNode.Key - 1)) vesselResourceCost.Add(levelNode.Key, vesselResourceCost[levelNode.Key - 1]);
-            }
+                else if (n.Key > 0 && vesselResourceCost.ContainsKey(n.Key - 1)) vesselResourceCost.Add(n.Key, vesselResourceCost[n.Key - 1]);
+            });
         }
     }
 
@@ -69,7 +87,7 @@ namespace KerbalColonies.colonyFacilities
 
         protected override void CustomWindow()
         {
-            facility.Update();
+            facility.Colony.CAB.Update();
 
             if (kerbalGUI == null)
             {
@@ -283,19 +301,19 @@ namespace KerbalColonies.colonyFacilities
         }
 
         KCProductionWindow prdWindow;
-
-        public List<float> baseProduction { get; private set; } = new List<float> { };
-        public List<float> experienceMultiplier { get; private set; } = new List<float> { };
-        public List<float> facilityLevelMultiplier { get; private set; } = new List<float> { };
+        KCProductionInfo KCProductionInfo => (KCProductionInfo)facilityInfo;
 
         public double dailyProduction()
         {
             double production = 0;
 
+            KCProductionInfo info = KCProductionInfo;
+
             foreach (ProtoCrewMember pcm in kerbals.Keys)
             {
-                production += (baseProduction[level] + experienceMultiplier[level] * (pcm.experienceLevel - 1)) * (1 + facilityLevelMultiplier[level] * this.level);
+                production += (info.baseProduction[level] + info.experienceMultiplier[level] * (pcm.experienceLevel - 1));
             }
+            production *= 1 + info.facilityLevelMultiplier[level] * level;
             return production;
         }
 
@@ -315,18 +333,7 @@ namespace KerbalColonies.colonyFacilities
 
             foreach (KeyValuePair<int, ConfigNode> levelNode in facilityInfo.levelNodes)
             {
-                ConfigNode iLevel = levelNode.Value;
-                if (iLevel.HasValue("baseProduction")) baseProduction.Add(float.Parse(iLevel.GetValue("baseProduction")));
-                else if (levelNode.Key > 0) baseProduction.Add(baseProduction[levelNode.Key - 1]);
-                else throw new MissingFieldException($"The facility {facilityInfo.name} (type: {facilityInfo.type}) has no baseProduction (at least for level 0).");
 
-                if (iLevel.HasValue("experienceMultiplier")) experienceMultiplier.Add(float.Parse(iLevel.GetValue("experienceMultiplier")));
-                else if (levelNode.Key > 0) experienceMultiplier.Add(experienceMultiplier[levelNode.Key - 1]);
-                else experienceMultiplier.Add(1);
-
-                if (iLevel.HasValue("facilityLevelMultiplier")) facilityLevelMultiplier.Add(float.Parse(iLevel.GetValue("facilityLevelMultiplier")));
-                else if (levelNode.Key > 0) facilityLevelMultiplier.Add(facilityLevelMultiplier[levelNode.Key - 1]);
-                else facilityLevelMultiplier.Add(1);
             }
 
             KCProductionInfo productionInfo = (KCProductionInfo)facilityInfo;

@@ -25,24 +25,27 @@ namespace KerbalColonies.colonyFacilities
     public class KCCommNetFacility : KCFacilityBase
     {
         public string groundstationUUID = "";
-        public ConfigNode sharedNode = null;
 
         public override void OnGroupPlaced()
         {
+            Configuration.writeLog($"KC CommNetFacility: OnGroupPlaced {GetBaseGroupName(0)}");
             KerbalKonstructs.Core.StaticInstance baseInstance = KerbalKonstructs.API.GetGroupStatics(GetBaseGroupName(0), "Kerbin").Where(s => s.facilityType == KerbalKonstructs.Modules.KKFacilityType.GroundStation).FirstOrDefault();
             if (baseInstance != null)
             {
-                groundstationUUID = GetUUIDbyFacility(this).Where(s => KerbalKonstructs.API.GetModelTitel(s) == KerbalKonstructs.API.GetModelTitel(baseInstance.UUID)).FirstOrDefault() ?? throw new Exception("No matching static found in the group");
+                Configuration.writeLog($"KC CommNetFacility: Found base instance {baseInstance.UUID} in group {GetBaseGroupName(0)}");
+                groundstationUUID = GetUUIDbyFacility(this).Where(s => KerbalKonstructs.API.GetModelTitel(s) == KerbalKonstructs.API.GetModelTitel(baseInstance.UUID)).FirstOrDefault() ?? throw new Exception("KC CommNetFacility: No matching static found in the group");
 
-                sharedNode.AddValue("uuid", groundstationUUID);
-                KerbalKonstructs.Core.StaticInstance targetInstance = KerbalKonstructs.API.getStaticInstanceByUUID(groundstationUUID);
+                Configuration.writeDebug($"KC CommNetFacility: using {groundstationUUID} for {GetBaseGroupName(0)}");
+                KerbalKonstructs.Core.StaticInstance targetInstance = KerbalKonstructs.API.getStaticInstanceByUUID(groundstationUUID) ?? throw new Exception("KC CommNetFacility: Failed to find the staticinstance");
 
                 targetInstance.facilityType = KKFacilityType.GroundStation;
+                targetInstance.myFacilities.Clear();
                 targetInstance.myFacilities.Add(targetInstance.gameObject.AddComponent<GroundStation>().ParseConfig(new ConfigNode()));
 
-                GroundStation baseStation = baseInstance.myFacilities[0] as GroundStation;
-                GroundStation targetStation = targetInstance.myFacilities[0] as GroundStation;
+                GroundStation baseStation = baseInstance.myFacilities[0] as GroundStation ?? throw new Exception($"KC CommNetFacility: The found baseinstance has no groundstation at index 0");
+                GroundStation targetStation = targetInstance.myFacilities[0] as GroundStation ?? throw new Exception($"KC CommNetFacility: The targetinstance has no groundstation at index 0"); ;
 
+                Configuration.writeDebug($"KC CommNetFacility: TrackingShort = {baseStation.TrackingShort}");
                 targetStation.TrackingShort = baseStation.TrackingShort;
             }
             else
@@ -50,7 +53,6 @@ namespace KerbalColonies.colonyFacilities
                 groundstationUUID = GetUUIDbyFacility(this).FirstOrDefault() ?? throw new Exception($"Launchpadfacility: No statics in group {GetBaseGroupName(level)}");
 
                 Configuration.writeLog($"Launchpadfacility: using default configs for {GetBaseGroupName(level)}");
-                sharedNode.AddValue("uuid", groundstationUUID);
                 KerbalKonstructs.Core.StaticInstance targetInstance = KerbalKonstructs.API.getStaticInstanceByUUID(groundstationUUID);
 
                 targetInstance.facilityType = KKFacilityType.GroundStation;
@@ -64,6 +66,8 @@ namespace KerbalColonies.colonyFacilities
 
         public override ConfigNode GetSharedNode()
         {
+            ConfigNode sharedNode = new ConfigNode("commnetNode");
+            sharedNode.AddValue("groundstationUUID", groundstationUUID);
             return sharedNode;
         }
 
@@ -84,7 +88,6 @@ namespace KerbalColonies.colonyFacilities
 
         public KCCommNetFacility(colonyClass colony, KCFacilityInfoClass facilityInfo, bool enabled) : base(colony, facilityInfo, enabled)
         {
-            sharedNode = new ConfigNode("commnetNode");
             AllowClick = false;
             AllowRemote = false;
         }

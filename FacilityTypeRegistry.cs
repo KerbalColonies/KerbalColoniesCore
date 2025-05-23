@@ -45,7 +45,7 @@ namespace KerbalColonies
             Type t = _registeredTypes.TryGetValue(typeName, out var type) ? type : null;
             if (t == null)
             {
-                KeyValuePair<string, Type> kvp = _registeredTypes.FirstOrDefault(x => x.Key.Contains(typeName));
+                KeyValuePair<string, Type> kvp = _registeredTypes.FirstOrDefault(x => x.Key.ToLower().Contains(typeName.ToLower()));
                 t = !kvp.Equals(default(KeyValuePair<string, Type>)) ? kvp.Value : null;
             }
             return t;

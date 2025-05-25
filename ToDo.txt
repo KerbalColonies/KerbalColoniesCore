@@ -1,0 +1,8 @@
+- Add the facilitycost/time and vesselcost/time multipliers as difficulty settings to the new game options
+- Storage facility rework to have whitelists/blacklists and if no lists is used only show the stored resources and the vessel resources and not all the resources in the partresourcelibrary
+- Launchpad rework to allow multiple levels
+- draining facility cost (continues facility cost during the build)
+
+Some things that I, AMWP, want to do:
+- rework the commnet facility and add a kerbal commnet facility
+- electricity system (not decided yet how that's done)

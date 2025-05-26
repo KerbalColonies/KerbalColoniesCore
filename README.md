@@ -5,31 +5,31 @@
 ![Image](https://i.imgur.com/twFy677.jpeg)
 
 Trailer:
-https://www.youtube.com/watch?v=d6NffcYh760
+https://www.youtube.com/watch?v=bB0n0K6sL9I
 
 ## Main Goal
-Our goal in future iterations is to change how you fundamentally play the game when it comes to colonies and the colonists themselves.
-Unlike other colony mods KC uses KK groups as facilities, this means there are 0 parts in a colony.
+Our goal in future iterations is to change how you fundamentally play the game when it comes to colonies and the colonists themselves.<br>
+Unlike other colony mods KC uses KK groups as facilities, this means there are 0 parts in a colony.<br>
 KK has it's own facilities but only on single statics and they can only cost funds. They also don't use real kerbals so overall they aren't really a Colony.
 
-One of the reasons why KC took so long was because it has a big focus on modularity.
-The facilities are defined in a config file and contain the name of a KK group on Kerbin which will be copied to your current location when building the facility. The cost can be any resource in the PartResourceLibrary with any amount you want, funds are also supported (if available, otherwise ignored).
-Currently there are 10 different facility types (including the CAB) but it's easily expandable, even other mods should be able to add their own types.
+One of the reasons why KC took so long was because it has a big focus on modularity.<br>
+The facilities are defined in a config file and contain the name of a KK group on Kerbin which will be copied to your current location when building the facility. The cost can be any resource in the PartResourceLibrary with any amount you want, funds are also supported (if available, otherwise ignored).<br>
+Currently there are 10 different facility types (including the CAB) but it's easily expandable, even other mods should be able to add their own types.<br>
 For more information please read the wiki.
 
 ## Performance:
-While playing the performance is pretty much unaffected, only potentially with a ton of facilities and at very high timewarp it could be reduced (I haven't tested the limits) but most facilities do very little during the update.
-All facilities are only updated once every 10 ingame seconds which further reduces the impact.
+While playing the performance is pretty much unaffected, only potentially with a ton of facilities and at very high timewarp it could be reduced (I haven't tested the limits) but most facilities do very little during the update.<br>
+All facilities are only updated once every 10 ingame seconds which further reduces the impact.<br>
 The only time where it will have a noticable impact is while switching the scene because there are multiple things done during that period, including:
 * loading all of the facilities
 * disabling the KK colony groups from other savegames
 
 ## Saving:
-Kerbal Colonies uses an external config file that's used for cross game things and a scenario module for each game.
+Kerbal Colonies uses an external config file that's used for cross game things and a scenario module for each game.<br>
 Scenario modules are stored per save, this means that a colony that's created at t+1000 won't be there in t+0, only the KK groups.
 
 
-Kerbals that are in a vessel and a colony will be removed from the vessel.
+Kerbals that are in a vessel and a colony will be removed from the vessel.<br>
 When launching from the spacecenter view I can't forbid the launch so this necessary but when you are launching from the vab/sph you will get a warning about the kerbals that are in a colony.
 
 Here's a video about [building vessels at colonies!](https://youtu.be/6lne_vgd7j8)
@@ -47,10 +47,10 @@ Here's a video about [building vessels at colonies!](https://youtu.be/6lne_vgd7j
 * buildables (statics without a facility)
 
 
-This mod is still in early development, while it's mostly bug free in our testing I can't and won't guarantee that there are no game breaking bugs or unexpected incompatibilities.
+This mod is still in early development, while it's mostly bug free in our testing I can't and won't guarantee that there are no game breaking bugs or unexpected incompatibilities.<br>
 It works with existing saves but a backup is recommended.
 
-Available on [SpaceDock](https://spacedock.info/mod/3896/Kerbal%20Colonies), GitHub and on CKAN.
+Available on [SpaceDock](https://spacedock.info/mod/3896/Kerbal%20Colonies), GitHub and on CKAN.<br>
 This mod is fully licensed under the GNU GPLv3 license.
 
 # Dependencies:
@@ -58,8 +58,12 @@ This mod is fully licensed under the GNU GPLv3 license.
 * CustomPrelaunchChecks
 * Click Through Blocker
 * Extraplanetary launchpads (used for more resources, eventually there will be stock resource configs)
-* OSSNTR
-* paraterraforming
+
+# Config packs
+Kerbal Colonies does not include any configs itself in order to allow for easier replacement of the configs.<br>
+Currently there's only the default Extraplanetary Launchpads config pack, available on [SpaceDock](https://spacedock.info/mod/3899/KerbalColonies-ExtraplanetaryLaunchpadsConfig) and [GitHub](https://github.com/AMPW-german/KerbalColonies-ExtraplanetaryLaunchpadsConfig/releases/latest)<br>
+**This config pack has Extraplanetary Launchpads, Paraterraforming and OSSNTR as additional dependencies.**
+<br><br>
 
 If you want to create new facility configs or an addon mod for more facility types I recommend reading the [wiki](https://github.com/AMPW-german/KerbalColonies/wiki)
 Any help with the development of the plugin is appreciated.

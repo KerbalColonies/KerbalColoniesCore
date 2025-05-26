@@ -256,9 +256,7 @@ namespace KerbalColonies
             string colonyName = $"KC_{HighLogic.CurrentGame.Seed.ToString()}_{FlightGlobals.currentMainBody.name}_{colonyCount}";
             string groupName = $"{colonyName}_CAB";
 
-            string colonyDisplayName = $"{FlightGlobals.currentMainBody.name} colony {colonyCount}";
-
-            colonyClass colony = new colonyClass(colonyName, colonyDisplayName, CABInfo);
+            colonyClass colony = new colonyClass(colonyName, CABInfo);
 
             Configuration.colonyDictionary[FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody)].Add(colony);
 

@@ -37,6 +37,9 @@ namespace KerbalColonies.UI
 
         private Vector2 scrollPointer;
 
+        private bool showNameField = false;
+        private string newTitle;
+        private colonyClass selectedColony;
         protected override void CustomWindow()
         {
             GUIStyle borderOnlyStyle = new GUIStyle(GUI.skin.box);
@@ -58,7 +61,16 @@ namespace KerbalColonies.UI
             Configuration.colonyDictionary.SelectMany(x => x.Value).ToList().ForEach(colony =>
             {
                 GUILayout.BeginHorizontal(borderOnlyStyle);
-                GUILayout.Label(colony.DisplayName);
+
+                GUI.enabled = !showNameField;
+                if (GUILayout.Button(colony.DisplayName))
+                {
+                    showNameField = true;
+                    newTitle = colony.DisplayName;
+                    selectedColony = colony;
+                }
+
+                GUI.enabled = true;
                 GUILayout.FlexibleSpace();
                 if (GUILayout.Button("Open CAB"))
                 {
@@ -69,6 +81,29 @@ namespace KerbalColonies.UI
                 GUILayout.Space(5);
             });
             GUILayout.EndScrollView();
+
+            if (showNameField)
+            {
+                GUILayout.Label("Enter new Name: ");
+
+                newTitle = GUILayout.TextField(newTitle, GUILayout.Width(150));
+
+                GUILayout.BeginHorizontal();
+                {
+                    if (GUILayout.Button("OK", GUILayout.Height(23)))
+                    {
+                        Configuration.writeDebug($"Changing the name of the {selectedColony.Name} from {selectedColony.DisplayName} to {newTitle}");
+                        selectedColony.DisplayName = newTitle;
+                        showNameField = false;
+                        selectedColony.Facilities.ForEach(facility => facility.OnColonyNameChange(title));
+                    }
+                    if (GUILayout.Button("Cancel", GUILayout.Height(23)))
+                    {
+                        showNameField = false;
+                    }
+                }
+                GUILayout.EndHorizontal();
+            }
         }
 
         public static void ToggleWindow()

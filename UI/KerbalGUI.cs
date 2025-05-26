@@ -241,7 +241,7 @@ namespace KerbalColonies.UI
             this.fromFac = fac;
             toolRect = new Rect(100, 100, 500, 500);
             this.fromName = fromVessel.GetDisplayName();
-            this.toName = fac.displayName;
+            this.toName = fac.DisplayName;
             this.fromList = fac.filterKerbals(fromVessel.GetVesselCrew());
             this.toVessel = fromVessel;
             this.kGUI = kGUI;
@@ -257,7 +257,7 @@ namespace KerbalColonies.UI
             this.colony = fromFac.Colony;
             toolRect = new Rect(100, 100, 500, 500);
             this.fromName = colony.Name;
-            this.toName = fac.displayName;
+            this.toName = fac.DisplayName;
             this.fromList = fromFac.filterKerbals(KCKerbalFacilityBase.GetAllKerbalsInColony(colony).Where(kvp => kvp.Value == 0).ToDictionary(i => i.Key, i => i.Value).Keys.ToList());
             this.toList = fromFac.getKerbals();
             this.kGUI = kGUI;

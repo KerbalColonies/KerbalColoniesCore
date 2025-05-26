@@ -22,7 +22,7 @@ using UnityEngine;
 
 namespace KerbalColonies.colonyFacilities
 {
-    internal class KCCrewQuartersWindow : KCWindowBase
+    internal class KCCrewQuartersWindow : KCFacilityWindowBase
     {
         KCCrewQuarters CrewQuarterFacility;
         public KerbalGUI kerbalGUI;
@@ -43,7 +43,7 @@ namespace KerbalColonies.colonyFacilities
             }
         }
 
-        public KCCrewQuartersWindow(KCCrewQuarters CrewQuarterFacility) : base(Configuration.createWindowID(), "Crewquarters")
+        public KCCrewQuartersWindow(KCCrewQuarters CrewQuarterFacility) : base(CrewQuarterFacility, Configuration.createWindowID())
         {
             this.CrewQuarterFacility = CrewQuarterFacility;
             this.kerbalGUI = new KerbalGUI(CrewQuarterFacility, false);

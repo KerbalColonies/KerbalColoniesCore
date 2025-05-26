@@ -125,7 +125,7 @@ namespace KerbalColonies.colonyFacilities
     }
 
 
-    internal class KCResourceConverterWindow : KCWindowBase
+    internal class KCResourceConverterWindow : KCFacilityWindowBase
     {
         KCResourceConverterFacility resourceConverter;
         private RecipeSelectorWindow recipeSelector;
@@ -238,7 +238,7 @@ namespace KerbalColonies.colonyFacilities
             }
         }
 
-        internal KCResourceConverterWindow(KCResourceConverterFacility resourceConverter) : base(Configuration.createWindowID(), "Resourceconverter")
+        internal KCResourceConverterWindow(KCResourceConverterFacility resourceConverter) : base(resourceConverter, Configuration.createWindowID())
         {
             this.resourceConverter = resourceConverter;
             this.recipeSelector = new RecipeSelectorWindow(resourceConverter);

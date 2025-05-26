@@ -70,7 +70,7 @@ namespace KerbalColonies.colonyFacilities
         }
     }
 
-    public class KCHangarFacilityWindow : KCWindowBase
+    public class KCHangarFacilityWindow : KCFacilityWindowBase
     {
         KCHangarFacility hangar;
         private Vector2 scrollPos;
@@ -123,7 +123,7 @@ namespace KerbalColonies.colonyFacilities
             GUI.enabled = true;
         }
 
-        public KCHangarFacilityWindow(KCHangarFacility hangar) : base(Configuration.createWindowID(), "Hangar")
+        public KCHangarFacilityWindow(KCHangarFacility hangar) : base(hangar, Configuration.createWindowID())
         {
             this.hangar = hangar;
             toolRect = new Rect(100, 100, 400, 800);

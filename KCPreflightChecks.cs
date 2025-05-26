@@ -58,7 +58,7 @@ namespace KerbalColonies
                 {
                     KCLaunchpadFacility kCLaunchpad = KCLaunchpadFacility.GetLaunchpadFacility(launchPadName);
 
-                    Configuration.writeDebug($"[KCPreFlightWorker] Launching from {kCLaunchpad.displayName}");
+                    Configuration.writeDebug($"[KCPreFlightWorker] Launching from {kCLaunchpad.DisplayName}");
 
                     // Doesn't account for leaving the editor
                     foreach (PartResourceDefinition item in PartResourceLibrary.Instance.resourceDefinitions)

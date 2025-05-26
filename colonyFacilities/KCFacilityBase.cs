@@ -35,9 +35,10 @@ namespace KerbalColonies.colonyFacilities
     {
         public colonyClass Colony { get; protected set; }
         public KCFacilityInfoClass facilityInfo { get; protected set; }
-
-        public string displayName;
         public string name;
+        private string displayName;
+        public string DisplayName { get => useCustomDisplayName ? displayName : $"{facilityInfo.displayName} {facilityTypeNumber}"; set { displayName = value; useCustomDisplayName = true; } }
+        public bool useCustomDisplayName;
         public int id;
         public bool enabled;
         public double lastUpdateTime;
@@ -57,6 +58,16 @@ namespace KerbalColonies.colonyFacilities
         /// </summary>
         public List<string> KKgroups = new List<string> { };
 
+        public void changeDisplayName(string displayName)
+        {
+            useCustomDisplayName = true;
+            OnDisplayNameChange(displayName);
+            this.displayName = displayName;
+        }
+
+        public virtual void OnColonyNameChange(string name) { }
+
+        public virtual void OnDisplayNameChange(string displayName) { }
 
         /// <summary>
         /// This function gets automatically called when the building is clicked, it might get used for custom windows.
@@ -182,7 +193,7 @@ namespace KerbalColonies.colonyFacilities
         /// </summary>
         public virtual void OnGroupPlaced() { }
 
-        public virtual string GetBaseGroupName(int level) => facilityInfo.BasegroupNames[level];
+        public string GetBaseGroupName(int level) => facilityInfo.BasegroupNames[level];
 
         /// <summary>
         /// This function get automatically called, do not call it manually.
@@ -208,7 +219,8 @@ namespace KerbalColonies.colonyFacilities
         {
             ConfigNode node = new ConfigNode("facilityNode");
             node.AddValue("name", name);
-            node.AddValue("displayName", displayName);
+            node.AddValue("displayName", DisplayName);
+            node.AddValue("useCustomDisplayName", useCustomDisplayName);
             node.AddValue("id", id);
             node.AddValue("enabled", enabled);
             node.AddValue("level", level);
@@ -253,7 +265,7 @@ namespace KerbalColonies.colonyFacilities
             this.facilityInfo = CABInfo;
 
             this.name = CABInfo.facilityConfig.GetValue("name");
-            this.displayName = CABInfo.facilityConfig.GetValue("displayName");
+            this.DisplayName = CABInfo.facilityConfig.GetValue("displayName");
             this.enabled = true;
             this.id = createID();
             this.level = 0;
@@ -275,7 +287,7 @@ namespace KerbalColonies.colonyFacilities
             this.facilityInfo = CABInfo;
 
             this.name = CABInfo.facilityConfig.GetValue("name");
-            this.displayName = CABInfo.facilityConfig.GetValue("displayName");
+            this.DisplayName = CABInfo.facilityConfig.GetValue("displayName");
             this.id = int.Parse(node.GetValue("id"));
             this.enabled = bool.Parse(node.GetValue("enabled"));
             this.level = 0;
@@ -302,6 +314,10 @@ namespace KerbalColonies.colonyFacilities
 
             this.name = facilityInfo.name;
             this.displayName = node.GetValue("displayName");
+            
+            if (Configuration.loadedSaveVersion == new Version(3, 1, 1)) useCustomDisplayName = false;
+            else useCustomDisplayName = bool.Parse(node.GetValue("useCustomDisplayName"));
+
             this.id = int.Parse(node.GetValue("id"));
             this.enabled = bool.Parse(node.GetValue("enabled"));
             this.level = int.Parse(node.GetValue("level"));
@@ -332,7 +348,8 @@ namespace KerbalColonies.colonyFacilities
             this.facilityInfo = facilityInfo;
 
             this.name = facilityInfo.name;
-            this.displayName = $"{facilityInfo.displayName} {CountFacilityType(facilityInfo, colony) + 1}";
+            this.DisplayName = "";
+            useCustomDisplayName = false;
             this.enabled = enabled;
             this.id = createID();
             this.level = 0;

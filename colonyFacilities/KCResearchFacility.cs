@@ -45,7 +45,7 @@ namespace KerbalColonies.colonyFacilities
         }
     }
 
-    public class KCResearchFacilityWindow : KCWindowBase
+    public class KCResearchFacilityWindow : KCFacilityWindowBase
     {
         KCResearchFacility researchFacility;
         public KerbalGUI kerbalGUI;
@@ -83,7 +83,7 @@ namespace KerbalColonies.colonyFacilities
             }
         }
 
-        public KCResearchFacilityWindow(KCResearchFacility researchFacility) : base(Configuration.createWindowID(), "Researchfacility")
+        public KCResearchFacilityWindow(KCResearchFacility researchFacility) : base(researchFacility, Configuration.createWindowID())
         {
             this.researchFacility = researchFacility;
             toolRect = new Rect(100, 100, 400, 800);

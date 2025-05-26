@@ -77,7 +77,7 @@ namespace KerbalColonies.colonyFacilities
         }
     }
 
-    public class KCProductionWindow : KCWindowBase
+    public class KCProductionWindow : KCFacilityWindowBase
     {
         KCProductionFacility facility;
         public KerbalGUI kerbalGUI;
@@ -168,7 +168,7 @@ namespace KerbalColonies.colonyFacilities
                         facility.Colony.CAB.UpgradingFacilities.ToList().ForEach(pair =>
                         {
                             GUILayout.BeginHorizontal();
-                            GUILayout.Label(pair.Key.displayName);
+                            GUILayout.Label(pair.Key.DisplayName);
                             double max = pair.Key.facilityInfo.UpgradeTimes[pair.Key.level + 1] * Configuration.FacilityTimeMultiplier;
                             GUILayout.Label($"{Math.Round(max - pair.Value, 2)}/{Math.Round(max, 2)}");
                             GUILayout.EndHorizontal();
@@ -180,7 +180,7 @@ namespace KerbalColonies.colonyFacilities
                         facility.Colony.CAB.ConstructingFacilities.ToList().ForEach(pair =>
                         {
                             GUILayout.BeginHorizontal();
-                            GUILayout.Label(pair.Key.displayName);
+                            GUILayout.Label(pair.Key.DisplayName);
                             double max = pair.Key.facilityInfo.UpgradeTimes[0] * Configuration.FacilityTimeMultiplier;
                             GUILayout.Label($"{Math.Round(max - pair.Value, 2)}/{Math.Round(max, 2)}");
                             GUILayout.EndHorizontal();
@@ -267,7 +267,7 @@ namespace KerbalColonies.colonyFacilities
             }
         }
 
-        public KCProductionWindow(KCProductionFacility facility) : base(Configuration.createWindowID(), "Production Facility")
+        public KCProductionWindow(KCProductionFacility facility) : base(facility, Configuration.createWindowID())
         {
             this.facility = facility;
             this.kerbalGUI = null;

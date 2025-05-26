@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
 
 // KC: Kerbal Colonies
 // This mod aimes to create a Colony system with Kerbal Konstructs statics
@@ -273,10 +274,29 @@ namespace KerbalColonies.colonyFacilities
             return colony.Facilities.Where(x => x is KCLaunchpadFacility).Select(x => (KCLaunchpadFacility)x).ToList();
         }
 
+        // DeleteLaunchsite currently internal, waiting till next KK update
+        //public override void OnColonyNameChange(string name)
+        //{
+        //    KerbalKonstructs.Core.StaticInstance launchSiteInstance = KerbalKonstructs.API.getStaticInstanceByUUID(launchSiteUUID);
+        //    launchSiteInstance.launchSite.LaunchSiteName = $"KC {HighLogic.CurrentGame.Seed.ToString()} {Colony.DisplayName} {DisplayName}";
+        //    KerbalKonstructs.Core.LaunchSiteManager.RegisterLaunchSite(launchSiteInstance.launchSite);
+        //    launchSiteInstance.SaveConfig();
+        //}
+
+        //public override void OnDisplayNameChange(string displayName)
+        //{
+        //    KerbalKonstructs.Core.StaticInstance launchSiteInstance = KerbalKonstructs.API.getStaticInstanceByUUID(launchSiteUUID);
+        //    KerbalKonstructs.Core.LaunchSiteManager.DeleteLaunchSite(launchSiteInstance.launchSite);
+        //    launchSiteInstance.launchSite.LaunchSiteName = $"KC {HighLogic.CurrentGame.Seed.ToString()} {Colony.DisplayName} {DisplayName}";
+        //    KerbalKonstructs.Core.LaunchSiteManager.RegisterLaunchSite(launchSiteInstance.launchSite);
+        //    launchSiteInstance.SaveConfig();
+        //}
+
         public override ConfigNode GetSharedNode()
         {
             return sharedNode;
         }
+
 
         public override ConfigNode getConfigNode()
         {
@@ -315,7 +335,7 @@ namespace KerbalColonies.colonyFacilities
         {
             AllowClick = false;
             AllowRemote = false;
-            launchSiteName = $"KC {HighLogic.CurrentGame.Seed.ToString()} {colony.DisplayName} {displayName}";
+            launchSiteName = $"KC {HighLogic.CurrentGame.Seed.ToString()} {colony.DisplayName} {DisplayName}";
             sharedNode = new ConfigNode("launchpadNode");
             //launchpadWindow = new KCLaunchpadFacilityWindow(this);
         }

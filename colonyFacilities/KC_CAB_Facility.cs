@@ -117,7 +117,7 @@ namespace KerbalColonies.colonyFacilities
                     {
                         GUILayout.BeginHorizontal();
 
-                        GUILayout.Label(colonyFacility.displayName);
+                        GUILayout.Label(colonyFacility.DisplayName);
                         GUILayout.FlexibleSpace();
                         GUILayout.Label($"Level: {colonyFacility.level.ToString()}");
                         GUILayout.FlexibleSpace();
@@ -387,7 +387,7 @@ namespace KerbalColonies.colonyFacilities
                             dailyProduction -= upgradingFacilities.ElementAt(0).Value;
                             upgradingFacilities.Remove(facility);
 
-                            ScreenMessages.PostScreenMessage($"KC: Facility {facility.displayName} was fully upgraded on colony {Colony.DisplayName}", 10f, ScreenMessageStyle.UPPER_RIGHT);
+                            ScreenMessages.PostScreenMessage($"KC: Facility {facility.DisplayName} was fully upgraded on colony {Colony.DisplayName}", 10f, ScreenMessageStyle.UPPER_RIGHT);
 
                             switch (facility.facilityInfo.UpgradeTypes[facility.level + 1])
                             {
@@ -417,7 +417,7 @@ namespace KerbalColonies.colonyFacilities
                             dailyProduction -= constructingFacilities.ElementAt(0).Value;
                             constructingFacilities.Remove(facility);
                             addConstructedFacility(facility);
-                            ScreenMessages.PostScreenMessage($"KC: Facility {facility.displayName} was fully built on colony {Colony.DisplayName}", 10f, ScreenMessageStyle.UPPER_RIGHT);
+                            ScreenMessages.PostScreenMessage($"KC: Facility {facility.DisplayName} was fully built on colony {Colony.DisplayName}", 10f, ScreenMessageStyle.UPPER_RIGHT);
                         }
                     }
                     else

@@ -180,7 +180,7 @@ namespace KerbalColonies
 
             if (!node.HasValue("name")) throw new MissingFieldException("A config without a name has been found.");
             name = node.GetValue("name");
-            if (!node.HasValue("displayName")) throw new MissingFieldException($"The facility {name} has no displayName.");
+            if (!node.HasValue("displayName")) throw new MissingFieldException($"The facility {name} has no DisplayName.");
             displayName = node.GetValue("displayName");
 
             if (!node.HasValue("type")) throw new MissingFieldException($"The facility {name} has no type.");

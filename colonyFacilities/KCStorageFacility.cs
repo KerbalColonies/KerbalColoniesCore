@@ -39,7 +39,7 @@ namespace KerbalColonies.colonyFacilities
         }
     }
 
-    public class KCStorageFacilityWindow : KCWindowBase
+    public class KCStorageFacilityWindow : KCFacilityWindowBase
     {
         KCStorageFacility storageFacility;
         public static HashSet<PartResourceDefinition> allResources = new HashSet<PartResourceDefinition>();
@@ -267,7 +267,7 @@ namespace KerbalColonies.colonyFacilities
             GUILayout.Label($"Trash resources: {trashResources}", GUILayout.Height(18));
         }
 
-        public KCStorageFacilityWindow(KCStorageFacility storageFacility) : base(Configuration.createWindowID(), "Storagefacility")
+        public KCStorageFacilityWindow(KCStorageFacility storageFacility) : base(storageFacility, Configuration.createWindowID())
         {
             this.storageFacility = storageFacility;
             GetVesselResources();

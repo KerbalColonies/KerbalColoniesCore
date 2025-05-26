@@ -30,7 +30,12 @@ namespace KerbalColonies
         }
 
         public string Name { get; private set; }
-        public string DisplayName { get; private set; }
+        private string displayName;
+        public string DisplayName { get => UseCustomDisplayName ? displayName : $"{FlightGlobals.currentMainBody.name} colony {ColonyNumber}"; set { displayName = value; UseCustomDisplayName = true; } }
+        public bool UseCustomDisplayName { get; private set; } = false;
+
+        public int ColonyNumber { get; private set; }
+        public int BodyID { get; private set; }
 
         public KC_CAB_Facility CAB { get; private set; }
 
@@ -43,6 +48,10 @@ namespace KerbalColonies
             ConfigNode node = new ConfigNode("colonyClass");
             node.AddValue("name", Name);
             node.AddValue("displayName", DisplayName);
+            node.AddValue("useCustomDisplayName", UseCustomDisplayName);
+            node.AddValue("colonyNumber", ColonyNumber);
+            node.AddValue("bodyID", BodyID);
+
             ConfigNode colonyNodes = new ConfigNode("sharedColonyNodes");
             this.sharedColonyNodes.ForEach(x => colonyNodes.AddNode(x));
             node.AddNode(colonyNodes);
@@ -85,10 +94,11 @@ namespace KerbalColonies
             Facilities.ForEach(f => f.Update());
         }
 
-        public colonyClass(string name, string displayName, KC_CABInfo CABInfo)
+        public colonyClass(string name, KC_CABInfo CABInfo)
         {
             Name = name;
-            DisplayName = displayName;
+            BodyID = FlightGlobals.GetBodyIndex(FlightGlobals.currentMainBody);
+            ColonyNumber = Configuration.colonyDictionary[FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody)].Count + 1;
             CAB = new KC_CAB_Facility(this, CABInfo);
             Facilities = new List<KCFacilityBase>();
             sharedColonyNodes = new List<ConfigNode>();
@@ -98,6 +108,20 @@ namespace KerbalColonies
         {
             Name = node.GetValue("name");
             DisplayName = node.GetValue("displayName");
+
+            if (Configuration.loadedSaveVersion == new Version(3, 1, 1))
+            {
+                UseCustomDisplayName = false;
+                BodyID = 3;
+                ColonyNumber = 0;
+            }
+            else
+            {
+                UseCustomDisplayName = bool.Parse(node.GetValue("useCustomDisplayName"));
+                BodyID = int.Parse(node.GetValue("bodyID"));
+                ColonyNumber = int.Parse(node.GetValue("colonyNumber"));
+            }
+
             Facilities = new List<KCFacilityBase>();
             sharedColonyNodes = node.GetNode("sharedColonyNodes").GetNodes().ToList();
             Configuration.writeDebug($"Loading colony {Name} with {sharedColonyNodes.Count} shared nodes");

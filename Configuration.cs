@@ -156,6 +156,10 @@ namespace KerbalColonies
         #endregion
 
         #region savingV3
+
+        public static Version saveVersion = new Version(3, 2, 0);
+        public static Version loadedSaveVersion;
+
         // New saving
         // The current system for creating facilities requieres exactly one facility per group
         // -> Only the group name needs to be saved in the extra file and it only needs to be checked if one of the group statics is clicked
@@ -179,6 +183,15 @@ namespace KerbalColonies
         /// This dictionary contains all of the groups across all savegames. It's used to disable the groups from other savegames to enable per savegame colonies
         /// </summary>
         internal static Dictionary<string, Dictionary<int, Dictionary<string, ConfigNode>>> KCgroups = new Dictionary<string, Dictionary<int, Dictionary<string, ConfigNode>>> { };
+
+
+        /// <summary>
+        /// Untested, should maybe work
+        /// </summary>
+        public ConfigNode getKCgroupNode(string groupName)
+        {
+            return KCgroups.Values.SelectMany(x => x.Values).SelectMany(x => x).FirstOrDefault(x => x.Key == groupName).Value;
+        }
 
         internal static void AddGroup(int bodyIndex, string groupName, KCFacilityBase faciltiy)
         {
@@ -258,6 +271,8 @@ namespace KerbalColonies
 
             if (persistentNode.HasNode("colonyNode"))
             {
+                Version.TryParse(persistentNode.GetValue("version") ?? "3.1.1", out loadedSaveVersion);
+
                 ConfigNode primaryNode = persistentNode.GetNode("colonyNode");
                 foreach (ConfigNode bodyNode in primaryNode.GetNodes())
                 {
@@ -337,10 +352,7 @@ namespace KerbalColonies
                 ColonyDictionaryNode.AddNode(bodyNode);
             }
 
-            // potentially usefull in the future if any changes to the saving are necessary
-            persistentNode.AddValue("majorVersion", 3);
-            persistentNode.AddValue("minorVersion", 1);
-            persistentNode.AddValue("fixVersion", 1);
+            persistentNode.AddValue("version", saveVersion.ToString());
 
             persistentNode.AddNode(ColonyDictionaryNode);
         }

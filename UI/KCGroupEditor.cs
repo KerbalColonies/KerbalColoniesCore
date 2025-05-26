@@ -79,7 +79,7 @@ namespace KerbalColonies.UI
 
             GUIStyle labelStyle = new GUIStyle(GUI.skin.label);
             labelStyle.fontSize *= 2;
-            GUILayout.Label($"Facility: {selectedFacility.displayName}", labelStyle);
+            GUILayout.Label($"Facility: {selectedFacility.DisplayName}", labelStyle);
 
             GUILayout.EndHorizontal();
 

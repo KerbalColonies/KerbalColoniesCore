@@ -47,6 +47,13 @@ namespace KerbalColonies
 
         protected override void CustomWindow()
         {
+            if (Configuration.CabTypes.Count == 0 && Configuration.BuildableFacilities.Count == 0 && ConfigFacilityLoader.failedConfigs.Count == 0)
+            {
+                GUILayout.Label("No facility configs were found, Kerbal Colonies can't work without facility configs.");
+                GUILayout.Label("Since the v1.0.1 update the facility configs are seperate mods, the previously included ones should be on ckan soon.");
+                return;
+            }
+
             if (Configuration.CabTypes.Count == 0) GUILayout.Label("No CAB Type was loaded which means this mod won't work.");
             if (Configuration.BuildableFacilities.Count == 0) GUILayout.Label("No Buildable Facilities were loaded.");
 

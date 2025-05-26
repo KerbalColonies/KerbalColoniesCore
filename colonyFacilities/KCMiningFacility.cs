@@ -53,7 +53,7 @@ namespace KerbalColonies.colonyFacilities
         }
     }
 
-    public class KCMiningFacilityWindow : KCWindowBase
+    public class KCMiningFacilityWindow : KCFacilityWindowBase
     {
         KCMiningFacility miningFacility;
         public KerbalGUI kerbalGUI;
@@ -94,7 +94,7 @@ namespace KerbalColonies.colonyFacilities
         }
 
 
-        public KCMiningFacilityWindow(KCMiningFacility miningFacility) : base(Configuration.createWindowID(), "Miningfacility")
+        public KCMiningFacilityWindow(KCMiningFacility miningFacility) : base(miningFacility, Configuration.createWindowID())
         {
             this.miningFacility = miningFacility;
             toolRect = new Rect(100, 100, 400, 800);

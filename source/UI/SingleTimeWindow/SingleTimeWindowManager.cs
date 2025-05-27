@@ -1,6 +1,9 @@
 ﻿using KerbalColonies.UI.SingleTimePopup;
 using System.Collections.Generic;
+using System.Reflection;
 using UnityEngine;
+using System.IO;
+using static KSP.UI.Screens.Settings.SettingsSetup;
 
 // KC: Kerbal Colonies
 // This mod aimes to create a Colony system with Kerbal Konstructs statics
@@ -21,10 +24,34 @@ using UnityEngine;
 
 namespace KerbalColonies.UI.SingleTimeWindow
 {
-    [KSPAddon(KSPAddon.Startup.AllGameScenes, false)]
+    [KSPAddon(KSPAddon.Startup.EveryScene, false)]
     public class SingleTimeWindowManager : MonoBehaviour
     {
-        List<KCSingleTimeWindowBase> windows = new List<KCSingleTimeWindowBase> { };
+        public static Dictionary<string, bool> shownWindows = new Dictionary<string, bool> { };
+
+        public static List<KCSingleTimeWindowBase> windows = new List<KCSingleTimeWindowBase> { };
+
+        protected void Awake()
+        {
+            string path = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + "\\..\\Configs\\SingleTimeWindows.cfg";
+
+            ConfigNode node = ConfigNode.Load(path);
+
+            if (node != null && node.GetNodes().Length > 0)
+            {
+                ConfigNode[] nodes = node.GetNodes();
+                foreach (ConfigNode.Value value in nodes[0].values)
+                {
+                    if (bool.TryParse(value.value, out bool showAgain))
+                    {
+                        if (!shownWindows.ContainsKey(value.name))
+                        {
+                            shownWindows.Add(value.name, showAgain);
+                        }
+                    }
+                }
+            }
+        }
 
         protected void Start()
         {
@@ -43,6 +70,18 @@ namespace KerbalColonies.UI.SingleTimeWindow
                     item.Open();
                 }
             }
+        }
+
+        protected void OnDestroy()
+        {
+            ConfigNode node = new ConfigNode("SingleTimeWindows");
+            windows.ForEach(w => node.AddValue(w.identifier, w.showAgain.ToString()));
+                
+            string path = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + "\\..\\Configs\\SingleTimeWindows.cfg";
+
+            ConfigNode n = new ConfigNode();
+            n.AddNode(node);
+            n.Save(path);
         }
     }
 }

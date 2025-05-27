@@ -44,6 +44,7 @@
 #*.png   binary
 #*.gif   binary
 
+
 ###############################################################################
 # diff behavior for common document formats
 # 
@@ -61,3 +62,6 @@
 #*.PDF   diff=astextplain
 #*.rtf   diff=astextplain
 #*.RTF   diff=astextplain
+
+# Zip Files to be able to merge them.
+*.zip  binary

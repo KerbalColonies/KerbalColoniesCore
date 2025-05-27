@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using static KSP.UI.Screens.SpaceCenter.BuildingPicker;
+using static Targeting.Sample;
 
 // KC: Kerbal Colonies
 // This mod aimes to create a Colony system with Kerbal Konstructs statics
@@ -26,7 +26,10 @@ namespace KerbalColonies.colonyFacilities
 {
     public class KCStorageFacilityInfo : KCFacilityInfoClass
     {
-        public SortedDictionary<int, double> maxVolume = new SortedDictionary<int, double> { };
+        public SortedDictionary<int, double> maxVolume { get; protected set; } = new SortedDictionary<int, double> { };
+
+        public SortedDictionary<int, List<PartResourceDefinition>> resourceWhitelist { get; protected set; } = new SortedDictionary<int, List<PartResourceDefinition>> { };
+        public SortedDictionary<int, List<PartResourceDefinition>> resourceBlacklist { get; protected set; } = new SortedDictionary<int, List<PartResourceDefinition>> { };
 
         public KCStorageFacilityInfo(ConfigNode node) : base(node)
         {
@@ -35,6 +38,38 @@ namespace KerbalColonies.colonyFacilities
                 if (n.Value.HasValue("maxVolume")) maxVolume[n.Key] = double.Parse(n.Value.GetValue("maxVolume"));
                 else if (n.Key > 0) maxVolume[n.Key] = maxVolume[n.Key - 1];
                 else throw new MissingFieldException($"The facility {name} (type: {type}) has no maxVolume (at least for level 0).");
+
+                if (n.Value.HasValue("resourceWhitelist"))
+                {
+                    n.Value.GetValue("resourceWhitelist").Split(',').Select(s => s.Trim()).ToList().ForEach(r =>
+                    {
+                        PartResourceDefinition resource = PartResourceLibrary.Instance.GetDefinition(r);
+                        if (resource != null)
+                        {
+                            Configuration.writeDebug($"KCStorageFacilityInfo: Adding resource {r} to whitelist for facility {name} (type: {type}) at level {n.Key}.");
+                            resourceWhitelist[n.Key].Add(resource);
+                        }
+                        else throw new Exception($"KCStorageFacilityInfo: Resource {r} not found in PartResourceLibrary for facility {name} (type: {type}) at level {n.Key}.");
+                    });
+                }
+                else if (n.Key > 0) resourceWhitelist[n.Key] = resourceWhitelist[n.Key - 1].ToList();
+                else resourceWhitelist[n.Key] = new List<PartResourceDefinition>();
+
+                if (n.Value.HasValue("resourceBlacklist"))
+                {
+                    n.Value.GetValue("resourceBlacklist").Split(',').Select(s => s.Trim()).ToList().ForEach(r =>
+                    {
+                        PartResourceDefinition resource = PartResourceLibrary.Instance.GetDefinition(r);
+                        if (resource != null)
+                        {
+                            Configuration.writeDebug($"KCStorageFacilityInfo: Adding resource {r} to blacklist for facility {name} (type: {type}) at level {n.Key}.");
+                            resourceBlacklist[n.Key].Add(resource);
+                        }
+                        else throw new Exception($"KCStorageFacilityInfo: Resource {r} not found in PartResourceLibrary for facility {name} (type: {type}) at level {n.Key}.");
+                    });
+                }
+                else if (n.Key > 0) resourceBlacklist[n.Key] = resourceBlacklist[n.Key - 1].ToList();
+                else resourceBlacklist[n.Key] = new List<PartResourceDefinition>();
             });
         }
     }
@@ -42,10 +77,10 @@ namespace KerbalColonies.colonyFacilities
     public class KCStorageFacilityWindow : KCFacilityWindowBase
     {
         KCStorageFacility storageFacility;
-        public static HashSet<PartResourceDefinition> allResources = new HashSet<PartResourceDefinition>();
+        public HashSet<PartResourceDefinition> allResources = new HashSet<PartResourceDefinition>();
         protected Vector2 scrollPos;
 
-        public static void GetVesselResources()
+        public void GetVesselResources()
         {
             if (FlightGlobals.ActiveVessel == null) { return; }
 
@@ -67,7 +102,7 @@ namespace KerbalColonies.colonyFacilities
             }
         }
 
-        public bool vesselHasRessources(Vessel v, PartResourceDefinition resource, float amount)
+        public bool vesselHasRessources(Vessel v, PartResourceDefinition resource, double amount)
         {
             v.GetConnectedResourceTotals(resource.id, false, out double vesselAmount, out double vesselMaxAmount);
             if (vesselAmount >= amount)
@@ -86,7 +121,7 @@ namespace KerbalColonies.colonyFacilities
             return vesselAmount;
         }
 
-        public bool facilityHasRessources(PartResourceDefinition resouce, float amount)
+        public bool facilityHasRessources(PartResourceDefinition resouce, double amount)
         {
             if (storageFacility.getRessources()[resouce] >= amount)
             {
@@ -111,7 +146,7 @@ namespace KerbalColonies.colonyFacilities
         /// <summary>
         /// checks if the vessel v has enough space to add amount of r to it.
         /// </summary>
-        public bool vesselHasSpace(Vessel v, PartResourceDefinition r, float amount)
+        public bool vesselHasSpace(Vessel v, PartResourceDefinition r, double amount)
         {
             v.GetConnectedResourceTotals(r.id, false, out double vesselAmount, out double vesselMaxAmount);
             if (vesselMaxAmount - vesselAmount >= amount)
@@ -129,7 +164,7 @@ namespace KerbalColonies.colonyFacilities
             return vesselMaxAmount - vesselAmount;
         }
 
-        public bool facilityHasSpace(PartResourceDefinition resource, float amount)
+        public bool facilityHasSpace(PartResourceDefinition resource, double amount)
         {
             if (storageFacility.getMaxVolume() - storageFacility.getCurrentVolume() >= KCStorageFacility.getVolumeForAmount(resource, amount))
             {
@@ -185,7 +220,7 @@ namespace KerbalColonies.colonyFacilities
                                         else
                                         {
                                             double amount = getFacilityResource(kvp.Key);
-                                            storageFacility.changeAmount(kvp.Key, (float)-amount);
+                                            storageFacility.changeAmount(kvp.Key, -amount);
                                             FlightGlobals.ActiveVessel.rootPart.RequestResource(kvp.Key.id, -amount);
                                         }
                                     }
@@ -193,16 +228,16 @@ namespace KerbalColonies.colonyFacilities
                                     {
                                         double amount = getVesselSpace(FlightGlobals.ActiveVessel, kvp.Key);
 
-                                        if (facilityHasRessources(kvp.Key, (float)-amount))
+                                        if (facilityHasRessources(kvp.Key, amount))
                                         {
                                             FlightGlobals.ActiveVessel.rootPart.RequestResource(kvp.Key.id, (double)amount);
-                                            storageFacility.changeAmount(kvp.Key, (float)-amount);
+                                            storageFacility.changeAmount(kvp.Key, -amount);
                                         }
                                         else
                                         {
                                             amount = getFacilityResource(kvp.Key);
-                                            storageFacility.changeAmount(kvp.Key, (float)-amount);
-                                            FlightGlobals.ActiveVessel.rootPart.RequestResource(kvp.Key.id, -amount);
+                                            storageFacility.changeAmount(kvp.Key, -amount);
+                                            FlightGlobals.ActiveVessel.rootPart.RequestResource(kvp.Key.id, amount);
                                         }
                                     }
                                 }
@@ -215,7 +250,7 @@ namespace KerbalColonies.colonyFacilities
                                     else
                                     {
                                         double amount = getFacilityResource(kvp.Key);
-                                        storageFacility.changeAmount(kvp.Key, (float)-amount);
+                                        storageFacility.changeAmount(kvp.Key, -amount);
                                     }
                                 }
                             }
@@ -232,22 +267,22 @@ namespace KerbalColonies.colonyFacilities
                                     {
                                         double amount = getVesselRessources(FlightGlobals.ActiveVessel, kvp.Key);
                                         FlightGlobals.ActiveVessel.rootPart.RequestResource(kvp.Key.id, amount);
-                                        storageFacility.changeAmount(kvp.Key, (float)amount);
+                                        storageFacility.changeAmount(kvp.Key, amount);
                                     }
                                 }
                                 else
                                 {
                                     double amount = getFacilitySpace(kvp.Key);
-                                    if (vesselHasRessources(FlightGlobals.ActiveVessel, kvp.Key, (float)amount))
+                                    if (vesselHasRessources(FlightGlobals.ActiveVessel, kvp.Key, amount))
                                     {
                                         FlightGlobals.ActiveVessel.rootPart.RequestResource(kvp.Key.id, (double)amount);
-                                        storageFacility.changeAmount(kvp.Key, (float)amount);
+                                        storageFacility.changeAmount(kvp.Key, amount);
                                     }
                                     else
                                     {
                                         amount = getVesselRessources(FlightGlobals.ActiveVessel, kvp.Key);
                                         FlightGlobals.ActiveVessel.rootPart.RequestResource(kvp.Key.id, amount);
-                                        storageFacility.changeAmount(kvp.Key, (float)amount);
+                                        storageFacility.changeAmount(kvp.Key, amount);
                                     }
                                 }
                             }
@@ -267,14 +302,26 @@ namespace KerbalColonies.colonyFacilities
             GUILayout.Label($"Trash resources: {trashResources}", GUILayout.Height(18));
         }
 
+        protected override void OnOpen()
+        {
+
+            if (FlightGlobals.ActiveVessel == null) return;
+            storageFacility.addVesselResourceTypes(FlightGlobals.ActiveVessel);
+        }
+
+        protected override void OnClose()
+        {
+            storageFacility.cleanUpResources();
+        }
+
         public KCStorageFacilityWindow(KCStorageFacility storageFacility) : base(storageFacility, Configuration.createWindowID())
         {
             this.storageFacility = storageFacility;
-            GetVesselResources();
-            foreach (PartResourceDefinition resource in allResources)
-            {
-                storageFacility.addRessource(resource);
-            }
+            //GetVesselResources();
+            //foreach (PartResourceDefinition resource in allResources)
+            //{
+            //    storageFacility.addRessource(resource);
+            //}
             toolRect = new Rect(100, 100, 400, 600);
         }
     }
@@ -304,12 +351,12 @@ namespace KerbalColonies.colonyFacilities
                     double tempAmount = storage.getRessources()[resource];
                     if (tempAmount >= -amount)
                     {
-                        storage.changeAmount(resource, (float)amount);
+                        storage.changeAmount(resource, amount);
                         return 0;
                     }
                     else
                     {
-                        storage.changeAmount(resource, (float)-tempAmount);
+                        storage.changeAmount(resource, -tempAmount);
                         amount += tempAmount;
                     }
                 }
@@ -318,12 +365,12 @@ namespace KerbalColonies.colonyFacilities
                     double tempAmount = storage.getEmptyAmount(resource);
                     if (amount <= tempAmount)
                     {
-                        storage.changeAmount(resource, (float)amount);
+                        storage.changeAmount(resource, amount);
                         return 0;
                     }
                     else
                     {
-                        storage.changeAmount(resource, (float)tempAmount);
+                        storage.changeAmount(resource, tempAmount);
                         amount -= tempAmount;
                     }
                 }
@@ -366,10 +413,22 @@ namespace KerbalColonies.colonyFacilities
         }
 
         public Dictionary<PartResourceDefinition, double> getRessources() { return resources; }
-        public void addRessource(PartResourceDefinition r) { resources.TryAdd(r, 0); }
+        public void addRessource(PartResourceDefinition resource) {
+            KCStorageFacilityInfo info = storageInfo;
+            if (blackListedResources.Contains(resource.name))  return;
+            if (info.resourceBlacklist[level].Contains(resource)) return;
+            if (info.resourceWhitelist[level].Count > 0 && !info.resourceWhitelist[level].Contains(resource)) return;
 
-        public void setAmount(PartResourceDefinition resource, float amount)
+            resources.TryAdd(resource, 0); 
+        }
+
+        public void setAmount(PartResourceDefinition resource, double amount)
         {
+            KCStorageFacilityInfo info = storageInfo;
+            if (blackListedResources.Contains(resource.name)) return;
+            if (info.resourceBlacklist[level].Contains(resource)) return;
+            if (info.resourceWhitelist[level].Count > 0 && !info.resourceWhitelist[level].Contains(resource)) return;
+
             if (resources.ContainsKey(resource))
             {
                 resources[resource] = amount;
@@ -396,6 +455,34 @@ namespace KerbalColonies.colonyFacilities
             return (storageInfo.maxVolume[level] - currentVolume) / resource.volume;
         }
 
+        /// <summary>
+        /// Adds all partresourcedefinitions that are present in a vessel if they aren't in the resources dictionary yet.
+        /// </summary>
+        public void addVesselResourceTypes(Vessel v)
+        {
+            if (v == null) return;
+
+            KCStorageFacilityInfo info = storageInfo;
+
+            foreach (PartResourceDefinition resource in PartResourceLibrary.Instance.resourceDefinitions)
+            {
+                if (blackListedResources.Contains(resource.name)) continue;
+                if (info.resourceBlacklist[level].Contains(resource)) continue;
+                if (info.resourceWhitelist[level].Count > 0 && !info.resourceWhitelist[level].Contains(resource)) continue;
+
+                v.GetConnectedResourceTotals(resource.id, true, out double amount, out double max, true);
+                if (max > 0) resources.TryAdd(resource, 0);
+            }
+        }
+
+        /// <summary>
+        /// Removes all resources with amount 0 from the list
+        /// </summary>
+        public void cleanUpResources()
+        {
+            resources.ToList().Where(kvp => kvp.Value == 0).ToList().ForEach(kvp => resources.Remove(kvp.Key));
+        }
+
         private KCStorageFacilityWindow StorageWindow;
 
         public override ConfigNode getConfigNode()
@@ -417,11 +504,16 @@ namespace KerbalColonies.colonyFacilities
         /// </summary>
         public bool changeAmount(PartResourceDefinition resource, double amount)
         {
+            KCStorageFacilityInfo info = storageInfo;
+            if (blackListedResources.Contains(resource.name)) return false;
+            if (info.resourceBlacklist[level].Contains(resource)) return false;
+            if (info.resourceWhitelist[level].Count > 0 && !info.resourceWhitelist[level].Contains(resource)) return false;
+
             if (amount < 0)
             {
                 if (this.resources.ContainsKey(resource))
                 {
-                    if (this.resources[resource] >= amount)
+                    if (this.resources[resource] >= -amount)
                     {
                         this.resources[resource] += amount;
                         return true;
@@ -470,14 +562,14 @@ namespace KerbalColonies.colonyFacilities
                 if (resources.ContainsKey(prd)) resources[prd] = double.Parse(value.value);
                 else resources.Add(prd, double.Parse(value.value));
             }
-            foreach (PartResourceDefinition resource in PartResourceLibrary.Instance.resourceDefinitions)
-            {
-                if (blackListedResources.Contains(resource.name)) { continue; }
-                if (!resources.ContainsKey(resource))
-                {
-                    resources.Add(resource, 0);
-                }
-            }
+            //foreach (PartResourceDefinition resource in PartResourceLibrary.Instance.resourceDefinitions)
+            //{
+            //    if (blackListedResources.Contains(resource.name)) { continue; }
+            //    if (!resources.ContainsKey(resource))
+            //    {
+            //        resources.Add(resource, 0);
+            //    }
+            //}
         }
 
         public KCStorageFacility(colonyClass colony, KCFacilityInfoClass facilityInfo, bool enabled) : base(colony, facilityInfo, enabled)
@@ -485,14 +577,14 @@ namespace KerbalColonies.colonyFacilities
             resources = new Dictionary<PartResourceDefinition, double>();
             StorageWindow = new KCStorageFacilityWindow(this);
 
-            foreach (PartResourceDefinition resource in PartResourceLibrary.Instance.resourceDefinitions)
-            {
-                if (blackListedResources.Contains(resource.name)) { continue; }
-                if (!resources.ContainsKey(resource))
-                {
-                    resources.Add(resource, 0);
-                }
-            }
+            //foreach (PartResourceDefinition resource in PartResourceLibrary.Instance.resourceDefinitions)
+            //{
+            //    if (blackListedResources.Contains(resource.name)) { continue; }
+            //    if (!resources.ContainsKey(resource))
+            //    {
+            //        resources.Add(resource, 0);
+            //    }
+            //}
         }
     }
 }

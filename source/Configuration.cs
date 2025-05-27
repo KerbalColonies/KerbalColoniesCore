@@ -234,34 +234,28 @@ namespace KerbalColonies
 
             ConfigNode node = ConfigNode.Load(path);
 
-            if (node != null)
+            if (node != null && node.GetNodes().Length > 0)
             {
-                if (node.GetNodes().Length >= 0)
+                ConfigNode[] nodes = node.GetNodes();
+                foreach (ConfigNode saveGame in nodes[0].GetNodes())
                 {
-                    ConfigNode[] nodes = node.GetNodes();
-                    if (nodes.Length > 0)
+                    if (!KCgroups.ContainsKey(saveGame.name))
                     {
-                        foreach (ConfigNode saveGame in nodes[0].GetNodes())
+                        KCgroups.Add(saveGame.name, new Dictionary<int, Dictionary<string, ConfigNode>> { });
+
+                        foreach (ConfigNode bodyId in nodes[0].GetNode(saveGame.name).GetNodes())
                         {
-                            if (!KCgroups.ContainsKey(saveGame.name))
+                            if (!KCgroups[saveGame.name].ContainsKey(int.Parse(bodyId.name)))
                             {
-                                KCgroups.Add(saveGame.name, new Dictionary<int, Dictionary<string, ConfigNode>> { });
+                                KCgroups[saveGame.name].Add(int.Parse(bodyId.name), new Dictionary<string, ConfigNode> { });
+                            }
 
-                                foreach (ConfigNode bodyId in nodes[0].GetNode(saveGame.name).GetNodes())
+                            foreach (ConfigNode group in nodes[0].GetNode(saveGame.name).GetNode(bodyId.name).GetNodes())
+                            {
+                                if (!KCgroups[saveGame.name][int.Parse(bodyId.name)].ContainsKey(group.name))
                                 {
-                                    if (!KCgroups[saveGame.name].ContainsKey(int.Parse(bodyId.name)))
-                                    {
-                                        KCgroups[saveGame.name].Add(int.Parse(bodyId.name), new Dictionary<string, ConfigNode> { });
-                                    }
-
-                                    foreach (ConfigNode group in nodes[0].GetNode(saveGame.name).GetNode(bodyId.name).GetNodes())
-                                    {
-                                        if (!KCgroups[saveGame.name][int.Parse(bodyId.name)].ContainsKey(group.name))
-                                        {
-                                            if (group.nodes.Count > 0) KCgroups[saveGame.name][int.Parse(bodyId.name)].Add(group.name, group.GetNodes().FirstOrDefault());
-                                            else KCgroups[saveGame.name][int.Parse(bodyId.name)].Add(group.name, null);
-                                        }
-                                    }
+                                    if (group.nodes.Count > 0) KCgroups[saveGame.name][int.Parse(bodyId.name)].Add(group.name, group.GetNodes().FirstOrDefault());
+                                    else KCgroups[saveGame.name][int.Parse(bodyId.name)].Add(group.name, null);
                                 }
                             }
                         }

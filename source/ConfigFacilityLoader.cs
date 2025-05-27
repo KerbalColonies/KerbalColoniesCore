@@ -1,5 +1,6 @@
 ﻿using KerbalColonies.colonyFacilities;
 using KerbalColonies.UI;
+using KerbalColonies.UI.SingleTimeWindow;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
@@ -131,6 +132,8 @@ namespace KerbalColonies
                 failedConfigs.Add("ResourceConversionLists");
                 Configuration.writeLog($"Error while loading the resource conversion lists: {e}");
             }
+
+            SingleTimeWindowManager.windows.Add(new Changelogwindow());
         }
 
         protected void Start()

@@ -65,3 +65,4 @@
 
 # Zip Files to be able to merge them.
 *.zip  binary
+*.zip -merge

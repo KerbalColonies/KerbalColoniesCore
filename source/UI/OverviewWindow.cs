@@ -92,7 +92,7 @@ namespace KerbalColonies.UI
                 {
                     if (GUILayout.Button("OK", GUILayout.Height(23)))
                     {
-                        Configuration.writeDebug($"Changing the name of the {selectedColony.Name} from {selectedColony.DisplayName} to {newTitle}");
+                        Configuration.writeLog($"Changing the name of the {selectedColony.Name} from {selectedColony.DisplayName} to {newTitle}");
                         selectedColony.DisplayName = newTitle;
                         showNameField = false;
                         selectedColony.Facilities.ForEach(facility => facility.OnColonyNameChange(title));

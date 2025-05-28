@@ -47,7 +47,8 @@ namespace KerbalColonies.colonyFacilities
                         if (resource != null)
                         {
                             Configuration.writeDebug($"KCStorageFacilityInfo: Adding resource {r} to whitelist for facility {name} (type: {type}) at level {n.Key}.");
-                            resourceWhitelist[n.Key].Add(resource);
+                            if (!resourceWhitelist.ContainsKey(n.Key)) resourceWhitelist.Add(n.Key, new List<PartResourceDefinition> { resource });
+                            else resourceWhitelist[n.Key].Add(resource);
                         }
                         else throw new Exception($"KCStorageFacilityInfo: Resource {r} not found in PartResourceLibrary for facility {name} (type: {type}) at level {n.Key}.");
                     });
@@ -63,7 +64,8 @@ namespace KerbalColonies.colonyFacilities
                         if (resource != null)
                         {
                             Configuration.writeDebug($"KCStorageFacilityInfo: Adding resource {r} to blacklist for facility {name} (type: {type}) at level {n.Key}.");
-                            resourceBlacklist[n.Key].Add(resource);
+                            if (!resourceBlacklist.ContainsKey(n.Key)) resourceBlacklist.Add(n.Key, new List<PartResourceDefinition> { resource });
+                            else resourceBlacklist[n.Key].Add(resource);
                         }
                         else throw new Exception($"KCStorageFacilityInfo: Resource {r} not found in PartResourceLibrary for facility {name} (type: {type}) at level {n.Key}.");
                     });

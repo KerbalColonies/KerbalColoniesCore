@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
 
 // KC: Kerbal Colonies
 // This mod aimes to create a Colony system with Kerbal Konstructs statics
@@ -31,7 +32,7 @@ namespace KerbalColonies
 
         public string Name { get; private set; }
         private string displayName;
-        public string DisplayName { get => UseCustomDisplayName ? displayName : $"{FlightGlobals.currentMainBody.name} colony {ColonyNumber}"; set { displayName = value; UseCustomDisplayName = true; } }
+        public string DisplayName { get => UseCustomDisplayName ? displayName ?? $"{FlightGlobals.Bodies.First(b => FlightGlobals.GetBodyIndex(b) == BodyID).bodyName} colony {ColonyNumber}" : $"{FlightGlobals.Bodies.First(b => FlightGlobals.GetBodyIndex(b) == BodyID).bodyName} colony {ColonyNumber}"; set { displayName = value; UseCustomDisplayName = true; } }
         public bool UseCustomDisplayName { get; private set; } = false;
 
         public int ColonyNumber { get; private set; }
@@ -45,6 +46,8 @@ namespace KerbalColonies
 
         public ConfigNode CreateConfigNode()
         {
+            Configuration.writeLog($"Saving colony {Name}");
+
             ConfigNode node = new ConfigNode("colonyClass");
             node.AddValue("name", Name);
             node.AddValue("displayName", DisplayName);
@@ -107,7 +110,6 @@ namespace KerbalColonies
         public colonyClass(ConfigNode node)
         {
             Name = node.GetValue("name");
-            DisplayName = node.GetValue("displayName");
 
             if (Configuration.loadedSaveVersion == new Version(3, 1, 1))
             {
@@ -118,6 +120,7 @@ namespace KerbalColonies
             else
             {
                 UseCustomDisplayName = bool.Parse(node.GetValue("useCustomDisplayName"));
+                if (UseCustomDisplayName) DisplayName = node.GetValue("displayName");
                 BodyID = int.Parse(node.GetValue("bodyID"));
                 ColonyNumber = int.Parse(node.GetValue("colonyNumber"));
             }

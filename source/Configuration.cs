@@ -136,7 +136,8 @@ namespace KerbalColonies
 
         internal static KCFacilityBase CreateInstance(KCFacilityInfoClass info, colonyClass colony, ConfigNode node)
         {
-            Configuration.writeLog($"Loading an instance of type {info.name} for {colony.Name} with node = {node.ToString()}");
+            Configuration.writeLog($"Loading an instance of type {info.name} for {colony.Name}");
+            Configuration.writeDebug($"with node = {node.ToString()}");
             return (KCFacilityBase)Activator.CreateInstance(info.type, new object[] { colony, info, node });
         }
 
@@ -266,6 +267,7 @@ namespace KerbalColonies
             if (persistentNode.HasNode("colonyNode"))
             {
                 Version.TryParse(persistentNode.GetValue("version") ?? "3.1.1", out loadedSaveVersion);
+                Configuration.writeLog($"Loaded save version: {loadedSaveVersion}");
 
                 ConfigNode primaryNode = persistentNode.GetNode("colonyNode");
                 foreach (ConfigNode bodyNode in primaryNode.GetNodes())
@@ -326,6 +328,9 @@ namespace KerbalColonies
             node.AddNode(nodes[0]);
             node.Save(path);
 
+            Configuration.writeLog($"Saving {colonyDictionary.SelectMany(x => x.Value).Count()} on {colonyDictionary.Count} bodies");
+            int colonyNodeCount = 0;
+            int bodyNodeCount = 0;
             ConfigNode ColonyDictionaryNode = new ConfigNode("colonyNode", "The Colony node");
             foreach (KeyValuePair<int, List<colonyClass>> bodyKVP in colonyDictionary)
             {
@@ -336,6 +341,7 @@ namespace KerbalColonies
                     {
                         ConfigNode colonyNode = colony.CreateConfigNode();
                         bodyNode.AddNode(colonyNode);
+                        colonyNodeCount++;
                     }
                     catch (Exception e)
                     {
@@ -344,7 +350,9 @@ namespace KerbalColonies
                     }
                 }
                 ColonyDictionaryNode.AddNode(bodyNode);
+                bodyNodeCount++;
             }
+            writeLog($"Saved {colonyNodeCount} colonies on {bodyNodeCount} bodies");
 
             persistentNode.AddValue("version", saveVersion.ToString());
 

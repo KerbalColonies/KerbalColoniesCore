@@ -58,14 +58,14 @@ namespace KerbalColonies
                 {
                     KCLaunchpadFacility kCLaunchpad = KCLaunchpadFacility.GetLaunchpadFacility(launchPadName);
 
-                    Configuration.writeDebug($"[KCPreFlightWorker] Launching from {kCLaunchpad.DisplayName}");
+                    Configuration.writeLog($"[KCPreFlightWorker] Launching from {kCLaunchpad.DisplayName}");
 
                     // Doesn't account for leaving the editor
-                    foreach (PartResourceDefinition item in PartResourceLibrary.Instance.resourceDefinitions)
-                    {
-                        FlightGlobals.ActiveVessel.GetConnectedResourceTotals(item.id, out double amount, out double max, true);
-                        FlightGlobals.ActiveVessel.RequestResource(FlightGlobals.ActiveVessel.rootPart, item.id, amount, false);
-                    }
+                    //foreach (PartResourceDefinition item in PartResourceLibrary.Instance.resourceDefinitions)
+                    //{
+                    //    FlightGlobals.ActiveVessel.GetConnectedResourceTotals(item.id, out double amount, out double max, true);
+                    //    FlightGlobals.ActiveVessel.RequestResource(FlightGlobals.ActiveVessel.rootPart, item.id, amount, false);
+                    //}
 
                     if (Funding.Instance != null)
                     {
@@ -77,7 +77,7 @@ namespace KerbalColonies
                     else if (hangarId != null)
                     {
                         Configuration.writeLog($"[KCPreFlightWorker] Force storing vessel in hangar {hangarId} with size {vesselSize}");
-                        KCHangarFacility hangar = KCFacilityBase.GetFacilityByID((int) hangarId) as KCHangarFacility;
+                        KCHangarFacility hangar = KCFacilityBase.GetFacilityByID((int)hangarId) as KCHangarFacility;
                         hangar.StoreVesselOverride(FlightGlobals.ActiveVessel, vesselSize, vesselMass);
                         hangarId = null;
                         vesselSize = null;
@@ -198,6 +198,15 @@ namespace KerbalColonies
 
         public bool Test()
         {
+            EditorLogic.fetch.ship.parts.ForEach(p =>
+            {
+                foreach (PartResource item in p.Resources)
+                {
+                    item.amount = 0;
+                }
+            });
+            EditorLogic.fetch.ship.UpdateResourceSets();
+
             Configuration.writeDebug($"[KCHangarPreFlightCheck] Hangar test for {launchSiteName}");
             if (allowLaunch) return true;
 

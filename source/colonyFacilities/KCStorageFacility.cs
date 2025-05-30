@@ -218,14 +218,14 @@ namespace KerbalColonies.colonyFacilities
                                     {
                                         if (facilityHasRessources(kvp.Key, -i))
                                         {
-                                            FlightGlobals.ActiveVessel.rootPart.RequestResource(kvp.Key.id, i);
+                                            FlightGlobals.ActiveVessel.rootPart.RequestResource(kvp.Key.id, i, ResourceFlowMode.ALL_VESSEL_BALANCE, false);
                                             storageFacility.changeAmount(kvp.Key, i);
                                         }
                                         else
                                         {
                                             double amount = getFacilityResource(kvp.Key);
                                             storageFacility.changeAmount(kvp.Key, -amount);
-                                            FlightGlobals.ActiveVessel.rootPart.RequestResource(kvp.Key.id, -amount);
+                                            FlightGlobals.ActiveVessel.rootPart.RequestResource(kvp.Key.id, -amount, ResourceFlowMode.ALL_VESSEL_BALANCE, false);
                                         }
                                     }
                                     else
@@ -234,14 +234,14 @@ namespace KerbalColonies.colonyFacilities
 
                                         if (facilityHasRessources(kvp.Key, amount))
                                         {
-                                            FlightGlobals.ActiveVessel.rootPart.RequestResource(kvp.Key.id, -amount);
+                                            FlightGlobals.ActiveVessel.rootPart.RequestResource(kvp.Key.id, -amount, ResourceFlowMode.ALL_VESSEL_BALANCE, false);
                                             storageFacility.changeAmount(kvp.Key, -amount);
                                         }
                                         else
                                         {
                                             amount = getFacilityResource(kvp.Key);
                                             storageFacility.changeAmount(kvp.Key, -amount);
-                                            FlightGlobals.ActiveVessel.rootPart.RequestResource(kvp.Key.id, -amount);
+                                            FlightGlobals.ActiveVessel.rootPart.RequestResource(kvp.Key.id, -amount, ResourceFlowMode.ALL_VESSEL_BALANCE, false);
                                         }
                                     }
                                 }
@@ -264,13 +264,13 @@ namespace KerbalColonies.colonyFacilities
                                 {
                                     if (vesselHasRessources(FlightGlobals.ActiveVessel, kvp.Key, i))
                                     {
-                                        FlightGlobals.ActiveVessel.rootPart.RequestResource(kvp.Key.id, i);
+                                        FlightGlobals.ActiveVessel.rootPart.RequestResource(kvp.Key.id, i, ResourceFlowMode.ALL_VESSEL_BALANCE, false);
                                         storageFacility.changeAmount(kvp.Key, i);
                                     }
                                     else
                                     {
                                         double amount = getVesselRessources(FlightGlobals.ActiveVessel, kvp.Key);
-                                        FlightGlobals.ActiveVessel.rootPart.RequestResource(kvp.Key.id, amount);
+                                        FlightGlobals.ActiveVessel.rootPart.RequestResource(kvp.Key.id, amount, ResourceFlowMode.ALL_VESSEL_BALANCE, false);
                                         storageFacility.changeAmount(kvp.Key, amount);
                                     }
                                 }
@@ -279,13 +279,13 @@ namespace KerbalColonies.colonyFacilities
                                     double amount = getFacilitySpace(kvp.Key);
                                     if (vesselHasRessources(FlightGlobals.ActiveVessel, kvp.Key, amount))
                                     {
-                                        FlightGlobals.ActiveVessel.rootPart.RequestResource(kvp.Key.id, amount);
+                                        FlightGlobals.ActiveVessel.rootPart.RequestResource(kvp.Key.id, amount, ResourceFlowMode.ALL_VESSEL_BALANCE, false);
                                         storageFacility.changeAmount(kvp.Key, amount);
                                     }
                                     else
                                     {
                                         amount = getVesselRessources(FlightGlobals.ActiveVessel, kvp.Key);
-                                        FlightGlobals.ActiveVessel.rootPart.RequestResource(kvp.Key.id, amount);
+                                        FlightGlobals.ActiveVessel.rootPart.RequestResource(kvp.Key.id, amount, ResourceFlowMode.ALL_VESSEL_BALANCE, false);
                                         storageFacility.changeAmount(kvp.Key, amount);
                                     }
                                 }

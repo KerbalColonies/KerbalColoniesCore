@@ -5,7 +5,7 @@
 ![Image](https://i.imgur.com/twFy677.jpeg)
 
 Trailer:
-https://www.youtube.com/watch?v=bB0n0K6sL9I
+https://www.youtube.com/watch?v=bB0n0K6sL9I 
 
 ## Main Goal
 Our goal in future iterations is to change how you fundamentally play the game when it comes to colonies and the colonists themselves.<br>

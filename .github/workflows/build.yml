@@ -1,39 +1,18 @@
-# Taken from KSP Build Tools
 name: build
 
 on:
   push:
-    branches: [ $default-branch ]
+    branches: [ master, dev ]
     paths:
-      - '**/*.cs'
+      - 'Source/**/*.cs'
+      - 'Source/**/*.csproj'
   pull_request:
     paths:
       - '**/*.cs'
+      - '**/*.csproj'
   workflow_dispatch:
   workflow_call:
 
 jobs:
-  build-job:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Mod Repo
-        uses: actions/checkout@v4
-        with:
-          submodules: true
-
-      - uses: KSPModdingLibs/KSPBuildTools/.github/actions/setup-ckan@main
-
-      - uses: KSPModdingLibs/KSPBuildTools/.github/actions/install-dependencies@main
-        with:
-          dependency-identifiers: "KerbalKonstructs KerbalColoniesExtraplanetaryLaunchpadsConfig CustomPreLaunchChecks ClickThroughBlocker ModuleManager"
-
-      - uses: KSPModdingLibs/KSPBuildTools/.github/actions/compile@main
-        with:
-          ksp-zip-url: https://github.com/KSPModdingLibs/KSPLibs/raw/main/KSP-1.12.5.zip
-          ksp-zip-password: ${{ secrets.ksp-zip-password }}
-
-      - uses: KSPModdingLibs/KSPBuildTools/.github/actions/assemble-release@main
-        with:
-          artifacts: "GameData LICENSE* README* CHANGELOG*"
-          output-file-name: ${{ github.event.repository.name }}-${{ inputs.build-configuration }}
-
+  build:
+    uses: KSPModdingLibs/KSPBuildTools/.github/workflows/build.yml@main

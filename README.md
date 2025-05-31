@@ -7,6 +7,12 @@
 Trailer:
 https://www.youtube.com/watch?v=bB0n0K6sL9I
 
+## Important
+Kerbal Colonies does not include any configs itself in order to allow for easier replacement of the configs.<br>
+Currently there's only the default Extraplanetary Launchpads config pack, available on [SpaceDock](https://spacedock.info/mod/3899/KerbalColonies-ExtraplanetaryLaunchpadsConfig) and [GitHub](https://github.com/AMPW-german/KerbalColonies-ExtraplanetaryLaunchpadsConfig/releases/latest)<br>
+**This config pack has Extraplanetary Launchpads, Paraterraforming and OSSNTR as additional dependencies.**
+<br><br>
+
 ## Main Goal
 Our goal in future iterations is to change how you fundamentally play the game when it comes to colonies and the colonists themselves.<br>
 Unlike other colony mods KC uses KK groups as facilities, this means there are 0 parts in a colony.<br>

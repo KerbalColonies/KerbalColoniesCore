@@ -116,8 +116,8 @@
   <ItemGroup>
     <KSPVersionFile Include=".">
       <Destination>$(RepoRootPath)../GameData/KerbalColonies/KerbalColonies.version</Destination>
-      <URL>https://raw.githubusercontent.com/AMPW-german/KerbalColonies/refs/heads/master/GameData/KerbalColonies/KerbalColonies.version</URL>
-      <Download>https://github.com/AMPW-german/KerbalColonies/releases/latest</Download>
+      <URL>https://raw.githubusercontent.com/KerbalColonies/KerbalColonies/refs/heads/master/GameData/KerbalColonies/KerbalColonies.version</URL>
+      <Download>https://github.com/KerbalColonies/KerbalColonies/releases/latest</Download>
 		<Version>1.0.5</Version>
 		<KSP_VERSION>1.12.5</KSP_VERSION>
       <KSP_VERSION_MAX>1.12.5</KSP_VERSION_MAX>

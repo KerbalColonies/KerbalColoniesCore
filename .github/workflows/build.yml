@@ -25,7 +25,7 @@ jobs:
 
       - uses: KSPModdingLibs/KSPBuildTools/.github/actions/install-dependencies@main
         with:
-          dependency-identifiers: ""
+          dependency-identifiers: "KerbalKonstructs KerbalColoniesExtraplanetaryLaunchpadsConfig CustomPreLaunchChecks ClickThroughBlocker ModuleManager"
 
       - uses: KSPModdingLibs/KSPBuildTools/.github/actions/compile@main
         with:

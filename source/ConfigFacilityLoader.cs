@@ -164,7 +164,7 @@ namespace KerbalColonies
                 }
                 catch (Exception e)
                 {
-                    exceptions.Add(e);
+                    exceptions.Add(e.InnerException);
                     if (node.HasValue("name"))
                     {
                         failedConfigs.Add(node.GetValue("name"));

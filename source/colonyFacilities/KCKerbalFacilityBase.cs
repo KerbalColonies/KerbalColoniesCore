@@ -127,8 +127,8 @@ namespace KerbalColonies.colonyFacilities
         {
             // Either the trait is not in forbiddenTraits and it's not set to only allow specific traits or the trait is in allowedTraits
             return kerbals.Where(k => kerbalFacilityInfoClass.allowedTraits[level].Count == 0 ?
-            !kerbalFacilityInfoClass.forbiddenTraits[level].Any(s => s.Contains(k.experienceTrait.Title.ToLower()))
-            : kerbalFacilityInfoClass.allowedTraits[level].Any(s => s.Contains(k.experienceTrait.Title.ToLower()))
+            !kerbalFacilityInfoClass.forbiddenTraits[level].Any(s => s.ToLower() == k.experienceTrait.TypeName.ToLower())
+            : kerbalFacilityInfoClass.allowedTraits[level].Any(s => s.ToLower() == k.experienceTrait.TypeName.ToLower())
             ).ToList();
         }
 

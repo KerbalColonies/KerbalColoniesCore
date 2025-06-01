@@ -125,10 +125,13 @@ namespace KerbalColonies.colonyFacilities
 
         public virtual List<ProtoCrewMember> filterKerbals(List<ProtoCrewMember> kerbals)
         {
+            kerbals.ForEach(k =>
+                Configuration.writeDebug($"Filterkerbals: {k.name}, trait: {k.trait} . {k.experienceTrait.TypeName} . {k.experienceTrait.Title}")
+            );
             // Either the trait is not in forbiddenTraits and it's not set to only allow specific traits or the trait is in allowedTraits
             return kerbals.Where(k => kerbalFacilityInfoClass.allowedTraits[level].Count == 0 ?
-            !kerbalFacilityInfoClass.forbiddenTraits[level].Any(s => s.ToLower() == k.experienceTrait.TypeName.ToLower())
-            : kerbalFacilityInfoClass.allowedTraits[level].Any(s => s.ToLower() == k.experienceTrait.TypeName.ToLower())
+            !kerbalFacilityInfoClass.forbiddenTraits[level].Any(s => s.ToLower() == k.trait.ToLower())
+            : kerbalFacilityInfoClass.allowedTraits[level].Any(s => s.ToLower() == k.trait.ToLower())
             ).ToList();
         }
 

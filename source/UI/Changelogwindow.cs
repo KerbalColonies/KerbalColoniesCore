@@ -118,7 +118,7 @@ namespace KerbalColonies.UI
             ConfigNode node = new ConfigNode("ShowKCChangelog");
             node.AddValue("ShowKCChangelog", "false");
 
-            string path = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + "\\..\\Configs\\ShowChangelog.cfg";
+            string path = $"{Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)}{Path.DirectorySeparatorChar}..{Path.DirectorySeparatorChar}Configs{Path.DirectorySeparatorChar}ShowChangelog.cfg";
 
             ConfigNode n = new ConfigNode();
             n.AddNode(node);
@@ -127,9 +127,9 @@ namespace KerbalColonies.UI
 
         public Changelogwindow() : base("KC Changlelog", "kc_changelog", true, false, false, false, false)
         {
+            string path = $"{Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)}{Path.DirectorySeparatorChar}..{Path.DirectorySeparatorChar}Configs{Path.DirectorySeparatorChar}ShowChangelog.cfg";
 
-
-            string path = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + "\\..\\Configs\\ShowChangelog.cfg";
+            Configuration.writeLog($"KCChangelog: Loading cfg file from {path}");
 
             ConfigNode node = ConfigNode.Load(path);
 
@@ -145,7 +145,7 @@ namespace KerbalColonies.UI
                 try
                 {
                     changelogText = new List<string>();
-                    File.ReadAllLines(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + "\\..\\KCChangelog.md").ToList().ForEach(l => changelogText.Add(ParseMarkdownToGUI(l)));
+                    File.ReadAllLines($"{Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)}{Path.DirectorySeparatorChar}..{Path.DirectorySeparatorChar}KCChangelog.md").ToList().ForEach(l => changelogText.Add(ParseMarkdownToGUI(l)));
 
                     toolRect = new Rect(Screen.width / 2 - 400, Screen.height / 2 - 500, 800, 1000);
                 }

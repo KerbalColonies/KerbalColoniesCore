@@ -33,7 +33,7 @@ namespace KerbalColonies.UI.SingleTimeWindow
 
         protected void Awake()
         {
-            string path = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + "\\..\\Configs\\SingleTimeWindows.cfg";
+            string path = $"{Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)}{Path.DirectorySeparatorChar}..{Path.DirectorySeparatorChar}Configs{Path.DirectorySeparatorChar}SingleTimeWindows.cfg";
 
             ConfigNode node = ConfigNode.Load(path);
 
@@ -77,7 +77,7 @@ namespace KerbalColonies.UI.SingleTimeWindow
             ConfigNode node = new ConfigNode("SingleTimeWindows");
             windows.ForEach(w => node.AddValue(w.identifier, w.showAgain.ToString()));
                 
-            string path = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + "\\..\\Configs\\SingleTimeWindows.cfg";
+            string path = $"{Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)}{Path.DirectorySeparatorChar}..{Path.DirectorySeparatorChar}Configs{Path.DirectorySeparatorChar}SingleTimeWindows.cfg";
 
             ConfigNode n = new ConfigNode();
             n.AddNode(node);

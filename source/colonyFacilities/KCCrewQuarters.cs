@@ -121,16 +121,14 @@ namespace KerbalColonies.colonyFacilities
                     facility.RemoveKerbal(member);
                 });
 
-                foreach (ProtoCrewMember key in kerbals.Where(kv => kv.Key.name == member.name).Select(kv => kv.Key).ToList())
-                {
-                    kerbals.Remove(key);
-                };
+                kerbals.Remove(kerbals.First(kerbal => kerbal.Key.name == member.name).Key);
             }
         }
 
         public override void Update()
         {
             base.Update();
+            if (!HighLogic.LoadedSceneIsFlight) kerbals.Keys.ToList().ForEach(kerbal => kerbal.rosterStatus = ProtoCrewMember.RosterStatus.Assigned);
         }
 
         public override void OnBuildingClicked()
@@ -148,6 +146,9 @@ namespace KerbalColonies.colonyFacilities
         public KCCrewQuarters(colonyClass colony, KCFacilityInfoClass facilityInfo, ConfigNode node) : base(colony, facilityInfo, node)
         {
             this.crewQuartersWindow = null;
+            if (HighLogic.LoadedSceneIsFlight) kerbals.Keys.ToList().ForEach(kerbal => kerbal.rosterStatus = ProtoCrewMember.RosterStatus.Available);
+            else kerbals.Keys.ToList().ForEach(kerbal => kerbal.rosterStatus = ProtoCrewMember.RosterStatus.Assigned);
+
         }
 
         public KCCrewQuarters(colonyClass colony, KCFacilityInfoClass facilityInfo, bool enabled) : base(colony, facilityInfo, true)

@@ -115,6 +115,7 @@ namespace KerbalColonies.colonyFacilities
         public List<ProtoCrewMember> getKerbals() { return kerbals.Keys.ToList(); }
         public virtual void RemoveKerbal(ProtoCrewMember member)
         {
+            Configuration.writeLog($"Removing kerbal {member.name} from facility {name} (type: {facilityInfo.name})");
             foreach (ProtoCrewMember key in kerbals.Where(kv => kv.Key.name == member.name).Select(kv => kv.Key).ToList())
             {
                 kerbals.Remove(key);

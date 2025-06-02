@@ -95,6 +95,7 @@ namespace KerbalColonies
         {
             CAB.Update();
             Facilities.ForEach(f => f.Update());
+            Configuration.writeLog($"Updating colony {Name} with {Facilities.Count} facilities and {sharedColonyNodes.Count} shared nodes.");
         }
 
         public colonyClass(string name, KC_CABInfo CABInfo)

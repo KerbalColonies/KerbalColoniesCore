@@ -142,7 +142,6 @@ namespace KerbalColonies.colonyFacilities
                         ))
                         {
                             KCFacilityInfoClass facilityInfo = Configuration.GetInfoClass(colonyFacility.name);
-                            if (!facilityInfo.checkResources(colonyFacility.level + 1, facility.Colony) || !playerInColony) GUI.enabled = false;
 
                             GUILayout.BeginVertical();
                             {
@@ -155,11 +154,13 @@ namespace KerbalColonies.colonyFacilities
                             }
                             GUILayout.EndVertical();
 
+                            if (!facilityInfo.checkResources(colonyFacility.level + 1, facility.Colony)) GUI.enabled = false;
                             if (GUILayout.Button("Upgrade"))
                             {
                                 facilityInfo.removeResources(colonyFacility.level + 1, facility.Colony);
                                 facility.AddUpgradeableFacility(colonyFacility);
                             }
+                            GUI.enabled = true;
                         }
                         else if (facility.UpgradedFacilities.Contains(colonyFacility))
                         {
@@ -169,6 +170,7 @@ namespace KerbalColonies.colonyFacilities
                                 KCFacilityBase.UpgradeFacilityWithAdditionalGroup(colonyFacility);
                                 facility.UpgradedFacilities.Remove(colonyFacility);
                             }
+                            GUI.enabled = true;
                         }
                         else if (facility.ConstructedFacilities.Contains(colonyFacility))
                         {
@@ -183,6 +185,7 @@ namespace KerbalColonies.colonyFacilities
 
                                 ColonyBuilding.PlaceNewGroup(colonyFacility, newGroupName);
                             }
+                            GUI.enabled = true;
                         }
 
                         GUI.enabled = true;

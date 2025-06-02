@@ -2,12 +2,12 @@
 using KerbalColonies.UI;
 using KSP.UI.Screens;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using ToolbarControl_NS;
 using UnityEngine;
 using static KerbalKonstructs.API;
-using System.IO;
 
 // KC: Kerbal Colonies
 // This mod aimes to create a Colony system with Kerbal Konstructs statics
@@ -128,32 +128,39 @@ namespace KerbalColonies
                     .ToDictionary(x => x.Key, x => x.Value).ToList()
                     .ForEach(kvp =>
                     kvp.Value.ToList().ForEach(bodyKVP =>
-                    bodyKVP.Value.ToList().ForEach(KKgroup =>
                     {
-                        GetGroupStatics(KKgroup.Key).ForEach(s =>
-                        DeactivateStatic(s.UUID));
-
-                        if (KKgroup.Value != null)
+                        string bodyName = FlightGlobals.Bodies.First(b => FlightGlobals.GetBodyIndex(b) == bodyKVP.Key).name;
+                        bodyKVP.Value.ToList().ForEach(KKgroup =>
                         {
-                            if (KKgroup.Value.name == "launchpadNode" && KerbalKonstructs.Core.LaunchSiteManager.GetLaunchSiteByName(KKgroup.Value.GetValue("launchSiteName")) != null) KerbalKonstructs.Core.LaunchSiteManager.CloseLaunchSite(KerbalKonstructs.Core.LaunchSiteManager.GetLaunchSiteByName(KKgroup.Value.GetValue("launchSiteName")));
-                        }
-                    })));
+                            GetGroupStatics(KKgroup.Key, bodyName).ForEach(s =>
+                            DeactivateStatic(s.UUID));
 
+                            if (KKgroup.Value != null)
+                            {
+                                if (KKgroup.Value.name == "launchpadNode" && KerbalKonstructs.Core.LaunchSiteManager.GetLaunchSiteByName(KKgroup.Value.GetValue("launchSiteName")) != null) KerbalKonstructs.Core.LaunchSiteManager.CloseLaunchSite(KerbalKonstructs.Core.LaunchSiteManager.GetLaunchSiteByName(KKgroup.Value.GetValue("launchSiteName")));
+                            }
+                        });
+                    }));
 
-                    Configuration.colonyDictionary.Values.SelectMany(x => x).ToList().ForEach(colony =>
+                    Configuration.colonyDictionary.ToList().ForEach(kvp =>
                     {
-                        colony.CAB.KKgroups.ForEach(KKgroup => GetGroupStatics(KKgroup).ForEach(s => ActivateStatic(s.UUID)));
-                        colony.Facilities.ForEach(fac => {
-                            fac.KKgroups.ForEach(KKgroup => GetGroupStatics(KKgroup).ForEach(s => ActivateStatic(s.UUID)));
-                            if (HighLogic.LoadedScene != GameScenes.SPACECENTER && fac is KCLaunchpadFacility && KerbalKonstructs.Core.LaunchSiteManager.GetLaunchSiteByName(((KCLaunchpadFacility)fac).launchSiteName) != null) KerbalKonstructs.Core.LaunchSiteManager.OpenLaunchSite(KerbalKonstructs.Core.LaunchSiteManager.GetLaunchSiteByName(((KCLaunchpadFacility)fac).launchSiteName));
+                        string bodyName = FlightGlobals.Bodies.First(b => FlightGlobals.GetBodyIndex(b) == kvp.Key).name;
+                        kvp.Value.ForEach(colony =>
+                        {
+                            colony.CAB.KKgroups.ForEach(KKgroup => GetGroupStatics(KKgroup, bodyName).ForEach(s => ActivateStatic(s.UUID)));
+                            colony.Facilities.ForEach(fac =>
+                            {
+                                fac.KKgroups.ForEach(KKgroup => GetGroupStatics(KKgroup, bodyName).ForEach(s => ActivateStatic(s.UUID)));
+                                if (HighLogic.LoadedScene != GameScenes.SPACECENTER && fac is KCLaunchpadFacility && KerbalKonstructs.Core.LaunchSiteManager.GetLaunchSiteByName(((KCLaunchpadFacility)fac).launchSiteName) != null) KerbalKonstructs.Core.LaunchSiteManager.OpenLaunchSite(KerbalKonstructs.Core.LaunchSiteManager.GetLaunchSiteByName(((KCLaunchpadFacility)fac).launchSiteName));
+                            });
                         });
                     });
                 }
             }
 
-            if (Input.GetKeyDown(KeyCode.U))
-            {
-            }
+            //if (Input.GetKeyDown(KeyCode.U))
+            //{
+            //}
         }
 
         public void LateUpdate()

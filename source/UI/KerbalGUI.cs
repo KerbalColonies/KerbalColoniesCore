@@ -186,7 +186,7 @@ namespace KerbalColonies.UI
                     fromScrollPos = GUILayout.BeginScrollView(fromScrollPos);
                     foreach (ProtoCrewMember k in fromList)
                     {
-                        if (GUILayout.Button(k.name, GUILayout.Height(23)))
+                        if (GUILayout.Button($"{k.name} ({k.experienceTrait.Title}, level {k.experienceLevel})", GUILayout.Height(23)))
                         {
                             if (toList.Count + 1 <= toCapacity)
                             {
@@ -207,7 +207,7 @@ namespace KerbalColonies.UI
                     toScrollPos = GUILayout.BeginScrollView(toScrollPos);
                     foreach (ProtoCrewMember k in toList)
                     {
-                        if (GUILayout.Button(k.name, GUILayout.Height(23)))
+                        if (GUILayout.Button($"{k.name} ({k.experienceTrait.Title}, level {k.experienceLevel})", GUILayout.Height(23)))
                         {
                             if (fromList.Count + 1 <= fromCapacity)
                             {
@@ -239,7 +239,7 @@ namespace KerbalColonies.UI
         internal KerbalSelectorGUI(KCKerbalFacilityBase fac, KerbalGUI kGUI, Vessel fromVessel) : base(Configuration.createWindowID(), fac.name)
         {
             this.fromFac = fac;
-            toolRect = new Rect(100, 100, 500, 500);
+            toolRect = new Rect(100, 100, 650, 500);
             this.fromName = fromVessel.GetDisplayName();
             this.toName = fac.DisplayName;
             this.fromList = fac.filterKerbals(fromVessel.GetVesselCrew());
@@ -255,7 +255,7 @@ namespace KerbalColonies.UI
         {
             this.fromFac = fac;
             this.colony = fromFac.Colony;
-            toolRect = new Rect(100, 100, 500, 500);
+            toolRect = new Rect(100, 100, 650, 500);
             this.fromName = colony.Name;
             this.toName = fac.DisplayName;
             this.fromList = fromFac.filterKerbals(KCKerbalFacilityBase.GetAllKerbalsInColony(colony).Where(kvp => kvp.Value == 0).ToDictionary(i => i.Key, i => i.Value).Keys.ToList());

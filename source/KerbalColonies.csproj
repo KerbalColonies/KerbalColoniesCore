@@ -29,7 +29,7 @@
     <BinariesOutputRelativePath>..\GameData\KerbalColonies\Plugins\</BinariesOutputRelativePath>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
+    <DebugType>none</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
@@ -118,8 +118,8 @@
       <Destination>$(RepoRootPath)../GameData/KerbalColonies/KerbalColonies.version</Destination>
       <URL>https://raw.githubusercontent.com/KerbalColonies/KerbalColoniesCore/refs/heads/master/GameData/KerbalColonies/KerbalColonies.version</URL>
       <Download>https://github.com/KerbalColonies/KerbalColoniesCore/releases/latest</Download>
-		<Version>1.0.5</Version>
-		<KSP_VERSION>1.12.5</KSP_VERSION>
+      <Version>1.0.6</Version>
+      <KSP_VERSION>1.12.5</KSP_VERSION>
       <KSP_VERSION_MAX>1.12.5</KSP_VERSION_MAX>
     </KSPVersionFile>
   </ItemGroup>

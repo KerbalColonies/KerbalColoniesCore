@@ -1,3 +1,13 @@
+# v1.0.6
+- Fixed the allowed/forbidden traits logic when transferring kerbals to not use the localized trait name
+- Fixed the paths for the external config files
+- Fixed the colony count when creating a colony
+- Allow remote upgrades
+- Only the KK groups that have a facility assigned are now enabled, this means when reverting to a point before a colony was made the colonies statics won't be visible
+- KK groups on other bodies than the active body when loading are now disabled
+- Added kerbal trait and level information to the transfer window
+- All kerbals that are in colonies will now be marked as assigned in the crewroster (note: they won't be visible in the crewroster, only the count indicates that there are more kerbals there. Additionally if the crew respawn time is on then after leaving the crewroster the kerbals in colonies will be marked as missing until the next update of the crewquarters)
+
 # v1.0.5
 - Fixed the storage facility resource transfer (for real this time (I hope), the resources are now distributed evenly across the vessel)
 - moved the resource conversion configs over to the config mod

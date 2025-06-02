@@ -231,7 +231,7 @@ namespace KerbalColonies
 
         public static void LoadColoniesV3(ConfigNode persistentNode)
         {
-            string path = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + "\\..\\Configs\\ColonyDataV3.cfg";
+            string path = $"{Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)}{Path.DirectorySeparatorChar}..{Path.DirectorySeparatorChar}Configs{Path.DirectorySeparatorChar}ColonyDataV3.cfg";
 
             ConfigNode node = ConfigNode.Load(path);
 
@@ -321,7 +321,7 @@ namespace KerbalColonies
                 nodes[0].AddNode(saveGameNode);
             }
 
-            string path = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + "\\..\\Configs\\ColonyDataV3.cfg";
+            string path = $"{Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)}{Path.DirectorySeparatorChar}..{Path.DirectorySeparatorChar}Configs{Path.DirectorySeparatorChar}ColonyDataV3.cfg";
 
             ConfigNode node = new ConfigNode();
             nodes[0].name = root;
@@ -397,7 +397,7 @@ namespace KerbalColonies
             nodes[0].SetValue("maxColoniesPerBody", MaxColoniesPerBody, "Limits the amount of colonies per celestial body (planet/moon)\n\facilityType// set it to zero to disable the limit", createIfNotFound: true);
             nodes[0].SetValue("enableLogging", enableLogging, "Enable this only in debug purposes as it floods the logs very much", createIfNotFound: true);
 
-            string path = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + "\\..\\Configs\\KC.cfg";
+            string path = $"{Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)}{Path.DirectorySeparatorChar}..{Path.DirectorySeparatorChar}Configs{Path.DirectorySeparatorChar}KC.cfg";
 
             ConfigNode node = new ConfigNode();
             nodes[0].name = "KC";

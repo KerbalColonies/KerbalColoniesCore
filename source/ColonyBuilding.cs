@@ -230,7 +230,7 @@ namespace KerbalColonies
                 Configuration.colonyDictionary.Add(FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody), new List<colonyClass> { });
             }
 
-            int colonyCount = Configuration.colonyDictionary[FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody)].Count + 1;
+            int colonyCount = Configuration.colonyDictionary[FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody)].Count;
 
             if (colonyCount >= Configuration.MaxColoniesPerBody && Configuration.MaxColoniesPerBody != 0)
             {

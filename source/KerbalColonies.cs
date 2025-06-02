@@ -1,9 +1,13 @@
 ﻿using KerbalColonies.colonyFacilities;
 using KerbalColonies.UI;
 using KSP.UI.Screens;
+using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Reflection;
 using ToolbarControl_NS;
 using UnityEngine;
+using static KerbalKonstructs.API;
 
 // KC: Kerbal Colonies
 // This mod aimes to create a Colony system with Kerbal Konstructs statics
@@ -33,11 +37,45 @@ namespace KerbalColonies
 
         internal static ToolbarControl toolbarControl;
 
+        public void saveGroupDataFromRevert(FlightState state)
+        {
+            string root = "KCgroups";
+
+            ConfigNode[] nodes = new ConfigNode[1] { new ConfigNode() };
+
+            foreach (KeyValuePair<string, Dictionary<int, Dictionary<string, ConfigNode>>> gameKVP in Configuration.KCgroups)
+            {
+                ConfigNode saveGameNode = new ConfigNode(gameKVP.Key, "The savegame name");
+                foreach (KeyValuePair<int, Dictionary<string, ConfigNode>> bodyKVP in gameKVP.Value)
+                {
+                    ConfigNode bodyNode = new ConfigNode(bodyKVP.Key.ToString(), "The celestial body id");
+                    foreach (KeyValuePair<string, ConfigNode> groupName in bodyKVP.Value)
+                    {
+                        ConfigNode groupNode = new ConfigNode(groupName.Key, "The KK group name");
+                        if (groupName.Value != null) groupNode.AddNode(groupName.Value);
+                        bodyNode.AddNode(groupNode);
+                    }
+                    saveGameNode.AddNode(bodyNode);
+                }
+                nodes[0].AddNode(saveGameNode);
+            }
+
+            string path = $"{Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)}{Path.DirectorySeparatorChar}..{Path.DirectorySeparatorChar}Configs{Path.DirectorySeparatorChar}ColonyDataV3.cfg";
+
+            ConfigNode node = new ConfigNode();
+            nodes[0].name = root;
+            node.AddNode(nodes[0]);
+            node.Save(path);
+        }
+
         protected void Awake()
         {
             KSPLog.print("KC awake");
 
             KerbalKonstructs.API.RegisterOnStaticClicked(KCFacilityBase.OnBuildingClickedHandler);
+
+            GameEvents.OnRevertToLaunchFlightState.Add(saveGroupDataFromRevert);
+            GameEvents.OnRevertToPrelaunchFlightState.Add(saveGroupDataFromRevert);
         }
 
         protected void Start()
@@ -86,43 +124,43 @@ namespace KerbalColonies
                 if (!despawned)
                 {
                     despawned = true;
-                    Configuration.KCgroups.Where(x => x.Key != HighLogic.CurrentGame.Seed.ToString())
+                    Configuration.KCgroups
                     .ToDictionary(x => x.Key, x => x.Value).ToList()
                     .ForEach(kvp =>
                     kvp.Value.ToList().ForEach(bodyKVP =>
-                    bodyKVP.Value.ToList().ForEach(KKgroup =>
                     {
-                        KerbalKonstructs.API.GetGroupStatics(KKgroup.Key).ForEach(s =>
-                        KerbalKonstructs.API.DeactivateStatic(s.UUID));
-
-                        if (KKgroup.Value != null)
+                        string bodyName = FlightGlobals.Bodies.First(b => FlightGlobals.GetBodyIndex(b) == bodyKVP.Key).name;
+                        bodyKVP.Value.ToList().ForEach(KKgroup =>
                         {
-                            if (KKgroup.Value.name == "launchpadNode" && KerbalKonstructs.Core.LaunchSiteManager.GetLaunchSiteByName(KKgroup.Value.GetValue("launchSiteName")) != null) KerbalKonstructs.Core.LaunchSiteManager.CloseLaunchSite(KerbalKonstructs.Core.LaunchSiteManager.GetLaunchSiteByName(KKgroup.Value.GetValue("launchSiteName")));
-                        }
-                    })));
+                            GetGroupStatics(KKgroup.Key, bodyName).ForEach(s =>
+                            DeactivateStatic(s.UUID));
 
-                    Configuration.KCgroups.Where(x => x.Key == HighLogic.CurrentGame.Seed.ToString())
-                    .ToDictionary(x => x.Key, x => x.Value).ToList()
-                    .ForEach(kvp =>
-                    kvp.Value.ToList().ForEach(bodyKVP =>
-                    bodyKVP.Value.ToList().ForEach(KKgroup =>
+                            if (KKgroup.Value != null)
+                            {
+                                if (KKgroup.Value.name == "launchpadNode" && KerbalKonstructs.Core.LaunchSiteManager.GetLaunchSiteByName(KKgroup.Value.GetValue("launchSiteName")) != null) KerbalKonstructs.Core.LaunchSiteManager.CloseLaunchSite(KerbalKonstructs.Core.LaunchSiteManager.GetLaunchSiteByName(KKgroup.Value.GetValue("launchSiteName")));
+                            }
+                        });
+                    }));
+
+                    Configuration.colonyDictionary.ToList().ForEach(kvp =>
                     {
-                        KerbalKonstructs.API.GetGroupStatics(KKgroup.Key).ForEach(s =>
-                        KerbalKonstructs.API.ActivateStatic(s.UUID));
-
-                        if (KKgroup.Value != null)
+                        string bodyName = FlightGlobals.Bodies.First(b => FlightGlobals.GetBodyIndex(b) == kvp.Key).name;
+                        kvp.Value.ForEach(colony =>
                         {
-                            if (KKgroup.Value.name == "launchpadNode" && KerbalKonstructs.Core.LaunchSiteManager.GetLaunchSiteByName(KKgroup.Value.GetValue("launchSiteName")) != null)
-                                if (HighLogic.LoadedScene != GameScenes.SPACECENTER) KerbalKonstructs.Core.LaunchSiteManager.OpenLaunchSite(KerbalKonstructs.Core.LaunchSiteManager.GetLaunchSiteByName(KKgroup.Value.GetValue("launchSiteName")));
-                                else KerbalKonstructs.Core.LaunchSiteManager.CloseLaunchSite(KerbalKonstructs.Core.LaunchSiteManager.GetLaunchSiteByName(KKgroup.Value.GetValue("launchSiteName")));
-                        }
-                    })));
+                            colony.CAB.KKgroups.ForEach(KKgroup => GetGroupStatics(KKgroup, bodyName).ForEach(s => ActivateStatic(s.UUID)));
+                            colony.Facilities.ForEach(fac =>
+                            {
+                                fac.KKgroups.ForEach(KKgroup => GetGroupStatics(KKgroup, bodyName).ForEach(s => ActivateStatic(s.UUID)));
+                                if (HighLogic.LoadedScene != GameScenes.SPACECENTER && fac is KCLaunchpadFacility && KerbalKonstructs.Core.LaunchSiteManager.GetLaunchSiteByName(((KCLaunchpadFacility)fac).launchSiteName) != null) KerbalKonstructs.Core.LaunchSiteManager.OpenLaunchSite(KerbalKonstructs.Core.LaunchSiteManager.GetLaunchSiteByName(((KCLaunchpadFacility)fac).launchSiteName));
+                            });
+                        });
+                    });
                 }
             }
 
-            if (Input.GetKeyDown(KeyCode.U))
-            {
-            }
+            //if (Input.GetKeyDown(KeyCode.U))
+            //{
+            //}
         }
 
         public void LateUpdate()
@@ -131,7 +169,6 @@ namespace KerbalColonies
 
         protected void OnDestroy()
         {
-
             toolbarControl.OnDestroy();
             Destroy(toolbarControl);
 
@@ -139,6 +176,9 @@ namespace KerbalColonies
                 .ForEach(x => KerbalKonstructs.API.GetGroupStatics(x).ForEach(uuid => KerbalKonstructs.API.ActivateStatic(uuid.UUID)));
 
             KerbalKonstructs.API.UnRegisterOnStaticClicked(KCFacilityBase.OnBuildingClickedHandler);
+
+            GameEvents.OnRevertToLaunchFlightState.Remove(saveGroupDataFromRevert);
+            GameEvents.OnRevertToPrelaunchFlightState.Remove(saveGroupDataFromRevert);
         }
     }
 }

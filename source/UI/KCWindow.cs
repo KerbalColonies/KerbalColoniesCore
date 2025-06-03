@@ -49,7 +49,7 @@ namespace KerbalColonies.UI
         public virtual void Open()
         {
             OnOpen();
-            KCWindowManager.OpenWindow(this.Draw);
+            KCWindowManager.OpenWindow(this);
         }
 
         /// <summary>
@@ -58,7 +58,7 @@ namespace KerbalColonies.UI
         public virtual void Close()
         {
             OnClose();
-            KCWindowManager.CloseWindow(this.Draw);
+            KCWindowManager.CloseWindow(this);
         }
 
         /// <summary>
@@ -82,7 +82,7 @@ namespace KerbalColonies.UI
         /// <returns>true if window is open</returns>
         public virtual bool IsOpen()
         {
-            return KCWindowManager.IsOpen(this.Draw);
+            return KCWindowManager.IsOpen(this);
         }
     }
 }

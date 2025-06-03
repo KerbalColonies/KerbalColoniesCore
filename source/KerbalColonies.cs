@@ -1,4 +1,5 @@
 ﻿using KerbalColonies.colonyFacilities;
+using KerbalColonies.Settings;
 using KerbalColonies.UI;
 using KSP.UI.Screens;
 using System.Collections.Generic;
@@ -79,6 +80,11 @@ namespace KerbalColonies
             GameEvents.OnRevertToPrelaunchFlightState.Add(saveGroupDataFromRevert);
         }
 
+        public void SaveDifficultySettings()
+        {
+            Configuration.SaveDifficultySettings();
+        }
+
         protected void Start()
         {
             KSPLog.print("KC start");
@@ -93,6 +99,8 @@ namespace KerbalColonies
                 "KerbalColonies/KC",
                 toolTip: "Kerbal Colonies overview"
             );
+            GameEvents.OnGameSettingsApplied.Add(SaveDifficultySettings);
+            GameEvents.OnGameSettingsWritten.Add(SaveDifficultySettings);
         }
 
         public void Update()
@@ -181,6 +189,8 @@ namespace KerbalColonies
 
             GameEvents.OnRevertToLaunchFlightState.Remove(saveGroupDataFromRevert);
             GameEvents.OnRevertToPrelaunchFlightState.Remove(saveGroupDataFromRevert);
+            GameEvents.OnGameSettingsApplied.Remove(SaveDifficultySettings);
+            GameEvents.OnGameSettingsWritten.Remove(SaveDifficultySettings);
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using KerbalColonies.colonyFacilities;
+using KerbalColonies.Settings;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -48,6 +49,13 @@ namespace KerbalColonies
             SaveColoniesV3(node);
             writeDebug(node.ToString());
             writeDebug("scenariomodule save");
+        }
+
+        public static void SaveDifficultySettings()
+        {
+            KCGameParameters difficultysettings = HighLogic.CurrentGame.Parameters.CustomParams<KCGameParameters>();
+            Configuration.FacilityCostMultiplier = difficultysettings.FacilityCostMultiplier;
+            writeLog($"Saving difficulty settings: FacilityCostMultiplier = {Configuration.FacilityCostMultiplier}");
         }
 
 
@@ -404,6 +412,7 @@ namespace KerbalColonies
             node.AddNode(nodes[0]);
             node.Save(path);
         }
+
 
         internal static void writeDebug(string text)
         {

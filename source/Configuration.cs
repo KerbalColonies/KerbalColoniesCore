@@ -149,6 +149,9 @@ namespace KerbalColonies
         public static double FacilityTimeMultiplier = 1.0; // Multiplier for the time of the facilities
         public static double VesselCostMultiplier = 1.0; // Multiplier for the cost of the vessels
         public static double VesselTimeMultiplier = 1.0; // Multiplier for the time of the vessels
+
+        public static string baseBody = "Kerbin"; // The name of the celestial body where the KK base groups are located
+
 #if DEBUG
         public static bool enableLogging = true;            // Enable this only in debug purposes as it floods the logs very much
 #else
@@ -361,7 +364,7 @@ namespace KerbalColonies
         #endregion
 
         // static parameters
-        internal const string APP_NAME = "KerbalColonies";
+        public const string APP_NAME = "KerbalColonies";
 
         public static void LoadConfiguration()
         {
@@ -382,7 +385,14 @@ namespace KerbalColonies
 #else
             bool.TryParse(nodes[0].GetValue("enableLogging"), out enableLogging);
 #endif
-            writeLog($"Configuration loaded: maxColoniesPerBody = {MaxColoniesPerBody}, enableLogging = {enableLogging}");
+
+            if (nodes[0].HasValue("baseBody")) baseBody = nodes[0].GetValue("baseBody");
+            else
+            {
+                baseBody = FlightGlobals.Bodies.First(body => body.isHomeWorld).bodyName;
+                Configuration.writeLog($"No baseBody found in configuration, using the homebody: {baseBody}");
+            }
+                writeLog($"Configuration loaded: maxColoniesPerBody = {MaxColoniesPerBody}, enableLogging = {enableLogging}");
         }
 
         internal static void SaveConfiguration()

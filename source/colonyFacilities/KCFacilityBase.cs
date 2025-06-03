@@ -105,7 +105,7 @@ namespace KerbalColonies.colonyFacilities
 
             facility.UpgradeFacility(facility.level + 1);
             KerbalKonstructs.API.GetGroupStatics(facility.KKgroups.Last()).ToList().ForEach(x => KerbalKonstructs.API.RemoveStatic(x.UUID));
-            KerbalKonstructs.API.CopyGroup(facility.KKgroups.Last(), facility.GetBaseGroupName(facility.level), fromBodyName: "Kerbin");
+            KerbalKonstructs.API.CopyGroup(facility.KKgroups.Last(), facility.GetBaseGroupName(facility.level), fromBodyName: Configuration.baseBody);
 
             return true;
         }

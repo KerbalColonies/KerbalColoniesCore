@@ -200,7 +200,7 @@ namespace KerbalColonies
             {
                 KerbalKonstructs.API.RemoveGroup(ColonyBuilding.buildQueue.Peek().groupName); // remove the group if it exists
                 KerbalKonstructs.API.CreateGroup(ColonyBuilding.buildQueue.Peek().groupName);
-                KerbalKonstructs.API.CopyGroup(ColonyBuilding.buildQueue.Peek().groupName, ColonyBuilding.buildQueue.Peek().fromGroupName, fromBodyName: "Kerbin");
+                KerbalKonstructs.API.CopyGroup(ColonyBuilding.buildQueue.Peek().groupName, ColonyBuilding.buildQueue.Peek().fromGroupName, fromBodyName: Configuration.baseBody);
                 KerbalKonstructs.API.GetGroupStatics(ColonyBuilding.buildQueue.Peek().groupName).ForEach(instance => instance.ToggleAllColliders(false));
 
                 EditorGUI.CloseEditors();

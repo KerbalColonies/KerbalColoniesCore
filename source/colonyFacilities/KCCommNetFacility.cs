@@ -29,7 +29,7 @@ namespace KerbalColonies.colonyFacilities
         public override void OnGroupPlaced()
         {
             Configuration.writeLog($"KC CommNetFacility: OnGroupPlaced {GetBaseGroupName(0)}");
-            KerbalKonstructs.Core.StaticInstance baseInstance = KerbalKonstructs.API.GetGroupStatics(GetBaseGroupName(0), "Kerbin").Where(s => s.facilityType == KerbalKonstructs.Modules.KKFacilityType.GroundStation).FirstOrDefault();
+            KerbalKonstructs.Core.StaticInstance baseInstance = KerbalKonstructs.API.GetGroupStatics(GetBaseGroupName(0), Configuration.baseBody).Where(s => s.facilityType == KerbalKonstructs.Modules.KKFacilityType.GroundStation).FirstOrDefault();
             if (baseInstance != null)
             {
                 Configuration.writeLog($"KC CommNetFacility: Found base instance {baseInstance.UUID} in group {GetBaseGroupName(0)}");

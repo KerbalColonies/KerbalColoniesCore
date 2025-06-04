@@ -407,6 +407,7 @@ namespace KerbalColonies
 
             // config params
             nodes[0].SetValue("enableLogging", enableLogging, "Enable this only in debug purposes as it floods the logs very much", createIfNotFound: true);
+            if (ConfigBaseBody) nodes[0].SetValue("baseBody", baseBody, "The name of the celestial body where the KK base groups are located", createIfNotFound: true);
 
             if (ConfigBaseBody) nodes[0].SetValue("baseBody", baseBody, "The name of the celestial body where the KK base groups are located", createIfNotFound: true);
 

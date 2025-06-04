@@ -63,7 +63,7 @@ namespace KerbalColonies.colonyFacilities
 
         public override void OnGroupPlaced()
         {
-            KerbalKonstructs.Core.StaticInstance baseInstance = KerbalKonstructs.API.GetGroupStatics(GetBaseGroupName(level), "Kerbin").Where(s => s.hasLauchSites).FirstOrDefault();
+            KerbalKonstructs.Core.StaticInstance baseInstance = KerbalKonstructs.API.GetGroupStatics(GetBaseGroupName(level), Configuration.baseBody).Where(s => s.hasLauchSites).FirstOrDefault();
             if (baseInstance != null)
             {
                 string uuid = GetUUIDbyFacility(this).Where(s => KerbalKonstructs.API.GetModelTitel(s) == KerbalKonstructs.API.GetModelTitel(baseInstance.UUID)).FirstOrDefault();

@@ -151,6 +151,7 @@ namespace KerbalColonies
         public static double VesselTimeMultiplier = 1.0; // Multiplier for the time of the vessels
 
         public static string baseBody = "Kerbin"; // The name of the celestial body where the KK base groups are located
+        public static bool ConfigBaseBody = false; // If false, the base body will be set to the homeworld of the current game, if true, it will be read from the configuration file
 
 #if DEBUG
         public static bool enableLogging = true;            // Enable this only in debug purposes as it floods the logs very much
@@ -386,9 +387,14 @@ namespace KerbalColonies
             bool.TryParse(nodes[0].GetValue("enableLogging"), out enableLogging);
 #endif
 
-            if (nodes[0].HasValue("baseBody")) baseBody = nodes[0].GetValue("baseBody");
+            if (nodes[0].HasValue("baseBody"))
+            {
+                baseBody = nodes[0].GetValue("baseBody");
+                ConfigBaseBody = true;
+            }
             else
             {
+                ConfigBaseBody = false;
                 baseBody = FlightGlobals.Bodies.First(body => body.isHomeWorld).bodyName;
                 Configuration.writeLog($"No baseBody found in configuration, using the homebody: {baseBody}");
             }
@@ -406,6 +412,7 @@ namespace KerbalColonies
             // config params
             nodes[0].SetValue("maxColoniesPerBody", MaxColoniesPerBody, "Limits the amount of colonies per celestial body (planet/moon)\n\facilityType// set it to zero to disable the limit", createIfNotFound: true);
             nodes[0].SetValue("enableLogging", enableLogging, "Enable this only in debug purposes as it floods the logs very much", createIfNotFound: true);
+            if (ConfigBaseBody) nodes[0].SetValue("baseBody", baseBody, "The name of the celestial body where the KK base groups are located", createIfNotFound: true);
 
             string path = $"{Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)}{Path.DirectorySeparatorChar}..{Path.DirectorySeparatorChar}Configs{Path.DirectorySeparatorChar}KC.cfg";
 

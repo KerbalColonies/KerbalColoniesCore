@@ -3,8 +3,8 @@
 - draining facility cost (continues facility cost during the build)
 - mining facility rework to have either a fixed rate or the density
 - auto grass color
+- contracts
+- rework the commnet facility and add a kerbal commnet facility
 
 Some things that I, AMWP, want to do:
-- rework the commnet facility and add a kerbal commnet facility
 - electricity system (not decided yet how that's done)
-- contracts

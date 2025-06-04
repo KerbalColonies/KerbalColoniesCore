@@ -1,3 +1,9 @@
+# v1.0.7
+- Fixed the crewquarters kerbal transfer when switching the vessels, see issue [#23](https://github.com/KerbalColonies/KerbalColoniesCore/issues/23)
+- Added facility/vessel cost/time multiplier settings and the max colonies per body setting with difficulty presets to the gameparameter settings
+- Removed the hardcoded kerbin requirement for the base groups, the base body is now defined in the KC.cfg file or the homeworld if the config file does not contain it
+- The insufficient resources are now displayed when the build colony failed
+
 # v1.0.6
 - Fixed the allowed/forbidden traits logic when transferring kerbals to not use the localized trait name
 - Fixed the paths for the external config files

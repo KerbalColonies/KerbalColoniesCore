@@ -44,7 +44,7 @@ namespace KerbalColonies.UI
 
         private Action draw;
 
-        private List<KCWindow> openWindows;
+        private List<KCWindow> openWindows = new List<KCWindow> { };
 
         /// <summary>
         /// First called before start. used settig up internal vaiabled

@@ -5,20 +5,36 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using UnityEngine;
 
 namespace KerbalColonies.Settings
 {
     public class KCGameParameters : GameParameters.CustomParameterNode
     {
-        public override string Title { get => "Kerbal Colonies Settings"; }
+        public override string Title { get => "Kerbal Colonies"; }
         public override GameParameters.GameMode GameMode { get { return GameParameters.GameMode.ANY; } }
-        public override string Section { get { return "Kerbal Colonies Settings"; } }
-        public override string DisplaySection { get { return "Kerbal Colonies Settings"; } }
+        public override string Section { get { return "Kerbal Colonies"; } }
+        public override string DisplaySection { get { return "Kerbal Colonies"; } }
         public override int SectionOrder { get { return 1; } }
         public override bool HasPresets { get { return true; } }
 
-        [GameParameters.CustomFloatParameterUI("Facility build cost multiplier", toolTip = "Multiplies the build cost for all facilities and new colonies.", addTextField = true, asPercentage = false, autoPersistance = false, gameMode = GameParameters.GameMode.ANY, maxValue = 5f, minValue = 0.1f, newGameOnly = false, displayFormat = "0.00")]
-        public float FacilityCostMultiplier = 1.0f;
+        [GameParameters.CustomFloatParameterUI("Facility build cost multiplier", toolTip = "Multiplies the build cost for all facilities and new colonies.", addTextField = true, asPercentage = false, autoPersistance = false, logBase = 1.5f, gameMode = GameParameters.GameMode.ANY, maxValue = 10f, newGameOnly = false, displayFormat = "0.00")]
+        public float FacilityCostMultiplier { get => Configuration.FacilityCostMultiplier; set => Configuration.FacilityCostMultiplier = value; }
+
+        [GameParameters.CustomFloatParameterUI("Facility build time multiplier", toolTip = "Multiplies the build time for all facilities.", addTextField = true, asPercentage = false, autoPersistance = false, logBase = 1.5f, gameMode = GameParameters.GameMode.ANY, maxValue = 10f, newGameOnly = false, displayFormat = "0.00")]
+        public float FacilityTimeMultiplier { get => Configuration.FacilityTimeMultiplier; set => Configuration.FacilityTimeMultiplier = value; }
+
+        [GameParameters.CustomFloatParameterUI("Vessel build cost multiplier", toolTip = "Multiplies the build cost for all vessel built at colonies.", addTextField = true, asPercentage = false, autoPersistance = false, logBase = 1.5f, gameMode = GameParameters.GameMode.ANY, maxValue = 10f, newGameOnly = false, displayFormat = "0.00")]
+        public float VesselCostMultiplier { get => Configuration.VesselCostMultiplier; set => Configuration.VesselCostMultiplier = value; }
+
+        [GameParameters.CustomFloatParameterUI("Vessel build time multiplier", toolTip = "Multiplies the build time for all vessel built at colonies.", addTextField = true, asPercentage = false, autoPersistance = false, logBase = 1.5f, gameMode = GameParameters.GameMode.ANY, maxValue = 10f, newGameOnly = false, displayFormat = "0.00")]
+        public float VesselTimeMultiplier { get => Configuration.VesselTimeMultiplier; set => Configuration.VesselTimeMultiplier = value; }
+
+        [GameParameters.CustomIntParameterUI("Max colonies per body", toolTip = "Maximum number of colonies that can be built on a single body. Set to 0 to disable the limit.", autoPersistance = false, gameMode = GameParameters.GameMode.ANY, minValue = 0, maxValue = 15, newGameOnly = false)]
+        public int maxColoniesPerBody { get => Configuration.MaxColoniesPerBody; set => Configuration.MaxColoniesPerBody = value; }
+
+        [GameParameters.CustomParameterUI("Enable debug logging", toolTip = "Enables debug logging for Kerbal Colonies.", autoPersistance = false, gameMode = GameParameters.GameMode.ANY, newGameOnly = false)]
+        public bool enableLogging { get => Configuration.enableLogging; set => Configuration.enableLogging = value; }
 
         public override bool Enabled(MemberInfo member, GameParameters parameters)
         {
@@ -40,40 +56,78 @@ namespace KerbalColonies.Settings
             {
                 case GameParameters.Preset.Easy:
                     FacilityCostMultiplier = 0.5f;
+                    FacilityTimeMultiplier = 0.5f;
+                    VesselCostMultiplier = 0.5f;
+                    VesselTimeMultiplier = 0.5f;
+                    maxColoniesPerBody = 0;
                     break;
                 case GameParameters.Preset.Normal:
                     FacilityCostMultiplier = 1.0f;
+                    FacilityTimeMultiplier = 1.0f;
+                    VesselCostMultiplier = 1.0f;
+                    VesselTimeMultiplier = 1.0f;
+                    maxColoniesPerBody = 10;
                     break;
                 case GameParameters.Preset.Moderate:
                     FacilityCostMultiplier = 1.5f;
+                    FacilityTimeMultiplier = 1.5f;
+                    VesselCostMultiplier = 1.5f;
+                    VesselTimeMultiplier = 1.5f;
+                    maxColoniesPerBody = 5;
                     break;
                 case GameParameters.Preset.Hard:
                     FacilityCostMultiplier = 2.0f;
+                    FacilityTimeMultiplier = 2.0f;
+                    VesselCostMultiplier = 2.0f;
+                    VesselTimeMultiplier = 2.0f;
+                    maxColoniesPerBody = 3;
                     break;
                 case GameParameters.Preset.Custom:
                 default:
                     FacilityCostMultiplier = 1.0f;
+                    FacilityTimeMultiplier = 1.0f;
+                    VesselCostMultiplier = 1.0f;
+                    VesselTimeMultiplier = 1.0f;
+                    maxColoniesPerBody = 10;
                     break;
             }
         }
 
         public override void OnSave(ConfigNode node)
         {
-            Configuration.FacilityCostMultiplier = FacilityCostMultiplier;
+            //Configuration.FacilityCostMultiplier = FacilityCostMultiplier;
             node.AddValue("FacilityCostMultiplier", FacilityCostMultiplier);
+            node.AddValue("FacilityTimeMultiplier", FacilityTimeMultiplier);
+            node.AddValue("VesselCostMultiplier", VesselCostMultiplier);
+            node.AddValue("VesselTimeMultiplier", VesselTimeMultiplier);
+            node.AddValue("maxColoniesPerBody", maxColoniesPerBody);
         }
 
         public override void OnLoad(ConfigNode node)
         {
-            if (node.HasValue("FacilityCostMultiplier"))
-            {
-                FacilityCostMultiplier = float.Parse(node.GetValue("FacilityCostMultiplier"));
-                Configuration.FacilityCostMultiplier = FacilityCostMultiplier; // Update the static variable
-            }
-            else
-            {
-                FacilityCostMultiplier = 1.0f; // Default value if not set
-            }
+            if (node.HasValue("FacilityCostMultiplier")) FacilityCostMultiplier = float.Parse(node.GetValue("FacilityCostMultiplier"));
+            else FacilityCostMultiplier = 1.0f; // Default value if not set
+            if (node.HasValue("FacilityTimeMultiplier")) FacilityTimeMultiplier = float.Parse(node.GetValue("FacilityTimeMultiplier"));
+            else FacilityTimeMultiplier = 1.0f; // Default value if not set
+            if (node.HasValue("VesselCostMultiplier")) VesselCostMultiplier = float.Parse(node.GetValue("VesselCostMultiplier"));
+            else VesselCostMultiplier = 1.0f; // Default value if not set
+            if (node.HasValue("VesselTimeMultiplier")) VesselTimeMultiplier = float.Parse(node.GetValue("VesselTimeMultiplier"));
+            else VesselTimeMultiplier = 1.0f; // Default value if not set
+            if (node.HasValue("maxColoniesPerBody")) maxColoniesPerBody = int.Parse(node.GetValue("maxColoniesPerBody"));
+            else maxColoniesPerBody = 10; // Default value if not set
+        }
+    }
+
+    [KSPAddon(KSPAddon.Startup.EveryScene, false)]
+    public class KCGameParameterReset : MonoBehaviour
+    {
+        protected void Awake()
+        {
+            Configuration.FacilityCostMultiplier = 1.0f;
+            Configuration.FacilityTimeMultiplier = 1.0f;
+            Configuration.VesselCostMultiplier = 1.0f;
+            Configuration.VesselTimeMultiplier = 1.0f;
+            Configuration.MaxColoniesPerBody = 10;
         }
     }
 }

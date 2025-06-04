@@ -43,6 +43,7 @@ namespace KerbalColonies
         public static bool checkVesselResources(KCFacilityInfoClass info)
         {
             Configuration.writeLog($"Checking resources for {info.displayName}");
+            bool insufficientResources = false;
             foreach (KeyValuePair<PartResourceDefinition, double> resource in info.resourceCost[0])
             {
                 double vesselAmount = 0;
@@ -53,7 +54,12 @@ namespace KerbalColonies
                 Configuration.writeLog($"{resource.Key.displayName}: {vesselAmount} / {resource.Value * Configuration.FacilityCostMultiplier}");
 
                 if (vesselAmount >= resource.Value * Configuration.FacilityCostMultiplier) continue;
-                else return false;
+                else
+                {
+                    Configuration.writeLog($"Insufficient {resource.Key.displayName} resources on vessel.");
+                    ScreenMessages.PostScreenMessage($"KC: {vesselAmount}/{resource.Value * Configuration.FacilityCostMultiplier} {resource.Key.displayName}", 10f, ScreenMessageStyle.UPPER_RIGHT);
+                    insufficientResources = true;
+                }
             }
 
             if (Funding.Instance != null)
@@ -61,11 +67,12 @@ namespace KerbalColonies
                 Configuration.writeLog($"Funds: {Funding.Instance.Funds} / {info.Funds[0] * Configuration.FacilityCostMultiplier}");
                 if (Funding.Instance.Funds < info.Funds[0] * Configuration.FacilityCostMultiplier)
                 {
-                    return false;
+                    ScreenMessages.PostScreenMessage($"KC: {Funding.Instance.Funds}/{info.Funds[0] * Configuration.FacilityCostMultiplier} Funds", 10f, ScreenMessageStyle.UPPER_RIGHT);
+                    insufficientResources = true;
                 }
             }
 
-            return true;
+            return !insufficientResources;
         }
 
         public static void removeVesselResources(KCFacilityInfoClass info)

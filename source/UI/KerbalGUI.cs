@@ -29,6 +29,7 @@ namespace KerbalColonies.UI
         public enum SwitchModes
         {
             ActiveVessel,
+            Vessel,
             Colony,
             Facility
         }
@@ -51,6 +52,12 @@ namespace KerbalColonies.UI
 
         colonyClass colony;
 
+        public void reloadVesselList(Vessel v0, Vessel v1)
+        {
+            this.Close();
+            KerbalColonies.UpdateNextFrame = true;
+        }
+
         protected override void OnOpen()
         {
             if (instance == null) instance = this;
@@ -59,7 +66,13 @@ namespace KerbalColonies.UI
             switch (mode)
             {
                 case SwitchModes.ActiveVessel:
-                    this.fromList = fromFac.filterKerbals(toVessel.GetVesselCrew());
+                    if (FlightGlobals.ActiveVessel != null)
+                    {
+                        this.fromList = fromFac.filterKerbals(FlightGlobals.ActiveVessel.GetVesselCrew());
+                        GameEvents.onVesselSwitching.Add(reloadVesselList);
+                    }
+                    else
+                        this.fromList = new List<ProtoCrewMember>();
                     this.toList = new List<ProtoCrewMember>(fromFac.getKerbals());
                     break;
                 case SwitchModes.Colony:
@@ -77,6 +90,7 @@ namespace KerbalColonies.UI
 
                 if (mode == SwitchModes.ActiveVessel)
                 {
+                    GameEvents.onVesselSwitching.Remove(reloadVesselList);
 
                     InternalSeat seat = member.seat;
                     if (member.seat != null)
@@ -85,7 +99,7 @@ namespace KerbalColonies.UI
                         member.seat = null;
                     }
 
-                    foreach (Part p in toVessel.Parts)
+                    foreach (Part p in FlightGlobals.ActiveVessel.Parts)
                     {
                         if (p.protoModuleCrew.Contains(member))
                         {
@@ -119,7 +133,7 @@ namespace KerbalColonies.UI
 
                 if (mode == SwitchModes.ActiveVessel)
                 {
-                    foreach (Part p in toVessel.Parts)
+                    foreach (Part p in FlightGlobals.ActiveVessel.Parts)
                     {
                         if (p.CrewCapacity > 0)
                         {
@@ -145,9 +159,9 @@ namespace KerbalColonies.UI
 
                     member.rosterStatus = ProtoCrewMember.RosterStatus.Assigned;
                     //toVessel.RebuildCrewList();
-                    toVessel.RebuildCrewList();
-                    toVessel.SpawnCrew();
-                    Vessel.CrewWasModified(toVessel);
+                    FlightGlobals.ActiveVessel.RebuildCrewList();
+                    FlightGlobals.ActiveVessel.SpawnCrew();
+                    Vessel.CrewWasModified(FlightGlobals.ActiveVessel);
                     Game currentGame = HighLogic.CurrentGame.Updated();
                 }
                 else if (mode == SwitchModes.Colony)
@@ -166,7 +180,7 @@ namespace KerbalColonies.UI
         {
             if (mode == SwitchModes.ActiveVessel)
             {
-                this.fromCapacity = toVessel.GetCrewCapacity();
+                this.fromCapacity = FlightGlobals.ActiveVessel.GetCrewCapacity();
                 this.toCapacity = fromFac.MaxKerbals;
             }
             else
@@ -236,18 +250,18 @@ namespace KerbalColonies.UI
             }
         }
 
-        internal KerbalSelectorGUI(KCKerbalFacilityBase fac, KerbalGUI kGUI, Vessel fromVessel) : base(Configuration.createWindowID(), fac.name)
+        internal KerbalSelectorGUI(KCKerbalFacilityBase fac, KerbalGUI kGUI, Vessel activeVessel) : base(Configuration.createWindowID(), fac.name)
         {
             this.fromFac = fac;
             toolRect = new Rect(100, 100, 650, 500);
-            this.fromName = fromVessel.GetDisplayName();
+            this.fromName = FlightGlobals.ActiveVessel.GetDisplayName();
             this.toName = fac.DisplayName;
-            this.fromList = fac.filterKerbals(fromVessel.GetVesselCrew());
-            this.toVessel = fromVessel;
+            this.fromList = fac.filterKerbals(FlightGlobals.ActiveVessel.GetVesselCrew());
+            this.toVessel = FlightGlobals.ActiveVessel;
             this.kGUI = kGUI;
             this.toList = new List<ProtoCrewMember>(fromFac.getKerbals());
             this.mode = SwitchModes.ActiveVessel;
-            this.fromCapacity = fromVessel.GetCrewCapacity();
+            this.fromCapacity = FlightGlobals.ActiveVessel.GetCrewCapacity();
             this.toCapacity = fac.MaxKerbals;
         }
 

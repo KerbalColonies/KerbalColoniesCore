@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 // KC: Kerbal Colonies
@@ -43,7 +44,7 @@ namespace KerbalColonies.UI
 
         private Action draw;
 
-        private List<Action> openWindows;
+        private List<KCWindow> openWindows = new List<KCWindow> { };
 
         /// <summary>
         /// First called before start. used settig up internal vaiabled
@@ -58,7 +59,7 @@ namespace KerbalColonies.UI
             instance = this;
             //DontDestroyOnLoad(KCInstance);
             draw = delegate { };
-            openWindows = new List<Action>();
+            openWindows = new List<KCWindow>();
         }
 
         #region Monobehavior functions
@@ -75,7 +76,7 @@ namespace KerbalColonies.UI
         /// </summary>
         public void OnDestroy()
         {
-
+            openWindows.ToList().ForEach(w => w.Close());
         }
 
         /// <summary>
@@ -100,12 +101,12 @@ namespace KerbalColonies.UI
         /// Adds a function pointer to the list of drawn windows.
         /// </summary>
         /// <param name="drawfunct"></param>
-        public static void OpenWindow(Action drawfunct)
+        public static void OpenWindow(KCWindow drawfunct)
         {
             if (!IsOpen(drawfunct))
             {
                 instance.openWindows.Add(drawfunct);
-                instance.draw += drawfunct;
+                instance.draw += drawfunct.Draw;
             }
         }
 
@@ -113,12 +114,12 @@ namespace KerbalColonies.UI
         /// Removes a function pointer from the list of open windows.
         /// </summary>
         /// <param name="drawfunct"></param>
-        public static void CloseWindow(Action drawfunct)
+        public static void CloseWindow(KCWindow drawfunct)
         {
             if (IsOpen(drawfunct))
             {
                 instance.openWindows.Remove(drawfunct);
-                instance.draw -= drawfunct;
+                instance.draw -= drawfunct.Draw;
             }
         }
 
@@ -126,7 +127,7 @@ namespace KerbalColonies.UI
         /// Opens a closed window or closes an open one.
         /// </summary>
         /// <param name="drawfunct"></param>
-        public static void ToggleWindow(Action drawfunct)
+        public static void ToggleWindow(KCWindow drawfunct)
         {
             if (IsOpen(drawfunct))
             {
@@ -144,7 +145,7 @@ namespace KerbalColonies.UI
         /// </summary>
         /// <param name="drawfunct"></param>
         /// <returns></returns>
-        public static bool IsOpen(Action drawfunct)
+        public static bool IsOpen(KCWindow drawfunct)
         {
             if (instance == null)
             {

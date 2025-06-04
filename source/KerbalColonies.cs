@@ -1,4 +1,5 @@
 ﻿using KerbalColonies.colonyFacilities;
+using KerbalColonies.Settings;
 using KerbalColonies.UI;
 using KSP.UI.Screens;
 using System.Collections.Generic;
@@ -34,6 +35,7 @@ namespace KerbalColonies
         double lastTime = 0;
         bool despawned = false;
         int waitCounter = 0;
+        public static bool UpdateNextFrame = false;
 
         internal static ToolbarControl toolbarControl;
 
@@ -96,8 +98,9 @@ namespace KerbalColonies
 
         public void Update()
         {
-            if (Planetarium.GetUniversalTime() - lastTime >= 10)
+            if (Planetarium.GetUniversalTime() - lastTime >= 10 || UpdateNextFrame)
             {
+                UpdateNextFrame = false;
                 lastTime = Planetarium.GetUniversalTime();
                 Configuration.colonyDictionary.Values.SelectMany(x => x).ToList().ForEach(x => x.UpdateColony());
             }

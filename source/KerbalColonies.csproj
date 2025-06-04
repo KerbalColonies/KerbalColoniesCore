@@ -55,9 +55,10 @@
     <Compile Include="colonyFacilities\KC_CAB_Facility.cs" />
     <Compile Include="colonyFacilities\KCResourceConverterFacility.cs" />
     <Compile Include="ConfigFacilityLoader.cs" />
-    <Compile Include="Configuration.cs" />
+    <Compile Include="Settings\Configuration.cs" />
     <Compile Include="KCPartModule.cs" />
     <Compile Include="KCPreflightChecks.cs" />
+    <Compile Include="Settings\KCGameParameters.cs" />
     <Compile Include="UI\Changelogwindow.cs" />
     <Compile Include="UI\KCFacilityWindowBase.cs" />
     <Compile Include="UI\KCWindow.cs" />

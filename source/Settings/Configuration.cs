@@ -41,10 +41,10 @@ namespace KerbalColonies
             writeDebug("scenariomodule load");
             writeDebug(node.ToString());
             LoadColoniesV3(node);
-
         }
         public override void OnSave(ConfigNode node)
         {
+            SaveConfiguration();
             SaveColoniesV3(node);
             writeDebug(node.ToString());
             writeDebug("scenariomodule save");
@@ -143,12 +143,12 @@ namespace KerbalColonies
 
         #region parameters
         // configurable parameters
-        public static int MaxColoniesPerBody = 3;              // Limits the amount of colonies per celestial body (planet/moon)
+        public static int MaxColoniesPerBody = 5;              // Limits the amount of colonies per celestial body (planet/moon)
                                                                // set it to zero to disable the limit
-        public static double FacilityCostMultiplier = 1.0; // Multiplier for the cost of the facilities
-        public static double FacilityTimeMultiplier = 1.0; // Multiplier for the time of the facilities
-        public static double VesselCostMultiplier = 1.0; // Multiplier for the cost of the vessels
-        public static double VesselTimeMultiplier = 1.0; // Multiplier for the time of the vessels
+        public static float FacilityCostMultiplier = 1.0f; // Multiplier for the cost of the facilities
+        public static float FacilityTimeMultiplier = 1.0f; // Multiplier for the time of the facilities
+        public static float VesselCostMultiplier = 1.0f; // Multiplier for the cost of the vessels
+        public static float VesselTimeMultiplier = 1.0f; // Multiplier for the time of the vessels
 #if DEBUG
         public static bool enableLogging = true;            // Enable this only in debug purposes as it floods the logs very much
 #else
@@ -375,35 +375,31 @@ namespace KerbalColonies
 
             writeLog("Loading configuration file");
             writeLog(nodes[0].ToString());
-            int.TryParse(nodes[0].GetValue("maxColoniesPerBody"), out MaxColoniesPerBody);
+            //int.TryParse(nodes[0].GetValue("maxColoniesPerBody"), out MaxColoniesPerBody);
 
 #if DEBUG
             enableLogging = true;
 #else
             bool.TryParse(nodes[0].GetValue("enableLogging"), out enableLogging);
 #endif
-            writeLog($"Configuration loaded: maxColoniesPerBody = {MaxColoniesPerBody}, enableLogging = {enableLogging}");
+            writeLog($"Configuration loaded: enableLogging = {enableLogging}");
         }
 
         internal static void SaveConfiguration()
         {
-            ConfigNode[] nodes = GameDatabase.Instance.GetConfigNodes(APP_NAME.ToUpper());
-            if ((nodes == null) || (nodes.Length == 0))
-            {
-                return;
-            }
+            ConfigNode[] nodes = new ConfigNode[1] { new ConfigNode() };
 
             // config params
-            nodes[0].SetValue("maxColoniesPerBody", MaxColoniesPerBody, "Limits the amount of colonies per celestial body (planet/moon)\n\facilityType// set it to zero to disable the limit", createIfNotFound: true);
-            nodes[0].SetValue("enableLogging", enableLogging, "Enable this only in debug purposes as it floods the logs very much", createIfNotFound: true);
+            nodes[0].SetValue("enableLogging", enableLogging, createIfNotFound: true);
 
             string path = $"{Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)}{Path.DirectorySeparatorChar}..{Path.DirectorySeparatorChar}Configs{Path.DirectorySeparatorChar}KC.cfg";
 
             ConfigNode node = new ConfigNode();
-            nodes[0].name = "KC";
+            nodes[0].name = APP_NAME;
             node.AddNode(nodes[0]);
             node.Save(path);
         }
+
 
         internal static void writeDebug(string text)
         {

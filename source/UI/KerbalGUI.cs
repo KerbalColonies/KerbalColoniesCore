@@ -1,4 +1,7 @@
-﻿using KerbalColonies.colonyFacilities;
+﻿using Expansions;
+using Expansions.Missions;
+using Expansions.Serenity;
+using KerbalColonies.colonyFacilities;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -334,7 +337,14 @@ namespace KerbalColonies.UI
                     foreach (ProtoCrewMember pcm in fac.getKerbals())
                     {
                         GUILayout.BeginHorizontal(GUILayout.Height(80));
-                        GUILayout.Box(tKerbal, GUILayout.Width(23), GUILayout.Height(38));
+                        string suitPath = pcm.GetKerbalIconSuitPath();
+                        if (suitPath.Contains("vintage") && ExpansionsLoader.IsExpansionInstalled("MakingHistory"))
+                            GUILayout.Box(MissionsUtils.METexture(suitPath + ".tif"), GUILayout.Width(23), GUILayout.Height(38));
+                        else if (suitPath.Contains("future") && ExpansionsLoader.IsExpansionInstalled("Serenity"))
+                            GUILayout.Box(SerenityUtils.SerenityTexture(suitPath + ".tif"), GUILayout.Width(23), GUILayout.Height(38));
+                        else
+                            GUILayout.Box(AssetBase.GetTexture(pcm.GetKerbalIconSuitPath()), GUILayout.Width(23), GUILayout.Height(38));
+                        
 
                         GUILayout.BeginVertical();
                         GUILayout.Label(pcm.displayName, LabelInfo);

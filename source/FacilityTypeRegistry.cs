@@ -25,6 +25,7 @@ namespace KerbalColonies
     public static class KCFacilityTypeRegistry
     {
         private static Dictionary<string, Type> _registeredTypes = new Dictionary<string, Type>();
+        public static Dictionary<string, Type> RegisteredTypes => _registeredTypes;
 
         // Register a new type by a unique string key
         public static void RegisterType<T>() where T : KCFacilityBase
@@ -50,12 +51,10 @@ namespace KerbalColonies
             }
             return t;
         }
-        public static IEnumerable<string> GetAllRegisteredTypes()
-        {
-            return _registeredTypes.Keys;
-        }
+
 
         private static Dictionary<Type, Type> _registeredInfoTypes = new Dictionary<Type, Type>();
+        public static Dictionary<Type, Type> RegisteredInfoTypes => _registeredInfoTypes;
 
         // Register a facility with its info type
         public static void RegisterFacilityInfo<T, U>() where T : KCFacilityBase where U : KCFacilityInfoClass
@@ -75,13 +74,8 @@ namespace KerbalColonies
         }
 
         // Get the info type for a registered facility type, returns the default info type if not found
-        public static Type GetInfoType(Type facilityType)
-        {
-            if (_registeredInfoTypes.TryGetValue(facilityType, out var infoType))
-            {
-                return infoType;
-            }
-            return typeof(KCFacilityInfoClass);
-        }
+        public static Type GetInfoType(Type facilityType) => _registeredInfoTypes.TryGetValue(facilityType, out var infoType) ? infoType : typeof(KCFacilityInfoClass);
+
+        //public static Type GetFacilityType(Type facilityInfoType) => _registeredInfoTypes.FirstOrDefault(x => x.Value == facilityInfoType).Key;
     }
 }

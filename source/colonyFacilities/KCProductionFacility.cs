@@ -3,7 +3,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using static KSP.UI.Screens.SpaceCenter.BuildingPicker;
 
 // KC: Kerbal Colonies
 // This mod aimes to create a Colony system with Kerbal Konstructs statics
@@ -79,37 +78,180 @@ namespace KerbalColonies.colonyFacilities
 
     public class KCProductionWindow : KCFacilityWindowBase
     {
-        KCProductionFacility facility;
+        KCProductionFacility productionFacility;
         public KerbalGUI kerbalGUI;
+        Type selectedType = null;
+        Vector2 scrollPosTypeOverview = new Vector2();
         Vector2 scrollPosTypes = new Vector2();
         Vector2 scrollPosUnfinishedFacilities = new Vector2();
         Vector2 scrollPosVesselCost = new Vector2();
 
+        private static SortedDictionary<Type, List<KCFacilityInfoClass>> sortedTypes = new SortedDictionary<Type, List<KCFacilityInfoClass>>(Comparer<Type>.Create((x, y) => string.Compare(x.FullName, y.FullName))) { };
+        public static SortedDictionary<Type, List<KCFacilityInfoClass>> SortedTypes => sortedTypes;
+
+        public static void addType(KCFacilityInfoClass info)
+        {
+            if (sortedTypes == null) sortedTypes = new SortedDictionary<Type, List<KCFacilityInfoClass>>(Comparer<Type>.Create((x, y) => string.Compare(x.FullName, y.FullName))) { { info.type, new List<KCFacilityInfoClass> { info } } };
+            else if (!sortedTypes.ContainsKey(info.type)) sortedTypes.Add(info.type, new List<KCFacilityInfoClass> { info });
+            else if (!sortedTypes[info.type].Contains(info)) sortedTypes[info.type].Add(info);
+        }
+
+        public static void addAllTypes() => Configuration.BuildableFacilities.ForEach(info => addType(info));
+
+
         protected override void CustomWindow()
         {
-            facility.Colony.CAB.Update();
+            productionFacility.Colony.CAB.Update();
 
             if (kerbalGUI == null)
             {
-                kerbalGUI = new KerbalGUI(facility, true);
+                kerbalGUI = new KerbalGUI(productionFacility, true);
             }
 
-            GUILayout.BeginVertical();
-            {
+            if (sortedTypes.Count == 0) addAllTypes();
 
-                GUILayout.BeginHorizontal(GUILayout.Height(300));
-                {
-                    GUILayout.BeginVertical(GUILayout.Width(300));
-                    {
-                        kerbalGUI.StaffingInterface();
+            GUILayout.BeginHorizontal(GUILayout.Width(600));{
+                GUILayout.BeginVertical();{
+                    GUILayout.BeginHorizontal(GUILayout.Height(300));{
+                        GUILayout.BeginVertical(GUILayout.Width(300));
+                        {
+                            kerbalGUI.StaffingInterface();
+                        }
+                        GUILayout.EndVertical();
+                        GUILayout.BeginVertical(GUILayout.Width(300));
+                        {
+                            SortedTypes.ToList().ForEach(kvp =>
+                            {
+                                if (GUILayout.Button($"{kvp.Key.Name} ({kvp.Value.Count})"))
+                                {
+                                    if (selectedType == kvp.Key)
+                                    {
+                                        selectedType = null;
+                                        toolRect = new Rect(toolRect.x, toolRect.y, 620, 700);
+                                    }
+                                    else
+                                    {
+                                        selectedType = kvp.Key;
+                                        toolRect = new Rect(toolRect.x, toolRect.y, 1110, 700);
+                                    }
+                                }
+                            });
+                        }
+                        GUILayout.EndVertical();
                     }
-                    GUILayout.EndVertical();
+                    GUILayout.EndHorizontal();
+
+                    GUILayout.Space(10);
+                    GUILayout.Label($"Daily production: {Math.Round(productionFacility.dailyProduction(), 2)}");
+                    GUILayout.Space(10);
+                    GUILayout.Label("Unfinished facilities");
+
+                    scrollPosUnfinishedFacilities = GUILayout.BeginScrollView(scrollPosUnfinishedFacilities);
+                    {
+                        GUILayout.Label("Facilities under construction:");
+                        GUILayout.BeginVertical();
+                        {
+                            GUILayout.Label("Upgrading Facilities:");
+                            productionFacility.Colony.CAB.UpgradingFacilities.ToList().ForEach(pair =>
+                            {
+                                GUILayout.BeginHorizontal();
+                                GUILayout.Label(pair.Key.DisplayName);
+                                double max = pair.Key.facilityInfo.UpgradeTimes[pair.Key.level + 1] * Configuration.FacilityTimeMultiplier;
+                                GUILayout.Label($"{Math.Round(max - pair.Value, 2)}/{Math.Round(max, 2)}");
+                                GUILayout.EndHorizontal();
+                                GUILayout.Box("", GUILayout.ExpandWidth(true), GUILayout.Height(1));
+                            });
+
+                            GUILayout.Space(10);
+
+                            productionFacility.Colony.CAB.ConstructingFacilities.ToList().ForEach(pair =>
+                            {
+                                GUILayout.BeginHorizontal();
+                                GUILayout.Label(pair.Key.DisplayName);
+                                double max = pair.Key.facilityInfo.UpgradeTimes[0] * Configuration.FacilityTimeMultiplier;
+                                GUILayout.Label($"{Math.Round(max - pair.Value, 2)}/{Math.Round(max, 2)}");
+                                GUILayout.EndHorizontal();
+                                GUILayout.Space(10);
+                                GUILayout.Box("", GUILayout.ExpandWidth(true), GUILayout.Height(1));
+                                GUILayout.Space(10);
+                            });
+                        }
+                        GUILayout.EndVertical();
+                    }
+                    GUILayout.EndScrollView();
+
+                    if (((KCProductionInfo)productionFacility.facilityInfo).CanBuildVessels(productionFacility.level))
+                    {
+                        GUILayout.Space(10);
+                        GUILayout.Label("This facility can build vessels.");
+                        GUILayout.Label("Costs per ton of the vessel:");
+                        scrollPosVesselCost = GUILayout.BeginScrollView(scrollPosVesselCost, GUIStyle.none);
+                        {
+                            KCProductionInfo kCProductionInfo = (KCProductionInfo)productionFacility.facilityInfo;
+                            GUILayout.BeginHorizontal();
+                            {
+                                GUILayout.BeginVertical(GUILayout.Width(340));
+                                {
+                                    for (int i = 0; i < kCProductionInfo.vesselResourceCost[productionFacility.level].Count / 2; i++)
+                                    {
+                                        KeyValuePair<PartResourceDefinition, double> resource = kCProductionInfo.vesselResourceCost[productionFacility.level].ElementAt(i);
+                                        GUILayout.Label($"{resource.Key.displayName}: {resource.Value}");
+                                    }
+                                }
+                                GUILayout.EndVertical();
+                                GUILayout.BeginVertical(GUILayout.Width(340));
+                                {
+                                    for (int i = kCProductionInfo.vesselResourceCost[productionFacility.level].Count / 2; i < kCProductionInfo.vesselResourceCost[productionFacility.level].Count; i++)
+                                    {
+                                        KeyValuePair<PartResourceDefinition, double> resource = kCProductionInfo.vesselResourceCost[productionFacility.level].ElementAt(i);
+                                        GUILayout.Label($"{resource.Key.displayName}: {resource.Value}");
+                                    }
+                                }
+                                GUILayout.EndVertical();
+                            }
+                            GUILayout.EndHorizontal();
+                        }
+                        GUILayout.EndScrollView();
+
+                        ConfigNode colonyNode = productionFacility.Colony.sharedColonyNodes.FirstOrDefault(n => n.name == "vesselBuildInfo");
+                        if (colonyNode != null)
+                        {
+                            KCProductionInfo info = (KCProductionInfo)Configuration.GetInfoClass(colonyNode.GetValue("facilityConfig"));
+                            if (info != null)
+                            {
+                                if (info.HasSameRecipe(int.Parse(colonyNode.GetValue("facilityLevel")), productionFacility)) GUI.enabled = false;
+                                if (GUILayout.Button("Use this facility type to build vessels"))
+                                {
+                                    Configuration.writeDebug($"Facility {productionFacility.name} is now used to build vessels.");
+                                    colonyNode.SetValue("facilityConfig", productionFacility.name);
+                                    colonyNode.SetValue("facilityLevel", productionFacility.level);
+                                }
+                            }
+                        }
+                        else
+                        {
+                            if (GUILayout.Button("Use this facility type to build vessels"))
+                            {
+                                Configuration.writeDebug($"Facility {productionFacility.name} is now used to build vessels.");
+                                ConfigNode vesselBuildInfo = new ConfigNode("vesselBuildInfo");
+                                vesselBuildInfo.AddValue("facilityConfig", productionFacility.name);
+                                vesselBuildInfo.AddValue("facilityLevel", productionFacility.level);
+                                productionFacility.Colony.sharedColonyNodes.Add(vesselBuildInfo);
+                            }
+                        }
+                        GUI.enabled = true;
+                    }
+                }
+                GUILayout.EndVertical();
+
+                if (selectedType != null)
+                {
                     GUILayout.BeginVertical(GUILayout.Width(480));
                     {
                         GUILayout.Label($"Facility types");
                         scrollPosTypes = GUILayout.BeginScrollView(scrollPosTypes);
                         {
-                            foreach (KCFacilityInfoClass t in Configuration.BuildableFacilities)
+                            foreach (KCFacilityInfoClass t in SortedTypes[selectedType])
                             {
                                 GUILayout.BeginHorizontal();
                                 GUILayout.Label($"{t.displayName}\t");
@@ -133,14 +275,14 @@ namespace KerbalColonies.colonyFacilities
 
                                 GUILayout.Space(10);
 
-                                if (!t.checkResources(0, facility.Colony)) { GUI.enabled = false; }
+                                if (!t.checkResources(0, productionFacility.Colony)) { GUI.enabled = false; }
 
                                 if (GUILayout.Button("Build"))
                                 {
-                                    t.removeResources(0, facility.Colony);
-                                    KCFacilityBase KCFac = Configuration.CreateInstance(t, facility.Colony, false);
+                                    t.removeResources(0, productionFacility.Colony);
+                                    KCFacilityBase KCFac = Configuration.CreateInstance(t, productionFacility.Colony, false);
 
-                                    facility.Colony.CAB.AddconstructingFacility(KCFac);
+                                    productionFacility.Colony.CAB.AddconstructingFacility(KCFac);
                                 }
                                 GUI.enabled = true;
                                 GUILayout.Space(10);
@@ -152,110 +294,8 @@ namespace KerbalColonies.colonyFacilities
                     }
                     GUILayout.EndVertical();
                 }
-                GUILayout.EndHorizontal();
-
-                GUILayout.Space(10);
-                GUILayout.Label($"Daily production: {Math.Round(facility.dailyProduction(), 2)}");
-                GUILayout.Space(10);
-                GUILayout.Label("Unfinished facilities");
-
-                scrollPosUnfinishedFacilities = GUILayout.BeginScrollView(scrollPosUnfinishedFacilities);
-                {
-                    GUILayout.Label("Facilities under construction:");
-                    GUILayout.BeginVertical();
-                    {
-                        GUILayout.Label("Upgrading Facilities:");
-                        facility.Colony.CAB.UpgradingFacilities.ToList().ForEach(pair =>
-                        {
-                            GUILayout.BeginHorizontal();
-                            GUILayout.Label(pair.Key.DisplayName);
-                            double max = pair.Key.facilityInfo.UpgradeTimes[pair.Key.level + 1] * Configuration.FacilityTimeMultiplier;
-                            GUILayout.Label($"{Math.Round(max - pair.Value, 2)}/{Math.Round(max, 2)}");
-                            GUILayout.EndHorizontal();
-                            GUILayout.Box("", GUILayout.ExpandWidth(true), GUILayout.Height(1));
-                        });
-
-                        GUILayout.Space(10);
-
-                        facility.Colony.CAB.ConstructingFacilities.ToList().ForEach(pair =>
-                        {
-                            GUILayout.BeginHorizontal();
-                            GUILayout.Label(pair.Key.DisplayName);
-                            double max = pair.Key.facilityInfo.UpgradeTimes[0] * Configuration.FacilityTimeMultiplier;
-                            GUILayout.Label($"{Math.Round(max - pair.Value, 2)}/{Math.Round(max, 2)}");
-                            GUILayout.EndHorizontal();
-                            GUILayout.Space(10);
-                            GUILayout.Box("", GUILayout.ExpandWidth(true), GUILayout.Height(1));
-                            GUILayout.Space(10);
-                        });
-                    }
-                    GUILayout.EndVertical();
-                }
-                GUILayout.EndScrollView();
-
-                if (((KCProductionInfo)facility.facilityInfo).CanBuildVessels(facility.level))
-                {
-                    GUILayout.Space(10);
-                    GUILayout.Label("This facility can build vessels.");
-                    GUILayout.Label("Costs per ton of the vessel:");
-                    scrollPosVesselCost = GUILayout.BeginScrollView(scrollPosVesselCost, GUIStyle.none);
-                    {
-                        KCProductionInfo kCProductionInfo = (KCProductionInfo)facility.facilityInfo;
-                        GUILayout.BeginHorizontal();
-                        {
-                            GUILayout.BeginVertical(GUILayout.Width(340));
-                            {
-                                for (int i = 0; i < kCProductionInfo.vesselResourceCost[facility.level].Count / 2; i++)
-                                {
-                                    KeyValuePair<PartResourceDefinition, double> resource = kCProductionInfo.vesselResourceCost[facility.level].ElementAt(i);
-                                    GUILayout.Label($"{resource.Key.displayName}: {resource.Value}");
-                                }
-                            }
-                            GUILayout.EndVertical();
-                            GUILayout.BeginVertical(GUILayout.Width(340));
-                            {
-                                for (int i = kCProductionInfo.vesselResourceCost[facility.level].Count / 2; i < kCProductionInfo.vesselResourceCost[facility.level].Count; i++)
-                                {
-                                    KeyValuePair<PartResourceDefinition, double> resource = kCProductionInfo.vesselResourceCost[facility.level].ElementAt(i);
-                                    GUILayout.Label($"{resource.Key.displayName}: {resource.Value}");
-                                }
-                            }
-                            GUILayout.EndVertical();
-                        }
-                        GUILayout.EndHorizontal();
-                    }
-                    GUILayout.EndScrollView();
-
-                    ConfigNode colonyNode = facility.Colony.sharedColonyNodes.FirstOrDefault(n => n.name == "vesselBuildInfo");
-                    if (colonyNode != null)
-                    {
-                        KCProductionInfo info = (KCProductionInfo)Configuration.GetInfoClass(colonyNode.GetValue("facilityConfig"));
-                        if (info != null)
-                        {
-                            if (info.HasSameRecipe(int.Parse(colonyNode.GetValue("facilityLevel")), facility)) GUI.enabled = false;
-                            if (GUILayout.Button("Use this facility type to build vessels"))
-                            {
-                                Configuration.writeDebug($"Facility {facility.name} is now used to build vessels.");
-                                colonyNode.SetValue("facilityConfig", facility.name);
-                                colonyNode.SetValue("facilityLevel", facility.level);
-                            }
-                        }
-                    }
-                    else
-                    {
-                        if (GUILayout.Button("Use this facility type to build vessels"))
-                        {
-                            Configuration.writeDebug($"Facility {facility.name} is now used to build vessels.");
-                            ConfigNode vesselBuildInfo = new ConfigNode("vesselBuildInfo");
-                            vesselBuildInfo.AddValue("facilityConfig", facility.name);
-                            vesselBuildInfo.AddValue("facilityLevel", facility.level);
-                            facility.Colony.sharedColonyNodes.Add(vesselBuildInfo);
-                        }
-                    }
-                    GUI.enabled = true;
-                }
             }
-            GUILayout.EndVertical();
+            GUILayout.EndHorizontal();
         }
 
         protected override void OnClose()
@@ -269,10 +309,9 @@ namespace KerbalColonies.colonyFacilities
 
         public KCProductionWindow(KCProductionFacility facility) : base(facility, Configuration.createWindowID())
         {
-            this.facility = facility;
+            this.productionFacility = facility;
             this.kerbalGUI = null;
-            toolRect = new Rect(100, 100, 800, 700);
-
+            toolRect = new Rect(100, 100, 620, 700);
         }
     }
 

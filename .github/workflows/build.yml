@@ -1,4 +1,4 @@
-name: build
+name: Build
 
 on:
   push:
@@ -12,5 +12,18 @@ on:
   workflow_call:
 
 jobs:
+  restore:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup NuGet
+        uses: NuGet/setup-nuget@v1
+
+      - name: Restore NuGet packages
+        run: nuget restore KerbalColoniesCore.sln
+
   build:
+    needs: restore
     uses: KSPModdingLibs/KSPBuildTools/.github/workflows/build.yml@main

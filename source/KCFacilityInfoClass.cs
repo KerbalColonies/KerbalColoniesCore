@@ -138,6 +138,8 @@ namespace KerbalColonies
         {
             if (checkResources(level, colony))
             {
+                if (Configuration.FacilityCostMultiplier == 0) return true;
+
                 foreach (KeyValuePair<PartResourceDefinition, double> resource in resourceCost[level])
                 {
                     double remainingAmount = resource.Value * Configuration.FacilityCostMultiplier;

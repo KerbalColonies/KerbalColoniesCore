@@ -320,6 +320,8 @@ namespace KerbalColonies.colonyFacilities
             //else launchpadWindow.Close();
         }
 
+        public override string GetFacilityProductionDisplay() => $"Launch site: {launchSiteName} ({(instance != null ? instance.launchSite.LaunchSiteType.ToString() : "unknown")})";
+
         public KCLaunchpadFacility(colonyClass colony, KCFacilityInfoClass facilityInfo, ConfigNode node) : base(colony, facilityInfo, node)
         {
             launchSiteUUID = node.GetValue("launchSiteUUID");

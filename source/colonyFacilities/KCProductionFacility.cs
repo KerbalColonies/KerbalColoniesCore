@@ -119,6 +119,7 @@ namespace KerbalColonies.colonyFacilities
                         }
                         GUILayout.EndVertical();
                         GUILayout.BeginVertical(GUILayout.Width(300));
+                        scrollPosTypeOverview = GUILayout.BeginScrollView(scrollPosTypeOverview);
                         {
                             SortedTypes.ToList().ForEach(kvp =>
                             {
@@ -137,12 +138,13 @@ namespace KerbalColonies.colonyFacilities
                                 }
                             });
                         }
+                        GUILayout.EndScrollView();
                         GUILayout.EndVertical();
                     }
                     GUILayout.EndHorizontal();
 
                     GUILayout.Space(10);
-                    GUILayout.Label($"Daily production: {Math.Round(productionFacility.dailyProduction(), 2)}");
+                    GUILayout.Label($"Daily production: {productionFacility.dailyProduction():f2}");
                     GUILayout.Space(10);
                     GUILayout.Label("Unfinished facilities");
 
@@ -157,7 +159,7 @@ namespace KerbalColonies.colonyFacilities
                                 GUILayout.BeginHorizontal();
                                 GUILayout.Label(pair.Key.DisplayName);
                                 double max = pair.Key.facilityInfo.UpgradeTimes[pair.Key.level + 1] * Configuration.FacilityTimeMultiplier;
-                                GUILayout.Label($"{Math.Round(max - pair.Value, 2)}/{Math.Round(max, 2)}");
+                                GUILayout.Label($"{max - pair.Value:f2}/{max:f2}");
                                 GUILayout.EndHorizontal();
                                 GUILayout.Box("", GUILayout.ExpandWidth(true), GUILayout.Height(1));
                             });
@@ -169,7 +171,7 @@ namespace KerbalColonies.colonyFacilities
                                 GUILayout.BeginHorizontal();
                                 GUILayout.Label(pair.Key.DisplayName);
                                 double max = pair.Key.facilityInfo.UpgradeTimes[0] * Configuration.FacilityTimeMultiplier;
-                                GUILayout.Label($"{Math.Round(max - pair.Value, 2)}/{Math.Round(max, 2)}");
+                                GUILayout.Label($"{(max - pair.Value):f2}/{max:f2}");
                                 GUILayout.EndHorizontal();
                                 GUILayout.Space(10);
                                 GUILayout.Box("", GUILayout.ExpandWidth(true), GUILayout.Height(1));
@@ -248,7 +250,7 @@ namespace KerbalColonies.colonyFacilities
                 {
                     GUILayout.BeginVertical(GUILayout.Width(480));
                     {
-                        GUILayout.Label($"Facility types");
+                        GUILayout.Label($"{selectedType.Name} facilities");
                         scrollPosTypes = GUILayout.BeginScrollView(scrollPosTypes);
                         {
                             foreach (KCFacilityInfoClass t in SortedTypes[selectedType])
@@ -365,6 +367,8 @@ namespace KerbalColonies.colonyFacilities
         {
             prdWindow.Toggle();
         }
+
+        public override string GetFacilityProductionDisplay() => $"{kerbals.Count} kerbals assigned\ndaily production: {dailyProduction():f2}\n{(KCProductionInfo.CanBuildVessels(level) ? "Can build vessels" : "Can't build vessels")}";
 
         private void configNodeLoader()
         {

@@ -151,7 +151,7 @@ namespace KerbalColonies.colonyFacilities
                 return;
             }
 
-            GUILayout.Label($"Current recipe: {recipe.RecipeName}");
+            GUILayout.Label($"Current recipe: {recipe.DisplayName}");
 
             GUILayout.BeginHorizontal();
 
@@ -596,6 +596,8 @@ namespace KerbalColonies.colonyFacilities
         {
             kCResourceConverterWindow.Toggle();
         }
+
+        public override string GetFacilityProductionDisplay() => $"{(enabled ? "Enabled" : "Disabled")}\nRecipe: {activeRecipe.DisplayName}";
 
         public override ConfigNode getConfigNode()
         {

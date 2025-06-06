@@ -143,6 +143,8 @@ namespace KerbalColonies.colonyFacilities
             crewQuartersWindow.Toggle();
         }
 
+        public override string GetFacilityProductionDisplay() => $"{kerbals.Count} / {MaxKerbals} kerbals assigned";
+
         public KCCrewQuarters(colonyClass colony, KCFacilityInfoClass facilityInfo, ConfigNode node) : base(colony, facilityInfo, node)
         {
             this.crewQuartersWindow = null;

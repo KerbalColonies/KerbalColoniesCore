@@ -553,6 +553,7 @@ namespace KerbalColonies.colonyFacilities
             StorageWindow.Toggle();
         }
 
+        public override string GetFacilityProductionDisplay() => $"{getCurrentVolume():f2}/{getMaxVolume():f2}m³ used\n{resources.Count} resources stored";
         public KCStorageFacility(colonyClass colony, KCFacilityInfoClass facilityInfo, ConfigNode node) : base(colony, facilityInfo, node)
         {
             resources = new Dictionary<PartResourceDefinition, double>();

@@ -1,7 +1,9 @@
 ﻿using KerbalColonies.UI;
+using KerbalKonstructs;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using UnityEngine;
 
 // KC: Kerbal Colonies
@@ -135,6 +137,20 @@ namespace KerbalColonies.colonyFacilities
 
         public override void Update()
         {
+            /* Pending implementation, needs an window during the placement for the production rate
+            KerbalKonstructs.Core.StaticInstance instance = API.GetGroupStatics(KKgroups[0], FlightGlobals.Bodies.First(b => FlightGlobals.GetBodyIndex(b) == Colony.BodyID).name).FirstOrDefault();
+
+            AbundanceRequest request = new AbundanceRequest();
+            request.BodyId = Colony.BodyID;
+            request.ResourceType = HarvestTypes.Planetary;
+            request.ResourceName = "Ore"; // Default resource, can be changed based on the facility's configuration
+            request.Longitude = instance.RefLongitude;
+            request.Latitude = instance.RefLatitude;
+            request.Altitude = instance.RadiusOffset;
+            Configuration.writeLog($"Requesting abundance for resource {request.ResourceName} at location ({request.Longitude}, {request.Latitude}) on body {Colony.BodyID}");
+            Configuration.writeLog($"Abundance: {ResourceMap.Instance.GetAbundance(request)}");
+            */
+
             double deltaTime = Planetarium.GetUniversalTime() - lastUpdateTime;
 
             lastUpdateTime = Planetarium.GetUniversalTime();
@@ -156,6 +172,19 @@ namespace KerbalColonies.colonyFacilities
         public override void OnRemoteClicked()
         {
             miningFacilityWindow.Toggle();
+        }
+
+        public override string GetFacilityProductionDisplay()
+        {
+            StringBuilder sb = new StringBuilder();
+            miningFacilityInfo.rates[level].ForEach(rate =>
+            {
+                if (storedResoures.ContainsKey(rate.resource))
+                    sb.AppendLine($"{rate.rate * kerbals.Count} {rate.resource.displayName}/day\n{storedResoures[rate.resource]:f2}/{rate.max:f2} stored");
+                else
+                    sb.AppendLine($"{rate.rate * kerbals.Count} {rate.resource.displayName}/day\n0/{rate.max:f2} stored");
+            });
+            return sb.ToString();
         }
 
         public bool RetriveResource(PartResourceDefinition resource)

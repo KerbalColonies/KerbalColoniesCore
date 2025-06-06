@@ -116,8 +116,11 @@ namespace KerbalColonies.UI
         protected override void OnClose()
         {
             ConfigNode node = new ConfigNode("ShowKCChangelog");
-            node.AddValue("ShowKCChangelog", "false");
-
+#if DEBUG
+            node.AddValue("ShowKCChangelog", "True");
+#else
+            node.AddValue("ShowKCChangelog", "False");
+#endif
             string path = $"{Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)}{Path.DirectorySeparatorChar}..{Path.DirectorySeparatorChar}Configs{Path.DirectorySeparatorChar}ShowChangelog.cfg";
 
             ConfigNode n = new ConfigNode();
@@ -127,6 +130,9 @@ namespace KerbalColonies.UI
 
         public Changelogwindow() : base("KC Changlelog", "kc_changelog", true, false, false, false, false)
         {
+#if DEBUG
+            showAgain = true;
+#else
             string path = $"{Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)}{Path.DirectorySeparatorChar}..{Path.DirectorySeparatorChar}Configs{Path.DirectorySeparatorChar}ShowChangelog.cfg";
 
             Configuration.writeLog($"KCChangelog: Loading cfg file from {path}");
@@ -139,7 +145,7 @@ namespace KerbalColonies.UI
                 bool.TryParse(nodes[0].GetValue("ShowKCChangelog"), out bool showChangelog);
                 if (showChangelog) showAgain = true;
             }
-
+#endif
             if (showAgain)
             {
                 try
@@ -147,7 +153,7 @@ namespace KerbalColonies.UI
                     changelogText = new List<string>();
                     File.ReadAllLines($"{Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)}{Path.DirectorySeparatorChar}..{Path.DirectorySeparatorChar}KCChangelog.md").ToList().ForEach(l => changelogText.Add(ParseMarkdownToGUI(l)));
 
-                    toolRect = new Rect(Screen.width / 2 - 400, Screen.height / 2 - 500, 800, 1000);
+                    toolRect = new Rect(Screen.width / 3f, Screen.height * 0.1f, Screen.width / 3f, Screen.height * 0.8f);
                 }
                 catch (Exception e)
                 {

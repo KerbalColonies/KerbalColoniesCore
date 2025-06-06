@@ -64,6 +64,8 @@ namespace KerbalColonies.colonyFacilities
             }
         }
 
+        public override string GetFacilityProductionDisplay() => $"Ground station range: {KerbalKonstructs.API.getStaticInstanceByUUID(groundstationUUID)?.myFacilities[0]?.GetType().GetProperty("TrackingShort")?.GetValue(KerbalKonstructs.API.getStaticInstanceByUUID(groundstationUUID).myFacilities[0])}m";
+
         public override ConfigNode GetSharedNode()
         {
             ConfigNode sharedNode = new ConfigNode("commnetNode");

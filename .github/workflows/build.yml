@@ -22,7 +22,7 @@ jobs:
         uses: NuGet/setup-nuget@v1
 
       - name: Restore NuGet packages
-        run: nuget restore KerbalColoniesCore.sln
+        run: nuget restore KerbalColoniesCore/source/KerbalColoniesCore.sln
 
   build:
     needs: restore

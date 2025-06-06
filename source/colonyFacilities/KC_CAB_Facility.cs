@@ -458,7 +458,7 @@ namespace KerbalColonies.colonyFacilities
 
         public void AddconstructingFacility(KCFacilityBase facility)
         {
-            if (facility.facilityInfo.UpgradeTimes[0] == 0)
+            if (facility.facilityInfo.UpgradeTimes[0] * Configuration.FacilityTimeMultiplier == 0)
             {
                 addConstructedFacility(facility);
             }

@@ -85,14 +85,22 @@ namespace KerbalColonies
             KSPLog.print("KC start");
             toolbarControl = gameObject.AddComponent<ToolbarControl>();
             toolbarControl.AddToAllToolbars(
-                OverviewWindow.ToggleWindow,
-                OverviewWindow.ToggleWindow,
+                null,
+                null,
                 ApplicationLauncher.AppScenes.ALWAYS,
                 "KerbalColonies_NS",
                 "KerbalColoniesButton",
                 "KerbalColonies/KC",
                 "KerbalColonies/KC",
                 toolTip: "Kerbal Colonies overview"
+            );
+            toolbarControl.AddLeftRightClickCallbacks(
+                () => OverviewWindow.Instance.Toggle(),
+                () => { 
+                    Configuration.ClickToOpen = !Configuration.ClickToOpen;
+                    Configuration.writeDebug($"Toggling ClickToOpen: {Configuration.ClickToOpen}");
+                    ScreenMessages.PostScreenMessage($"KC: {(Configuration.ClickToOpen ? "enabled" : "disabled")} clicking on buildings.", 10f, ScreenMessageStyle.UPPER_RIGHT);
+                }
             );
         }
 

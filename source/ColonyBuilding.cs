@@ -57,14 +57,14 @@ namespace KerbalColonies
                 else
                 {
                     Configuration.writeLog($"Insufficient {resource.Key.displayName} resources on vessel.");
-                    ScreenMessages.PostScreenMessage($"KC: {vesselAmount}/{resource.Value * Configuration.FacilityCostMultiplier} {resource.Key.displayName}", 10f, ScreenMessageStyle.UPPER_RIGHT);
+                    ScreenMessages.PostScreenMessage($"KC: {vesselAmount:f2}/{(resource.Value * Configuration.FacilityCostMultiplier):f2} {resource.Key.displayName}", 10f, ScreenMessageStyle.UPPER_RIGHT);
                     insufficientResources = true;
                 }
             }
 
             if (Funding.Instance != null)
             {
-                Configuration.writeLog($"Funds: {Funding.Instance.Funds} / {info.Funds[0] * Configuration.FacilityCostMultiplier}");
+                Configuration.writeLog($"Funds: {Funding.Instance.Funds:f2} / {(info.Funds[0] * Configuration.FacilityCostMultiplier):f2}");
                 if (Funding.Instance.Funds < info.Funds[0] * Configuration.FacilityCostMultiplier)
                 {
                     ScreenMessages.PostScreenMessage($"KC: {Funding.Instance.Funds}/{info.Funds[0] * Configuration.FacilityCostMultiplier} Funds", 10f, ScreenMessageStyle.UPPER_RIGHT);

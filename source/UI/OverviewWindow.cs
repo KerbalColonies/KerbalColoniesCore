@@ -106,27 +106,6 @@ namespace KerbalColonies.UI
             }
         }
 
-        public static void ToggleWindow()
-        {
-            Instance.Toggle();
-        }
-
-        /// <summary>
-        /// Used for the toolbar button
-        /// </summary>
-        public static void OnTrue()
-        {
-            Instance.Open();
-        }
-
-        /// <summary>
-        /// Used for the toolbar button
-        /// </summary>
-        public static void OnFalse()
-        {
-            Instance.Close();
-        }
-
         protected override void OnClose()
         {
             //KerbalColonies.toolbarControl.enabled = false;

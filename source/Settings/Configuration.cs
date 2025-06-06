@@ -152,6 +152,7 @@ namespace KerbalColonies
 
         public static string baseBody = "Kerbin"; // The name of the celestial body where the KK base groups are located
         public static bool ConfigBaseBody = false; // If false, the base body will be set to the homeworld of the current game, if true, it will be read from the configuration file
+        public static bool ClickToOpen = true; // If true, the user can click on the KK statics to open the colony window
 
 #if DEBUG
         public static bool enableLogging = true;            // Enable this only in debug purposes as it floods the logs very much
@@ -369,16 +370,19 @@ namespace KerbalColonies
 
         public static void LoadConfiguration()
         {
-            ConfigNode[] nodes = GameDatabase.Instance.GetConfigNodes(APP_NAME);
+            string path = $"{Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)}{Path.DirectorySeparatorChar}..{Path.DirectorySeparatorChar}Configs{Path.DirectorySeparatorChar}KC.cfg";
+            ConfigNode node = ConfigNode.Load(path);
 
-            if ((nodes == null) || (nodes.Length == 0))
+            if (node == null)
             {
                 writeLog("No configuration file found, using default values");
                 return;
             }
 
+            node = node.GetNode(APP_NAME);
+
             writeLog("Loading configuration file");
-            writeLog(nodes[0].ToString());
+            writeLog(node.ToString());
 
 #if DEBUG
             enableLogging = true;
@@ -386,9 +390,9 @@ namespace KerbalColonies
             bool.TryParse(nodes[0].GetValue("enableLogging"), out enableLogging);
 #endif
 
-            if (nodes[0].HasValue("baseBody"))
+            if (node.HasValue("baseBody"))
             {
-                baseBody = nodes[0].GetValue("baseBody");
+                baseBody = node.GetValue("baseBody");
                 ConfigBaseBody = true;
             }
             else
@@ -398,7 +402,10 @@ namespace KerbalColonies
                 Configuration.writeLog($"No baseBody found in configuration, using the homebody: {baseBody}");
             }
 
-            writeLog($"Configuration loaded: enableLogging = {enableLogging}");
+            if (node.HasValue("ClickToOpen")) bool.TryParse(node.GetValue("ClickToOpen"), out ClickToOpen);
+            else ClickToOpen = true;
+
+            writeLog($"Configuration loaded: enableLogging = {enableLogging}, CLickToOpen = {ClickToOpen}");
         }
 
         internal static void SaveConfiguration()
@@ -408,8 +415,7 @@ namespace KerbalColonies
             // config params
             nodes[0].SetValue("enableLogging", enableLogging, "Enable this only in debug purposes as it floods the logs very much", createIfNotFound: true);
             if (ConfigBaseBody) nodes[0].SetValue("baseBody", baseBody, "The name of the celestial body where the KK base groups are located", createIfNotFound: true);
-
-            if (ConfigBaseBody) nodes[0].SetValue("baseBody", baseBody, "The name of the celestial body where the KK base groups are located", createIfNotFound: true);
+            nodes[0].SetValue("ClickToOpen", ClickToOpen, "If true, the user can click on the KK statics to open the colony window", createIfNotFound: true);
 
             string path = $"{Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)}{Path.DirectorySeparatorChar}..{Path.DirectorySeparatorChar}Configs{Path.DirectorySeparatorChar}KC.cfg";
 

@@ -92,6 +92,8 @@ namespace KerbalColonies.colonyFacilities
 
         internal static void OnBuildingClickedHandler(KerbalKonstructs.Core.StaticInstance instance)
         {
+            if (!Configuration.ClickToOpen) return;
+
             if (Configuration.GroupFacilities.ContainsKey(instance.Group))
             {
                 Configuration.GroupFacilities[instance.Group].Update();

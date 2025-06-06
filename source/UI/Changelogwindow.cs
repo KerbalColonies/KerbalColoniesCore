@@ -25,7 +25,8 @@ namespace KerbalColonies.UI
             }
             else
             {
-                return markdown.Trim();
+                if (markdown.Trim() == "") return "\n";
+                else return markdown.Trim();
             }
         }
 

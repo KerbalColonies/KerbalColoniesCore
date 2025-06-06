@@ -387,7 +387,7 @@ namespace KerbalColonies
 #if DEBUG
             enableLogging = true;
 #else
-            bool.TryParse(nodes[0].GetValue("enableLogging"), out enableLogging);
+            bool.TryParse(node.GetValue("enableLogging"), out enableLogging);
 #endif
 
             if (node.HasValue("baseBody"))

@@ -339,11 +339,11 @@ namespace KerbalColonies.UI
                         GUILayout.BeginHorizontal(GUILayout.Height(80));
                         string suitPath = pcm.GetKerbalIconSuitPath();
                         if (suitPath.Contains("vintage") && ExpansionsLoader.IsExpansionInstalled("MakingHistory"))
-                            GUILayout.Box(MissionsUtils.METexture(suitPath + ".tif"), GUILayout.Width(23), GUILayout.Height(38));
+                            GUILayout.Box(MissionsUtils.METexture(suitPath + ".tif"), GUILayout.Height(80));
                         else if (suitPath.Contains("future") && ExpansionsLoader.IsExpansionInstalled("Serenity"))
-                            GUILayout.Box(SerenityUtils.SerenityTexture(suitPath + ".tif"), GUILayout.Width(23), GUILayout.Height(38));
+                            GUILayout.Box(SerenityUtils.SerenityTexture(suitPath + ".tif"), GUILayout.Height(80));
                         else
-                            GUILayout.Box(AssetBase.GetTexture(pcm.GetKerbalIconSuitPath()), GUILayout.Width(23), GUILayout.Height(38));
+                            GUILayout.Box(AssetBase.GetTexture(pcm.GetKerbalIconSuitPath()), GUILayout.Height(80));
                         
 
                         GUILayout.BeginVertical();
@@ -353,6 +353,7 @@ namespace KerbalColonies.UI
                         GUILayout.Label($"Level: {pcm.experienceLevel}", LabelInfo);
                         GUILayout.EndVertical();
 
+                        GUILayout.FlexibleSpace();
                         GUILayout.EndHorizontal();
                     }
 
@@ -360,7 +361,8 @@ namespace KerbalColonies.UI
                     {
                         GUILayout.BeginHorizontal(GUILayout.Height(80));
 
-                        GUILayout.Box(tNoKerbal, GUILayout.Width(23), GUILayout.Height(38));
+                        GUILayout.Box(tNoKerbal);
+                        GUILayout.FlexibleSpace();
                         CountEmpty = CountEmpty - 1;
                         GUILayout.EndHorizontal();
 

@@ -175,9 +175,12 @@ namespace KerbalColonies
             }
 
             buildQueue.Peek().Facility.enabled = true;
-            buildQueue.Peek().Facility.OnGroupPlaced();
+            buildQueue.Peek().Facility.OnGroupPlaced(KCGroupEditor.selectedGroup);
 
             KerbalKonstructs.API.Save();
+
+            KCGroupEditor.selectedGroup = null;
+            KCGroupEditor.selectedFacility = null;
 
             buildQueue.Dequeue();
             placedGroup = true;

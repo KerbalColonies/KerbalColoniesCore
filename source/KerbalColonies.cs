@@ -104,8 +104,15 @@ namespace KerbalColonies
             );
         }
 
+        private int counter = 0;
+
         public void Update()
         {
+            if (KCGroupEditor.selectedFacility != null)
+            {
+                KCGroupEditor.selectedFacility.WhileBuildingPlaced(KCGroupEditor.selectedGroup);
+            }
+
             if (Planetarium.GetUniversalTime() - lastTime >= 10 || UpdateNextFrame)
             {
                 UpdateNextFrame = false;

@@ -26,7 +26,7 @@ namespace KerbalColonies.colonyFacilities
     {
         public string groundstationUUID = "";
 
-        public override void OnGroupPlaced()
+        public override void OnGroupPlaced(KerbalKonstructs.Core.GroupCenter kkgroup)
         {
             Configuration.writeLog($"KC CommNetFacility: OnGroupPlaced {GetBaseGroupName(0)}");
             KerbalKonstructs.Core.StaticInstance baseInstance = KerbalKonstructs.API.GetGroupStatics(GetBaseGroupName(0), Configuration.baseBody).Where(s => s.facilityType == KerbalKonstructs.Modules.KKFacilityType.GroundStation).FirstOrDefault();

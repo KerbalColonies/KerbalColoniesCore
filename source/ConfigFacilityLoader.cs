@@ -1,4 +1,5 @@
 ﻿using KerbalColonies.colonyFacilities;
+using KerbalColonies.colonyFacilities.KCMiningFacility;
 using KerbalColonies.UI;
 using KerbalColonies.UI.SingleTimeWindow;
 using System;

@@ -70,6 +70,11 @@ namespace KerbalColonies.colonyFacilities
         public virtual void OnDisplayNameChange(string displayName) { }
 
         /// <summary>
+        /// This function gets automatically called while the KK group editor is open with this facility.
+        /// </summary>
+        public virtual void WhileBuildingPlaced(KerbalKonstructs.Core.GroupCenter kkGroupname) { }
+
+        /// <summary>
         /// This function gets automatically called when the building is clicked, it might get used for custom windows.
         /// <para>The update function will be called BEFORE this one, you don't need to do it manually</para>
         /// </summary>
@@ -193,7 +198,7 @@ namespace KerbalColonies.colonyFacilities
         /// <summary>
         /// This method gets called when the KK group is placed and saved
         /// </summary>
-        public virtual void OnGroupPlaced() { }
+        public virtual void OnGroupPlaced(KerbalKonstructs.Core.GroupCenter kkgroup) { }
 
         public string GetBaseGroupName(int level) => facilityInfo.BasegroupNames[level];
 

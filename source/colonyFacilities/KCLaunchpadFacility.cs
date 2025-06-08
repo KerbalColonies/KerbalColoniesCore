@@ -61,7 +61,7 @@ namespace KerbalColonies.colonyFacilities
         public KerbalKonstructs.Core.StaticInstance instance;
         public ConfigNode sharedNode = null;
 
-        public override void OnGroupPlaced()
+        public override void OnGroupPlaced(KerbalKonstructs.Core.GroupCenter kkgroup)
         {
             KerbalKonstructs.Core.StaticInstance baseInstance = KerbalKonstructs.API.GetGroupStatics(GetBaseGroupName(level), Configuration.baseBody).Where(s => s.hasLauchSites).FirstOrDefault();
             if (baseInstance != null)

@@ -222,6 +222,7 @@ namespace KerbalColonies.colonyFacilities
                     resourceConverter.enabled = false;
                 }
             }
+            if (GUILayout.Button($"Disable facility if resources are missing: {(resourceConverter.outOfResourceDisable ? "Yes" : "No")}")) resourceConverter.outOfResourceDisable = !resourceConverter.outOfResourceDisable;
 
             kerbalGUI.StaffingInterface();
 
@@ -457,6 +458,8 @@ namespace KerbalColonies.colonyFacilities
         public int ISRUcount() => ((KCResourceConverterInfo)facilityInfo).ISRUcount[level];
         private KCResourceConverterWindow kCResourceConverterWindow;
 
+        public bool outOfResourceDisable = true; // if true, the facility will disable itself if it cannot execute the recipe due to missing resources
+
         private void executeRecipe(double dTime)
         {
             if (activeRecipe == null) return;
@@ -577,11 +580,8 @@ namespace KerbalColonies.colonyFacilities
 
             if (enabled)
             {
-                if (canExecuteRecipe(dTime))
-                {
-                    executeRecipe(dTime);
-                }
-                else { enabled = false; }
+                if (canExecuteRecipe(dTime)) executeRecipe(dTime);
+                else if (outOfResourceDisable) enabled = false;
             }
 
             lastUpdateTime = Planetarium.GetUniversalTime();
@@ -604,7 +604,7 @@ namespace KerbalColonies.colonyFacilities
             ConfigNode node = base.getConfigNode();
             if (activeRecipe != null)
                 node.AddValue("recipe", activeRecipe.RecipeName);
-
+            node.AddValue("outOfResourceDisable", outOfResourceDisable);
             return node;
         }
 
@@ -614,10 +614,10 @@ namespace KerbalColonies.colonyFacilities
 
             if (node.GetValue("recipe") == null) activeRecipe = availableRecipes().GetRecipes().FirstOrDefault();
             else activeRecipe = ResourceConversionRate.GetConversionRate(node.GetValue("recipe"));
-            if (activeRecipe == null)
-            {
-                throw new MissingFieldException($"The facility {facilityInfo.name} (type: {facilityInfo.type}) has no recipe called {node.GetValue("recipe")}.");
-            }
+            if (activeRecipe == null) throw new MissingFieldException($"The facility {facilityInfo.name} (type: {facilityInfo.type}) has no recipe called {node.GetValue("recipe")}.");
+            if (bool.TryParse(node.GetValue("outOfResourceDisable"), out bool outOfResourceDisable)) this.outOfResourceDisable = outOfResourceDisable;
+            else this.outOfResourceDisable = true; // default value if not set
+
         }
 
         public KCResourceConverterFacility(colonyClass colony, KCFacilityInfoClass facilityInfo, bool enabled) : base(colony, facilityInfo, enabled)

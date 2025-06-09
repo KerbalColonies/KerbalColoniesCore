@@ -33,6 +33,7 @@ namespace KerbalColonies.colonyFacilities.KCMiningFacility
         public KCMiningFacilityInfo miningFacilityInfo { get { return (KCMiningFacilityInfo)facilityInfo; } }
 
         public Dictionary<PartResourceDefinition, double> storedResoures { get; protected set; } = new Dictionary<PartResourceDefinition, double> { };
+        public Dictionary<PartResourceDefinition, bool> autoTransferResources { get; set; } = new Dictionary<PartResourceDefinition, bool> { };
         public Dictionary<string, Dictionary<PartResourceDefinition, double>> groupDensities { get; protected set; } = new Dictionary<string, Dictionary<PartResourceDefinition, double>> { };
 
         public override void WhileBuildingPlaced(GroupCenter kkGroupname)
@@ -123,8 +124,8 @@ namespace KerbalColonies.colonyFacilities.KCMiningFacility
 
             storedResoures.ToList().ForEach(res =>
             {
-                if (maxPerResource.ContainsKey(res.Key)) storedResoures[res.Key] = Math.Min(maxPerResource[res.Key], res.Value);
-                else maxPerResource.Add(res.Key, res.Value);
+                if (autoTransferResources.ContainsKey(res.Key) && autoTransferResources[res.Key] && res.Value > 0) storedResoures[res.Key] = Math.Min(maxPerResource[res.Key], KCStorageFacility.addResourceToColony(res.Key, res.Value, Colony));
+                else if (maxPerResource.ContainsKey(res.Key)) storedResoures[res.Key] = Math.Min(maxPerResource[res.Key], res.Value);
             });
 
             //miningFacilityInfo.rates[level].ForEach(rate =>
@@ -179,6 +180,8 @@ namespace KerbalColonies.colonyFacilities.KCMiningFacility
                 ConfigNode resNode = new ConfigNode("resource");
                 resNode.AddValue("name", res.Key.name);
                 resNode.AddValue("amount", res.Value);
+                if (autoTransferResources.ContainsKey(res.Key)) resNode.AddValue("autoTransfer", autoTransferResources[res.Key]);
+                else resNode.AddValue("autoTransfer", false);
                 resourceNode.AddNode(resNode);
             });
 
@@ -214,12 +217,14 @@ namespace KerbalColonies.colonyFacilities.KCMiningFacility
                     if (resDef == null) throw new NullReferenceException($"The resource {resNode.GetValue("name")} is not defined in the PartResourceLibrary. Please check your configuration for the facility {facilityInfo.name} (type: {facilityInfo.type}).");
                     double amount = double.Parse(resNode.GetValue("amount"));
                     storedResoures.Add(resDef, amount);
+                    if (bool.TryParse(resNode.GetValue("autoTransfer"), out bool autoTransfer)) autoTransferResources.TryAdd(resDef, autoTransfer);
                 }
             }
 
             miningFacilityInfo.rates.Where(kvp => kvp.Key <= level).ToList().ForEach(kvp => kvp.Value.ForEach(rate =>
             {
                 storedResoures.TryAdd(rate.resource, 0);
+                autoTransferResources.TryAdd(rate.resource, false);
             }));
 
             if (node.HasNode("rates"))
@@ -282,6 +287,7 @@ namespace KerbalColonies.colonyFacilities.KCMiningFacility
             miningFacilityInfo.rates[0].ForEach(rate =>
             {
                 storedResoures.TryAdd(rate.resource, 0);
+                autoTransferResources.TryAdd(rate.resource, false);
             });
         }
     }

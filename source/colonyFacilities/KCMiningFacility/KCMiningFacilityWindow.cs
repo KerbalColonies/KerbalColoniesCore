@@ -25,7 +25,7 @@ namespace KerbalColonies.colonyFacilities.KCMiningFacility
 
             GUILayout.BeginHorizontal();
             {
-                GUILayout.BeginVertical(GUILayout.Width(toolRect.width / 2 - 10));
+                GUILayout.BeginVertical(GUILayout.Width(300));
                 kerbalGUI.StaffingInterface();
                 GUILayout.EndVertical();
 
@@ -36,17 +36,31 @@ namespace KerbalColonies.colonyFacilities.KCMiningFacility
                     else maxPerResource[rate.resource] += rate.max;
                 }));
 
-                resourceScrollPos = GUILayout.BeginScrollView(resourceScrollPos, GUILayout.Width(toolRect.width / 2 - 10));
+                resourceScrollPos = GUILayout.BeginScrollView(resourceScrollPos);
                 {
                     KCMiningFacilityInfo miningInfo = miningFacility.miningFacilityInfo;
 
                     miningFacility.storedResoures.ToList().ForEach(res =>
                     {
                         GUILayout.Label($"<size=20><b>{res.Key.displayName}</b></size>");
-                        GUILayout.Label($"Daily rate: {(miningFacility.groupDensities.Sum(kvp => kvp.Value[res.Key]) * miningFacility.getKerbals().Count):f2}/day");
-                        GUILayout.Label($"Stored: {res.Value:f2}");
-                        GUILayout.Label($"Max: {maxPerResource[res.Key]:f2}");
-                        if (GUILayout.Button($"Retrieve {res.Key.displayName}")) miningFacility.RetriveResource(res.Key);
+                        GUILayout.BeginHorizontal();
+                        {
+                            GUILayout.BeginVertical();
+                            {
+                                GUILayout.Label($"Daily rate: {(miningFacility.groupDensities.Sum(kvp => kvp.Value[res.Key]) * miningFacility.getKerbals().Count):f2}/day");
+                                GUILayout.Label($"Stored: {res.Value:f2}");
+                                GUILayout.Label($"Max: {maxPerResource[res.Key]:f2}");
+                            }
+                            GUILayout.EndVertical();
+                            GUILayout.BeginVertical(GUILayout.Width(100));
+                            {
+                                if (GUILayout.Button($"Retrieve {res.Key.displayName}")) miningFacility.RetriveResource(res.Key);
+                                if (GUILayout.Button($"Autotransfer {(miningFacility.autoTransferResources[res.Key] ? "on" : "off")}")) miningFacility.autoTransferResources[res.Key] = !miningFacility.autoTransferResources[res.Key];
+                            }
+                            GUILayout.EndVertical();
+                        }
+                        GUILayout.EndHorizontal();
+
 
                         GUILayout.Space(10);
                         GUILayout.Box("", GUILayout.ExpandWidth(true), GUILayout.Height(1));

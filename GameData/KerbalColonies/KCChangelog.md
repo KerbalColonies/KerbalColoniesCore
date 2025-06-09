@@ -1,3 +1,9 @@
+# v1.0.9
+- Reworked the mining facility to use the resource density instead of fixed rates (this will most likely result in reduced rates)
+- Added auto resource transfer options to the mining facility
+- Small UI improvments for the mining facility
+- Added an auto disable option to the isru facility that will disable the facility when not enough resources are available
+
 # v1.0.8
 - Reworked the kerbal gui to use the crew icons from the astronaut complex
 - Reworked the production facility ui to group the available types together

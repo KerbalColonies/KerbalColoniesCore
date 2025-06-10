@@ -135,6 +135,9 @@ namespace KerbalColonies
             }
 
             SingleTimeWindowManager.windows.Add(new Changelogwindow());
+
+            colonyClass.ColonyUpdate.Add(new ColonyUpdateAction(colonyClass.ColonyUpdateHandler, 0));
+            colonyClass.ColonyUpdate.Add(new ColonyUpdateAction(KCProductionFacility.ExecuteProduction, 10));
         }
 
         protected void Start()

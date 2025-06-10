@@ -268,15 +268,17 @@ namespace KerbalColonies.colonyFacilities
         private ConfigNode cabNode;
 
         private Dictionary<KCFacilityBase, double> constructingFacilities = new Dictionary<KCFacilityBase, double>();
+        public Dictionary<KCFacilityBase, double> ConstructingFacilities { get => constructingFacilities; set => constructingFacilities = value; }
         private List<KCFacilityBase> constructedFacilities = new List<KCFacilityBase>();
-        internal void addConstructingFacility(KCFacilityBase facility, double time)
+        public List<KCFacilityBase> ConstructedFacilities { get => constructedFacilities; set => constructedFacilities = value; }
+        public void addConstructingFacility(KCFacilityBase facility, double time)
         {
             if (!(constructingFacilities.ContainsKey(facility) || constructedFacilities.Contains(facility)))
             {
                 constructingFacilities.Add(facility, time);
             }
         }
-        internal void addConstructedFacility(KCFacilityBase facility)
+        public void addConstructedFacility(KCFacilityBase facility)
         {
             if (constructingFacilities.ContainsKey(facility))
             {
@@ -294,15 +296,17 @@ namespace KerbalColonies.colonyFacilities
         /// <para>The key is the facilityUpgrade id</para>
         /// </summary>
         private Dictionary<KCFacilityBase, double> upgradingFacilities = new Dictionary<KCFacilityBase, double>();
+        public Dictionary<KCFacilityBase, double> UpgradingFacilities { get => upgradingFacilities; set => upgradingFacilities = value; }
         private List<KCFacilityBase> upgradedFacilities = new List<KCFacilityBase>();
-        internal void addUpgradingFacility(KCFacilityBase facility, double time)
+        public List<KCFacilityBase> UpgradedFacilities { get => upgradedFacilities; set => upgradedFacilities = value; }
+        public void addUpgradingFacility(KCFacilityBase facility, double time)
         {
             if (!(upgradingFacilities.ContainsKey(facility) || upgradedFacilities.Contains(facility)))
             {
                 upgradingFacilities.Add(facility, time);
             }
         }
-        internal void addUpgradedFacility(KCFacilityBase facility)
+        public void addUpgradedFacility(KCFacilityBase facility)
         {
             if (upgradingFacilities.ContainsKey(facility))
             {
@@ -313,27 +317,6 @@ namespace KerbalColonies.colonyFacilities
             {
                 upgradedFacilities.Add(facility);
             }
-        }
-
-        public Dictionary<KCFacilityBase, double> UpgradingFacilities
-        {
-            get { return upgradingFacilities; }
-        }
-
-        public List<KCFacilityBase> UpgradedFacilities
-        {
-            get { return upgradedFacilities; }
-            set { upgradedFacilities = value; }
-        }
-
-        public Dictionary<KCFacilityBase, double> ConstructingFacilities
-        {
-            get { return constructingFacilities; }
-        }
-        public List<KCFacilityBase> ConstructedFacilities
-        {
-            get { return constructedFacilities; }
-            set { constructedFacilities = value; }
         }
 
         public override void Update()
@@ -377,109 +360,6 @@ namespace KerbalColonies.colonyFacilities
                 }
                 else
                     PlayerInColony = Vector3.Distance(KerbalKonstructs.API.GetGameObject(staticInstance.UUID).transform.position, FlightGlobals.ship_position) < 1000 ? true : false;
-            }
-
-            double deltaTime = Planetarium.GetUniversalTime() - lastUpdateTime;
-            KCProductionFacility.DailyProductions(Colony, out double dailyProduction, out double dailyVesselProduction);
-            dailyProduction = (((dailyProduction * deltaTime) / 6) / 60) / 60; // convert from Kerbin days (6 hours) to seconds
-            dailyVesselProduction = (((dailyVesselProduction * deltaTime) / 6) / 60) / 60;
-
-            List<StoredVessel> constructingVessel = KCHangarFacility.GetConstructingVessels(Colony);
-
-            if (constructingVessel.Count > 0)
-            {
-                while (dailyVesselProduction > 0 && constructingVessel.Count > 0)
-                {
-                    if (constructingVessel[0].vesselBuildTime > dailyVesselProduction)
-                    {
-                        double buildingVesselMass = (double)(constructingVessel[0].vesselDryMass * (dailyVesselProduction / constructingVessel[0].entireVesselBuildTime));
-                        if (!KCHangarFacility.CanBuildVessel(buildingVesselMass, Colony)) break;
-
-                        KCHangarFacility.BuildVessel(buildingVesselMass, Colony);
-                        constructingVessel[0].vesselBuildTime -= dailyVesselProduction;
-                        if (Math.Round((double)constructingVessel[0].vesselBuildTime, 2) <= 0)
-                        {
-                            constructingVessel[0].vesselBuildTime = null;
-                            constructingVessel[0].entireVesselBuildTime = null;
-                            ScreenMessages.PostScreenMessage($"KC: Vessel {constructingVessel[0].vesselName} was fully built on colony {Colony.DisplayName}", 10f, ScreenMessageStyle.UPPER_RIGHT);
-                        }
-                        dailyVesselProduction = 0;
-                        break;
-                    }
-                    else
-                    {
-                        if (constructingVessel[0].vesselBuildTime == null) { constructingVessel.RemoveAt(0); continue; }
-                        double buildingVesselMass = (double)(constructingVessel[0].vesselDryMass * (constructingVessel[0].vesselBuildTime / constructingVessel[0].entireVesselBuildTime));
-                        if (!KCHangarFacility.CanBuildVessel(buildingVesselMass, Colony)) break;
-
-                        KCHangarFacility.BuildVessel(buildingVesselMass, Colony);
-                        dailyVesselProduction -= (double)constructingVessel[0].vesselBuildTime;
-                        constructingVessel[0].vesselBuildTime = null;
-                        constructingVessel[0].entireVesselBuildTime = null;
-                        ScreenMessages.PostScreenMessage($"KC: Vessel {constructingVessel[0].vesselName} was fully built on colony {Colony.DisplayName}", 10f, ScreenMessageStyle.UPPER_RIGHT);
-                    }
-                }
-            }
-
-            dailyProduction += dailyVesselProduction;
-
-            if (upgradingFacilities.Count > 0 || constructingFacilities.Count > 0)
-            {
-
-                while (dailyProduction > 0)
-                {
-                    if (upgradingFacilities.Count > 0)
-                    {
-                        if (upgradingFacilities.ElementAt(0).Value > dailyProduction)
-                        {
-                            upgradingFacilities[upgradingFacilities.ElementAt(0).Key] -= dailyProduction;
-                            dailyProduction = 0;
-                            break;
-                        }
-                        else
-                        {
-                            KCFacilityBase facility = upgradingFacilities.ElementAt(0).Key;
-                            dailyProduction -= upgradingFacilities.ElementAt(0).Value;
-                            upgradingFacilities.Remove(facility);
-
-                            ScreenMessages.PostScreenMessage($"KC: Facility {facility.DisplayName} was fully upgraded on colony {Colony.DisplayName}", 10f, ScreenMessageStyle.UPPER_RIGHT);
-
-                            switch (facility.facilityInfo.UpgradeTypes[facility.level + 1])
-                            {
-                                case UpgradeType.withGroupChange:
-                                    KCFacilityBase.UpgradeFacilityWithGroupChange(facility);
-                                    break;
-                                case UpgradeType.withoutGroupChange:
-                                    KCFacilityBase.UpgradeFacilityWithoutGroupChange(facility);
-                                    break;
-                                case UpgradeType.withAdditionalGroup:
-                                    addUpgradedFacility(facility);
-                                    break;
-                            }
-                        }
-                    }
-                    else if (constructingFacilities.Count > 0)
-                    {
-                        if (constructingFacilities.ElementAt(0).Value > dailyProduction)
-                        {
-                            constructingFacilities[constructingFacilities.ElementAt(0).Key] -= dailyProduction;
-                            dailyProduction = 0;
-                            break;
-                        }
-                        else
-                        {
-                            KCFacilityBase facility = constructingFacilities.ElementAt(0).Key;
-                            dailyProduction -= constructingFacilities.ElementAt(0).Value;
-                            constructingFacilities.Remove(facility);
-                            addConstructedFacility(facility);
-                            ScreenMessages.PostScreenMessage($"KC: Facility {facility.DisplayName} was fully built on colony {Colony.DisplayName}", 10f, ScreenMessageStyle.UPPER_RIGHT);
-                        }
-                    }
-                    else
-                    {
-                        break;
-                    }
-                }
             }
 
             base.Update();

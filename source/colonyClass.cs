@@ -2,7 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEngine;
 
 // KC: Kerbal Colonies
 // This mod aimes to create a Colony system with Kerbal Konstructs statics
@@ -23,8 +22,54 @@ using UnityEngine;
 
 namespace KerbalColonies
 {
+    public class ColonyUpdateAction : IComparable<ColonyUpdateAction>, IComparer<ColonyUpdateAction>
+    {
+        public Action<colonyClass> action { get; private set; }
+        public int priority { get; private set; }
+
+        public static bool operator ==(ColonyUpdateAction action0, ColonyUpdateAction action1)
+        {
+            if (ReferenceEquals(null, action0) && ReferenceEquals(null, action1)) return true;
+            if (ReferenceEquals(null, action0) || ReferenceEquals(null, action1)) return false;
+            else return action0.action == action1.action;
+        }
+
+        public static bool operator !=(ColonyUpdateAction action0, ColonyUpdateAction action1)
+        {
+            if (ReferenceEquals(null, action0) && ReferenceEquals(null, action1)) return false;
+            if (ReferenceEquals(null, action0) || ReferenceEquals(null, action1)) return true;
+            else return action0.action != action1.action;
+        }
+
+        public int CompareTo(ColonyUpdateAction other)
+        {
+            if (other == null) return 1;
+            return priority.CompareTo(other.priority);
+        }
+
+        public int Compare(ColonyUpdateAction x, ColonyUpdateAction y)
+        {
+            if (x == null && y == null) return 0;
+            if (x == null) return -1;
+            if (y == null) return 1;
+            return x.priority.CompareTo(y.priority);
+        }
+
+        public override bool Equals(object obj) => obj is ColonyUpdateAction action && this.action == action.action;
+
+        public override int GetHashCode() => action.GetHashCode();
+
+        public ColonyUpdateAction(Action<colonyClass> action, int priority = 10)
+        {
+            this.action = action;
+            this.priority = priority;
+        }
+    }
+
     public class colonyClass
     {
+        public static List<ColonyUpdateAction> ColonyUpdate = new List<ColonyUpdateAction> { };
+
         public static colonyClass GetColony(string name)
         {
             return Configuration.colonyDictionary.Values.SelectMany(x => x).FirstOrDefault(c => c.Name == name);
@@ -91,11 +136,13 @@ namespace KerbalColonies
             return node;
         }
 
-        public void UpdateColony()
+        public void UpdateColony() => ColonyUpdate.ForEach(actionClass => actionClass.action.Invoke(this));
+
+        public static void ColonyUpdateHandler(colonyClass colony)
         {
-            CAB.Update();
-            Facilities.ForEach(f => f.Update());
-            Configuration.writeLog($"Updating colony {Name} with {Facilities.Count} facilities and {sharedColonyNodes.Count} shared nodes.");
+            Configuration.writeLog($"Updating colony {colony.Name} with {colony.Facilities.Count} facilities and {colony.sharedColonyNodes.Count} shared nodes.");
+            colony.CAB.Update();
+            colony.Facilities.ForEach(f => f.Update());
         }
 
         public colonyClass(string name, KC_CABInfo CABInfo)

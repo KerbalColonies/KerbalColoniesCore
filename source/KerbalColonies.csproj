@@ -49,6 +49,9 @@
     <Compile Include="colonyFacilities\KCMiningFacility\KCMiningFacilityWindow.cs" />
     <Compile Include="colonyFacilities\KCProductionFacility.cs" />
     <Compile Include="colonyFacilities\KCFacilityBase.cs" />
+    <Compile Include="Electricity\KCECConsumer.cs" />
+    <Compile Include="Electricity\KCECProducer.cs" />
+    <Compile Include="Electricity\KCECStorage.cs" />
     <Compile Include="KCFacilityInfoClass.cs" />
     <Compile Include="colonyFacilities\KCHangarFacility.cs" />
     <Compile Include="colonyFacilities\KCKerbalFacilityBase.cs" />

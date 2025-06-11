@@ -66,8 +66,42 @@ namespace KerbalColonies
         }
     }
 
-    public class colonyClass
+    public class colonyClass : IComparable<colonyClass>, IComparer<colonyClass>
     {
+        #region comparison
+        public int uniqueID => BodyID * 100000 + ColonyNumber;
+
+        public int CompareTo(colonyClass other) => uniqueID.CompareTo(other.uniqueID);
+
+        public int Compare(colonyClass x, colonyClass y)
+        {
+            if (ReferenceEquals(null, x) && ReferenceEquals(null, y)) return 0;
+            else if (ReferenceEquals(null, x)) return -1;
+            else if (ReferenceEquals(null, y)) return 1;
+            return x.uniqueID.CompareTo(y.uniqueID);
+        }
+
+        public static bool operator ==(colonyClass colony0, colonyClass colony1)
+        {
+            if (ReferenceEquals(null, colony0) && ReferenceEquals(null, colony1)) return true;
+            if (ReferenceEquals(null, colony0) || ReferenceEquals(null, colony1)) return false;
+            else return colony0.uniqueID == colony1.uniqueID;
+        }
+
+        public static bool operator !=(colonyClass colony0, colonyClass colony1)
+        {
+            if (ReferenceEquals(null, colony0) && ReferenceEquals(null, colony1)) return false;
+            if (ReferenceEquals(null, colony0) || ReferenceEquals(null, colony1)) return true;
+            else return colony0.uniqueID != colony1.uniqueID;
+        }
+
+        public override bool Equals(object obj) => obj is colonyClass colony && this.uniqueID == colony.uniqueID;
+        public override int GetHashCode() => uniqueID.GetHashCode();
+        #endregion
+
+        /// <summary>
+        /// Reversed priority, the lower the number, the higher the priority.
+        /// </summary>
         public static List<ColonyUpdateAction> ColonyUpdate = new List<ColonyUpdateAction> { };
 
         public static colonyClass GetColony(string name)

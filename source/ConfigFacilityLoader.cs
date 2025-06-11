@@ -1,5 +1,6 @@
 ﻿using KerbalColonies.colonyFacilities;
 using KerbalColonies.colonyFacilities.KCMiningFacility;
+using KerbalColonies.Electricity;
 using KerbalColonies.UI;
 using KerbalColonies.UI.SingleTimeWindow;
 using System;
@@ -134,10 +135,13 @@ namespace KerbalColonies
                 Configuration.writeLog($"Error while loading the resource conversion lists: {e}");
             }
 
+#if !DEBUG
             SingleTimeWindowManager.windows.Add(new Changelogwindow());
+#endif
 
             colonyClass.ColonyUpdate.Add(new ColonyUpdateAction(colonyClass.ColonyUpdateHandler, 0));
             colonyClass.ColonyUpdate.Add(new ColonyUpdateAction(KCProductionFacility.ExecuteProduction, 10));
+            colonyClass.ColonyUpdate.Add(new ColonyUpdateAction(KCECManager.ElectricityUpdate, 5));
         }
 
         protected void Start()

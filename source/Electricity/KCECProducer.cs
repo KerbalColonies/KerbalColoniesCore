@@ -8,7 +8,7 @@ namespace KerbalColonies.Electricity
 {
     public interface KCECProducer
     {
-        double ECProduction(double deltaTime);
+        double ECProduction(double lastTime, double deltaTime, double currentTime);
 
         double DailyECProduction();
     }

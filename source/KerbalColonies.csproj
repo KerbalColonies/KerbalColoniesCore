@@ -50,6 +50,7 @@
     <Compile Include="colonyFacilities\KCProductionFacility.cs" />
     <Compile Include="colonyFacilities\KCFacilityBase.cs" />
     <Compile Include="Electricity\KCECConsumer.cs" />
+    <Compile Include="Electricity\KCECManager.cs" />
     <Compile Include="Electricity\KCECProducer.cs" />
     <Compile Include="Electricity\KCECStorage.cs" />
     <Compile Include="KCFacilityInfoClass.cs" />

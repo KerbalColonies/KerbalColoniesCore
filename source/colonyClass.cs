@@ -117,6 +117,8 @@ namespace KerbalColonies
         public int ColonyNumber { get; private set; }
         public int BodyID { get; private set; }
 
+        public bool currentFrameUpdated { get; set; } = false; // Used to prevent multiple updates in the same frame
+
         public KC_CAB_Facility CAB { get; private set; }
 
         public List<KCFacilityBase> Facilities { get; private set; }
@@ -170,7 +172,12 @@ namespace KerbalColonies
             return node;
         }
 
-        public void UpdateColony() => ColonyUpdate.ForEach(actionClass => actionClass.action.Invoke(this));
+        public void UpdateColony()
+        {
+            if (currentFrameUpdated) return; // Prevent multiple updates in the same frame
+            ColonyUpdate.ForEach(actionClass => actionClass.action.Invoke(this));
+            currentFrameUpdated = true;
+        }
 
         public static void ColonyUpdateHandler(colonyClass colony)
         {

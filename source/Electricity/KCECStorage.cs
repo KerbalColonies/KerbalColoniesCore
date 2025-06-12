@@ -8,11 +8,14 @@ namespace KerbalColonies.Electricity
 {
     public interface KCECStorage
     {
-        double ECStored { get; set; }
-        double ECCapacity { get; set; } 
+        double ECStored { get; }
+        double ECCapacity { get; } 
 
-        int ECStoragePriority { get; set; }
+        int ECStoragePriority { get; }
 
+        /// <summary>
+        /// The provided times might be used to calculate background loss
+        /// </summary>
         double StoredEC(double lastTime, double deltaTime, double currentTime);
 
         double ChangeECStored(double deltaEC);

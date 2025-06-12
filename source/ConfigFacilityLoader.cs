@@ -1,4 +1,5 @@
 ﻿using KerbalColonies.colonyFacilities;
+using KerbalColonies.colonyFacilities.ElectricityFacilities;
 using KerbalColonies.colonyFacilities.KCMiningFacility;
 using KerbalColonies.Electricity;
 using KerbalColonies.UI;
@@ -123,6 +124,12 @@ namespace KerbalColonies
             KCFacilityTypeRegistry.RegisterFacilityInfo<KCResearchFacility, KCResearchFacilityInfoClass>();
             KCFacilityTypeRegistry.RegisterFacilityInfo<KCResourceConverterFacility, KCResourceConverterInfo>();
             KCFacilityTypeRegistry.RegisterFacilityInfo<KCStorageFacility, KCStorageFacilityInfo>();
+
+
+            KCFacilityTypeRegistry.RegisterType<KCECStorageFacility>();
+            KCFacilityTypeRegistry.RegisterType<KCECTestFacility>();
+            KCFacilityTypeRegistry.RegisterFacilityInfo<KCECStorageFacility, KCFacilityInfoClass>();
+            KCFacilityTypeRegistry.RegisterFacilityInfo<KCECTestFacility, KCFacilityInfoClass>();
 
             try
             {

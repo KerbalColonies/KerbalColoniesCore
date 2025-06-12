@@ -15,7 +15,7 @@ namespace KerbalColonies.Electricity
         public double lastECProduced { get; set; }
         public double lastECConsumed { get; set; }
         public double lastECStored { get; set; }
-        public double lastECDelta => lastECProduced - lastECConsumed;
+        public double lastECDelta => lastECProduced + lastECConsumed;
     }
 
     public class KCECManager
@@ -84,7 +84,7 @@ namespace KerbalColonies.Electricity
                 {
                     remainingEC = facility.ChangeECStored(remainingEC);
                     return remainingEC > 0;
-                });
+                }).ToList();
             }
             else if (colonyData.lastECDelta + colonyData.lastECStored > 0)
             {
@@ -93,8 +93,8 @@ namespace KerbalColonies.Electricity
                 ECStored.SelectMany(kvp => kvp.Value).ToList().TakeWhile(facility =>
                 {
                     missingEC = facility.ChangeECStored(missingEC);
-                    return missingEC > 0;
-                });
+                    return missingEC < 0;
+                }).ToList();
             }
             else
             {

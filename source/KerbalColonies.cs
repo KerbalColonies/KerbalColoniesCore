@@ -108,6 +108,8 @@ namespace KerbalColonies
 
         public void Update()
         {
+            Configuration.colonyDictionary.Values.SelectMany(x => x).ToList().ForEach(x => x.currentFrameUpdated = false);
+
             if (KCGroupEditor.selectedFacility != null)
             {
                 KCGroupEditor.selectedFacility.WhileBuildingPlaced(KCGroupEditor.selectedGroup);

@@ -101,7 +101,7 @@ namespace KerbalColonies.colonyFacilities
 
         protected override void CustomWindow()
         {
-            productionFacility.Colony.CAB.Update();
+            KCProductionFacility.ExecuteProduction(productionFacility.Colony);
 
             if (kerbalGUI == null)
             {
@@ -321,6 +321,130 @@ namespace KerbalColonies.colonyFacilities
 
     public class KCProductionFacility : KCKerbalFacilityBase
     {
+
+        private static double getDeltaTime(colonyClass colony)
+        {
+            ConfigNode timeNode = colony.sharedColonyNodes.FirstOrDefault(node => node.name == "KCProductionFacilityTime");
+            if (timeNode == null)
+            {
+                ConfigNode node = new ConfigNode("KCProductionFacilityTime");
+                node.AddValue("lastTime", Planetarium.GetUniversalTime().ToString());
+                colony.sharedColonyNodes.Add(node);
+                return 0;
+            }
+            double lastTime = double.Parse(timeNode.GetValue("lastTime"));
+            double deltaTime = Planetarium.GetUniversalTime() - lastTime;
+            timeNode.SetValue("lastTime", Planetarium.GetUniversalTime().ToString());
+            return deltaTime;
+        }
+        public static void ExecuteProduction(colonyClass colony)
+        {
+            double dt = getDeltaTime(colony);
+
+            KCProductionFacility.DailyProductions(colony, out double dailyProduction, out double dailyVesselProduction);
+
+            dailyProduction = (((dailyProduction * dt) / 6) / 60) / 60; // convert from Kerbin days (6 hours) to seconds
+            dailyVesselProduction = (((dailyVesselProduction * dt) / 6) / 60) / 60;
+
+            List<StoredVessel> constructingVessel = KCHangarFacility.GetConstructingVessels(colony);
+
+            if (constructingVessel.Count > 0)
+            {
+                while (dailyVesselProduction > 0 && constructingVessel.Count > 0)
+                {
+                    if (constructingVessel[0].vesselBuildTime > dailyVesselProduction)
+                    {
+                        double buildingVesselMass = (double)(constructingVessel[0].vesselDryMass * (dailyVesselProduction / constructingVessel[0].entireVesselBuildTime));
+                        if (!KCHangarFacility.CanBuildVessel(buildingVesselMass, colony)) break;
+
+                        KCHangarFacility.BuildVessel(buildingVesselMass, colony);
+                        constructingVessel[0].vesselBuildTime -= dailyVesselProduction;
+                        if (Math.Round((double)constructingVessel[0].vesselBuildTime, 2) <= 0)
+                        {
+                            constructingVessel[0].vesselBuildTime = null;
+                            constructingVessel[0].entireVesselBuildTime = null;
+                            ScreenMessages.PostScreenMessage($"KC: Vessel {constructingVessel[0].vesselName} was fully built on colony {colony.DisplayName}", 10f, ScreenMessageStyle.UPPER_RIGHT);
+                        }
+                        dailyVesselProduction = 0;
+                        break;
+                    }
+                    else
+                    {
+                        if (constructingVessel[0].vesselBuildTime == null) { constructingVessel.RemoveAt(0); continue; }
+                        double buildingVesselMass = (double)(constructingVessel[0].vesselDryMass * (constructingVessel[0].vesselBuildTime / constructingVessel[0].entireVesselBuildTime));
+                        if (!KCHangarFacility.CanBuildVessel(buildingVesselMass, colony)) break;
+
+                        KCHangarFacility.BuildVessel(buildingVesselMass, colony);
+                        dailyVesselProduction -= (double)constructingVessel[0].vesselBuildTime;
+                        constructingVessel[0].vesselBuildTime = null;
+                        constructingVessel[0].entireVesselBuildTime = null;
+                        ScreenMessages.PostScreenMessage($"KC: Vessel {constructingVessel[0].vesselName} was fully built on colony {colony.DisplayName}", 10f, ScreenMessageStyle.UPPER_RIGHT);
+                    }
+                }
+            }
+
+            dailyProduction += dailyVesselProduction;
+
+            if (colony.CAB.UpgradingFacilities.Count > 0 || colony.CAB.ConstructingFacilities.Count > 0)
+            {
+
+                while (dailyProduction > 0)
+                {
+                    if (colony.CAB.UpgradingFacilities.Count > 0)
+                    {
+                        if (colony.CAB.UpgradingFacilities.ElementAt(0).Value > dailyProduction)
+                        {
+                            colony.CAB.UpgradingFacilities[colony.CAB.UpgradingFacilities.ElementAt(0).Key] -= dailyProduction;
+                            dailyProduction = 0;
+                            break;
+                        }
+                        else
+                        {
+                            KCFacilityBase facility = colony.CAB.UpgradingFacilities.ElementAt(0).Key;
+                            dailyProduction -= colony.CAB.UpgradingFacilities.ElementAt(0).Value;
+                            colony.CAB.UpgradingFacilities.Remove(facility);
+
+                            ScreenMessages.PostScreenMessage($"KC: Facility {facility.DisplayName} was fully upgraded on colony {colony.DisplayName}", 10f, ScreenMessageStyle.UPPER_RIGHT);
+
+                            switch (facility.facilityInfo.UpgradeTypes[facility.level + 1])
+                            {
+                                case UpgradeType.withGroupChange:
+                                    KCFacilityBase.UpgradeFacilityWithGroupChange(facility);
+                                    break;
+                                case UpgradeType.withoutGroupChange:
+                                    KCFacilityBase.UpgradeFacilityWithoutGroupChange(facility);
+                                    break;
+                                case UpgradeType.withAdditionalGroup:
+                                    colony.CAB.addUpgradedFacility(facility);
+                                    break;
+                            }
+                        }
+                    }
+                    else if (colony.CAB.ConstructingFacilities.Count > 0)
+                    {
+                        if (colony.CAB.ConstructingFacilities.ElementAt(0).Value > dailyProduction)
+                        {
+                            colony.CAB.ConstructingFacilities[colony.CAB.ConstructingFacilities.ElementAt(0).Key] -= dailyProduction;
+                            dailyProduction = 0;
+                            break;
+                        }
+                        else
+                        {
+                            KCFacilityBase facility = colony.CAB.ConstructingFacilities.ElementAt(0).Key;
+                            dailyProduction -= colony.CAB.ConstructingFacilities.ElementAt(0).Value;
+                            colony.CAB.ConstructingFacilities.Remove(facility);
+                            colony.CAB.addConstructedFacility(facility);
+                            ScreenMessages.PostScreenMessage($"KC: Facility {facility.DisplayName} was fully built on colony {colony.DisplayName}", 10f, ScreenMessageStyle.UPPER_RIGHT);
+                        }
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+            }
+        }
+
         public static void DailyProductions(colonyClass colony, out double dailyProduction, out double dailyVesselProduction)
         {
             dailyProduction = 0;

@@ -41,6 +41,8 @@
   <ItemGroup>
     <Compile Include="ColonyBuilding.cs" />
     <Compile Include="colonyClass.cs" />
+    <Compile Include="colonyFacilities\ElectricityFacilities\KCECStorageFacility.cs" />
+    <Compile Include="colonyFacilities\ElectricityFacilities\KCECTestFacility.cs" />
     <Compile Include="colonyFacilities\KCCommNetFacility.cs" />
     <Compile Include="colonyFacilities\KCLaunchpadFacility.cs" />
     <Compile Include="colonyFacilities\KCMiningFacility\KCMiningFacilityInfo.cs" />
@@ -49,6 +51,10 @@
     <Compile Include="colonyFacilities\KCMiningFacility\KCMiningFacilityWindow.cs" />
     <Compile Include="colonyFacilities\KCProductionFacility.cs" />
     <Compile Include="colonyFacilities\KCFacilityBase.cs" />
+    <Compile Include="Electricity\KCECConsumer.cs" />
+    <Compile Include="Electricity\KCECManager.cs" />
+    <Compile Include="Electricity\KCECProducer.cs" />
+    <Compile Include="Electricity\KCECStorage.cs" />
     <Compile Include="KCFacilityInfoClass.cs" />
     <Compile Include="colonyFacilities\KCHangarFacility.cs" />
     <Compile Include="colonyFacilities\KCKerbalFacilityBase.cs" />

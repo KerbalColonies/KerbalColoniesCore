@@ -168,12 +168,16 @@ namespace KerbalColonies
 
             if (groupCenter.Group != buildQueue.Peek().groupName) { return; }
 
+            // For future use for KK savegame saving
+            //groupCenter.isInSavegame = true;
+
             KerbalKonstructs.API.UnRegisterOnGroupSaved(PlaceNewGroupSave);
             List<KerbalKonstructs.Core.StaticInstance> instances = KerbalKonstructs.API.GetGroupStatics(buildQueue.Peek().groupName).ToList();
 
             foreach (KerbalKonstructs.Core.StaticInstance instance in instances)
             {
                 instance.ToggleAllColliders(true);
+                //instance.isInSavegame = true;
             }
 
             buildQueue.Peek().Facility.enabled = true;

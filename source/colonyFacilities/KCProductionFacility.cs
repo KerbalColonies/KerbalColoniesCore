@@ -197,7 +197,7 @@ namespace KerbalColonies.colonyFacilities
                                     for (int i = 0; i < kCProductionInfo.vesselResourceCost[productionFacility.level].Count / 2; i++)
                                     {
                                         KeyValuePair<PartResourceDefinition, double> resource = kCProductionInfo.vesselResourceCost[productionFacility.level].ElementAt(i);
-                                        GUILayout.Label($"{resource.Key.displayName}: {resource.Value}");
+                                        GUILayout.Label($"{resource.Key.displayName}: {resource.Value * Configuration.VesselCostMultiplier}");
                                     }
                                 }
                                 GUILayout.EndVertical();
@@ -206,7 +206,7 @@ namespace KerbalColonies.colonyFacilities
                                     for (int i = kCProductionInfo.vesselResourceCost[productionFacility.level].Count / 2; i < kCProductionInfo.vesselResourceCost[productionFacility.level].Count; i++)
                                     {
                                         KeyValuePair<PartResourceDefinition, double> resource = kCProductionInfo.vesselResourceCost[productionFacility.level].ElementAt(i);
-                                        GUILayout.Label($"{resource.Key.displayName}: {resource.Value}");
+                                        GUILayout.Label($"{resource.Key.displayName}: {resource.Value * Configuration.VesselCostMultiplier}");
                                     }
                                 }
                                 GUILayout.EndVertical();
@@ -262,13 +262,13 @@ namespace KerbalColonies.colonyFacilities
                                 {
                                     for (int i = 0; i < t.resourceCost[0].Count; i++)
                                     {
-                                        GUILayout.Label($"{t.resourceCost[0].ElementAt(i).Key.displayName}: {t.resourceCost[0].ElementAt(i).Value}");
+                                        GUILayout.Label($"{t.resourceCost[0].ElementAt(i).Key.displayName}: {t.resourceCost[0].ElementAt(i).Value * Configuration.FacilityCostMultiplier}");
                                     }
                                 }
                                 GUILayout.EndVertical();
                                 GUILayout.FlexibleSpace();
                                 GUILayout.BeginVertical();
-                                GUILayout.Label($"Funds: {(t.Funds.Count > 0 ? t.Funds[0] : 0)}");
+                                GUILayout.Label($"Funds: {(t.Funds.Count > 0 ? t.Funds[0] : 0) * Configuration.FacilityCostMultiplier}");
                                 //GUILayout.Label($"Electricity: {t.Electricity}");
                                 GUILayout.Label($"Time: {t.UpgradeTimes[0] * Configuration.FacilityTimeMultiplier}");
                                 GUILayout.EndVertical();

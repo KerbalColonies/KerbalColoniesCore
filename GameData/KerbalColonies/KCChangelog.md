@@ -1,7 +1,9 @@
 # v1.0.10 hotfix
-- Fixed the mining facility disappearing
+- Fixed the mining facility disappearing, see issue [#31](https://github.com/KerbalColonies/KerbalColoniesCore/issues/31)
 - Fixed a bug in the CAB loading that could delete the colony
 - Fixed the hangar facility production display, see issue [#32](https://github.com/KerbalColonies/KerbalColoniesCore/issues/32)
+- Fixed the incompatibility with certain mods, see issue [#33](https://github.com/KerbalColonies/KerbalColoniesCore/issues/33)
+- Issue [#34](https://github.com/KerbalColonies/KerbalColoniesCore/issues/34) (no resources after launch from ksc) should be fixed
 - Improved logging
 - The single time windows are now shown once per game scene load
 

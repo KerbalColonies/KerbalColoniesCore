@@ -43,7 +43,7 @@ namespace KerbalColonies
         internal static double vesselMass { get; set; } = 0; // mass of the vessel to be launched
         //internal static string lastColonyName { get; set; } = null; // last colony used to launch the vessel
         //private bool isFlightScene = false; // used to check if the scene is flight or editor
-        //private int frameCount = 0;
+        private int frameCount = 0;
 
         internal static int? hangarId;
         internal static Vector3? vesselSize;
@@ -52,8 +52,26 @@ namespace KerbalColonies
         {
             //isFlightScene = HighLogic.LoadedSceneIsFlight;
 
-            if (HighLogic.LoadedSceneIsFlight)
+            if (!HighLogic.LoadedSceneIsFlight)
             {
+
+                launchPadName = null;
+                funds = 0;
+                vesselMass = 0;
+            }
+        }
+
+        public void Update()
+        {
+            if (frameCount <= 20)
+            {
+                frameCount++;
+                return;
+            }
+
+            if (HighLogic.LoadedSceneIsFlight && frameCount == 21)
+            {
+                frameCount++;
                 if (launchPadName != null)
                 {
                     KCLaunchpadFacility kCLaunchpad = KCLaunchpadFacility.GetLaunchpadFacility(launchPadName);
@@ -61,11 +79,11 @@ namespace KerbalColonies
                     Configuration.writeLog($"[KCPreFlightWorker] Launching from {kCLaunchpad.DisplayName}");
 
                     // Doesn't account for leaving the editor
-                    //foreach (PartResourceDefinition item in PartResourceLibrary.Instance.resourceDefinitions)
-                    //{
-                    //    FlightGlobals.ActiveVessel.GetConnectedResourceTotals(item.id, out double amount, out double max, true);
-                    //    FlightGlobals.ActiveVessel.RequestResource(FlightGlobals.ActiveVessel.rootPart, item.id, amount, false);
-                    //}
+                    foreach (PartResourceDefinition item in PartResourceLibrary.Instance.resourceDefinitions)
+                    {
+                        FlightGlobals.ActiveVessel.GetConnectedResourceTotals(item.id, out double amount, out double max, true);
+                        FlightGlobals.ActiveVessel.RequestResource(FlightGlobals.ActiveVessel.rootPart, item.id, amount, false);
+                    }
 
                     if (Funding.Instance != null)
                     {
@@ -124,12 +142,6 @@ namespace KerbalColonies
                         });
                     });
                 }
-            }
-            else
-            {
-                launchPadName = null;
-                funds = 0;
-                vesselMass = 0;
             }
         }
 
@@ -198,15 +210,6 @@ namespace KerbalColonies
 
         public bool Test()
         {
-            EditorLogic.fetch.ship.parts.ForEach(p =>
-            {
-                foreach (PartResource item in p.Resources)
-                {
-                    item.amount = 0;
-                }
-            });
-            EditorLogic.fetch.ship.UpdateResourceSets();
-
             Configuration.writeDebug($"[KCHangarPreFlightCheck] Hangar test for {launchSiteName}");
             if (allowLaunch) return true;
 
@@ -351,7 +354,7 @@ namespace KerbalColonies
             if (vesselBuildInfoNode == null) return 1;
             KCProductionInfo info = (KCProductionInfo)Configuration.GetInfoClass(vesselBuildInfoNode.GetValue("facilityConfig"));
             if (info == null) return 1;
-            Configuration.writeDebug($"[KCResourcePreFlightCheck] Found vesselBuildInfo node for {info.name} in {colony.Name}");
+            Configuration.writeLog($"[KCResourcePreFlightCheck] Found vesselBuildInfo node for {info.name} in {colony.Name}");
 
             int level = int.Parse(vesselBuildInfoNode.GetValue("facilityLevel"));
             List<KCProductionFacility> productionFacilitiesInColony = colony.Facilities.Where(f => f is KCProductionFacility).Select(f => (KCProductionFacility)f).Where(f => info.HasSameRecipe(level, f)).ToList();
@@ -364,13 +367,13 @@ namespace KerbalColonies
                 foreach (KeyValuePair<PartResourceDefinition, double> res in info.vesselResourceCost[level])
                 {
                     double colonyAmount = KCStorageFacility.colonyResources(res.Key, colony);
-                    Configuration.writeDebug($"resource: {res.Key.name}, amount: {res.Value}, stored in colony: {colonyAmount}");
-                    if (res.Value * vesselMass > colonyAmount)
+                    Configuration.writeLog($"resource: {res.Key.name}, amount: {res.Value * Configuration.VesselCostMultiplier}, stored in colony: {colonyAmount}");
+                    if (res.Value * vesselMass * Configuration.VesselCostMultiplier > colonyAmount)
                     {
                         Configuration.writeDebug($"Insufficient resource: {res.Key.name}");
                         canBuild = false;
-                        if (!Insufficientresources.ContainsKey(res.Key.name)) Insufficientresources.Add(res.Key.name, res.Value * vesselMass);
-                        else Insufficientresources[res.Key.name] += res.Value * vesselMass;
+                        if (!Insufficientresources.ContainsKey(res.Key.name)) Insufficientresources.Add(res.Key.name, res.Value * vesselMass * Configuration.VesselCostMultiplier);
+                        else Insufficientresources[res.Key.name] += res.Value * vesselMass * Configuration.VesselCostMultiplier;
                     }
                 }
                 return canBuild ? 0 : 3;

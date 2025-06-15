@@ -494,7 +494,7 @@ namespace KerbalColonies.colonyFacilities
             hangarWindow.Toggle();
         }
 
-        public override string GetFacilityProductionDisplay() => $"{storedVessels.Count}/{hangarInfo.VesselCapacity} vessels stored\n{getStoredVolume()}m³/{hangarInfo.Volume(level)}m³ used\nSize: {hangarInfo.X}*{hangarInfo.Y}*{hangarInfo.Z}";
+        public override string GetFacilityProductionDisplay() => $"{storedVessels.Count}/{hangarInfo.VesselCapacity[level]} vessels stored\n{getStoredVolume()}m³/{hangarInfo.Volume(level)}m³ used\nSize: {hangarInfo.X[level]}m * {hangarInfo.Y[level]}m *{hangarInfo.Z[level]}m";
 
         public KCHangarFacility(colonyClass colony, KCFacilityInfoClass facilityInfo, ConfigNode node) : base(colony, facilityInfo, node)
         {

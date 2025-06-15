@@ -155,7 +155,7 @@ namespace KerbalColonies
 
                 try
                 {
-                    KCFacilityInfoClass facilityInfo = (KCFacilityInfoClass)Activator.CreateInstance(KCFacilityTypeRegistry.GetInfoType(KCFacilityTypeRegistry.GetType(node.GetValue("type"))), new object[] { node });
+                    KCFacilityInfoClass facilityInfo = (KCFacilityInfoClass)Activator.CreateInstance(KCFacilityTypeRegistry.GetInfoType(KCFacilityTypeRegistry.GetType(node.GetValue("type")) ?? throw new Exception($"No type named {node.GetValue("type")} was found")) ?? throw new Exception($"No type named {node.GetValue("type")} was found"), new object[] { node });
 
                     if (!(facilityInfo is KC_CABInfo))
                     {
@@ -165,7 +165,7 @@ namespace KerbalColonies
                 }
                 catch (Exception e)
                 {
-                    exceptions.Add(e.InnerException);
+                    exceptions.Add(e.InnerException ?? e);
                     if (node.HasValue("name"))
                     {
                         failedConfigs.Add(node.GetValue("name"));

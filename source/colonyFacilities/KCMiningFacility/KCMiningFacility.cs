@@ -199,7 +199,7 @@ namespace KerbalColonies.colonyFacilities.KCMiningFacility
                 });
                 rateNode.AddNode(groupNode);
             });
-            rateNode.AddNode(rateNode);
+            node.AddNode(rateNode);
 
             node.AddNode(resourceNode);
 
@@ -245,34 +245,37 @@ namespace KerbalColonies.colonyFacilities.KCMiningFacility
                 }
             }
 
-            int offset = 0;
-            for (int i = 0; i <= level; i++)
+            if (KKgroups.Count > 0)
             {
-                if (miningFacilityInfo.UpgradeTypes[i] != UpgradeType.withAdditionalGroup && i != level) { offset++; continue; }
-
-                if (!groupDensities.ContainsKey(KKgroups[i - offset]))
+                int offset = 0;
+                for (int i = 0; i <= level; i++)
                 {
-                    KerbalKonstructs.Core.StaticInstance staticInstance = KerbalKonstructs.API.GetGroupStatics(KKgroups[i - offset], FlightGlobals.Bodies.First(b => FlightGlobals.GetBodyIndex(b) == Colony.BodyID).name).FirstOrDefault();
-                    if (staticInstance != null)
+                    if (miningFacilityInfo.UpgradeTypes[i] != UpgradeType.withAdditionalGroup && i != level) { offset++; continue; }
+
+                    if (!groupDensities.ContainsKey(KKgroups[i - offset]))
                     {
-                        groupDensities.Add(KKgroups[i - offset], new Dictionary<PartResourceDefinition, double> { });
-                        miningFacilityInfo.rates[i].ForEach(rate =>
+                        KerbalKonstructs.Core.StaticInstance staticInstance = KerbalKonstructs.API.GetGroupStatics(KKgroups[i - offset], FlightGlobals.Bodies.First(b => FlightGlobals.GetBodyIndex(b) == Colony.BodyID).name).FirstOrDefault();
+                        if (staticInstance != null)
                         {
-                            if (rate.useFixedRate) groupDensities[KKgroups[i]].Add(rate.resource, rate.rate);
-                            else
+                            groupDensities.Add(KKgroups[i - offset], new Dictionary<PartResourceDefinition, double> { });
+                            miningFacilityInfo.rates[i - offset].ForEach(rate =>
                             {
-                                AbundanceRequest request = new AbundanceRequest
+                                if (rate.useFixedRate) groupDensities[KKgroups[i - offset]].Add(rate.resource, rate.rate);
+                                else
                                 {
-                                    BodyId = Colony.BodyID,
-                                    ResourceType = HarvestTypes.Planetary,
-                                    Longitude = staticInstance.RefLongitude,
-                                    Latitude = staticInstance.RefLatitude,
-                                    Altitude = staticInstance.RadiusOffset,
-                                    ResourceName = rate.resource.name
-                                };
-                                groupDensities[KKgroups[i]].Add(rate.resource, rate.rate * ResourceMap.Instance.GetAbundance(request) * 2);
-                            }
-                        });
+                                    AbundanceRequest request = new AbundanceRequest
+                                    {
+                                        BodyId = Colony.BodyID,
+                                        ResourceType = HarvestTypes.Planetary,
+                                        Longitude = staticInstance.RefLongitude,
+                                        Latitude = staticInstance.RefLatitude,
+                                        Altitude = staticInstance.RadiusOffset,
+                                        ResourceName = rate.resource.name
+                                    };
+                                    groupDensities[KKgroups[i - offset]].Add(rate.resource, rate.rate * ResourceMap.Instance.GetAbundance(request) * 2);
+                                }
+                            });
+                        }
                     }
                 }
             }

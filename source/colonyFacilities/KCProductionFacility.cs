@@ -281,6 +281,8 @@ namespace KerbalColonies.colonyFacilities
 
                                 if (GUILayout.Button("Build"))
                                 {
+                                    Configuration.writeLog($"Building facility {t.displayName} in colony {productionFacility.Colony.Name}");
+
                                     t.removeResources(0, productionFacility.Colony);
                                     KCFacilityBase KCFac = Configuration.CreateInstance(t, productionFacility.Colony, false);
 

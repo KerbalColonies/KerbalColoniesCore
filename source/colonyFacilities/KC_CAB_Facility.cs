@@ -207,6 +207,7 @@ namespace KerbalColonies.colonyFacilities
                                         if (!facility.facilityInfo.checkResources(facility.level + 1, CABFacility.Colony)) GUI.enabled = false;
                                         if (GUILayout.Button("Upgrade"))
                                         {
+                                            Configuration.writeLog($"KC: Upgrading facility {facility.DisplayName} in {CABFacility.Colony.DisplayName} to level {facility.level + 1}");
                                             facility.facilityInfo.removeResources(facility.level + 1, CABFacility.Colony);
                                             CABFacility.AddUpgradeableFacility(facility);
                                         }
@@ -349,19 +350,23 @@ namespace KerbalColonies.colonyFacilities
                 {
                     foreach (ConfigNode facilityNode in cabNode.GetNode("constructingFacilities").GetNodes("facilityNode"))
                     {
-                        constructingFacilities.Add(KCFacilityBase.GetFacilityByID(int.Parse(facilityNode.GetValue("facilityID"))), double.Parse(facilityNode.GetValue("remainingTime")));
+                        KCFacilityBase facility = KCFacilityBase.GetFacilityByID(int.Parse(facilityNode.GetValue("facilityID")));
+                        if(facility != null) constructingFacilities.Add(facility, double.Parse(facilityNode.GetValue("remainingTime")));
                     }
                     foreach (ConfigNode facilityNode in cabNode.GetNode("constructedFacilities").GetNodes("facilityNode"))
                     {
-                        constructedFacilities.Add(KCFacilityBase.GetFacilityByID(int.Parse(facilityNode.GetValue("facilityID"))));
+                        KCFacilityBase facility = KCFacilityBase.GetFacilityByID(int.Parse(facilityNode.GetValue("facilityID")));
+                        if (facility != null) constructedFacilities.Add(facility);
                     }
                     foreach (ConfigNode facilityNode in cabNode.GetNode("upgradingFacilities").GetNodes("facilityNode"))
                     {
-                        upgradingFacilities.Add(KCFacilityBase.GetFacilityByID(int.Parse(facilityNode.GetValue("facilityID"))), double.Parse(facilityNode.GetValue("remainingTime")));
+                        KCFacilityBase facility = KCFacilityBase.GetFacilityByID(int.Parse(facilityNode.GetValue("facilityID")));
+                        if (facility != null) upgradingFacilities.Add(facility, double.Parse(facilityNode.GetValue("remainingTime")));
                     }
                     foreach (ConfigNode facilityNode in cabNode.GetNode("upgradedFacilities").GetNodes("facilityNode"))
                     {
-                        upgradedFacilities.Add(KCFacilityBase.GetFacilityByID(int.Parse(facilityNode.GetValue("facilityID"))));
+                        KCFacilityBase facility = KCFacilityBase.GetFacilityByID(int.Parse(facilityNode.GetValue("facilityID")));
+                        if (facility != null) upgradedFacilities.Add(facility);
                     }
                 }
             }

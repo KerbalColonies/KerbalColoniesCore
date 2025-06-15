@@ -164,6 +164,8 @@ namespace KerbalColonies
         /// </summary>
         internal static void PlaceNewGroupSave(KerbalKonstructs.Core.GroupCenter groupCenter)
         {
+            Configuration.writeLog($"Placing group {groupCenter.Group} ({buildQueue.Peek().groupName} wanted) for facility {buildQueue.Peek().Facility.name} at level {buildQueue.Peek().Facility.level}");
+
             if (groupCenter.Group != buildQueue.Peek().groupName) { return; }
 
             KerbalKonstructs.API.UnRegisterOnGroupSaved(PlaceNewGroupSave);
@@ -195,6 +197,8 @@ namespace KerbalColonies
         /// </summary>
         internal static bool PlaceNewGroup(KCFacilityBase facility, string newGroupName)
         {
+            Configuration.writeLog($"Adding facility {facility.name} with group {newGroupName} from colony {facility.Colony.Name} to the buildqueue");
+
             QueueInformation buildObj = new QueueInformation(facility, newGroupName, facility.GetBaseGroupName(facility.level));
 
             buildQueue.Enqueue(buildObj);
@@ -208,6 +212,8 @@ namespace KerbalColonies
             ColonyBuilding.placedGroup = false;
             if (buildQueue.Count() > 0)
             {
+                Configuration.writeLog($"Placing group {buildQueue.Peek().groupName} for facility {buildQueue.Peek().Facility.name} at level {buildQueue.Peek().Facility.level}");
+
                 KerbalKonstructs.API.RemoveGroup(ColonyBuilding.buildQueue.Peek().groupName); // remove the group if it exists
                 KerbalKonstructs.API.CreateGroup(ColonyBuilding.buildQueue.Peek().groupName);
                 KerbalKonstructs.API.CopyGroup(ColonyBuilding.buildQueue.Peek().groupName, ColonyBuilding.buildQueue.Peek().fromGroupName, fromBodyName: Configuration.baseBody);

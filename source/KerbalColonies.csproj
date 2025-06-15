@@ -123,7 +123,7 @@
       <Destination>$(RepoRootPath)../GameData/KerbalColonies/KerbalColonies.version</Destination>
       <URL>https://raw.githubusercontent.com/KerbalColonies/KerbalColoniesCore/refs/heads/master/GameData/KerbalColonies/KerbalColonies.version</URL>
       <Download>https://github.com/KerbalColonies/KerbalColoniesCore/releases/latest</Download>
-      <Version>1.0.9</Version>
+      <Version>1.0.10</Version>
       <KSP_VERSION>1.12.5</KSP_VERSION>
       <KSP_VERSION_MAX>1.12.5</KSP_VERSION_MAX>
     </KSPVersionFile>

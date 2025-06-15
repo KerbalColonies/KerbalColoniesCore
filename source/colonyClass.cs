@@ -46,7 +46,7 @@ namespace KerbalColonies
 
         public ConfigNode CreateConfigNode()
         {
-            Configuration.writeLog($"Saving colony {Name}");
+            Configuration.writeLog($"Saving colony {Name} with {Facilities.Count} facilites and {sharedColonyNodes.Count} shared nodes");
 
             ConfigNode node = new ConfigNode("colonyClass");
             node.AddValue("name", Name);
@@ -128,7 +128,7 @@ namespace KerbalColonies
 
             Facilities = new List<KCFacilityBase>();
             sharedColonyNodes = node.GetNode("sharedColonyNodes").GetNodes().ToList();
-            Configuration.writeDebug($"Loading colony {Name} with {sharedColonyNodes.Count} shared nodes");
+            Configuration.writeLog($"Loading colony {Name} with {sharedColonyNodes.Count} shared nodes");
             sharedColonyNodes.ForEach(x => Configuration.writeDebug($"Shared node: {x.name}\n{x.ToString()}"));
 
             foreach (ConfigNode facilityNode in node.GetNodes("facility"))

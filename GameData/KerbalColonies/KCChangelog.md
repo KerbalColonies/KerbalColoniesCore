@@ -1,3 +1,10 @@
+# v1.0.10 hotfix
+- Fixed the mining facility disappearing
+- Fixed a bug in the CAB loading that could delete the colony
+- Fixed the hangar facility production display, see issue [#32](https://github.com/KerbalColonies/KerbalColoniesCore/issues/32)
+- Improved logging
+- The single time windows are now shown once per game scene load
+
 # v1.0.9
 - Reworked the mining facility to use the resource density instead of fixed rates (this will most likely result in reduced rates)
 - Added auto resource transfer options to the mining facility

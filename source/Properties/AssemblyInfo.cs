@@ -49,7 +49,7 @@ using System.Runtime.InteropServices;
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
 [assembly: AssemblyVersion("1.0.9.0")]
-[assembly: AssemblyFileVersion("1.0.10.0")]
-[assembly: KSPAssembly("KerbalColonies", 1, 0, 10)]
+[assembly: AssemblyFileVersion("1.0.11.0")]
+[assembly: KSPAssembly("KerbalColonies", 1, 0, 11)]
 [assembly: KSPAssemblyDependency("KerbalKonstructs", 1, 9, 1)]
 [assembly: KSPAssemblyDependency("ToolbarController", 1, 0)]

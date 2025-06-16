@@ -1,3 +1,6 @@
+# v1.0.11 hotfix
+- Fixed the launchpad facility OnGroupPlaced not generating a launchpad, see issue [#35](https://github.com/KerbalColonies/KerbalColoniesCore/issues/35) and [#36](https://github.com/KerbalColonies/KerbalColoniesCore/issues/36)
+
 # v1.0.10 hotfix
 - Fixed the mining facility disappearing, see issue [#31](https://github.com/KerbalColonies/KerbalColoniesCore/issues/31)
 - Fixed a bug in the CAB loading that could delete the colony

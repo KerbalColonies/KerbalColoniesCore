@@ -70,6 +70,7 @@ namespace KerbalColonies.colonyFacilities
                 if (uuid == null) GetUUIDbyFacility(this).FirstOrDefault();
                 if (uuid == null) throw new System.Exception("KC Launchpadfacility: unable to find any KK static for the launchpad.");
 
+                sharedNode = new ConfigNode("launchpadNode");
                 sharedNode.AddValue("uuid", uuid);
                 KerbalKonstructs.Core.StaticInstance targetInstance = KerbalKonstructs.API.getStaticInstanceByUUID(uuid);
                 instance = targetInstance;
@@ -85,6 +86,7 @@ namespace KerbalColonies.colonyFacilities
                 string oldName = name;
                 bool oldState = baseInstance.launchSite.ILSIsActive;
 
+                launchSiteName = $"KC {HighLogic.CurrentGame.Seed.ToString()} {Colony.DisplayName} {DisplayName}";
                 targetInstance.launchSite.LaunchSiteName = launchSiteName;
                 sharedNode.AddValue("launchSiteName", launchSiteName);
                 targetInstance.launchSite.LaunchSiteLength = baseInstance.launchSite.LaunchSiteLength;
@@ -337,8 +339,6 @@ namespace KerbalColonies.colonyFacilities
         {
             AllowClick = false;
             AllowRemote = false;
-            launchSiteName = $"KC {HighLogic.CurrentGame.Seed.ToString()} {colony.DisplayName} {DisplayName}";
-            sharedNode = new ConfigNode("launchpadNode");
             //launchpadWindow = new KCLaunchpadFacilityWindow(this);
         }
     }

@@ -104,7 +104,7 @@ namespace KerbalColonies.colonyFacilities
             }
         }
 
-        public bool vesselHasRessources(Vessel v, PartResourceDefinition resource, double amount)
+        public static bool vesselHasRessources(Vessel v, PartResourceDefinition resource, double amount)
         {
             v.GetConnectedResourceTotals(resource.id, false, out double vesselAmount, out double vesselMaxAmount);
             if (vesselAmount >= amount)
@@ -117,7 +117,7 @@ namespace KerbalColonies.colonyFacilities
             }
         }
 
-        public double getVesselRessources(Vessel v, PartResourceDefinition resource)
+        public static double getVesselRessources(Vessel v, PartResourceDefinition resource)
         {
             v.GetConnectedResourceTotals(resource.id, false, out double vesselAmount, out double vesselMaxAmount);
             return vesselAmount;
@@ -148,7 +148,7 @@ namespace KerbalColonies.colonyFacilities
         /// <summary>
         /// checks if the vessel v has enough space to add amount of r to it.
         /// </summary>
-        public bool vesselHasSpace(Vessel v, PartResourceDefinition r, double amount)
+        public static bool vesselHasSpace(Vessel v, PartResourceDefinition r, double amount)
         {
             v.GetConnectedResourceTotals(r.id, false, out double vesselAmount, out double vesselMaxAmount);
             if (vesselMaxAmount - vesselAmount >= amount)
@@ -160,7 +160,7 @@ namespace KerbalColonies.colonyFacilities
                 return false;
             }
         }
-        public double getVesselSpace(Vessel v, PartResourceDefinition r)
+        public static double getVesselSpace(Vessel v, PartResourceDefinition r)
         {
             v.GetConnectedResourceTotals(r.id, false, out double vesselAmount, out double vesselMaxAmount);
             return vesselMaxAmount - vesselAmount;

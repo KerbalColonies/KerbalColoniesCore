@@ -116,6 +116,7 @@ namespace KerbalColonies
 
         public int ColonyNumber { get; private set; }
         public int BodyID { get; private set; }
+        public string BodyName => FlightGlobals.Bodies.First(b => FlightGlobals.GetBodyIndex(b) == BodyID).bodyName;
 
         public bool currentFrameUpdated { get; set; } = false; // Used to prevent multiple updates in the same frame
 

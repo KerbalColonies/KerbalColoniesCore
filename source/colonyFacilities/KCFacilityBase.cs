@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
 
 // KC: Kerbal Colonies
 // This mod aimes to create a Colony system with Kerbal Konstructs statics
@@ -64,6 +65,12 @@ namespace KerbalColonies.colonyFacilities
             OnDisplayNameChange(displayName);
             this.displayName = displayName;
         }
+
+        public bool playerNearFacility(float distance = 1000f) => FlightGlobals.ActiveVessel != null && KKgroups.Any(groupName =>
+        {
+            KerbalKonstructs.Core.GroupCenter center = KerbalKonstructs.API.GetGroupCenter(groupName, Colony.BodyName);
+            return center != null && Vector3.Distance(FlightGlobals.ship_position, center.gameObject.transform.position) < distance;
+        });
 
         public virtual void OnColonyNameChange(string name) { }
 
@@ -175,7 +182,7 @@ namespace KerbalColonies.colonyFacilities
             return Configuration.colonyDictionary.Values.SelectMany(c => c).Any(c => c.Facilities.Any(fac => fac.id == id) || c.CAB.id == id);
         }
 
-        private static Random random = new Random();
+        private static System.Random random = new System.Random();
         internal static int createID()
         {
             int id = 0;

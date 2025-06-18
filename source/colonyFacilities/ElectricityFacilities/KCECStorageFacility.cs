@@ -1,6 +1,5 @@
 ﻿using KerbalColonies.Electricity;
 using KerbalColonies.UI;
-using KerbalKonstructs.Modules;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
@@ -17,8 +16,8 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities
         protected override void CustomWindow()
         {
             facility.Colony.UpdateColony();
-            GUILayout.Label($"Stored electric charge: {ecStorage.ECStored} / {ecStorage.ECCapacity} EC");
 
+            GUILayout.Label($"Stored electric charge: {ecStorage.ECStored} / {ecStorage.ECCapacity} EC");
             GUILayout.BeginHorizontal();
             foreach (double i in valueList)
             {
@@ -31,7 +30,6 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities
             GUILayout.EndHorizontal();
 
             GUILayout.Label($"Current priority: {ecStorage.ECStoragePriority}");
-
             GUILayout.BeginHorizontal();
             foreach (int i in ints)
             {
@@ -42,6 +40,58 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities
                 }
             }
             GUILayout.EndHorizontal();
+
+            if (FlightGlobals.ActiveVessel != null)
+            {
+                PartResourceDefinition ec = PartResourceLibrary.Instance.GetDefinition("ElectricCharge");
+
+                GUILayout.Label($"Vessel transfer:");
+                GUILayout.BeginHorizontal();
+                foreach (double i in valueList)
+                {
+                    FlightGlobals.ActiveVessel.GetConnectedResourceTotals(ec.id, false, out double vesselAmount, out double vesselMaxAmount);
+                    //if (i < 0 && vesselMaxAmount - vesselAmount < -i) GUI.enabled = false;
+
+                    if (GUILayout.Button(i.ToString(), GUILayout.Height(18), GUILayout.Width(32)))
+                    {
+                        Configuration.writeLog($"Transfering {i} EC from EC storage facility {ecStorage.DisplayName} to vessel {FlightGlobals.ActiveVessel.vesselName}.");
+
+                        if (i < 0)
+                        {
+                            if (KCStorageFacilityWindow.vesselHasSpace(FlightGlobals.ActiveVessel, ec, -i))
+                            {
+                                double left = ecStorage.ChangeECStored(i);
+
+                                FlightGlobals.ActiveVessel.rootPart.RequestResource(ec.id, i - left, ResourceFlowMode.ALL_VESSEL_BALANCE, false);
+                            }
+                            else
+                            {
+                                double amount = KCStorageFacilityWindow.getVesselSpace(FlightGlobals.ActiveVessel, ec);
+                                double left = ecStorage.ChangeECStored(-amount);
+
+                                FlightGlobals.ActiveVessel.rootPart.RequestResource(ec.id, -amount - left, ResourceFlowMode.ALL_VESSEL_BALANCE, false);
+                            }
+
+                        }
+                        else
+                        {
+                            if (KCStorageFacilityWindow.vesselHasRessources(FlightGlobals.ActiveVessel, ec, i))
+                            {
+                                double left = ecStorage.ChangeECStored(i);
+                                FlightGlobals.ActiveVessel.rootPart.RequestResource(ec.id, i - left, ResourceFlowMode.ALL_VESSEL_BALANCE, false);
+                            }
+                            else
+                            {
+                                double amount = KCStorageFacilityWindow.getVesselRessources(FlightGlobals.ActiveVessel, ec);
+                                double left = ecStorage.ChangeECStored(amount);
+                                FlightGlobals.ActiveVessel.rootPart.RequestResource(ec.id, amount - left, ResourceFlowMode.ALL_VESSEL_BALANCE, false);
+                            }
+                        }
+                    }
+                    GUI.enabled = true;
+                }
+                GUILayout.EndHorizontal();
+            }
         }
 
         public KCECStorageWindow(KCECStorageFacility facility) : base(facility, Configuration.createWindowID())
@@ -98,8 +148,22 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities
 
         public override void OnRemoteClicked() => window.Toggle();
 
+        public override ConfigNode getConfigNode()
+        {
+            ConfigNode node = base.getConfigNode();
+            node.AddValue("ECStored", ECStored);
+            node.AddValue("Priority", ECStoragePriority);
+            return node;
+        }
+
         public KCECStorageFacility(colonyClass colony, KCFacilityInfoClass facilityInfo, ConfigNode node) : base(colony, facilityInfo, node)
         {
+            if (node.HasValue("ECStored"))
+            {
+                ECStored = double.Parse(node.GetValue("ECStored"));
+                ECStoragePriority = int.Parse(node.GetValue("Priority"));
+            }
+
             window = new KCECStorageWindow(this);
         }
 

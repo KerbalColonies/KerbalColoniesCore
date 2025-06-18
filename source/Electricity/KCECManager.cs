@@ -15,7 +15,7 @@ namespace KerbalColonies.Electricity
         public double lastECProduced { get; set; }
         public double lastECConsumed { get; set; }
         public double lastECStored { get; set; }
-        public double lastECDelta => lastECProduced + lastECConsumed;
+        public double lastECDelta => lastECProduced - lastECConsumed;
     }
 
     public class KCECManager
@@ -52,12 +52,12 @@ namespace KerbalColonies.Electricity
             }
 
             getDeltaTime(colony, out double lastTime, out double deltaTime, out double currentTime);
+            if (deltaTime == 0) return;
 
             double ECProduced = colony.Facilities.OfType<KCECProducer>().Sum(facility => facility.ECProduction(lastTime, deltaTime, currentTime));
             colonyData.lastECProduced = ECProduced;
 
             SortedDictionary<int, List<KCECConsumer>> ECConsumers = new SortedDictionary<int, List<KCECConsumer>>();
-            ECConsumers.Reverse();
             colony.Facilities.OfType<KCECConsumer>().ToList().ForEach(facility =>
             {
                 if (!ECConsumers.ContainsKey(facility.ECConsumptionPriority))
@@ -67,7 +67,6 @@ namespace KerbalColonies.Electricity
             colonyData.lastECConsumed = ECConsumers.SelectMany(kvp => kvp.Value).ToList().Sum(facility => facility.ExpectedECConsumption(lastTime, deltaTime, currentTime));
 
             SortedDictionary<int, List<KCECStorage>> ECStored = new SortedDictionary<int, List<KCECStorage>>();
-            ECStored.Reverse();
             colony.Facilities.OfType<KCECStorage>().ToList().ForEach(facility =>
             {
                 if (!ECStored.ContainsKey(facility.ECStoragePriority))
@@ -103,7 +102,7 @@ namespace KerbalColonies.Electricity
                 ECConsumers.SelectMany(kvp => kvp.Value).ToList().ForEach(facility =>
                 {
                     double consumed = facility.ExpectedECConsumption(lastTime, deltaTime, currentTime);
-                    if (consumed >= remainingEC)
+                    if (consumed <= remainingEC)
                     {
                         remainingEC -= consumed;
                         facility.ConsumeEC(lastTime, deltaTime, currentTime);
@@ -111,6 +110,7 @@ namespace KerbalColonies.Electricity
                     else if (remainingEC > 0)
                     { 
                         facility.ÍnsufficientEC(lastTime, deltaTime, currentTime, remainingEC);
+                        remainingEC = 0;
                     }
                     else
                     {

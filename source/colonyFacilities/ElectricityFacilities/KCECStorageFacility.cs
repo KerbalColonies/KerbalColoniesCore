@@ -2,6 +2,7 @@
 using KerbalColonies.UI;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace KerbalColonies.colonyFacilities.ElectricityFacilities
@@ -16,6 +17,20 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities
         protected override void CustomWindow()
         {
             facility.Colony.UpdateColony();
+
+            #region colonyWide
+            GUILayout.Label($"Stored electric charge in this colony: {KCECStorageFacility.ColonyEC(ecStorage.Colony)} / {KCECStorageFacility.ColonyECCapacity(ecStorage.Colony)} EC");
+            GUILayout.BeginHorizontal();
+            foreach (double i in valueList)
+            {
+                if (GUILayout.Button(i.ToString(), GUILayout.Height(18), GUILayout.Width(32)))
+                {
+                    Configuration.writeDebug($"Change ECStored by {i} for {ecStorage.DisplayName} facility");
+                    KCECStorageFacility.AddECToColony(ecStorage.Colony, i);
+                }
+            }
+            GUILayout.EndHorizontal();
+            #endregion
 
             GUILayout.Label($"Stored electric charge: {ecStorage.ECStored} / {ecStorage.ECCapacity} EC");
             GUILayout.BeginHorizontal();
@@ -91,6 +106,8 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities
                     GUI.enabled = true;
                 }
                 GUILayout.EndHorizontal();
+
+                ecStorage.locked = GUILayout.Toggle(ecStorage.locked, "Lock storage", GUILayout.Height(18), GUILayout.Width(100));
             }
         }
 
@@ -102,16 +119,35 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities
 
     public class KCECStorageFacility : KCFacilityBase, KCECStorage
     {
-        private KCECStorageWindow window;
+        public static double ColonyEC(colonyClass colony) => KCFacilityBase.GetAllTInColony<KCECStorageFacility>(colony).Sum(f => f.ECStored);
+        public static double ColonyECCapacity(colonyClass colony) => KCFacilityBase.GetAllTInColony<KCECStorageFacility>(colony).Sum(f => f.ECCapacity);
+        public static SortedDictionary<int, KCECStorageFacility> StoragePriority(colonyClass colony)
+        {
+            SortedDictionary<int, KCECStorageFacility> dict = new SortedDictionary<int, KCECStorageFacility>(KCFacilityBase.GetAllTInColony<KCECStorageFacility>(colony)
+.ToDictionary(f => f.ECStoragePriority, f => f));
+            dict.Reverse();
+            return dict;
+        }
 
-        public double ECStored { get; set; }
+        public static double AddECToColony(colonyClass colony, double deltaEC)
+        {
+            StoragePriority(colony).ToList().ForEach(kvp => deltaEC = kvp.Value.ChangeECStored(deltaEC));
+            return deltaEC;
+        }
+
+        private KCECStorageWindow window;
+        private double eCStored;
+
+        public double ECStored { get => eCStored; set => eCStored = locked ? eCStored : value; }
         public double ECCapacity { get; set; } = 100000;
         public int ECStoragePriority { get; set; } = 0;
+        public bool locked { get; set; } = false;
 
-        public double StoredEC(double lastTime, double deltaTime, double currentTime) => ECStored;
+        public double StoredEC(double lastTime, double deltaTime, double currentTime) => locked ? 0 : ECStored;
 
         public double ChangeECStored(double deltaEC)
         {
+            if (locked) return deltaEC;
             if (deltaEC < 0)
             {
                 if (ECStored + deltaEC >= 0)
@@ -142,7 +178,7 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities
             return deltaEC;
         }
 
-        public void SetStoredEC(double storedEC) => ECStored = Math.Max(0, Math.Min(ECCapacity, storedEC));
+        public void SetStoredEC(double storedEC) => ECStored = locked ? ECStored : Math.Max(0, Math.Min(ECCapacity, storedEC));
 
         public override void OnBuildingClicked() => window.Toggle();
 

@@ -109,7 +109,7 @@ namespace KerbalColonies
                     GUILayout.FlexibleSpace();
                     GUILayout.BeginVertical();
                     GUILayout.Label($"Funds: {(info.Funds.Count > 0 ? info.Funds[0] : 0)}");
-                    //GUILayout.Label($"Electricity: {t.Electricity}");
+                    //GUILayout.Label($"ECperSecond: {t.ECperSecond}");
                     GUILayout.EndVertical();
 
                     GUILayout.EndHorizontal();

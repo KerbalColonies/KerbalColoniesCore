@@ -1,4 +1,5 @@
-﻿using KerbalColonies.UI;
+﻿using KerbalColonies.Electricity;
+using KerbalColonies.UI;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -182,14 +183,15 @@ namespace KerbalColonies.colonyFacilities
 
         protected override void CustomWindow()
         {
-            storageFacility.Update();
+            storageFacility.Colony.UpdateColony();
+            if (!storageFacility.enabled) GUI.enabled = false;
+            else GUI.enabled = true;
             GUILayout.BeginHorizontal();
             GUILayout.Label($"MaxVolume: {storageFacility.storageInfo.maxVolume[storageFacility.level]:f2}", LabelGreen, GUILayout.Height(18));
             GUILayout.FlexibleSpace();
             GUILayout.Label($"UsedVolume: {storageFacility.getCurrentVolume():f2}", LabelGreen, GUILayout.Height(18));
             GUILayout.EndHorizontal();
             GUILayout.Space(2);
-            GUI.enabled = true;
             List<double> valueList = new List<double> { -10000, -1000, -100, -10, -1, 1, 10, 100, 1000, 10000 };
 
             scrollPos = GUILayout.BeginScrollView(scrollPos);
@@ -200,7 +202,7 @@ namespace KerbalColonies.colonyFacilities
                 GUILayout.BeginVertical();
                 GUILayout.Label($"{kvp.Key.displayName}: {kvp.Value:f2}", GUILayout.Height(18));
 
-                if (!storageFacility.Colony.CAB.PlayerInColony && !trashResources) { GUI.enabled = false; }
+                if (!storageFacility.Colony.CAB.PlayerInColony && !trashResources) GUI.enabled = false;
                 GUILayout.BeginHorizontal();
                 foreach (double i in valueList)
                 {
@@ -293,7 +295,8 @@ namespace KerbalColonies.colonyFacilities
                         }
                     }
                 }
-                GUI.enabled = true;
+                if (!storageFacility.enabled) GUI.enabled = false;
+                else GUI.enabled = true;
                 GUILayout.EndHorizontal();
                 GUILayout.EndVertical();
             }
@@ -304,6 +307,8 @@ namespace KerbalColonies.colonyFacilities
             if (GUILayout.Button("Trash resources", GUILayout.Height(18))) trashResources = !trashResources;
             GUILayout.Label("Warning: enabling the trash resources option will delete the resource instead of transferring it to the vessel.");
             GUILayout.Label($"Trash resources: {trashResources}", GUILayout.Height(18));
+
+            GUI.enabled = true;
         }
 
         protected override void OnOpen()
@@ -330,7 +335,7 @@ namespace KerbalColonies.colonyFacilities
         }
     }
 
-    public class KCStorageFacility : KCFacilityBase
+    public class KCStorageFacility : KCFacilityBase, KCECConsumer
     {
         public static HashSet<string> blackListedResources = new HashSet<string> { "ElectricCharge", "IntakeAir" };
 
@@ -416,6 +421,7 @@ namespace KerbalColonies.colonyFacilities
             }
         }
 
+
         public Dictionary<PartResourceDefinition, double> getRessources() { return resources; }
         public void addRessource(PartResourceDefinition resource) {
             KCStorageFacilityInfo info = storageInfo;
@@ -428,6 +434,7 @@ namespace KerbalColonies.colonyFacilities
 
         public void setAmount(PartResourceDefinition resource, double amount)
         {
+            if (!enabled) return;
             KCStorageFacilityInfo info = storageInfo;
             if (blackListedResources.Contains(resource.name)) return;
             if (info.resourceBlacklist[level].Contains(resource)) return;
@@ -508,6 +515,7 @@ namespace KerbalColonies.colonyFacilities
         /// </summary>
         public bool changeAmount(PartResourceDefinition resource, double amount)
         {
+            if (!enabled) return false;
             KCStorageFacilityInfo info = storageInfo;
             if (blackListedResources.Contains(resource.name)) return false;
             if (info.resourceBlacklist[level].Contains(resource)) return false;
@@ -543,6 +551,19 @@ namespace KerbalColonies.colonyFacilities
             return false;
         }
 
+        public override string GetFacilityProductionDisplay() => $"{getCurrentVolume():f2}/{getMaxVolume():f2}m³ used\n{resources.Count} resources stored";
+
+
+        public int ECConsumptionPriority => 0;
+        public double ExpectedECConsumption(double lastTime, double deltaTime, double currentTime) => facilityInfo.ECperSecond[level] * deltaTime;
+
+        public void ConsumeEC(double lastTime, double deltaTime, double currentTime) => enabled = true;
+
+        public void ÍnsufficientEC(double lastTime, double deltaTime, double currentTime, double remainingEC) => enabled = false;
+
+        public double DailyECConsumption() => facilityInfo.ECperSecond[level] * 6 * 3600;
+
+
         public override void OnBuildingClicked()
         {
             StorageWindow.Toggle();
@@ -553,7 +574,6 @@ namespace KerbalColonies.colonyFacilities
             StorageWindow.Toggle();
         }
 
-        public override string GetFacilityProductionDisplay() => $"{getCurrentVolume():f2}/{getMaxVolume():f2}m³ used\n{resources.Count} resources stored";
         public KCStorageFacility(colonyClass colony, KCFacilityInfoClass facilityInfo, ConfigNode node) : base(colony, facilityInfo, node)
         {
             resources = new Dictionary<PartResourceDefinition, double>();

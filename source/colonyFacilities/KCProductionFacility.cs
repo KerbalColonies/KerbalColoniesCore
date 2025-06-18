@@ -269,7 +269,7 @@ namespace KerbalColonies.colonyFacilities
                                 GUILayout.FlexibleSpace();
                                 GUILayout.BeginVertical();
                                 GUILayout.Label($"Funds: {(t.Funds.Count > 0 ? t.Funds[0] : 0) * Configuration.FacilityCostMultiplier}");
-                                //GUILayout.Label($"Electricity: {t.Electricity}");
+                                //GUILayout.Label($"ECperSecond: {t.ECperSecond}");
                                 GUILayout.Label($"Time: {t.UpgradeTimes[0] * Configuration.FacilityTimeMultiplier}");
                                 GUILayout.EndVertical();
 

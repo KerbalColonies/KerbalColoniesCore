@@ -71,7 +71,7 @@ namespace KerbalColonies
         /// <summary>
         /// currently unused
         /// </summary>
-        public SortedDictionary<int, double> Electricity { get; protected set; } = new SortedDictionary<int, double> { };
+        public SortedDictionary<int, double> ECperSecond { get; protected set; } = new SortedDictionary<int, double> { };
         public SortedDictionary<int, double> Funds { get; protected set; } = new SortedDictionary<int, double> { };
         public SortedDictionary<int, UpgradeType> UpgradeTypes { get; protected set; } = new SortedDictionary<int, UpgradeType> { };
         public SortedDictionary<int, string> BasegroupNames { get; protected set; } = new SortedDictionary<int, string> { };
@@ -189,7 +189,7 @@ namespace KerbalColonies
             type = KCFacilityTypeRegistry.GetType(node.GetValue("type"));
 
             resourceCost = new SortedDictionary<int, Dictionary<PartResourceDefinition, double>>();
-            Electricity = new SortedDictionary<int, double>();
+            ECperSecond = new SortedDictionary<int, double>();
             Funds = new SortedDictionary<int, double>();
             UpgradeTypes = new SortedDictionary<int, UpgradeType>();
             UpgradeTimes = new SortedDictionary<int, double>();
@@ -229,8 +229,8 @@ namespace KerbalColonies
                     resourceCost.Add(level, new Dictionary<PartResourceDefinition, double>());
                 }
 
-                if (n.HasValue("Electricity")) Electricity.Add(level, double.Parse(n.GetValue("Electricity")));
-                else Electricity.Add(level, 0);
+                if (n.HasValue("ECperSecond")) ECperSecond.Add(level, double.Parse(n.GetValue("ECperSecond")));
+                else ECperSecond.Add(level, 0);
 
                 if (n.HasValue("Funds")) Funds.Add(level, double.Parse(n.GetValue("Funds")));
                 else Funds.Add(level, 0);
@@ -248,7 +248,7 @@ namespace KerbalColonies
         {
             if (levelNodes.Count > 0) levelNodes = new SortedDictionary<int, ConfigNode> { { 0, levelNodes[0] } };
             if (resourceCost.Count > 0) resourceCost = new SortedDictionary<int, Dictionary<PartResourceDefinition, double>> { { 0, resourceCost[0] } };
-            if (Electricity.Count > 0) Electricity = new SortedDictionary<int, double> { { 0, Electricity[0] } };
+            if (ECperSecond.Count > 0) ECperSecond = new SortedDictionary<int, double> { { 0, ECperSecond[0] } };
             if (Funds.Count > 0) Funds = new SortedDictionary<int, double> { { 0, Funds[0] } };
             if (UpgradeTypes.Count > 0) UpgradeTypes = new SortedDictionary<int, UpgradeType> { { 0, UpgradeTypes[0] } };
             if (BasegroupNames.Count > 0) BasegroupNames = new SortedDictionary<int, string> { { 0, BasegroupNames[0] } };

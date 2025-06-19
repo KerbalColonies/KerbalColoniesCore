@@ -1,4 +1,5 @@
-﻿using KerbalColonies.UI;
+﻿using KerbalColonies.Electricity;
+using KerbalColonies.UI;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -117,7 +118,7 @@ namespace KerbalColonies.colonyFacilities
             GUILayout.EndScrollView();
         }
 
-        internal RecipeSelectorWindow(KCResourceConverterFacility resourceConverter) : base(Configuration.createWindowID(), "Recipe Selector")
+        public RecipeSelectorWindow(KCResourceConverterFacility resourceConverter) : base(Configuration.createWindowID(), "Recipe Selector")
         {
             this.resourceConverter = resourceConverter;
             toolRect = new Rect(100, 100, 400, 800);
@@ -125,7 +126,7 @@ namespace KerbalColonies.colonyFacilities
     }
 
 
-    internal class KCResourceConverterWindow : KCFacilityWindowBase
+    public class KCResourceConverterWindow : KCFacilityWindowBase
     {
         KCResourceConverterFacility resourceConverter;
         private RecipeSelectorWindow recipeSelector;
@@ -194,39 +195,35 @@ namespace KerbalColonies.colonyFacilities
                 recipeSelector.Open();
             }
 
-            if (!resourceConverter.enabled)
-            {
-                GUILayout.Label("This facility is disabled");
+            facility.enabled = GUILayout.Toggle(facility.enabled, "enable/disable");
 
-                if (resourceConverter.getKerbals().Count() < resourceConverter.MaxKerbals)
-                {
-                    GUI.enabled = false;
-                }
-                else
-                {
-                    GUI.enabled = true;
-                }
-
-                if (GUILayout.Button("enable"))
-                {
-                    resourceConverter.enabled = true;
-                }
-                GUI.enabled = true;
-            }
-            else
-            {
-                GUILayout.Label("This facility is enabled");
-
-                if (GUILayout.Button("disable"))
-                {
-                    resourceConverter.enabled = false;
-                }
-            }
-            if (GUILayout.Button($"Disable facility if resources are missing: {(resourceConverter.outOfResourceDisable ? "Yes" : "No")}")) resourceConverter.outOfResourceDisable = !resourceConverter.outOfResourceDisable;
+            resourceConverter.outOfResourceDisable = GUILayout.Toggle(resourceConverter.outOfResourceDisable, "Disable facility if resources are missing");
+            resourceConverter.outOfECDisable = GUILayout.Toggle(resourceConverter.outOfECDisable, "Disable facility if EC is missing");
 
             kerbalGUI.StaffingInterface();
 
-            GUILayout.Label($"For operations this facility must have the maximum number of kerbals assigned.");
+            GUILayout.BeginHorizontal(GUILayout.Height(100));
+            {
+                GUILayout.BeginVertical();
+                {
+                    GUILayout.Label("This facility works with the following ISRU counts for the following kerbal counts.");
+                    GUILayout.Label($"Current ISRU count: {resourceConverter.ISRUcount()}");
+                }
+                GUILayout.EndVertical();
+                GUILayout.BeginVertical();
+                {
+                    List<int> kerbalCounts = new List<int>();
+                    for (int i = facility.level; i >= 0 ; i--)
+                    {
+                        int maxKerbals = resourceConverter.info.maxKerbalsPerLevel[i];
+                        if (kerbalCounts.Contains(maxKerbals)) continue;
+                        GUILayout.Label($"{maxKerbals} Kerbals = {resourceConverter.info.ISRUcount[i]} ISRUs");
+                        kerbalCounts.Add(maxKerbals);
+                    }
+                }
+                GUILayout.EndVertical();
+            }
+            GUILayout.EndHorizontal();
         }
 
         protected override void OnClose()
@@ -239,7 +236,7 @@ namespace KerbalColonies.colonyFacilities
             }
         }
 
-        internal KCResourceConverterWindow(KCResourceConverterFacility resourceConverter) : base(resourceConverter, Configuration.createWindowID())
+        public KCResourceConverterWindow(KCResourceConverterFacility resourceConverter) : base(resourceConverter, Configuration.createWindowID())
         {
             this.resourceConverter = resourceConverter;
             this.recipeSelector = new RecipeSelectorWindow(resourceConverter);
@@ -364,7 +361,7 @@ namespace KerbalColonies.colonyFacilities
         }
     }
 
-    public class KCResourceConverterFacility : KCKerbalFacilityBase
+    public class KCResourceConverterFacility : KCKerbalFacilityBase, KCECConsumer
     {
         public static void LoadResourceConversionLists()
         {
@@ -410,7 +407,7 @@ namespace KerbalColonies.colonyFacilities
                     {
                         new ResourceConversionRate(conversionName, displayName, InputResources, OutputResources);
                     }
-                    catch(Exception e)
+                    catch (Exception e)
                     {
                         ConfigFacilityLoader.exceptions.Add(e);
                         ConfigFacilityLoader.failedConfigs.Add($"ResourceConversionRate: {conversionName}");
@@ -455,14 +452,28 @@ namespace KerbalColonies.colonyFacilities
 
         public ResourceConversionList availableRecipes() => ((KCResourceConverterInfo)facilityInfo).availableRecipes[level];
         public ResourceConversionRate activeRecipe;
-        public int ISRUcount() => ((KCResourceConverterInfo)facilityInfo).ISRUcount[level];
-        private KCResourceConverterWindow kCResourceConverterWindow;
+        public KCResourceConverterInfo info => (KCResourceConverterInfo)facilityInfo;
+        public int ISRUcount()
+        {
+            var item = AvailableISRUCounts.LastOrDefault(kvp => info.maxKerbalsPerLevel[kvp.Key] <= kerbals.Count());
+            return item.Equals(default(KeyValuePair<int, int>)) ? 0 : item.Value;
+        }
+        public int LevelISRUcount() => info.ISRUcount[level];
+        public SortedDictionary<int, int> AvailableISRUCounts => new SortedDictionary<int, int>(info.ISRUcount.Where(kvp => kvp.Key <= level).ToDictionary(kvp => kvp.Key, kvp => kvp.Value));
+
+
+        protected KCResourceConverterWindow kCResourceConverterWindow;
 
         public bool outOfResourceDisable = true; // if true, the facility will disable itself if it cannot execute the recipe due to missing resources
+        public bool outOfECDisable = true; // if true, the facility will disable itself if it cannot execute the recipe due to missing EC
+
+        public bool outOfEC { get; protected set; } = false;
+        public bool canExecutePassed { get; protected set; } = true;
 
         private void executeRecipe(double dTime)
         {
             if (activeRecipe == null) return;
+            if (!canExecuteRecipe(dTime)) return;
             foreach (KeyValuePair<PartResourceDefinition, double> kvp in activeRecipe.InputResources)
             {
                 double remainingResource = kvp.Value * dTime * ISRUcount();
@@ -471,17 +482,17 @@ namespace KerbalColonies.colonyFacilities
 
                 foreach (KCStorageFacility facility in facilitiesWithResource)
                 {
-                    Dictionary<PartResourceDefinition, double> facilityResources = facility.getRessources();
+                    double facilityAmount = facility.GetResourceAmount(kvp.Key);
 
-                    if (remainingResource < facilityResources[kvp.Key])
+                    if (remainingResource <= facilityAmount)
                     {
                         facility.changeAmount(kvp.Key, -remainingResource);
                         break;
                     }
                     else
                     {
-                        remainingResource -= facilityResources[kvp.Key];
-                        facility.changeAmount(kvp.Key, -facilityResources[kvp.Key]);
+                        remainingResource -= facilityAmount;
+                        facility.changeAmount(kvp.Key, -facilityAmount);
                     }
                 }
             }
@@ -510,82 +521,93 @@ namespace KerbalColonies.colonyFacilities
 
         public bool canExecuteRecipe(double dTime)
         {
-            if (activeRecipe == null) return false;
-            bool canExecute = true;
+            bool pass = true;
+            if (!enabled) pass = false;
+            else if (activeRecipe == null) pass = false;
+            else if (outOfEC) { enabled = enabled && !outOfECDisable; pass = false; }
+            int ISRUcount = this.ISRUcount();
 
-            foreach (KeyValuePair<PartResourceDefinition, double> kvp in activeRecipe.InputResources)
-            {
-                double remainingResource = kvp.Value * dTime * ISRUcount();
-
-                List<KCStorageFacility> facilitiesWithResource = KCStorageFacility.findFacilityWithResourceType(kvp.Key, Colony);
-
-                if (facilitiesWithResource.Count == 0)
+            if (pass) foreach (KeyValuePair<PartResourceDefinition, double> kvp in activeRecipe.InputResources)
                 {
-                    return false;
+                    double remainingResource = kvp.Value * dTime * ISRUcount;
+
+                    List<KCStorageFacility> facilitiesWithResource = KCStorageFacility.findFacilityWithResourceType(kvp.Key, Colony);
+
+                    if (facilitiesWithResource.Count == 0)
+                    {
+                        enabled = enabled && !outOfResourceDisable;
+                        pass = false;
+                        break;
+                    }
+
+                    foreach (KCStorageFacility facility in facilitiesWithResource)
+                    {
+                        Dictionary<PartResourceDefinition, double> facilityResources = facility.getRessources();
+                        remainingResource -= facilityResources[kvp.Key];
+                        if (remainingResource < 0) { break; }
+                    }
+
+                    if (remainingResource > 0)
+                    {
+                        enabled = enabled && !outOfResourceDisable;
+                        pass = false;
+                        break;
+                    }
                 }
 
-                foreach (KCStorageFacility facility in facilitiesWithResource)
+            if (pass)
+                foreach (KeyValuePair<PartResourceDefinition, double> kvp in activeRecipe.OutputResources)
                 {
-                    Dictionary<PartResourceDefinition, double> facilityResources = facility.getRessources();
-                    remainingResource -= facilityResources[kvp.Key];
-                    if (remainingResource < 0) { break; }
+                    double remainingResource = kvp.Value * dTime * ISRUcount;
+
+                    List<KCStorageFacility> facilitiesWithResource = KCStorageFacility.findFacilityWithResourceType(kvp.Key, Colony);
+                    bool addResource = false;
+
+                    if (facilitiesWithResource.Count == 0)
+                    {
+                        facilitiesWithResource = KCStorageFacility.findEmptyStorageFacilities(Colony);
+                        addResource = true;
+                    }
+
+                    foreach (KCStorageFacility facility in facilitiesWithResource)
+                    {
+                        if (addResource) { facility.addRessource(kvp.Key); }
+
+                        remainingResource -= facility.getEmptyAmount(kvp.Key);
+
+                        if (remainingResource < 0) { break; }
+                    }
+
+                    if (remainingResource > 0)
+                    {
+                        enabled = enabled && !outOfResourceDisable;
+                        pass = false;
+                        break;
+                    }
                 }
 
-                if (remainingResource > 0)
-                {
-                    return false;
-                }
-            }
-
-            foreach (KeyValuePair<PartResourceDefinition, double> kvp in activeRecipe.OutputResources)
-            {
-                double remainingResource = kvp.Value * dTime * ISRUcount();
-
-                List<KCStorageFacility> facilitiesWithResource = KCStorageFacility.findFacilityWithResourceType(kvp.Key, Colony);
-                bool addResource = false;
-
-                if (facilitiesWithResource.Count == 0)
-                {
-                    facilitiesWithResource = KCStorageFacility.findEmptyStorageFacilities(Colony);
-                    addResource = true;
-                }
-
-                foreach (KCStorageFacility facility in facilitiesWithResource)
-                {
-                    if (addResource) { facility.addRessource(kvp.Key); }
-
-                    remainingResource -= facility.getEmptyAmount(kvp.Key);
-
-                    if (remainingResource < 0) { break; }
-                }
-
-                if (remainingResource > 0)
-                {
-                    return false;
-                }
-            }
-
-            return canExecute;
+            canExecutePassed = pass;
+            return pass;
         }
 
         public override void Update()
         {
             double dTime = Planetarium.GetUniversalTime() - lastUpdateTime;
 
-            if (getKerbals().Count() < MaxKerbals)
-            {
-                enabled = false;
-            }
+            executeRecipe(dTime);
 
-
-            if (enabled)
-            {
-                if (canExecuteRecipe(dTime)) executeRecipe(dTime);
-                else if (outOfResourceDisable) enabled = false;
-            }
-
-            lastUpdateTime = Planetarium.GetUniversalTime();
+            base.Update();
         }
+
+        public int ECConsumptionPriority => 0;
+        public double ExpectedECConsumption(double lastTime, double deltaTime, double currentTime) => facilityInfo.ECperSecond[level] * deltaTime;
+
+        public void ConsumeEC(double lastTime, double deltaTime, double currentTime) => outOfEC = false;
+
+        public void ÍnsufficientEC(double lastTime, double deltaTime, double currentTime, double remainingEC) => outOfEC = true;
+
+        public double DailyECConsumption() => facilityInfo.ECperSecond[level] * 6 * 3600;
+
 
         public override void OnBuildingClicked()
         {

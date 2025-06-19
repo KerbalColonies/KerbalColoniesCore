@@ -189,6 +189,7 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities
             ConfigNode node = base.getConfigNode();
             node.AddValue("ECStored", ECStored);
             node.AddValue("Priority", ECStoragePriority);
+            node.AddValue("locked", locked);
             return node;
         }
 
@@ -199,6 +200,7 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities
                 ECStored = double.Parse(node.GetValue("ECStored"));
                 ECStoragePriority = int.Parse(node.GetValue("Priority"));
             }
+            if (node.HasValue("locked")) locked = bool.Parse(node.GetValue("locked"));
 
             window = new KCECStorageWindow(this);
         }

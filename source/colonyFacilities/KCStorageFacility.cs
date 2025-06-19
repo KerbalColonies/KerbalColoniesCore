@@ -392,10 +392,7 @@ namespace KerbalColonies.colonyFacilities
             return colony.Facilities.Where(f => f is KCStorageFacility).Select(f => (KCStorageFacility)f).ToList();
         }
 
-        public static List<KCStorageFacility> findFacilityWithResourceType(PartResourceDefinition resource, colonyClass colony)
-        {
-            return GetStoragesInColony(colony).Where(f => f.getRessources().ContainsKey(resource)).ToList();
-        }
+        public static List<KCStorageFacility> findFacilityWithResourceType(PartResourceDefinition resource, colonyClass colony) => GetStoragesInColony(colony).Where(f => f.enabled && f.getRessources().ContainsKey(resource)).ToList();
 
         /// <summary>
         /// returns a list of all storage facilities that are not full
@@ -422,7 +419,11 @@ namespace KerbalColonies.colonyFacilities
         }
 
 
-        public Dictionary<PartResourceDefinition, double> getRessources() { return resources; }
+        public Dictionary<PartResourceDefinition, double> getRessources() => resources;
+
+        public bool HasResourceAmount(PartResourceDefinition resource, double amount) => enabled && resources.ContainsKey(resource) && resources[resource] >= amount;
+        public double GetResourceAmount(PartResourceDefinition resource) => enabled && resources.ContainsKey(resource) ? resources[resource] : 0;
+
         public void addRessource(PartResourceDefinition resource) {
             KCStorageFacilityInfo info = storageInfo;
             if (blackListedResources.Contains(resource.name))  return;
@@ -461,10 +462,7 @@ namespace KerbalColonies.colonyFacilities
 
         public static double getVolumeForAmount(PartResourceDefinition resource, double amount) { return amount * resource.volume; }
 
-        public double getEmptyAmount(PartResourceDefinition resource)
-        {
-            return (storageInfo.maxVolume[level] - currentVolume) / resource.volume;
-        }
+        public double getEmptyAmount(PartResourceDefinition resource) => enabled ? (storageInfo.maxVolume[level] - currentVolume) / resource.volume : 0;
 
         /// <summary>
         /// Adds all partresourcedefinitions that are present in a vessel if they aren't in the resources dictionary yet.
@@ -551,7 +549,7 @@ namespace KerbalColonies.colonyFacilities
             return false;
         }
 
-        public override string GetFacilityProductionDisplay() => $"{getCurrentVolume():f2}/{getMaxVolume():f2}m³ used\n{resources.Count} resources stored";
+        public override string GetFacilityProductionDisplay() => $"{getCurrentVolume():f2}/{getMaxVolume():f2}m³ used\n{resources.Count} resources stored {(facilityInfo.ECperSecond[level] > 0 ? $"\n{facilityInfo.ECperSecond} EC/s" : "")}";
 
 
         public int ECConsumptionPriority => 0;

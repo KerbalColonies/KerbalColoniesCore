@@ -230,7 +230,8 @@ namespace KerbalColonies
                 }
 
                 if (n.HasValue("ECperSecond")) ECperSecond.Add(level, double.Parse(n.GetValue("ECperSecond")));
-                else ECperSecond.Add(level, 0);
+                else if (level != 0) ECperSecond.Add(level, ECperSecond[level - 1]);
+                else ECperSecond.Add(0, 0);
 
                 if (n.HasValue("Funds")) Funds.Add(level, double.Parse(n.GetValue("Funds")));
                 else Funds.Add(level, 0);

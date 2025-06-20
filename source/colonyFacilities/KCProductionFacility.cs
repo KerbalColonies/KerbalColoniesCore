@@ -1,4 +1,5 @@
-﻿using KerbalColonies.UI;
+﻿using KerbalColonies.Electricity;
+using KerbalColonies.UI;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -319,8 +320,10 @@ namespace KerbalColonies.colonyFacilities
         }
     }
 
-    public class KCProductionFacility : KCKerbalFacilityBase
+    public class KCProductionFacility : KCKerbalFacilityBase, KCECConsumer
     {
+        public static bool facilityQueue = false;
+        public static bool vesselQueue = false;
 
         private static double getDeltaTime(colonyClass colony)
         {
@@ -350,6 +353,7 @@ namespace KerbalColonies.colonyFacilities
 
             if (constructingVessel.Count > 0)
             {
+                vesselQueue = true;
                 while (dailyVesselProduction > 0 && constructingVessel.Count > 0)
                 {
                     if (constructingVessel[0].vesselBuildTime > dailyVesselProduction)
@@ -382,12 +386,13 @@ namespace KerbalColonies.colonyFacilities
                     }
                 }
             }
+            else vesselQueue = false;
 
             dailyProduction += dailyVesselProduction;
 
             if (colony.CAB.UpgradingFacilities.Count > 0 || colony.CAB.ConstructingFacilities.Count > 0)
             {
-
+                facilityQueue = true;
                 while (dailyProduction > 0)
                 {
                     if (colony.CAB.UpgradingFacilities.Count > 0)
@@ -443,6 +448,7 @@ namespace KerbalColonies.colonyFacilities
                     }
                 }
             }
+            else facilityQueue = false;
         }
 
         public static void DailyProductions(colonyClass colony, out double dailyProduction, out double dailyVesselProduction)
@@ -467,11 +473,15 @@ namespace KerbalColonies.colonyFacilities
             }
         }
 
-        KCProductionWindow prdWindow;
-        KCProductionInfo KCProductionInfo => (KCProductionInfo)facilityInfo;
+        protected KCProductionWindow prdWindow;
+        public KCProductionInfo KCProductionInfo => (KCProductionInfo)facilityInfo;
+
+        public bool outOfEC { get; protected set; } = false;
+        public double lastProduction { get; protected set; } = 0;
 
         public double dailyProduction()
         {
+            if (outOfEC || !enabled) return 0;
             double production = 0;
 
             KCProductionInfo info = KCProductionInfo;
@@ -481,7 +491,14 @@ namespace KerbalColonies.colonyFacilities
                 production += (info.baseProduction[level] + info.experienceMultiplier[level] * (pcm.experienceLevel - 1));
             }
             production *= 1 + info.facilityLevelMultiplier[level] * level;
+            lastProduction = production;
             return production;
+        }
+
+        public override void Update()
+        {
+            lastUpdateTime = Planetarium.GetUniversalTime();
+            enabled = !outOfEC && built && (facilityQueue || vesselQueue && KCProductionInfo.CanBuildVessels(level));
         }
 
         public override void OnBuildingClicked()
@@ -493,6 +510,17 @@ namespace KerbalColonies.colonyFacilities
         {
             prdWindow.Toggle();
         }
+
+        public int ECConsumptionPriority => 0;
+        // Check if facility has daily production
+        public double ExpectedECConsumption(double lastTime, double deltaTime, double currentTime) => lastProduction > 0 ? facilityInfo.ECperSecond[level] * deltaTime : 0;
+
+        public void ConsumeEC(double lastTime, double deltaTime, double currentTime) => outOfEC = false;
+
+        public void ÍnsufficientEC(double lastTime, double deltaTime, double currentTime, double remainingEC) => outOfEC = true;
+
+        public double DailyECConsumption() => facilityInfo.ECperSecond[level] * 6 * 3600;
+
 
         public override string GetFacilityProductionDisplay() => $"{kerbals.Count} kerbals assigned\ndaily production: {dailyProduction():f2}\n{(KCProductionInfo.CanBuildVessels(level) ? "Can build vessels" : "Can't build vessels")}";
 

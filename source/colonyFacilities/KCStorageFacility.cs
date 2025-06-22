@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using static Targeting.Sample;
 
 // KC: Kerbal Colonies
 // This mod aimes to create a Colony system with Kerbal Konstructs statics
@@ -169,7 +168,7 @@ namespace KerbalColonies.colonyFacilities
 
         public bool facilityHasSpace(PartResourceDefinition resource, double amount)
         {
-            if (storageFacility.getMaxVolume() - storageFacility.getCurrentVolume() >= KCStorageFacility.getVolumeForAmount(resource, amount))
+            if (storageFacility.maxVolume - storageFacility.currentVolume >= KCStorageFacility.getVolumeForAmount(resource, amount))
             {
                 return true;
             }
@@ -189,7 +188,7 @@ namespace KerbalColonies.colonyFacilities
             GUILayout.BeginHorizontal();
             GUILayout.Label($"MaxVolume: {storageFacility.storageInfo.maxVolume[storageFacility.level]:f2}", LabelGreen, GUILayout.Height(18));
             GUILayout.FlexibleSpace();
-            GUILayout.Label($"UsedVolume: {storageFacility.getCurrentVolume():f2}", LabelGreen, GUILayout.Height(18));
+            GUILayout.Label($"UsedVolume: {storageFacility.currentVolume:f2}", LabelGreen, GUILayout.Height(18));
             GUILayout.EndHorizontal();
             GUILayout.Space(2);
             List<double> valueList = new List<double> { -10000, -1000, -100, -10, -1, 1, 10, 100, 1000, 10000 };
@@ -303,12 +302,22 @@ namespace KerbalColonies.colonyFacilities
             GUILayout.EndScrollView();
 
             GUILayout.Space(2);
-
-            if (GUILayout.Button("Trash resources", GUILayout.Height(18))) trashResources = !trashResources;
-            GUILayout.Label("Warning: enabling the trash resources option will delete the resource instead of transferring it to the vessel.");
-            GUILayout.Label($"Trash resources: {trashResources}", GUILayout.Height(18));
-
             GUI.enabled = true;
+
+            storageFacility.locked = GUILayout.Toggle(storageFacility.locked, "Lock storage", GUILayout.Height(18));
+            GUILayout.Space(10);
+
+            GUILayout.BeginHorizontal();
+            {
+                GUILayout.Label($"EC Consumption Priority: {storageFacility.ECConsumptionPriority}", GUILayout.Height(18));
+                GUILayout.FlexibleSpace();
+                if (GUILayout.RepeatButton("--", GUILayout.Width(30), GUILayout.Height(23)) | GUILayout.Button("-", GUILayout.Width(30), GUILayout.Height(23))) storageFacility.ECConsumptionPriority--;
+                if (GUILayout.Button("+", GUILayout.Width(30), GUILayout.Height(23)) | GUILayout.RepeatButton("++", GUILayout.Width(30), GUILayout.Height(23))) storageFacility.ECConsumptionPriority++;
+            }
+            GUILayout.EndHorizontal();
+
+            trashResources = GUILayout.Toggle(trashResources, "Trash resources", GUILayout.Height(18));
+            GUILayout.Label("Warning: enabling the trash resources option will delete the resource instead of transferring it to the vessel.");
         }
 
         protected override void OnOpen()
@@ -397,45 +406,35 @@ namespace KerbalColonies.colonyFacilities
         /// <summary>
         /// returns a list of all storage facilities that are not full
         /// </summary>
-        public static List<KCStorageFacility> findEmptyStorageFacilities(colonyClass colony)
-        {
-            return GetStoragesInColony(colony).Where(f => f.currentVolume < f.storageInfo.maxVolume[f.level]).ToList();
-        }
+        public static List<KCStorageFacility> findEmptyStorageFacilities(colonyClass colony) => GetStoragesInColony(colony).Where(f => f.currentVolume < f.storageInfo.maxVolume[f.level]).ToList();
 
         public KCStorageFacilityInfo storageInfo { get { return (KCStorageFacilityInfo)facilityInfo; } }
         public Dictionary<PartResourceDefinition, double> resources;
+        public bool outOfEC { get; protected set; } = false;
+        public bool locked { get; set; } = false;
 
-        public double currentVolume
-        {
-            get
-            {
-                double amount = 0;
-                foreach (KeyValuePair<PartResourceDefinition, double> entry in resources)
-                {
-                    amount += entry.Key.volume * entry.Value;
-                }
-                return amount;
-            }
-        }
+        public double currentVolume => resources.Sum(entry => entry.Key.volume * entry.Value);
+        public double maxVolume => storageInfo.maxVolume[level];
 
 
         public Dictionary<PartResourceDefinition, double> getRessources() => resources;
 
-        public bool HasResourceAmount(PartResourceDefinition resource, double amount) => enabled && resources.ContainsKey(resource) && resources[resource] >= amount;
-        public double GetResourceAmount(PartResourceDefinition resource) => enabled && resources.ContainsKey(resource) ? resources[resource] : 0;
+        public bool HasResourceAmount(PartResourceDefinition resource, double amount) => !locked && resources.ContainsKey(resource) && resources[resource] >= amount;
+        public double GetResourceAmount(PartResourceDefinition resource) => !locked && resources.ContainsKey(resource) ? resources[resource] : 0;
 
-        public void addRessource(PartResourceDefinition resource) {
+        public void addRessource(PartResourceDefinition resource)
+        {
             KCStorageFacilityInfo info = storageInfo;
-            if (blackListedResources.Contains(resource.name))  return;
+            if (blackListedResources.Contains(resource.name)) return;
             if (info.resourceBlacklist[level].Contains(resource)) return;
             if (info.resourceWhitelist[level].Count > 0 && !info.resourceWhitelist[level].Contains(resource)) return;
 
-            resources.TryAdd(resource, 0); 
+            resources.TryAdd(resource, 0);
         }
 
         public void setAmount(PartResourceDefinition resource, double amount)
         {
-            if (!enabled) return;
+            if (locked) return;
             KCStorageFacilityInfo info = storageInfo;
             if (blackListedResources.Contains(resource.name)) return;
             if (info.resourceBlacklist[level].Contains(resource)) return;
@@ -492,11 +491,20 @@ namespace KerbalColonies.colonyFacilities
             resources.ToList().Where(kvp => kvp.Value == 0).ToList().ForEach(kvp => resources.Remove(kvp.Key));
         }
 
+        public override void Update()
+        {
+            lastUpdateTime = Planetarium.GetUniversalTime();
+            enabled = !outOfEC && !locked && built;
+        }
+
         private KCStorageFacilityWindow StorageWindow;
 
         public override ConfigNode getConfigNode()
         {
             ConfigNode node = base.getConfigNode();
+
+            node.AddValue("ECConsumptionPriority", ECConsumptionPriority);
+            node.AddValue("locked", locked);
 
             ConfigNode resourceNode = new ConfigNode("resources");
             foreach (KeyValuePair<PartResourceDefinition, double> entry in resources)
@@ -513,7 +521,7 @@ namespace KerbalColonies.colonyFacilities
         /// </summary>
         public bool changeAmount(PartResourceDefinition resource, double amount)
         {
-            if (!enabled) return false;
+            if (locked) return false;
             KCStorageFacilityInfo info = storageInfo;
             if (blackListedResources.Contains(resource.name)) return false;
             if (info.resourceBlacklist[level].Contains(resource)) return false;
@@ -549,15 +557,15 @@ namespace KerbalColonies.colonyFacilities
             return false;
         }
 
-        public override string GetFacilityProductionDisplay() => $"{getCurrentVolume():f2}/{getMaxVolume():f2}m³ used\n{resources.Count} resources stored {(facilityInfo.ECperSecond[level] > 0 ? $"\n{facilityInfo.ECperSecond} EC/s" : "")}";
+        public override string GetFacilityProductionDisplay() => $"{currentVolume:f2}/{maxVolume:f2}m³ used\n{resources.Count} resources stored {(facilityInfo.ECperSecond[level] > 0 ? $"\n{(locked ? 0 : facilityInfo.ECperSecond[level])} EC/s" : "")}";
 
 
-        public int ECConsumptionPriority => 0;
-        public double ExpectedECConsumption(double lastTime, double deltaTime, double currentTime) => facilityInfo.ECperSecond[level] * deltaTime;
+        public int ECConsumptionPriority { get; set; } = 0;
+        public double ExpectedECConsumption(double lastTime, double deltaTime, double currentTime) => locked ? 0 : facilityInfo.ECperSecond[level] * deltaTime;
 
-        public void ConsumeEC(double lastTime, double deltaTime, double currentTime) => enabled = true;
+        public void ConsumeEC(double lastTime, double deltaTime, double currentTime) => outOfEC = false;
 
-        public void ÍnsufficientEC(double lastTime, double deltaTime, double currentTime, double remainingEC) => enabled = false;
+        public void ÍnsufficientEC(double lastTime, double deltaTime, double currentTime, double remainingEC) => outOfEC = true;
 
         public double DailyECConsumption() => facilityInfo.ECperSecond[level] * 6 * 3600;
 
@@ -585,29 +593,15 @@ namespace KerbalColonies.colonyFacilities
                 if (resources.ContainsKey(prd)) resources[prd] = double.Parse(value.value);
                 else resources.Add(prd, double.Parse(value.value));
             }
-            //foreach (PartResourceDefinition resource in PartResourceLibrary.Instance.resourceDefinitions)
-            //{
-            //    if (blackListedResources.Contains(resource.name)) { continue; }
-            //    if (!resources.ContainsKey(resource))
-            //    {
-            //        resources.Add(resource, 0);
-            //    }
-            //}
+
+            if (int.TryParse(node.GetValue("ECConsumptionPriority"), out int ecPriority)) ECConsumptionPriority = ecPriority;
+            if (bool.TryParse(node.GetValue("locked"), out bool isLocked)) locked = isLocked;
         }
 
         public KCStorageFacility(colonyClass colony, KCFacilityInfoClass facilityInfo, bool enabled) : base(colony, facilityInfo, enabled)
         {
             resources = new Dictionary<PartResourceDefinition, double>();
             StorageWindow = new KCStorageFacilityWindow(this);
-
-            //foreach (PartResourceDefinition resource in PartResourceLibrary.Instance.resourceDefinitions)
-            //{
-            //    if (blackListedResources.Contains(resource.name)) { continue; }
-            //    if (!resources.ContainsKey(resource))
-            //    {
-            //        resources.Add(resource, 0);
-            //    }
-            //}
         }
     }
 }

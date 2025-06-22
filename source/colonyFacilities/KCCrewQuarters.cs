@@ -1,4 +1,5 @@
-﻿using KerbalColonies.UI;
+﻿using KerbalColonies.Electricity;
+using KerbalColonies.UI;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -51,7 +52,7 @@ namespace KerbalColonies.colonyFacilities
         }
     }
 
-    internal class KCCrewQuarters : KCKerbalFacilityBase
+    internal class KCCrewQuarters : KCKerbalFacilityBase, KCECConsumer
     {
         public static List<KCCrewQuarters> CrewQuartersInColony(colonyClass colony)
         {
@@ -127,8 +128,10 @@ namespace KerbalColonies.colonyFacilities
 
         public override void Update()
         {
-            base.Update();
+            lastUpdateTime = Planetarium.GetUniversalTime();
             if (!HighLogic.LoadedSceneIsFlight) kerbals.Keys.ToList().ForEach(kerbal => kerbal.rosterStatus = ProtoCrewMember.RosterStatus.Assigned);
+
+            enabled = built && kerbals.Count > 0 && !OutOfEC;
         }
 
         public override void OnBuildingClicked()
@@ -143,7 +146,17 @@ namespace KerbalColonies.colonyFacilities
             crewQuartersWindow.Toggle();
         }
 
-        public override string GetFacilityProductionDisplay() => $"{kerbals.Count} / {MaxKerbals} kerbals assigned";
+        public bool OutOfEC { get; set; }
+        public int ECConsumptionPriority { get; set; } = 0;
+        public double ExpectedECConsumption(double lastTime, double deltaTime, double currentTime) => enabled || OutOfEC ? facilityInfo.ECperSecond[level] * deltaTime : 0;
+
+        public void ConsumeEC(double lastTime, double deltaTime, double currentTime) => OutOfEC = false;
+
+        public void ÍnsufficientEC(double lastTime, double deltaTime, double currentTime, double remainingEC) => OutOfEC = true;
+
+        public double DailyECConsumption() => facilityInfo.ECperSecond[level] * 6 * 3600;
+
+        public override string GetFacilityProductionDisplay() => $"{kerbals.Count} / {MaxKerbals} kerbals assigned{(facilityInfo.ECperSecond[level] > 0 ? $"\nEC/s: {facilityInfo.ECperSecond[level]}" : "")}";
 
         public KCCrewQuarters(colonyClass colony, KCFacilityInfoClass facilityInfo, ConfigNode node) : base(colony, facilityInfo, node)
         {

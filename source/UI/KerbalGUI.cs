@@ -325,82 +325,79 @@ namespace KerbalColonies.UI
             ButtonSmallText.fontSize = 12;
             ButtonSmallText.fontStyle = FontStyle.Normal;
 
-            if (fac.MaxKerbals > 0)
+            GUILayout.Space(5);
+
+            float CountCurrent = fac.getKerbals().Count;
+            float CountEmpty = fac.MaxKerbals - CountCurrent;
+
+            scrollPos = GUILayout.BeginScrollView(scrollPos);
             {
-                GUILayout.Space(5);
-
-                float CountCurrent = fac.getKerbals().Count;
-                float CountEmpty = fac.MaxKerbals - CountCurrent;
-
-                scrollPos = GUILayout.BeginScrollView(scrollPos);
+                foreach (ProtoCrewMember pcm in fac.getKerbals())
                 {
-                    foreach (ProtoCrewMember pcm in fac.getKerbals())
-                    {
-                        GUILayout.BeginHorizontal(GUILayout.Height(80));
-                        string suitPath = pcm.GetKerbalIconSuitPath();
-                        if (suitPath.Contains("vintage") && ExpansionsLoader.IsExpansionInstalled("MakingHistory"))
-                            GUILayout.Box(MissionsUtils.METexture(suitPath + ".tif"), GUILayout.Height(80));
-                        else if (suitPath.Contains("future") && ExpansionsLoader.IsExpansionInstalled("Serenity"))
-                            GUILayout.Box(SerenityUtils.SerenityTexture(suitPath + ".tif"), GUILayout.Height(80));
-                        else
-                            GUILayout.Box(AssetBase.GetTexture(pcm.GetKerbalIconSuitPath()), GUILayout.Height(80));
-                        
+                    GUILayout.BeginHorizontal(GUILayout.Height(80));
+                    string suitPath = pcm.GetKerbalIconSuitPath();
+                    if (suitPath.Contains("vintage") && ExpansionsLoader.IsExpansionInstalled("MakingHistory"))
+                        GUILayout.Box(MissionsUtils.METexture(suitPath + ".tif"), GUILayout.Height(80));
+                    else if (suitPath.Contains("future") && ExpansionsLoader.IsExpansionInstalled("Serenity"))
+                        GUILayout.Box(SerenityUtils.SerenityTexture(suitPath + ".tif"), GUILayout.Height(80));
+                    else
+                        GUILayout.Box(AssetBase.GetTexture(pcm.GetKerbalIconSuitPath()), GUILayout.Height(80));
 
-                        GUILayout.BeginVertical();
-                        GUILayout.Label(pcm.displayName, LabelInfo);
-                        GUILayout.Label(pcm.trait, LabelInfo);
-                        GUILayout.Label(pcm.gender.ToString(), LabelInfo);
-                        GUILayout.Label($"Level: {pcm.experienceLevel}", LabelInfo);
-                        GUILayout.EndVertical();
 
-                        GUILayout.FlexibleSpace();
-                        GUILayout.EndHorizontal();
-                    }
+                    GUILayout.BeginVertical();
+                    GUILayout.Label(pcm.displayName, LabelInfo);
+                    GUILayout.Label(pcm.trait, LabelInfo);
+                    GUILayout.Label(pcm.gender.ToString(), LabelInfo);
+                    GUILayout.Label($"Level: {pcm.experienceLevel}", LabelInfo);
+                    GUILayout.EndVertical();
 
-                    while (CountEmpty > 0)
-                    {
-                        GUILayout.BeginHorizontal(GUILayout.Height(80));
-
-                        GUILayout.Box(tNoKerbal);
-                        GUILayout.FlexibleSpace();
-                        CountEmpty = CountEmpty - 1;
-                        GUILayout.EndHorizontal();
-
-                    }
-                }
-                GUILayout.EndScrollView();
-
-                GUI.enabled = true;
-
-                GUILayout.BeginHorizontal();
-                GUILayout.Label("Staff: " + kerbalCount.ToString("#0") + "/" + fac.MaxKerbals.ToString("#0"), LabelInfo);
-                GUILayout.FlexibleSpace();
-                GUILayout.EndHorizontal();
-
-                GUILayout.Space(2);
-
-                if (ksg != null)
-                {
-                    if (ksg.mode == KerbalSelectorGUI.SwitchModes.ActiveVessel && !fac.Colony.CAB.PlayerInColony) { GUI.enabled = false; }
-                    GUILayout.BeginHorizontal();
-                    {
-                        if (GUILayout.Button("Assign/Retrive Kerbals", GUILayout.Height(23)))
-                        {
-                            if (transferWindow)
-                            {
-                                ksg.Close();
-                                transferWindow = false;
-                            }
-                            else
-                            {
-                                ksg.Open();
-                                transferWindow = true;
-                            }
-                        }
-                    }
-                    GUI.enabled = true;
+                    GUILayout.FlexibleSpace();
                     GUILayout.EndHorizontal();
                 }
+
+                while (CountEmpty > 0)
+                {
+                    GUILayout.BeginHorizontal(GUILayout.Height(80));
+
+                    GUILayout.Box(tNoKerbal);
+                    GUILayout.FlexibleSpace();
+                    CountEmpty = CountEmpty - 1;
+                    GUILayout.EndHorizontal();
+
+                }
+            }
+            GUILayout.EndScrollView();
+
+            GUI.enabled = true;
+
+            GUILayout.BeginHorizontal();
+            GUILayout.Label("Staff: " + kerbalCount.ToString("#0") + "/" + fac.MaxKerbals.ToString("#0"), LabelInfo);
+            GUILayout.FlexibleSpace();
+            GUILayout.EndHorizontal();
+
+            GUILayout.Space(2);
+
+            if (ksg != null)
+            {
+                if (ksg.mode == KerbalSelectorGUI.SwitchModes.ActiveVessel && !fac.Colony.CAB.PlayerInColony || !fac.enabled) { GUI.enabled = false; }
+                GUILayout.BeginHorizontal();
+                {
+                    if (GUILayout.Button("Assign/Retrive Kerbals", GUILayout.Height(23)))
+                    {
+                        if (transferWindow)
+                        {
+                            ksg.Close();
+                            transferWindow = false;
+                        }
+                        else
+                        {
+                            ksg.Open();
+                            transferWindow = true;
+                        }
+                    }
+                }
+                GUI.enabled = true;
+                GUILayout.EndHorizontal();
             }
 
             GUILayout.Space(5);

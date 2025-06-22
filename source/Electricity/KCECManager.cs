@@ -98,7 +98,7 @@ namespace KerbalColonies.Electricity
             else
             {
                 ECStored.SelectMany(kvp => kvp.Value).ToList().ForEach(facility => facility.SetStoredEC(0));
-                double remainingEC = colonyData.lastECStored;
+                double remainingEC = colonyData.lastECStored + colonyData.lastECProduced;
                 ECConsumers.SelectMany(kvp => kvp.Value).ToList().ForEach(facility =>
                 {
                     double consumed = facility.ExpectedECConsumption(lastTime, deltaTime, currentTime);

@@ -511,7 +511,7 @@ namespace KerbalColonies.colonyFacilities
             prdWindow.Toggle();
         }
 
-        public int ECConsumptionPriority => 0;
+        public int ECConsumptionPriority { get; set; } = 0;
         // Check if facility has daily production
         public double ExpectedECConsumption(double lastTime, double deltaTime, double currentTime) => lastProduction > 0 ? facilityInfo.ECperSecond[level] * deltaTime : 0;
 
@@ -524,14 +524,16 @@ namespace KerbalColonies.colonyFacilities
 
         public override string GetFacilityProductionDisplay() => $"{kerbals.Count} kerbals assigned\ndaily production: {dailyProduction():f2}\n{(KCProductionInfo.CanBuildVessels(level) ? "Can build vessels" : "Can't build vessels")}";
 
+        public override ConfigNode getConfigNode()
+        {
+            ConfigNode node = base.getConfigNode();
+            node.AddValue("ECConsumptionPriority", ECConsumptionPriority);
+            return node;
+        }
+
         private void configNodeLoader()
         {
             prdWindow = new KCProductionWindow(this);
-
-            foreach (KeyValuePair<int, ConfigNode> levelNode in facilityInfo.levelNodes)
-            {
-
-            }
 
             KCProductionInfo productionInfo = (KCProductionInfo)facilityInfo;
             if (productionInfo.CanBuildVessels(level))
@@ -550,6 +552,7 @@ namespace KerbalColonies.colonyFacilities
         public KCProductionFacility(colonyClass colony, KCFacilityInfoClass facilityInfo, ConfigNode node) : base(colony, facilityInfo, node)
         {
             configNodeLoader();
+            if (int.TryParse(node.GetValue("ECConsumptionPriority"), out int priority)) ECConsumptionPriority = priority;
         }
 
         public KCProductionFacility(colonyClass colony, KCFacilityInfoClass facilityInfo, bool enabled) : base(colony, facilityInfo, enabled)

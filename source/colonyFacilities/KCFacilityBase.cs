@@ -64,8 +64,8 @@ namespace KerbalColonies.colonyFacilities
         public void changeDisplayName(string displayName)
         {
             useCustomDisplayName = true;
-            OnDisplayNameChange(displayName);
             this.displayName = displayName;
+            OnDisplayNameChange(displayName);
         }
 
         public bool playerNearFacility(float distance = 1000f) => FlightGlobals.ActiveVessel != null && KKgroups.Any(groupName =>

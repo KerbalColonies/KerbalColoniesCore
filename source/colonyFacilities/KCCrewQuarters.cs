@@ -131,7 +131,9 @@ namespace KerbalColonies.colonyFacilities
             lastUpdateTime = Planetarium.GetUniversalTime();
             if (!HighLogic.LoadedSceneIsFlight) kerbals.Keys.ToList().ForEach(kerbal => kerbal.rosterStatus = ProtoCrewMember.RosterStatus.Assigned);
 
-            enabled = built && kerbals.Count > 0 && !OutOfEC;
+            enabled = built && !OutOfEC;
+            if (crewQuartersWindow == null) crewQuartersWindow = new KCCrewQuartersWindow(this);
+            crewQuartersWindow.kerbalGUI.disableTransferWindow = !enabled;
         }
 
         public override void OnBuildingClicked()
@@ -148,7 +150,7 @@ namespace KerbalColonies.colonyFacilities
 
         public bool OutOfEC { get; set; }
         public int ECConsumptionPriority { get; set; } = 0;
-        public double ExpectedECConsumption(double lastTime, double deltaTime, double currentTime) => enabled || OutOfEC ? facilityInfo.ECperSecond[level] * deltaTime : 0;
+        public double ExpectedECConsumption(double lastTime, double deltaTime, double currentTime) => enabled && kerbals.Count > 0 || OutOfEC ? facilityInfo.ECperSecond[level] * deltaTime : 0;
 
         public void ConsumeEC(double lastTime, double deltaTime, double currentTime) => OutOfEC = false;
 

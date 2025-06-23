@@ -118,7 +118,7 @@ namespace KerbalColonies
             KCFacilityTypeRegistry.RegisterFacilityInfo<KCCommNetFacility, KCZeroUpgradeInfoClass>();
             KCFacilityTypeRegistry.RegisterFacilityInfo<KCCrewQuarters, KCKerbalFacilityInfoClass>();
             KCFacilityTypeRegistry.RegisterFacilityInfo<KCHangarFacility, KCHangarInfo>();
-            KCFacilityTypeRegistry.RegisterFacilityInfo<KCLaunchpadFacility, KCZeroUpgradeInfoClass>();
+            KCFacilityTypeRegistry.RegisterFacilityInfo<KCLaunchpadFacility, KCFacilityInfoClass>();
             KCFacilityTypeRegistry.RegisterFacilityInfo<KCMiningFacility, KCMiningFacilityInfo>();
             KCFacilityTypeRegistry.RegisterFacilityInfo<KCProductionFacility, KCProductionInfo>();
             KCFacilityTypeRegistry.RegisterFacilityInfo<KCResearchFacility, KCResearchFacilityInfoClass>();

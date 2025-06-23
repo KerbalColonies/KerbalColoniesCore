@@ -449,7 +449,7 @@ namespace KerbalColonies.colonyFacilities
             protoVessel.Load(HighLogic.CurrentGame.flightState);
 
 
-            List<KCLaunchpadFacility> launchpads = KCLaunchpadFacility.GetLaunchPadsInColony(Colony);
+            List<KCLaunchpadFacility> launchpads = KCFacilityBase.GetAllTInColony<KCLaunchpadFacility>(Colony);
             if (launchpads.Count > 0)
             {
                 storedVessels.Remove(storedVessel);

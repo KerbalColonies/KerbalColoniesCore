@@ -99,7 +99,7 @@ namespace KerbalColonies.UI
             {
                 GUILayout.Label("Enter new Name: ");
 
-                newTitle = GUILayout.TextField(newTitle, GUILayout.Width(150));
+                newTitle = GUILayout.TextField(newTitle);
 
                 GUILayout.BeginHorizontal();
                 {

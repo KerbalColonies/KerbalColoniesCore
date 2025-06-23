@@ -62,6 +62,8 @@ namespace KerbalColonies.UI
 
         public static GUIStyle navStyle;
 
+        public static GUIStyle ButtonNoBG;
+
         public static void SetStyles()
         {
             navStyle = new GUIStyle();
@@ -191,6 +193,10 @@ namespace KerbalColonies.UI
 
             ButtonDefault = new GUIStyle(GUI.skin.button);
 
+            ButtonNoBG = new GUIStyle(GUI.skin.button);
+            ButtonNoBG.normal.background = null;
+            ButtonNoBG.hover.background = null;
+            ButtonNoBG.active.background = null;
         }
     }
 }

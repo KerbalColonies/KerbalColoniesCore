@@ -102,10 +102,12 @@ namespace KerbalColonies
                     ScreenMessages.PostScreenMessage($"KC: {(Configuration.ClickToOpen ? "enabled" : "disabled")} clicking on buildings.", 10f, ScreenMessageStyle.UPPER_RIGHT);
                 }
             );
+
+            realTime = Time.time;
         }
 
         private int counter = 0;
-
+        private float realTime;
         public void Update()
         {
             Configuration.colonyDictionary.Values.SelectMany(x => x).ToList().ForEach(x => x.currentFrameUpdated = false);
@@ -115,10 +117,11 @@ namespace KerbalColonies
                 KCGroupEditor.selectedFacility.WhileBuildingPlaced(KCGroupEditor.selectedGroup);
             }
 
-            if (Planetarium.GetUniversalTime() - lastTime >= 10 || UpdateNextFrame)
+            if (Planetarium.GetUniversalTime() - lastTime >= 10 || UpdateNextFrame || Time.time - realTime >= 10)
             {
                 UpdateNextFrame = false;
                 lastTime = Planetarium.GetUniversalTime();
+                realTime = Time.time;
                 Configuration.colonyDictionary.Values.SelectMany(x => x).ToList().ForEach(x => x.UpdateColony());
             }
 
@@ -171,8 +174,8 @@ namespace KerbalColonies
                             colony.Facilities.ForEach(fac =>
                             {
                                 fac.KKgroups.ForEach(KKgroup => GetGroupStatics(KKgroup, bodyName).ForEach(s => ActivateStatic(s.UUID)));
-                                if (HighLogic.LoadedScene != GameScenes.SPACECENTER && fac is KCLaunchpadFacility && KerbalKonstructs.Core.LaunchSiteManager.GetLaunchSiteByName(((KCLaunchpadFacility)fac).launchSiteName) != null) KerbalKonstructs.Core.LaunchSiteManager.OpenLaunchSite(KerbalKonstructs.Core.LaunchSiteManager.GetLaunchSiteByName(((KCLaunchpadFacility)fac).launchSiteName));
                             });
+                            colony.UpdateColony();
                         });
                     });
                 }

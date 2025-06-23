@@ -299,6 +299,7 @@ namespace KerbalColonies.UI
         public static Texture tXPGained = GameDatabase.Instance.GetTexture("KerbalKonstructs/Assets/xpgained", false);
         public static Texture tXPUngained = GameDatabase.Instance.GetTexture("KerbalKonstructs/Assets/xpungained", false);
         public KerbalSelectorGUI ksg;
+        public bool disableTransferWindow { get; set; }
 
         public void StaffingInterface()
         {
@@ -379,7 +380,7 @@ namespace KerbalColonies.UI
 
             if (ksg != null)
             {
-                if (ksg.mode == KerbalSelectorGUI.SwitchModes.ActiveVessel && !fac.Colony.CAB.PlayerInColony || !fac.enabled) { GUI.enabled = false; }
+                if (ksg.mode == KerbalSelectorGUI.SwitchModes.ActiveVessel && !fac.Colony.CAB.PlayerInColony || disableTransferWindow) { GUI.enabled = false; }
                 GUILayout.BeginHorizontal();
                 {
                     if (GUILayout.Button("Assign/Retrive Kerbals", GUILayout.Height(23)))

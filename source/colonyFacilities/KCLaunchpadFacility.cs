@@ -1,7 +1,9 @@
-﻿using KerbalKonstructs;
-using System;
+﻿using KerbalColonies.Electricity;
+using KerbalColonies.UI;
+using KerbalKonstructs;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using UnityEngine;
 
 // KC: Kerbal Colonies
@@ -52,14 +54,86 @@ namespace KerbalColonies.colonyFacilities
     //    }
     //}
 
-    public class KCLaunchpadFacility : KCFacilityBase
+    public class KCLaunchpadFacilityWindow : KCFacilityWindowBase
     {
-        //KCLaunchpadFacilityWindow launchpadWindow;
+        KCLaunchpadFacility launchpad;
 
-        public string launchSiteUUID { get; private set; } = null;
-        public string launchSiteName { get; private set; } = "";
-        public KerbalKonstructs.Core.StaticInstance instance;
-        public ConfigNode sharedNode = null;
+        bool changeLaunchpadName = false;
+        KerbalKonstructs.Core.StaticInstance targetInstance;
+        int launchSiteNum;
+        string newName;
+        Vector2 scrollPos = Vector2.zero;
+        protected override void CustomWindow()
+        {
+            facility.Colony.UpdateColony();
+
+            GUILayout.Label($"Launch sites from this facility:");
+            scrollPos = GUILayout.BeginScrollView(scrollPos);
+            {
+                launchpad.launchSiteName.ToList().ForEach(kvp =>
+                {
+                    if (GUILayout.Button($"{kvp.Key}: {kvp.Value}", UIConfig.ButtonNoBG))
+                    {
+                        changeLaunchpadName = true;
+                        targetInstance = launchpad.instance[kvp.Key];
+                        launchSiteNum = kvp.Key;
+                        newName = targetInstance.launchSite.LaunchSiteName;
+                    }
+                });
+            }
+            GUILayout.EndScrollView();
+
+            if (changeLaunchpadName)
+            {
+                GUILayout.Label($"Changing name of launchpad {targetInstance.launchSite.LaunchSiteName}:");
+                newName = GUILayout.TextField(newName);
+
+                GUILayout.BeginHorizontal();
+                {
+                    if (GUILayout.Button("OK", GUILayout.Height(23)))
+                    {
+                        KerbalKonstructs.Core.LaunchSiteManager.DeleteLaunchSite(targetInstance.launchSite);
+                        targetInstance.launchSite.LaunchSiteName = newName;
+                        launchpad.launchSiteName[launchSiteNum] = targetInstance.launchSite.LaunchSiteName;
+                        KerbalKonstructs.Core.LaunchSiteManager.RegisterLaunchSite(targetInstance.launchSite);
+                        changeLaunchpadName = false;
+                    }
+                    if (GUILayout.Button("Cancel", GUILayout.Height(23)))
+                    {
+                        changeLaunchpadName = false;
+                    }
+                }
+                GUILayout.EndHorizontal();
+            }
+
+            if (facility.facilityInfo.ECperSecond[facility.level] > 0)
+            {
+                GUILayout.Label($"EC/s: {facility.facilityInfo.ECperSecond[facility.level]}");
+                GUILayout.BeginHorizontal();
+                {
+                    GUILayout.Label($"EC Consumption Priority: {launchpad.ECConsumptionPriority}", GUILayout.Height(18));
+                    GUILayout.FlexibleSpace();
+                    if (GUILayout.RepeatButton("--", GUILayout.Width(30), GUILayout.Height(23)) | GUILayout.Button("-", GUILayout.Width(30), GUILayout.Height(23))) launchpad.ECConsumptionPriority--;
+                    if (GUILayout.Button("+", GUILayout.Width(30), GUILayout.Height(23)) | GUILayout.RepeatButton("++", GUILayout.Width(30), GUILayout.Height(23))) launchpad.ECConsumptionPriority++;
+                }
+                GUILayout.EndHorizontal();
+            }
+        }
+        public KCLaunchpadFacilityWindow(KCLaunchpadFacility launchpad) : base(launchpad, Configuration.createWindowID())
+        {
+            this.launchpad = launchpad;
+            toolRect = new Rect(100, 100, 400, 300);
+        }
+    }
+
+    public class KCLaunchpadFacility : KCFacilityBase, KCECConsumer
+    {
+        KCLaunchpadFacilityWindow launchpadWindow;
+
+        public SortedDictionary<int, string> launchSiteUUID { get; protected set; } = new SortedDictionary<int, string> { };
+        public SortedDictionary<int, string> launchSiteName { get; protected set; } = new SortedDictionary<int, string> { };
+        public SortedDictionary<int, KerbalKonstructs.Core.StaticInstance> instance { get; protected set; } = new SortedDictionary<int, KerbalKonstructs.Core.StaticInstance> { };
+        public SortedDictionary<int, bool> customName { get; protected set; } = new SortedDictionary<int, bool> { };
 
         public override void OnGroupPlaced(KerbalKonstructs.Core.GroupCenter kkgroup)
         {
@@ -70,10 +144,7 @@ namespace KerbalColonies.colonyFacilities
                 if (uuid == null) GetUUIDbyFacility(this).FirstOrDefault();
                 if (uuid == null) throw new System.Exception("KC Launchpadfacility: unable to find any KK static for the launchpad.");
 
-                sharedNode = new ConfigNode("launchpadNode");
-                sharedNode.AddValue("uuid", uuid);
                 KerbalKonstructs.Core.StaticInstance targetInstance = KerbalKonstructs.API.getStaticInstanceByUUID(uuid);
-                instance = targetInstance;
                 if (targetInstance.launchSite == null)
                 {
                     targetInstance.launchSite = new KerbalKonstructs.Core.KKLaunchSite();
@@ -86,9 +157,8 @@ namespace KerbalColonies.colonyFacilities
                 string oldName = name;
                 bool oldState = baseInstance.launchSite.ILSIsActive;
 
-                launchSiteName = $"KC {HighLogic.CurrentGame.Seed.ToString()} {Colony.DisplayName} {DisplayName}";
-                targetInstance.launchSite.LaunchSiteName = launchSiteName;
-                sharedNode.AddValue("launchSiteName", launchSiteName);
+                launchSiteName.Add(level, $"KC {HighLogic.CurrentGame.Seed.ToString()} {Colony.DisplayName} {DisplayName} {level}");
+                targetInstance.launchSite.LaunchSiteName = launchSiteName[level];
                 targetInstance.launchSite.LaunchSiteLength = baseInstance.launchSite.LaunchSiteLength;
                 targetInstance.launchSite.LaunchSiteWidth = baseInstance.launchSite.LaunchSiteWidth;
                 targetInstance.launchSite.LaunchSiteHeight = baseInstance.launchSite.LaunchSiteHeight;
@@ -136,7 +206,7 @@ namespace KerbalColonies.colonyFacilities
                             ILSConfig.DropILSConfig(targetInstance.launchSite.LaunchSiteName, true);
                     }
                 }
-                
+
 
                 targetInstance.launchSite.ParseLSConfig(targetInstance, null);
                 targetInstance.SaveConfig();
@@ -146,8 +216,8 @@ namespace KerbalColonies.colonyFacilities
 
                 targetInstance.SaveConfig();
 
-                launchSiteUUID = uuid;
-                instance = KerbalKonstructs.API.getStaticInstanceByUUID(launchSiteUUID);
+                launchSiteUUID.Add(level, uuid);
+                instance.Add(level, targetInstance);
             }
             else
             {
@@ -266,79 +336,155 @@ namespace KerbalColonies.colonyFacilities
 
         public static KCLaunchpadFacility GetLaunchpadFacility(string launchSiteName)
         {
-            return Configuration.colonyDictionary.SelectMany(x => x.Value).SelectMany(c => KCLaunchpadFacility.GetLaunchPadsInColony(c)).FirstOrDefault(l =>
-                l.launchSiteName == launchSiteName
+            return Configuration.colonyDictionary.SelectMany(x => x.Value).SelectMany(c => KCFacilityBase.GetAllTInColony<KCLaunchpadFacility>(c)).FirstOrDefault(l =>
+                l.launchSiteName.ContainsValue(launchSiteName)
             );
         }
 
-        public static List<KCLaunchpadFacility> GetLaunchPadsInColony(colonyClass colony)
-        {
-            return colony.Facilities.Where(x => x is KCLaunchpadFacility).Select(x => (KCLaunchpadFacility)x).ToList();
-        }
-
         // DeleteLaunchsite currently internal, waiting till next KK update
-        //public override void OnColonyNameChange(string name)
-        //{
-        //    KerbalKonstructs.Core.StaticInstance launchSiteInstance = KerbalKonstructs.API.getStaticInstanceByUUID(launchSiteUUID);
-        //    launchSiteInstance.launchSite.LaunchSiteName = $"KC {HighLogic.CurrentGame.Seed.ToString()} {Colony.DisplayName} {DisplayName}";
-        //    KerbalKonstructs.Core.LaunchSiteManager.RegisterLaunchSite(launchSiteInstance.launchSite);
-        //    launchSiteInstance.SaveConfig();
-        //}
-
-        //public override void OnDisplayNameChange(string displayName)
-        //{
-        //    KerbalKonstructs.Core.StaticInstance launchSiteInstance = KerbalKonstructs.API.getStaticInstanceByUUID(launchSiteUUID);
-        //    KerbalKonstructs.Core.LaunchSiteManager.DeleteLaunchSite(launchSiteInstance.launchSite);
-        //    launchSiteInstance.launchSite.LaunchSiteName = $"KC {HighLogic.CurrentGame.Seed.ToString()} {Colony.DisplayName} {DisplayName}";
-        //    KerbalKonstructs.Core.LaunchSiteManager.RegisterLaunchSite(launchSiteInstance.launchSite);
-        //    launchSiteInstance.SaveConfig();
-        //}
-
-        public override ConfigNode GetSharedNode()
+        public override void OnColonyNameChange(string name)
         {
-            return sharedNode;
+            launchSiteName.ToList().ForEach(kvp =>
+            {
+                if (!customName[kvp.Key])
+                {
+                    KerbalKonstructs.Core.KKLaunchSite launchSite = instance[kvp.Key].launchSite;
+                    KerbalKonstructs.Core.LaunchSiteManager.DeleteLaunchSite(launchSite);
+                    launchSite.LaunchSiteName = $"KC {HighLogic.CurrentGame.Seed.ToString()} {Colony.DisplayName} {DisplayName} {kvp.Key}";
+                    launchSiteName[kvp.Key] = launchSite.LaunchSiteName;
+                    KerbalKonstructs.Core.LaunchSiteManager.RegisterLaunchSite(launchSite);
+                    instance[kvp.Key].SaveConfig();
+                }
+            });
         }
+
+        public override void OnDisplayNameChange(string displayName)
+        {
+            launchSiteName.ToList().ForEach(kvp =>
+            {
+                if (!customName[kvp.Key])
+                {
+                    KerbalKonstructs.Core.KKLaunchSite launchSite = instance[kvp.Key].launchSite;
+                    KerbalKonstructs.Core.LaunchSiteManager.DeleteLaunchSite(launchSite);
+                    launchSite.LaunchSiteName = $"KC {HighLogic.CurrentGame.Seed.ToString()} {Colony.DisplayName} {DisplayName} {kvp.Key}";
+                    launchSiteName[kvp.Key] = launchSite.LaunchSiteName;
+                    KerbalKonstructs.Core.LaunchSiteManager.RegisterLaunchSite(launchSite);
+                    instance[kvp.Key].SaveConfig();
+                }
+            });
+        }
+
+        public override void Update()
+        {
+            lastUpdateTime = Planetarium.GetUniversalTime();
+            if (built && !outOfEC)
+            {
+                if (!enabled)
+                {
+                    enabled = true;
+                    if (HighLogic.LoadedScene != GameScenes.SPACECENTER)
+                        instance.Values.ToList().ForEach(kkinstance => KerbalKonstructs.Core.LaunchSiteManager.OpenLaunchSite(kkinstance.launchSite));
+                }
+            }
+            else
+            {
+                if (enabled)
+                {
+                    enabled = false;
+                    if (HighLogic.LoadedScene != GameScenes.SPACECENTER)
+                        instance.Values.ToList().ForEach(kkinstance => KerbalKonstructs.Core.LaunchSiteManager.CloseLaunchSite(kkinstance.launchSite));
+                }
+            }
+        }
+
+        public bool outOfEC { get; protected set; } = false;
+        public int ECConsumptionPriority { get; set; } = 0;
+        public double ExpectedECConsumption(double lastTime, double deltaTime, double currentTime) => enabled || outOfEC ? facilityInfo.ECperSecond[level] * deltaTime : 0;
+
+        public void ConsumeEC(double lastTime, double deltaTime, double currentTime) => outOfEC = false;
+
+        public void ÍnsufficientEC(double lastTime, double deltaTime, double currentTime, double remainingEC) => outOfEC = true;
+
+        public double DailyECConsumption() => facilityInfo.ECperSecond[level] * 6 * 3600;
 
 
         public override ConfigNode getConfigNode()
         {
             ConfigNode node = base.getConfigNode();
-            if (launchSiteUUID != null)
+            node.AddValue("ECConsumptionPriority", ECConsumptionPriority);
+            ConfigNode levelNode = new ConfigNode("LaunchpadFacility");
+            launchSiteUUID.ToList().ForEach(kvp =>
             {
-                node.AddValue("launchSiteUUID", launchSiteUUID);
-                node.AddValue("launchSiteName", launchSiteName);
-            }
+                ConfigNode levelSubNode = new ConfigNode(kvp.Key.ToString());
+                levelSubNode.AddValue("launchSiteUUID", kvp.Value);
+                levelSubNode.AddValue("launchSiteName", launchSiteName[kvp.Key]);
+                levelSubNode.AddValue("customName", customName[kvp.Key]);
+                levelNode.AddNode(levelSubNode);
+            });
+            node.AddNode(levelNode);
             return node;
         }
 
         public override void OnBuildingClicked()
         {
-            //launchpadWindow.Toggle();
+            launchpadWindow.Toggle();
         }
 
         public override void OnRemoteClicked()
         {
+            launchpadWindow.Toggle();
             //if (Colony.CAB.PlayerInColony) launchpadWindow.Toggle();
             //else launchpadWindow.Close();
         }
 
-        public override string GetFacilityProductionDisplay() => $"Launch site: {launchSiteName} ({(instance != null ? instance.launchSite.LaunchSiteType.ToString() : "unknown")})";
+        public override string GetFacilityProductionDisplay()
+        {
+            StringBuilder sb = new StringBuilder();
+            sb.AppendLine("Available Launch Sites:");
+            instance.Values.ToList().ForEach(kkInstance => sb.AppendLine($"- {kkInstance.launchSite.LaunchSiteName} ({kkInstance.launchSite.LaunchSiteType})"));
+
+            return sb.ToString();
+        }
 
         public KCLaunchpadFacility(colonyClass colony, KCFacilityInfoClass facilityInfo, ConfigNode node) : base(colony, facilityInfo, node)
         {
-            launchSiteUUID = node.GetValue("launchSiteUUID");
-            launchSiteName = node.GetValue("launchSiteName");
-            if (launchSiteUUID != null)
-            instance = KerbalKonstructs.API.getStaticInstanceByUUID(launchSiteUUID);
+            if (node.HasValue("launchSiteUUID"))
+            {
+                launchSiteUUID.Add(0, node.GetValue("launchSiteUUID"));
+                launchSiteName.Add(0, node.GetValue("launchSiteName"));
+                instance.Add(0, KerbalKonstructs.API.getStaticInstanceByUUID(launchSiteUUID[0]));
+            }
+
+            if (node.HasNode("LaunchpadFacility"))
+            {
+                node.GetNode("LaunchpadFacility").GetNodes().ToList().ForEach(n =>
+                {
+                    int level = int.Parse(n.name);
+                    launchSiteUUID.Add(level, n.GetValue("launchSiteUUID"));
+                    launchSiteName.Add(level, n.GetValue("launchSiteName"));
+                    if (bool.TryParse(n.GetValue("customName"), out bool customname)) customName.Add(level, customname);
+                    else customName.Add(level, false);
+                    instance.Add(level, KerbalKonstructs.API.getStaticInstanceByUUID(launchSiteUUID[level]));
+                });
+            }
+
+            instance.ToList().ForEach(kvp =>
+            {
+                if (HighLogic.LoadedScene == GameScenes.SPACECENTER) KerbalKonstructs.Core.LaunchSiteManager.OpenLaunchSite(kvp.Value.launchSite);
+                else KerbalKonstructs.Core.LaunchSiteManager.OpenLaunchSite(kvp.Value.launchSite);
+            });
+
+            if (int.TryParse(node.GetValue("ECConsumptionPriority"), out int ecPriority)) ECConsumptionPriority = ecPriority;
+
             //launchpadWindow = new KCLaunchpadFacilityWindow(this);
-            AllowClick = false;
-            AllowRemote = false;
+
+            launchpadWindow = new KCLaunchpadFacilityWindow(this);
         }
 
         public KCLaunchpadFacility(colonyClass colony, KCFacilityInfoClass facilityInfo, bool enabled) : base(colony, facilityInfo, enabled)
         {
-            AllowClick = false;
-            AllowRemote = false;
+            launchpadWindow = new KCLaunchpadFacilityWindow(this);
+
             //launchpadWindow = new KCLaunchpadFacilityWindow(this);
         }
     }

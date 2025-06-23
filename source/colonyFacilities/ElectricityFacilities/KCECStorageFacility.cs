@@ -184,6 +184,12 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities
 
         public override void OnRemoteClicked() => window.Toggle();
 
+        public override void Update()
+        {
+            base.Update();
+            locked = built && locked;
+        }
+
         public override ConfigNode getConfigNode()
         {
             ConfigNode node = base.getConfigNode();

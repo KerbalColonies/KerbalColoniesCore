@@ -63,7 +63,7 @@ namespace KerbalColonies.UI
                 GUILayout.BeginHorizontal(borderOnlyStyle);
 
                 GUI.enabled = !showNameField;
-                if (GUILayout.Button(colony.DisplayName))
+                if (GUILayout.Button(colony.DisplayName, UIConfig.ButtonNoBG))
                 {
                     showNameField = true;
                     newTitle = colony.DisplayName;

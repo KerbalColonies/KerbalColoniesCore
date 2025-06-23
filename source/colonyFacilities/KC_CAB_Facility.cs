@@ -101,7 +101,7 @@ namespace KerbalColonies.colonyFacilities
         Vector2 scrollPosFacilities = new Vector2();
         protected override void CustomWindow()
         {
-            CABFacility.Update();
+            CABFacility.Colony.UpdateColony();
             bool playerInColony = CABFacility.PlayerInColony;
 
             SortedDictionary<Type, List<KCFacilityBase>> facilitiesByType = new SortedDictionary<Type, List<KCFacilityBase>>(Comparer<Type>.Create((x, y) => string.Compare(x.FullName, y.FullName)));

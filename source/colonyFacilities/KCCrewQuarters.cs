@@ -32,6 +32,18 @@ namespace KerbalColonies.colonyFacilities
         {
             GUILayout.BeginVertical();
             kerbalGUI.StaffingInterface();
+            if (facility.facilityInfo.ECperSecond[facility.level] > 0)
+            {
+                GUILayout.Space(10);
+                GUILayout.BeginHorizontal();
+                {
+                    GUILayout.Label($"EC Consumption Priority: {CrewQuarterFacility.ECConsumptionPriority}", GUILayout.Height(18));
+                    GUILayout.FlexibleSpace();
+                    if (GUILayout.RepeatButton("--", GUILayout.Width(30), GUILayout.Height(23)) | GUILayout.Button("-", GUILayout.Width(30), GUILayout.Height(23))) CrewQuarterFacility.ECConsumptionPriority--;
+                    if (GUILayout.Button("+", GUILayout.Width(30), GUILayout.Height(23)) | GUILayout.RepeatButton("++", GUILayout.Width(30), GUILayout.Height(23))) CrewQuarterFacility.ECConsumptionPriority++;
+                }
+                GUILayout.EndHorizontal();
+            }
             GUILayout.EndVertical();
         }
 
@@ -160,12 +172,19 @@ namespace KerbalColonies.colonyFacilities
 
         public override string GetFacilityProductionDisplay() => $"{kerbals.Count} / {MaxKerbals} kerbals assigned{(facilityInfo.ECperSecond[level] > 0 ? $"\nEC/s: {facilityInfo.ECperSecond[level]}" : "")}";
 
+        public override ConfigNode getConfigNode()
+        {
+            ConfigNode node = base.getConfigNode();
+            node.AddValue("ECConsumptionPriority", ECConsumptionPriority);
+            return node;
+        }
+
         public KCCrewQuarters(colonyClass colony, KCFacilityInfoClass facilityInfo, ConfigNode node) : base(colony, facilityInfo, node)
         {
             this.crewQuartersWindow = null;
             if (HighLogic.LoadedSceneIsFlight) kerbals.Keys.ToList().ForEach(kerbal => kerbal.rosterStatus = ProtoCrewMember.RosterStatus.Available);
             else kerbals.Keys.ToList().ForEach(kerbal => kerbal.rosterStatus = ProtoCrewMember.RosterStatus.Assigned);
-
+            if (int.TryParse(node.GetValue("ECConsumptionPriority"), out int ecPriority)) ECConsumptionPriority = ecPriority;
         }
 
         public KCCrewQuarters(colonyClass colony, KCFacilityInfoClass facilityInfo, bool enabled) : base(colony, facilityInfo, true)

@@ -305,16 +305,19 @@ namespace KerbalColonies.colonyFacilities
             GUI.enabled = true;
 
             storageFacility.locked = GUILayout.Toggle(storageFacility.locked, "Lock storage", GUILayout.Height(18));
-            GUILayout.Space(10);
 
-            GUILayout.BeginHorizontal();
+            if (facility.facilityInfo.ECperSecond[facility.level] > 0)
             {
-                GUILayout.Label($"EC Consumption Priority: {storageFacility.ECConsumptionPriority}", GUILayout.Height(18));
-                GUILayout.FlexibleSpace();
-                if (GUILayout.RepeatButton("--", GUILayout.Width(30), GUILayout.Height(23)) | GUILayout.Button("-", GUILayout.Width(30), GUILayout.Height(23))) storageFacility.ECConsumptionPriority--;
-                if (GUILayout.Button("+", GUILayout.Width(30), GUILayout.Height(23)) | GUILayout.RepeatButton("++", GUILayout.Width(30), GUILayout.Height(23))) storageFacility.ECConsumptionPriority++;
+                GUILayout.Space(10);
+                GUILayout.BeginHorizontal();
+                {
+                    GUILayout.Label($"EC Consumption Priority: {storageFacility.ECConsumptionPriority}", GUILayout.Height(18));
+                    GUILayout.FlexibleSpace();
+                    if (GUILayout.RepeatButton("--", GUILayout.Width(30), GUILayout.Height(23)) | GUILayout.Button("-", GUILayout.Width(30), GUILayout.Height(23))) storageFacility.ECConsumptionPriority--;
+                    if (GUILayout.Button("+", GUILayout.Width(30), GUILayout.Height(23)) | GUILayout.RepeatButton("++", GUILayout.Width(30), GUILayout.Height(23))) storageFacility.ECConsumptionPriority++;
+                }
+                GUILayout.EndHorizontal();
             }
-            GUILayout.EndHorizontal();
 
             trashResources = GUILayout.Toggle(trashResources, "Trash resources", GUILayout.Height(18));
             GUILayout.Label("Warning: enabling the trash resources option will delete the resource instead of transferring it to the vessel.");

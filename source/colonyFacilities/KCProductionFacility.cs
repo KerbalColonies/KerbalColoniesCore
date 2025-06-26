@@ -1,5 +1,7 @@
 ﻿using KerbalColonies.Electricity;
 using KerbalColonies.UI;
+using KerbalKonstructs.Modules;
+using KSP.UI.Screens.Mapview;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -99,6 +101,7 @@ namespace KerbalColonies.colonyFacilities
 
         public static void addAllTypes() => Configuration.BuildableFacilities.ForEach(info => addType(info));
 
+        protected override void OnOpen() => selectedType = null;
 
         protected override void CustomWindow()
         {
@@ -117,35 +120,49 @@ namespace KerbalColonies.colonyFacilities
                         GUILayout.BeginVertical(GUILayout.Width(300));
                         {
                             kerbalGUI.StaffingInterface();
+                            GUILayout.Space(10);
+                            GUILayout.Label($"Daily production: {productionFacility.dailyProduction():f2}");
                         }
                         GUILayout.EndVertical();
                         GUILayout.BeginVertical(GUILayout.Width(300));
-                        scrollPosTypeOverview = GUILayout.BeginScrollView(scrollPosTypeOverview);
                         {
-                            SortedTypes.ToList().ForEach(kvp =>
+                            scrollPosTypeOverview = GUILayout.BeginScrollView(scrollPosTypeOverview);
                             {
-                                if (GUILayout.Button($"{kvp.Key.Name} ({kvp.Value.Count})"))
+                                SortedTypes.ToList().ForEach(kvp =>
                                 {
-                                    if (selectedType == kvp.Key)
+                                    if (GUILayout.Button($"{kvp.Key.Name} ({kvp.Value.Count})"))
                                     {
-                                        selectedType = null;
-                                        toolRect = new Rect(toolRect.x, toolRect.y, 620, 700);
+                                        if (selectedType == kvp.Key)
+                                        {
+                                            selectedType = null;
+                                            toolRect = new Rect(toolRect.x, toolRect.y, 620, 700);
+                                        }
+                                        else
+                                        {
+                                            selectedType = kvp.Key;
+                                            toolRect = new Rect(toolRect.x, toolRect.y, 1110, 700);
+                                        }
                                     }
-                                    else
-                                    {
-                                        selectedType = kvp.Key;
-                                        toolRect = new Rect(toolRect.x, toolRect.y, 1110, 700);
-                                    }
+                                });
+                            }
+                            GUILayout.EndScrollView();
+                            if (facility.facilityInfo.ECperSecond[facility.level] > 0)
+                            {
+                                GUILayout.Space(10);
+                                GUILayout.BeginHorizontal();
+                                {
+                                    GUILayout.Label($"EC Consumption Priority: {productionFacility.ECConsumptionPriority}", GUILayout.Height(18));
+                                    GUILayout.FlexibleSpace();
+                                    if (GUILayout.RepeatButton("--", GUILayout.Width(30), GUILayout.Height(23)) | GUILayout.Button("-", GUILayout.Width(30), GUILayout.Height(23))) productionFacility.ECConsumptionPriority--;
+                                    if (GUILayout.Button("+", GUILayout.Width(30), GUILayout.Height(23)) | GUILayout.RepeatButton("++", GUILayout.Width(30), GUILayout.Height(23))) productionFacility.ECConsumptionPriority++;
                                 }
-                            });
+                                GUILayout.EndHorizontal();
+                            }
                         }
-                        GUILayout.EndScrollView();
                         GUILayout.EndVertical();
                     }
                     GUILayout.EndHorizontal();
 
-                    GUILayout.Space(10);
-                    GUILayout.Label($"Daily production: {productionFacility.dailyProduction():f2}");
                     GUILayout.Space(10);
                     GUILayout.Label("Unfinished facilities");
 
@@ -155,7 +172,7 @@ namespace KerbalColonies.colonyFacilities
                         GUILayout.BeginVertical();
                         {
                             GUILayout.Label("Upgrading Facilities:");
-                            productionFacility.Colony.CAB.UpgradingFacilities.ToList().ForEach(pair =>
+                            KCProductionFacility.UpgradingFacilities[facility.Colony].ToList().ForEach(pair =>
                             {
                                 GUILayout.BeginHorizontal();
                                 GUILayout.Label(pair.Key.DisplayName);
@@ -167,7 +184,7 @@ namespace KerbalColonies.colonyFacilities
 
                             GUILayout.Space(10);
 
-                            productionFacility.Colony.CAB.ConstructingFacilities.ToList().ForEach(pair =>
+                            KCProductionFacility.ConstructingFacilities[facility.Colony].ToList().ForEach(pair =>
                             {
                                 GUILayout.BeginHorizontal();
                                 GUILayout.Label(pair.Key.DisplayName);
@@ -322,8 +339,35 @@ namespace KerbalColonies.colonyFacilities
 
     public class KCProductionFacility : KCKerbalFacilityBase, KCECConsumer
     {
-        public static bool facilityQueue = false;
-        public static bool vesselQueue = false;
+        public static Dictionary<colonyClass, Dictionary<KCFacilityBase, double>> ConstructingFacilities { get; protected set; } = new Dictionary<colonyClass, Dictionary<KCFacilityBase, double>>();
+        public static Dictionary<colonyClass, List<KCFacilityBase>> ConstructedFacilities { get; protected set; } = new Dictionary<colonyClass, List<KCFacilityBase>>();
+        public static Dictionary<colonyClass, Dictionary<KCFacilityBase, double>> UpgradingFacilities { get; protected set; } = new Dictionary<colonyClass, Dictionary<KCFacilityBase, double>>();
+        public static Dictionary<colonyClass, List<KCFacilityBase>> UpgradedFacilities { get; protected set; } = new Dictionary<colonyClass, List<KCFacilityBase>>();
+
+        public static void AddConstructingFacility(KCFacilityBase facility, double time)
+        {
+            ConstructingFacilities[facility.Colony].TryAdd(facility, time);
+        }
+
+        public static void AddConstructedFacility(KCFacilityBase facility)
+        {
+            ConstructingFacilities[facility.Colony].Remove(facility);
+            ConstructedFacilities[facility.Colony].Add(facility);
+        }
+
+        public static void AddUpgradingFacility(KCFacilityBase facility, double time)
+        {
+            UpgradingFacilities[facility.Colony].TryAdd(facility, time);
+        }
+
+        public static void AddUpgradedFacility(KCFacilityBase facility)
+        {
+            UpgradingFacilities[facility.Colony].Remove(facility);
+            UpgradedFacilities[facility.Colony].Add(facility);
+        }
+
+        public bool FacilityQueue => ConstructingFacilities[Colony].Count > 0 || UpgradingFacilities[Colony].Count > 0;
+        public bool VesselQueue => KCHangarFacility.GetConstructingVessels(Colony).Count > 0;
 
         private static double getDeltaTime(colonyClass colony)
         {
@@ -340,9 +384,11 @@ namespace KerbalColonies.colonyFacilities
             timeNode.SetValue("lastTime", Planetarium.GetUniversalTime().ToString());
             return deltaTime;
         }
+
         public static void ExecuteProduction(colonyClass colony)
         {
             double dt = getDeltaTime(colony);
+            if (dt == 0) return;
 
             KCProductionFacility.DailyProductions(colony, out double dailyProduction, out double dailyVesselProduction);
 
@@ -353,7 +399,6 @@ namespace KerbalColonies.colonyFacilities
 
             if (constructingVessel.Count > 0)
             {
-                vesselQueue = true;
                 while (dailyVesselProduction > 0 && constructingVessel.Count > 0)
                 {
                     if (constructingVessel[0].vesselBuildTime > dailyVesselProduction)
@@ -386,28 +431,26 @@ namespace KerbalColonies.colonyFacilities
                     }
                 }
             }
-            else vesselQueue = false;
 
             dailyProduction += dailyVesselProduction;
 
-            if (colony.CAB.UpgradingFacilities.Count > 0 || colony.CAB.ConstructingFacilities.Count > 0)
+            if (UpgradingFacilities[colony].Count > 0 || ConstructingFacilities[colony].Count > 0)
             {
-                facilityQueue = true;
                 while (dailyProduction > 0)
                 {
-                    if (colony.CAB.UpgradingFacilities.Count > 0)
+                    if (UpgradingFacilities[colony].Count > 0)
                     {
-                        if (colony.CAB.UpgradingFacilities.ElementAt(0).Value > dailyProduction)
+                        if (UpgradingFacilities[colony].ElementAt(0).Value > dailyProduction)
                         {
-                            colony.CAB.UpgradingFacilities[colony.CAB.UpgradingFacilities.ElementAt(0).Key] -= dailyProduction;
+                            UpgradingFacilities[colony][UpgradingFacilities[colony].ElementAt(0).Key] -= dailyProduction;
                             dailyProduction = 0;
                             break;
                         }
                         else
                         {
-                            KCFacilityBase facility = colony.CAB.UpgradingFacilities.ElementAt(0).Key;
-                            dailyProduction -= colony.CAB.UpgradingFacilities.ElementAt(0).Value;
-                            colony.CAB.UpgradingFacilities.Remove(facility);
+                            KCFacilityBase facility = UpgradingFacilities[colony].ElementAt(0).Key;
+                            dailyProduction -= UpgradingFacilities[colony].ElementAt(0).Value;
+                            UpgradingFacilities[colony].Remove(facility);
 
                             ScreenMessages.PostScreenMessage($"KC: Facility {facility.DisplayName} was fully upgraded on colony {colony.DisplayName}", 10f, ScreenMessageStyle.UPPER_RIGHT);
 
@@ -420,25 +463,25 @@ namespace KerbalColonies.colonyFacilities
                                     KCFacilityBase.UpgradeFacilityWithoutGroupChange(facility);
                                     break;
                                 case UpgradeType.withAdditionalGroup:
-                                    colony.CAB.addUpgradedFacility(facility);
+                                    KCProductionFacility.AddUpgradedFacility(facility);
                                     break;
                             }
                         }
                     }
-                    else if (colony.CAB.ConstructingFacilities.Count > 0)
+                    else if (ConstructingFacilities[colony].Count > 0)
                     {
-                        if (colony.CAB.ConstructingFacilities.ElementAt(0).Value > dailyProduction)
+                        if (ConstructingFacilities[colony].First().Value > dailyProduction)
                         {
-                            colony.CAB.ConstructingFacilities[colony.CAB.ConstructingFacilities.ElementAt(0).Key] -= dailyProduction;
+                            ConstructingFacilities[colony][ConstructingFacilities[colony].First().Key] -= dailyProduction;
                             dailyProduction = 0;
                             break;
                         }
                         else
                         {
-                            KCFacilityBase facility = colony.CAB.ConstructingFacilities.ElementAt(0).Key;
-                            dailyProduction -= colony.CAB.ConstructingFacilities.ElementAt(0).Value;
-                            colony.CAB.ConstructingFacilities.Remove(facility);
-                            colony.CAB.addConstructedFacility(facility);
+                            KCFacilityBase facility = ConstructingFacilities[colony].ElementAt(0).Key;
+                            dailyProduction -= ConstructingFacilities[colony].ElementAt(0).Value;
+                            ConstructingFacilities[colony].Remove(facility);
+                            KCProductionFacility.AddConstructedFacility(facility);
                             ScreenMessages.PostScreenMessage($"KC: Facility {facility.DisplayName} was fully built on colony {colony.DisplayName}", 10f, ScreenMessageStyle.UPPER_RIGHT);
                         }
                     }
@@ -448,7 +491,6 @@ namespace KerbalColonies.colonyFacilities
                     }
                 }
             }
-            else facilityQueue = false;
         }
 
         public static void DailyProductions(colonyClass colony, out double dailyProduction, out double dailyVesselProduction)
@@ -498,7 +540,7 @@ namespace KerbalColonies.colonyFacilities
         public override void Update()
         {
             lastUpdateTime = Planetarium.GetUniversalTime();
-            enabled = !outOfEC && built && (facilityQueue || vesselQueue && KCProductionInfo.CanBuildVessels(level));
+            enabled = !outOfEC && built && (FacilityQueue || VesselQueue && KCProductionInfo.CanBuildVessels(level));
         }
 
         public override void OnBuildingClicked()
@@ -526,9 +568,59 @@ namespace KerbalColonies.colonyFacilities
 
         public override ConfigNode getConfigNode()
         {
+            UpdateSharedNode(Colony);
+
             ConfigNode node = base.getConfigNode();
             node.AddValue("ECConsumptionPriority", ECConsumptionPriority);
             return node;
+        }
+
+        public void UpdateSharedNode(colonyClass colony)
+        {
+            ConfigNode production = colony.sharedColonyNodes.FirstOrDefault(n => n.name == "production");
+            if (production == null)
+            {
+                production = new ConfigNode("production");
+                colony.sharedColonyNodes.Add(production);
+            }
+
+            ConfigNode constructingFacilities = new ConfigNode("constructingFacilities");
+            ConstructingFacilities[colony].ToList().ForEach(pair =>
+            {
+                ConfigNode facilityNode = new ConfigNode("facilityNode");
+                facilityNode.AddValue("facilityID", pair.Key.id);
+                facilityNode.AddValue("remainingTime", pair.Value);
+                constructingFacilities.AddNode(facilityNode);
+            });
+            production.AddNode(constructingFacilities);
+
+            ConfigNode constructedFacilities = new ConfigNode("constructedFacilities");
+            ConstructedFacilities[colony].ForEach(facility =>
+            {
+                ConfigNode facilityNode = new ConfigNode("facilityNode");
+                facilityNode.AddValue("facilityID", facility.id);
+                constructedFacilities.AddNode(facilityNode);
+            });
+            production.AddNode(constructedFacilities);
+
+            ConfigNode upgradingFacilities = new ConfigNode("upgradingFacilities");
+            UpgradingFacilities[colony].ToList().ForEach(pair =>
+            {
+                ConfigNode facilityNode = new ConfigNode("facilityNode");
+                facilityNode.AddValue("facilityID", pair.Key.id);
+                facilityNode.AddValue("remainingTime", pair.Value);
+                upgradingFacilities.AddNode(facilityNode);
+            });
+            production.AddNode(upgradingFacilities);
+
+            ConfigNode upgradedFacilities = new ConfigNode("upgradedFacilities");
+            UpgradedFacilities[colony].ForEach(facility =>
+            {
+                ConfigNode facilityNode = new ConfigNode("facilityNode");
+                facilityNode.AddValue("facilityID", facility.id);
+                upgradedFacilities.AddNode(facilityNode);
+            });
+            production.AddNode(upgradedFacilities);
         }
 
         private void configNodeLoader()
@@ -547,6 +639,39 @@ namespace KerbalColonies.colonyFacilities
                     Colony.sharedColonyNodes.Add(vesselBuildInfo);
                 }
             }
+
+            if (ConstructingFacilities.TryAdd(Colony, new Dictionary<KCFacilityBase, double>()))
+            {
+                ConstructedFacilities.Add(Colony, new List<KCFacilityBase>());
+                UpgradingFacilities.Add(Colony, new Dictionary<KCFacilityBase, double>());
+                UpgradedFacilities.Add(Colony, new List<KCFacilityBase>());
+
+                ConfigNode production = Colony.sharedColonyNodes.FirstOrDefault(n => n.name == "production");
+                if (production != null)
+                {
+                    foreach (ConfigNode facilityNode in production.GetNode("constructingFacilities").GetNodes("facilityNode"))
+                    {
+                        KCFacilityBase facility = KCFacilityBase.GetFacilityByID(int.Parse(facilityNode.GetValue("facilityID")));
+                        if (facility != null) AddConstructingFacility(facility, double.Parse(facilityNode.GetValue("remainingTime")));
+                    }
+                    foreach (ConfigNode facilityNode in production.GetNode("constructedFacilities").GetNodes("facilityNode"))
+                    {
+                        KCFacilityBase facility = KCFacilityBase.GetFacilityByID(int.Parse(facilityNode.GetValue("facilityID")));
+                        if (facility != null) AddConstructedFacility(facility);
+                    }
+                    foreach (ConfigNode facilityNode in production.GetNode("upgradingFacilities").GetNodes("facilityNode"))
+                    {
+                        KCFacilityBase facility = KCFacilityBase.GetFacilityByID(int.Parse(facilityNode.GetValue("facilityID")));
+                        if (facility != null) AddUpgradingFacility(facility, double.Parse(facilityNode.GetValue("remainingTime")));
+                    }
+                    foreach (ConfigNode facilityNode in production.GetNode("upgradedFacilities").GetNodes("facilityNode"))
+                    {
+                        KCFacilityBase facility = KCFacilityBase.GetFacilityByID(int.Parse(facilityNode.GetValue("facilityID")));
+                        if (facility != null) AddUpgradedFacility(facility);
+                    }
+                }
+            }
+
         }
 
         public KCProductionFacility(colonyClass colony, KCFacilityInfoClass facilityInfo, ConfigNode node) : base(colony, facilityInfo, node)

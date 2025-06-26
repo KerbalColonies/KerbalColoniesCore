@@ -1,4 +1,5 @@
-﻿using KerbalColonies.UI;
+﻿using KerbalColonies.Electricity;
+using KerbalColonies.UI;
 using Steamworks;
 using System;
 using System.Collections.Generic;
@@ -66,12 +67,21 @@ namespace KerbalColonies.colonyFacilities
 
             kerbalGUI.StaffingInterface();
 
-            GUILayout.BeginHorizontal();
+            GUI.enabled = facility.enabled;
             if (GUILayout.Button("Retrieve Science Points"))
-            {
                 researchFacility.RetrieveSciencePoints();
+
+            if (facility.facilityInfo.ECperSecond[facility.level] > 0)
+            {
+                GUILayout.BeginHorizontal();
+                {
+                    GUILayout.Label($"EC Consumption Priority: {researchFacility.ECConsumptionPriority}", GUILayout.Height(18));
+                    GUILayout.FlexibleSpace();
+                    if (GUILayout.RepeatButton("--", GUILayout.Width(30), GUILayout.Height(23)) | GUILayout.Button("-", GUILayout.Width(30), GUILayout.Height(23))) researchFacility.ECConsumptionPriority--;
+                    if (GUILayout.Button("+", GUILayout.Width(30), GUILayout.Height(23)) | GUILayout.RepeatButton("++", GUILayout.Width(30), GUILayout.Height(23))) researchFacility.ECConsumptionPriority++;
+                }
+                GUILayout.EndHorizontal();
             }
-            GUILayout.EndHorizontal();
         }
 
         protected override void OnClose()
@@ -92,7 +102,7 @@ namespace KerbalColonies.colonyFacilities
     }
 
 
-    public class KCResearchFacility : KCKerbalFacilityBase
+    public class KCResearchFacility : KCKerbalFacilityBase, KCECConsumer
     {
         protected KCResearchFacilityWindow researchFacilityWindow;
 
@@ -108,6 +118,8 @@ namespace KerbalColonies.colonyFacilities
             double deltaTime = Planetarium.GetUniversalTime() - lastUpdateTime;
 
             lastUpdateTime = Planetarium.GetUniversalTime();
+            enabled = built && kerbals.Count > 0 && !outOfEC;
+            if (enabled)
             sciencePoints = Math.Min(researchFacilityInfo.maxSciencePoints[level], sciencePoints + ((researchFacilityInfo.sciencePointsPerDayperResearcher[level] / 6 / 60 / 60) * deltaTime) * kerbals.Count);
         }
 
@@ -125,7 +137,7 @@ namespace KerbalColonies.colonyFacilities
 
         public bool RetrieveSciencePoints()
         {
-            if (sciencePoints > 0)
+            if (sciencePoints > 0 && enabled)
             {
                 if (ResearchAndDevelopment.Instance == null)
                 {
@@ -139,10 +151,22 @@ namespace KerbalColonies.colonyFacilities
             return false;
         }
 
+        public int ECConsumptionPriority { get; set; } = 0;
+        public bool outOfEC { get; set; } = false;
+        public double ExpectedECConsumption(double lastTime, double deltaTime, double currentTime) =>
+            (kerbals.Count is int count && count > 0) ? facilityInfo.ECperSecond[level] * deltaTime * count : 0;
+
+        public void ConsumeEC(double lastTime, double deltaTime, double currentTime) => outOfEC = false;
+
+        public void ÍnsufficientEC(double lastTime, double deltaTime, double currentTime, double remainingEC) => outOfEC = true;
+
+        public double DailyECConsumption() => facilityInfo.ECperSecond[level] * 6 * 3600;
+
         public override ConfigNode getConfigNode()
         {
             ConfigNode node = base.getConfigNode();
             node.AddValue("sciencePoints", sciencePoints);
+            node.AddValue("ECConsumptionPriority", ECConsumptionPriority);
 
             return node;
         }
@@ -150,6 +174,7 @@ namespace KerbalColonies.colonyFacilities
         public KCResearchFacility(colonyClass colony, KCFacilityInfoClass facilityInfo, ConfigNode node) : base(colony, facilityInfo, node)
         {
             sciencePoints = double.Parse(node.GetValue("sciencePoints"));
+            if (int.TryParse(node.GetValue("ECConsumptionPriority"), out int ecPriority)) ECConsumptionPriority = ecPriority;
             this.researchFacilityWindow = new KCResearchFacilityWindow(this);
         }
 

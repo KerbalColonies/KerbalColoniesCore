@@ -153,6 +153,15 @@ namespace KerbalColonies.colonyFacilities
                     targetInstance.launchSite.staticInstance = targetInstance;
                     targetInstance.launchSite.body = targetInstance.CelestialBody;
                 }
+                else
+                {
+                    KerbalKonstructs.Core.LaunchSiteManager.DeleteLaunchSite(targetInstance.launchSite);
+                    targetInstance.launchSite = new KerbalKonstructs.Core.KKLaunchSite();
+                    targetInstance.hasLauchSites = true;
+
+                    targetInstance.launchSite.staticInstance = targetInstance;
+                    targetInstance.launchSite.body = targetInstance.CelestialBody;
+                }
 
                 string oldName = name;
                 bool oldState = baseInstance.launchSite.ILSIsActive;

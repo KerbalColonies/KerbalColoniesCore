@@ -1,0 +1,155 @@
+﻿using CommNet;
+using KerbalKonstructs.Core;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Text.RegularExpressions;
+using System.Threading.Tasks;
+using UnityEngine.SocialPlatforms;
+
+namespace KerbalColonies.colonyFacilities.Commnet
+{
+    public class KCCommNetNodeInfo : IComparable<KCCommNetNodeInfo>, IComparer<KCCommNetNodeInfo>
+    {
+        public KerbalKonstructs.Core.GroupCenter GroupCenter { get; protected set; }
+        public string Name { get; protected set; }
+        public bool CustomName { get; protected set; } = false;
+        public double Range { get; protected set; } = 500000d;
+        public bool Enabled { get; protected set; } = true;
+        public int FacilityLevel { get; protected set; } = 0;
+
+        public void SetCustomName(string name)
+        {
+            if (string.IsNullOrEmpty(name))
+            {
+                throw new ArgumentException("Name cannot be null or empty.", nameof(name));
+            }
+            Name = name;
+            CustomName = true;
+            GroupCenter.gameObject.GetComponents<CommNetHome>().ToList().ForEach(node => UnityEngine.Object.Destroy(node));
+            CommNetHome commNetStation = GroupCenter.gameObject.AddComponent<CommNetHome>();
+            commNetStation.nodeName = Name;
+            commNetStation.displaynodeName = Name;
+            commNetStation.enabled = true;
+            commNetStation.antennaPower = Range;
+            commNetStation.isKSC = false;
+            commNetStation.isPermanent = false;
+            CommNet.CommNetNetwork.Reset();
+
+        }
+
+        public void SetRange(double range)
+        {
+            if (range <= 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(range), "Range must be greater than zero.");
+            }
+            Range = range;
+            GroupCenter.gameObject.GetComponents<CommNetHome>().ToList().ForEach(node => UnityEngine.Object.Destroy(node));
+            CommNetHome commNetStation = GroupCenter.gameObject.AddComponent<CommNetHome>();
+            commNetStation.nodeName = Name;
+            commNetStation.displaynodeName = Name;
+            commNetStation.enabled = true;
+            commNetStation.antennaPower = Range;
+            commNetStation.isKSC = false;
+            commNetStation.isPermanent = false;
+            CommNet.CommNetNetwork.Reset();
+
+        }
+
+        public void Enable()
+        {
+            if (Enabled) return;
+            Configuration.writeDebug("Enabling CommNet Node: " + Name);
+            Enabled = true;
+            GroupCenter.gameObject.GetComponents<CommNetHome>().ToList().ForEach(node => UnityEngine.Object.Destroy(node));
+            CommNetHome commNetStation = GroupCenter.gameObject.AddComponent<CommNetHome>();
+            commNetStation.nodeName = Name;
+            commNetStation.displaynodeName = Name;
+            commNetStation.enabled = true;
+            commNetStation.antennaPower = Range;
+            commNetStation.isKSC = false;
+            commNetStation.isPermanent = false;
+            CommNet.CommNetNetwork.Reset();
+        }
+
+        public void Disable()
+        {
+            if (!Enabled) return;
+            Configuration.writeDebug("Disabling CommNet Node: " + Name);
+            Enabled = false;
+            GroupCenter.gameObject.GetComponents<CommNetHome>().ToList().ForEach(node => UnityEngine.Object.Destroy(node));
+            CommNet.CommNetNetwork.Reset();
+        }
+
+        public ConfigNode GetConfigNode()
+        {
+            ConfigNode node = new ConfigNode("CommNetNode");
+            node.AddValue("groupCenter", GroupCenter.Group);
+            node.AddValue("name", Name);
+            node.AddValue("range", Range);
+            node.AddValue("enabled", Enabled);
+            if (CustomName) node.AddValue("customName", true);
+            node.AddValue("facilityLevel", FacilityLevel);
+            return node;
+        }
+
+        public int CompareTo(KCCommNetNodeInfo other)
+        {
+            if (ReferenceEquals(null, other)) return 1; // null is less than any instance
+            else if (ReferenceEquals(this, other)) return 0; // same instance
+            else return FacilityLevel.CompareTo(other.FacilityLevel);
+        }
+
+        public int Compare(KCCommNetNodeInfo x, KCCommNetNodeInfo y)
+        {
+            if (ReferenceEquals(x, y)) return 0; // same instance
+            if (ReferenceEquals(x, null)) return -1; // null is less than any instance
+            if (ReferenceEquals(y, null)) return 1; // any instance is greater than null
+            return x.FacilityLevel.CompareTo(y.FacilityLevel);
+        }
+
+        public KCCommNetNodeInfo(KCCommNetFacility facility, ConfigNode node)
+        {
+            string groupCenterName = node.GetValue("groupCenter");
+            GroupCenter = KerbalKonstructs.API.GetGroupCenter(facility.KKgroups.First(g => g == groupCenterName), facility.Colony.BodyName);
+            Name = node.GetValue("name");
+            Range = double.Parse(node.GetValue("range"));
+            Enabled = bool.Parse(node.GetValue("enabled"));
+            if (node.HasValue("customName")) CustomName = true;
+            else CustomName = false;
+            FacilityLevel = int.Parse(node.GetValue("facilityLevel"));
+
+            GroupCenter.gameObject.GetComponents<CommNetHome>().ToList().ForEach(c => UnityEngine.Object.Destroy(c));
+            CommNetHome commNetNode = GroupCenter.gameObject.AddComponent<CommNetHome>();
+            commNetNode.nodeName = Name;
+            commNetNode.displaynodeName = Name;
+            commNetNode.enabled = true;
+            commNetNode.antennaPower = Range;
+            commNetNode.isKSC = false;
+            commNetNode.isPermanent = false;
+            CommNet.CommNetNetwork.Reset();
+        }
+
+        public KCCommNetNodeInfo(KerbalKonstructs.Core.GroupCenter groupCenter, string name = null, double range = 500000d, bool enabled = true, int facilityLevel = 0)
+        {
+            GroupCenter = groupCenter;
+            if (name != null) Name = name;
+            else Name = groupCenter.Group;
+            Range = range;
+            Enabled = enabled;
+            FacilityLevel = facilityLevel;
+
+            groupCenter.gameObject.GetComponents<CommNetHome>().ToList().ForEach(node => UnityEngine.Object.Destroy(node));
+            CommNetHome commNetNode = groupCenter.gameObject.AddComponent<CommNetHome>();
+            commNetNode.nodeName = Name;
+            commNetNode.displaynodeName = Name;
+            commNetNode.enabled = true;
+            commNetNode.antennaPower = Range;
+            commNetNode.isKSC = false;
+            commNetNode.isPermanent = false;
+            CommNet.CommNetNetwork.Reset();
+        }
+    }
+}

@@ -35,7 +35,7 @@ namespace KerbalColonies.UI
             }
         }
 
-        private Vector2 scrollPointer;
+        private Vector2 scrollPos;
 
         private bool showNameField = false;
         private string newTitle;
@@ -57,25 +57,26 @@ namespace KerbalColonies.UI
 
             GUILayout.Label("Colony list:");
 
-            GUILayout.BeginScrollView(scrollPointer);
+            scrollPos = GUILayout.BeginScrollView(scrollPos);
             Configuration.colonyDictionary.SelectMany(x => x.Value).ToList().ForEach(colony =>
             {
                 GUILayout.BeginHorizontal(borderOnlyStyle);
-
-                GUI.enabled = !showNameField;
-                if (GUILayout.Button(colony.DisplayName, UIConfig.ButtonNoBG))
                 {
-                    showNameField = true;
-                    newTitle = colony.DisplayName;
-                    selectedColony = colony;
-                }
+                    GUI.enabled = !showNameField;
+                    if (GUILayout.Button(colony.DisplayName, UIConfig.ButtonNoBG))
+                    {
+                        showNameField = true;
+                        newTitle = colony.DisplayName;
+                        selectedColony = colony;
+                    }
 
-                GUI.enabled = true;
-                GUILayout.FlexibleSpace();
-                if (GUILayout.Button("Open CAB"))
-                {
-                    colony.CAB.Update();
-                    colony.CAB.OnRemoteClicked();
+                    GUI.enabled = true;
+                    GUILayout.FlexibleSpace();
+                    if (GUILayout.Button("Open CAB"))
+                    {
+                        colony.CAB.Update();
+                        colony.CAB.OnRemoteClicked();
+                    }
                 }
                 GUILayout.EndHorizontal();
                 GUILayout.Space(5);

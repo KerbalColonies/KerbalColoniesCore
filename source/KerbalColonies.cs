@@ -106,7 +106,6 @@ namespace KerbalColonies
             realTime = Time.time;
         }
 
-        private int counter = 0;
         private float realTime;
         public void Update()
         {

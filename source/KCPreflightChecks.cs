@@ -343,7 +343,6 @@ namespace KerbalColonies
         public static int funds { get; set; } = 0; // funds needed to launch
         string launchSiteName;
         bool allowLaunch = false;
-        private colonyClass colony;
         private Dictionary<string, double> Insufficientresources = new Dictionary<string, double>();
         private string message = string.Empty;
         private bool canProceed = false;

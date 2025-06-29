@@ -1,4 +1,5 @@
 ﻿using KerbalColonies.colonyFacilities;
+using KerbalColonies.colonyFacilities.Commnet;
 using KerbalColonies.colonyFacilities.ElectricityFacilities;
 using KerbalColonies.colonyFacilities.KCMiningFacility;
 using KerbalColonies.colonyFacilities.KCResourceConverterFacility;
@@ -113,9 +114,11 @@ namespace KerbalColonies
             KCFacilityTypeRegistry.RegisterType<KCHangarFacility>();
             KCFacilityTypeRegistry.RegisterType<KCLaunchpadFacility>();
             KCFacilityTypeRegistry.RegisterType<KCCommNetFacility>();
+            KCFacilityTypeRegistry.RegisterType<KCGroundstationFacility>();
 
             KCFacilityTypeRegistry.RegisterFacilityInfo<KC_CAB_Facility, KC_CABInfo>();
-            KCFacilityTypeRegistry.RegisterFacilityInfo<KCCommNetFacility, KCFacilityInfoClass>();
+            KCFacilityTypeRegistry.RegisterFacilityInfo<KCCommNetFacility, KCCommnetInfo>();
+            KCFacilityTypeRegistry.RegisterFacilityInfo<KCGroundstationFacility, KCGroundStationInfo>();
             KCFacilityTypeRegistry.RegisterFacilityInfo<KCCrewQuarters, KCKerbalFacilityInfoClass>();
             KCFacilityTypeRegistry.RegisterFacilityInfo<KCHangarFacility, KCHangarInfo>();
             KCFacilityTypeRegistry.RegisterFacilityInfo<KCLaunchpadFacility, KCFacilityInfoClass>();

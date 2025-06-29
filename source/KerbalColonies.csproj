@@ -41,7 +41,9 @@
   <ItemGroup>
     <Compile Include="ColonyBuilding.cs" />
     <Compile Include="colonyClass.cs" />
+    <Compile Include="colonyFacilities\Commnet\KCCommnetInfo.cs" />
     <Compile Include="colonyFacilities\Commnet\KCCommNetNodeInfo.cs" />
+    <Compile Include="colonyFacilities\Commnet\KCGroundstationFacility.cs" />
     <Compile Include="colonyFacilities\ElectricityFacilities\KCECStorageFacility.cs" />
     <Compile Include="colonyFacilities\ElectricityFacilities\KCECTestFacility.cs" />
     <Compile Include="colonyFacilities\Commnet\KCCommNetFacility.cs" />

@@ -116,7 +116,12 @@ namespace KerbalColonies.colonyFacilities.KCResourceConverterFacility
         public ResourceConversionList availableRecipes() => ((KCResourceConverterInfo)facilityInfo).availableRecipes[level];
         public ResourceConversionRate activeRecipe;
         public KCResourceConverterInfo info => (KCResourceConverterInfo)facilityInfo;
-        public int ISRUcount() => AvailableISRUCounts.Where(kvp => kerbals.Count >= info.maxKerbalsPerLevel[kvp.Key]).Max(kvp => kvp.Value);
+        public int ISRUcount()
+        {
+            IEnumerable<KeyValuePair<int, int>> isruCounts = AvailableISRUCounts.Where(kvp => kerbals.Count >= info.minKerbals[kvp.Key]);
+            if (isruCounts.Count() > 0) return isruCounts.Max(kvp => kvp.Value);
+            else return 0;
+        }
         public int LevelISRUcount() => info.ISRUcount[level];
         public SortedDictionary<int, int> AvailableISRUCounts => new SortedDictionary<int, int>(info.ISRUcount.Where(kvp => kvp.Key <= level).ToDictionary(kvp => kvp.Key, kvp => kvp.Value));
 

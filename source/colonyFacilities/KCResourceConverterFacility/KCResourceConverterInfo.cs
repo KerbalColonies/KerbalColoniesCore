@@ -11,6 +11,8 @@ namespace KerbalColonies.colonyFacilities.KCResourceConverterFacility
         public Dictionary<int, ResourceConversionList> availableRecipes { get; private set; } = new Dictionary<int, ResourceConversionList> { };
         public Dictionary<int, int> ISRUcount { get; private set; } = new Dictionary<int, int> { };
 
+        public Dictionary<int, int> minKerbals { get; private set; } = new Dictionary<int, int> { };
+
         public KCResourceConverterInfo(ConfigNode node) : base(node)
         {
             foreach (KeyValuePair<int, ConfigNode> levelNode in levelNodes)
@@ -34,6 +36,9 @@ namespace KerbalColonies.colonyFacilities.KCResourceConverterFacility
                 if (levelNode.Value.HasValue("ISRUcount")) ISRUcount[levelNode.Key] = int.Parse(levelNode.Value.GetValue("ISRUcount"));
                 else if (levelNode.Key > 0) ISRUcount[levelNode.Key] = ISRUcount[levelNode.Key - 1];
                 else throw new MissingFieldException($"The facility {name} has no ISRUcount (at least for level 0).");
+
+                if (levelNode.Value.HasValue("minKerbals")) minKerbals[levelNode.Key] = int.Parse(levelNode.Value.GetValue("minKerbals"));
+                else minKerbals[levelNode.Key] = maxKerbalsPerLevel[levelNode.Key];
             }
         }
     }

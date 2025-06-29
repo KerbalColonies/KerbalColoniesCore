@@ -1,6 +1,4 @@
-﻿using CommNet;
-using Contracts.Predicates;
-using KerbalColonies.colonyFacilities.Commnet;
+﻿using KerbalColonies.colonyFacilities.Commnet;
 using KerbalColonies.Electricity;
 using KerbalColonies.UI;
 using System.Collections.Generic;
@@ -100,20 +98,24 @@ namespace KerbalColonies.colonyFacilities
     {
         public SortedSet<KCCommNetNodeInfo> commNetNodes { get; set; } = new SortedSet<KCCommNetNodeInfo>();
         protected KCCommNetWindow commNetWindow;
+        public KCCommnetInfo commNetInfo => (KCCommnetInfo)facilityInfo;
+        public bool rebuildCommNetNodes { get; set; } = false;
 
         public override void OnGroupPlaced(KerbalKonstructs.Core.GroupCenter kkgroup)
         {
             Configuration.writeLog($"KC CommNetFacility: OnGroupPlaced {facilityInfo.BasegroupNames[level]}");
 
+            double newRange = commNetInfo.range[level];
+
             KCCommNetNodeInfo oldNode = commNetNodes.FirstOrDefault(node => node.GroupCenter == kkgroup);
             if (oldNode != null)
             {
-                Configuration.writeLog($"KC CommNetFacility: Found existing CommNet node for {kkgroup.Group}, updating range to 500000d");
-                oldNode.SetRange(500000d);
+                Configuration.writeLog($"KC CommNetFacility: Found existing CommNet node for {kkgroup.Group}, updating range to {newRange}");
+                oldNode.SetRange(newRange);
                 return;
             }
 
-            KCCommNetNodeInfo newNode = new KCCommNetNodeInfo(kkgroup, kkgroup.Group, facilityLevel: level);
+            KCCommNetNodeInfo newNode = new KCCommNetNodeInfo(kkgroup, null, newRange, true, level);
             commNetNodes.Add(newNode);
 
             CommNet.CommNetNetwork.Reset();
@@ -137,6 +139,12 @@ namespace KerbalColonies.colonyFacilities
             {
                 enabled = false;
                 commNetNodes.ToList().ForEach(node => node.Disable());
+            }
+
+            if (rebuildCommNetNodes)
+            {
+                rebuildCommNetNodes = false;
+                commNetNodes.ToList().ForEach(node => node.SetRange(commNetInfo.range[node.FacilityLevel]));
             }
         }
 

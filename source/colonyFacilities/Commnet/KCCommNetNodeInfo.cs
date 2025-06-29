@@ -110,7 +110,7 @@ namespace KerbalColonies.colonyFacilities.Commnet
             return x.FacilityLevel.CompareTo(y.FacilityLevel);
         }
 
-        public KCCommNetNodeInfo(KCCommNetFacility facility, ConfigNode node)
+        public KCCommNetNodeInfo(KCFacilityBase facility, ConfigNode node)
         {
             string groupCenterName = node.GetValue("groupCenter");
             GroupCenter = KerbalKonstructs.API.GetGroupCenter(facility.KKgroups.First(g => g == groupCenterName), facility.Colony.BodyName);

@@ -83,20 +83,20 @@ namespace KerbalColonies.colonyFacilities
     {
         KCProductionFacility productionFacility;
         public KerbalGUI kerbalGUI;
-        Type selectedType = null;
+        string selectedType = null;
         Vector2 scrollPosTypeOverview = new Vector2();
         Vector2 scrollPosTypes = new Vector2();
         Vector2 scrollPosUnfinishedFacilities = new Vector2();
         Vector2 scrollPosVesselCost = new Vector2();
 
-        private static SortedDictionary<Type, List<KCFacilityInfoClass>> sortedTypes = new SortedDictionary<Type, List<KCFacilityInfoClass>>(Comparer<Type>.Create((x, y) => string.Compare(x.FullName, y.FullName))) { };
-        public static SortedDictionary<Type, List<KCFacilityInfoClass>> SortedTypes => sortedTypes;
+        private static SortedDictionary<string, List<KCFacilityInfoClass>> sortedTypes = new SortedDictionary<string, List<KCFacilityInfoClass>>() { };
+        public static SortedDictionary<string, List<KCFacilityInfoClass>> SortedTypes => sortedTypes;
 
         public static void addType(KCFacilityInfoClass info)
         {
-            if (sortedTypes == null) sortedTypes = new SortedDictionary<Type, List<KCFacilityInfoClass>>(Comparer<Type>.Create((x, y) => string.Compare(x.FullName, y.FullName))) { { info.type, new List<KCFacilityInfoClass> { info } } };
-            else if (!sortedTypes.ContainsKey(info.type)) sortedTypes.Add(info.type, new List<KCFacilityInfoClass> { info });
-            else if (!sortedTypes[info.type].Contains(info)) sortedTypes[info.type].Add(info);
+            if (sortedTypes == null) sortedTypes = new SortedDictionary<string, List<KCFacilityInfoClass>>() { { info.category, new List<KCFacilityInfoClass> { info } } };
+            else if (!sortedTypes.ContainsKey(info.category)) sortedTypes.Add(info.category, new List<KCFacilityInfoClass> { info });
+            else if (!sortedTypes[info.category].Contains(info)) sortedTypes[info.category].Add(info);
         }
 
         public static void addAllTypes() => Configuration.BuildableFacilities.ForEach(info => addType(info));
@@ -130,7 +130,7 @@ namespace KerbalColonies.colonyFacilities
                             {
                                 SortedTypes.ToList().ForEach(kvp =>
                                 {
-                                    if (GUILayout.Button($"{kvp.Key.Name} ({kvp.Value.Count})"))
+                                    if (GUILayout.Button($"{kvp.Key} ({kvp.Value.Count})"))
                                     {
                                         if (selectedType == kvp.Key)
                                         {
@@ -268,7 +268,7 @@ namespace KerbalColonies.colonyFacilities
                 {
                     GUILayout.BeginVertical(GUILayout.Width(480));
                     {
-                        GUILayout.Label($"{selectedType.Name} facilities");
+                        GUILayout.Label($"{selectedType} facilities");
                         scrollPosTypes = GUILayout.BeginScrollView(scrollPosTypes);
                         {
                             foreach (KCFacilityInfoClass t in SortedTypes[selectedType])
@@ -280,15 +280,15 @@ namespace KerbalColonies.colonyFacilities
                                 {
                                     for (int i = 0; i < t.resourceCost[0].Count; i++)
                                     {
-                                        GUILayout.Label($"{t.resourceCost[0].ElementAt(i).Key.displayName}: {t.resourceCost[0].ElementAt(i).Value * Configuration.FacilityCostMultiplier}");
+                                        GUILayout.Label($"{t.resourceCost[0].ElementAt(i).Key.displayName}: {(t.resourceCost[0].ElementAt(i).Value * Configuration.FacilityCostMultiplier):f2}");
                                     }
                                 }
                                 GUILayout.EndVertical();
                                 GUILayout.FlexibleSpace();
                                 GUILayout.BeginVertical();
-                                GUILayout.Label($"Funds: {(t.Funds.Count > 0 ? t.Funds[0] : 0) * Configuration.FacilityCostMultiplier}");
+                                GUILayout.Label($"Funds: {((t.Funds.Count > 0 ? t.Funds[0] : 0) * Configuration.FacilityCostMultiplier):f2}");
                                 //GUILayout.Label($"ECperSecond: {t.ECperSecond}");
-                                GUILayout.Label($"Time: {t.UpgradeTimes[0] * Configuration.FacilityTimeMultiplier}");
+                                GUILayout.Label($"Time: {(t.UpgradeTimes[0] * Configuration.FacilityTimeMultiplier):f2}");
                                 GUILayout.EndVertical();
 
                                 GUILayout.EndHorizontal();

@@ -61,6 +61,7 @@ namespace KerbalColonies
         public ConfigNode facilityConfig { get; protected set; }
         public string name { get; protected set; }
         public string displayName { get; protected set; }
+        public string category { get; protected set; } = "none";
 
         public SortedDictionary<int, ConfigNode> levelNodes { get; protected set; } = new SortedDictionary<int, ConfigNode> { };
 
@@ -187,6 +188,10 @@ namespace KerbalColonies
 
             if (!node.HasValue("type")) throw new MissingFieldException($"The facility {name} has no type.");
             type = KCFacilityTypeRegistry.GetType(node.GetValue("type"));
+
+            if (node.HasValue("category")) category = node.GetValue("category");
+            else category = type.Name;
+
 
             resourceCost = new SortedDictionary<int, Dictionary<PartResourceDefinition, double>>();
             ECperSecond = new SortedDictionary<int, double>();

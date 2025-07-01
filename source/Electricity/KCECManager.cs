@@ -54,6 +54,10 @@ namespace KerbalColonies.Electricity
             getDeltaTime(colony, out double lastTime, out double deltaTime, out double currentTime);
             if (deltaTime == 0) return;
 
+            colonyData.lastTime = lastTime;
+            colonyData.deltaTime = deltaTime;
+            colonyData.currentTime = currentTime;
+
             double ECProduced = colony.Facilities.OfType<KCECProducer>().Sum(facility => facility.ECProduction(lastTime, deltaTime, currentTime));
             colonyData.lastECProduced = ECProduced;
 

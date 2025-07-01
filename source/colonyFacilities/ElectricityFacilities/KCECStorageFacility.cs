@@ -9,6 +9,8 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities
 {
     public class KCECStorageWindow : KCFacilityWindowBase
     {
+        PartResourceDefinition ec;
+
         KCECStorageFacility ecStorage => (KCECStorageFacility)facility;
 
         List<double> valueList = new List<double> { -10000, -1000, -100, -10, -1, 1, 10, 100, 1000, 10000 };
@@ -18,56 +20,63 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities
         {
             facility.Colony.UpdateColony();
 
-            #region colonyWide
-            GUILayout.Label($"Stored electric charge in this colony: {KCECStorageFacility.ColonyEC(ecStorage.Colony)} / {KCECStorageFacility.ColonyECCapacity(ecStorage.Colony)} EC");
+            GUILayout.Label($"Stored electric charge in this colony:\n{KCECStorageFacility.ColonyEC(ecStorage.Colony):f2} / {KCECStorageFacility.ColonyECCapacity(ecStorage.Colony):f2} EC");
+            GUILayout.Label($"Stored electric charge:\n{ecStorage.ECStored} / {ecStorage.ECCapacity} EC");
+
+            GUILayout.Label("Colony: ");
             GUILayout.BeginHorizontal();
-            foreach (double i in valueList)
             {
-                if (GUILayout.Button(i.ToString(), GUILayout.Height(18), GUILayout.Width(32)))
-                {
-                    Configuration.writeDebug($"Change ECStored by {i} for {ecStorage.DisplayName} facility");
-                    KCECStorageFacility.AddECToColony(ecStorage.Colony, i);
-                }
-            }
-            GUILayout.EndHorizontal();
-            #endregion
-
-            GUILayout.Label($"Stored electric charge: {ecStorage.ECStored} / {ecStorage.ECCapacity} EC");
-            GUILayout.BeginHorizontal();
-            foreach (double i in valueList)
-            {
-                if (GUILayout.Button(i.ToString(), GUILayout.Height(18), GUILayout.Width(32)))
-                {
-                    Configuration.writeDebug($"Change ECStored by {i} for {ecStorage.DisplayName} facility");
-                    ecStorage.ChangeECStored(i);
-                }
-            }
-            GUILayout.EndHorizontal();
-
-            GUILayout.Label($"Current priority: {ecStorage.ECStoragePriority}");
-            GUILayout.BeginHorizontal();
-            foreach (int i in ints)
-            {
-                if (GUILayout.Button(i.ToString(), GUILayout.Height(18), GUILayout.Width(32)))
-                {
-                    Configuration.writeDebug($"Change priority by {i} for {ecStorage.DisplayName} facility");
-                    ecStorage.ECStoragePriority += i;
-                }
-            }
-            GUILayout.EndHorizontal();
-
-            if (FlightGlobals.ActiveVessel != null)
-            {
-                PartResourceDefinition ec = PartResourceLibrary.Instance.GetDefinition("ElectricCharge");
-
-                GUILayout.Label($"Vessel transfer:");
-                GUILayout.BeginHorizontal();
+                if (FlightGlobals.ActiveVessel == null) GUI.enabled = false;
                 foreach (double i in valueList)
                 {
-                    FlightGlobals.ActiveVessel.GetConnectedResourceTotals(ec.id, false, out double vesselAmount, out double vesselMaxAmount);
-                    //if (i < 0 && vesselMaxAmount - vesselAmount < -i) GUI.enabled = false;
+                    if (GUILayout.Button(i.ToString(), GUILayout.Height(18), GUILayout.MinWidth(24)))
+                    {
+                        Configuration.writeLog($"Transfering {i} EC from colony {ecStorage.Colony.DisplayName} to vessel {FlightGlobals.ActiveVessel.vesselName}.");
 
-                    if (GUILayout.Button(i.ToString(), GUILayout.Height(18), GUILayout.Width(32)))
+                        if (i < 0)
+                        {
+                            if (KCStorageFacilityWindow.vesselHasSpace(FlightGlobals.ActiveVessel, ec, -i))
+                            {
+                                double left = KCECStorageFacility.AddECToColony(ecStorage.Colony, i);
+
+                                FlightGlobals.ActiveVessel.rootPart.RequestResource(ec.id, i - left, ResourceFlowMode.ALL_VESSEL_BALANCE, false);
+                            }
+                            else
+                            {
+                                double amount = KCStorageFacilityWindow.getVesselSpace(FlightGlobals.ActiveVessel, ec);
+                                double left = KCECStorageFacility.AddECToColony(ecStorage.Colony, -amount);
+
+                                FlightGlobals.ActiveVessel.rootPart.RequestResource(ec.id, -amount - left, ResourceFlowMode.ALL_VESSEL_BALANCE, false);
+                            }
+
+                        }
+                        else
+                        {
+                            if (KCStorageFacilityWindow.vesselHasRessources(FlightGlobals.ActiveVessel, ec, i))
+                            {
+                                double left = KCECStorageFacility.AddECToColony(ecStorage.Colony, i);
+                                FlightGlobals.ActiveVessel.rootPart.RequestResource(ec.id, i - left, ResourceFlowMode.ALL_VESSEL_BALANCE, false);
+                            }
+                            else
+                            {
+                                double amount = KCStorageFacilityWindow.getVesselRessources(FlightGlobals.ActiveVessel, ec);
+                                double left = KCECStorageFacility.AddECToColony(ecStorage.Colony, amount);
+                                FlightGlobals.ActiveVessel.rootPart.RequestResource(ec.id, amount - left, ResourceFlowMode.ALL_VESSEL_BALANCE, false);
+                            }
+                        }
+                    }
+                    GUI.enabled = true;
+                }
+            }
+            GUILayout.EndHorizontal();
+
+            GUILayout.Label("Facility: ");
+            GUILayout.BeginHorizontal();
+            {
+                if (FlightGlobals.ActiveVessel == null) GUI.enabled = false;
+                foreach (double i in valueList)
+                {
+                    if (GUILayout.Button(i.ToString(), GUILayout.Height(18), GUILayout.MinWidth(24)))
                     {
                         Configuration.writeLog($"Transfering {i} EC from EC storage facility {ecStorage.DisplayName} to vessel {FlightGlobals.ActiveVessel.vesselName}.");
 
@@ -105,15 +114,32 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities
                     }
                     GUI.enabled = true;
                 }
-                GUILayout.EndHorizontal();
-
-                ecStorage.locked = GUILayout.Toggle(ecStorage.locked, "Lock storage", GUILayout.Height(18), GUILayout.Width(100));
             }
+            GUILayout.EndHorizontal();
+
+            ecStorage.locked = GUILayout.Toggle(ecStorage.locked, "Lock storage", GUILayout.Height(18), GUILayout.Width(100));
+
+            GUILayout.Space(10);
+
+            GUILayout.Label($"Current priority: {ecStorage.ECStoragePriority}");
+            GUILayout.BeginHorizontal();
+            foreach (int i in ints)
+            {
+                if (GUILayout.Button(i.ToString(), GUILayout.Height(18), GUILayout.Width(32)))
+                {
+                    Configuration.writeDebug($"Change priority by {i} for {ecStorage.DisplayName} facility");
+                    ecStorage.ECStoragePriority += i;
+                }
+            }
+            GUILayout.EndHorizontal();
+
+            GUILayout.Label($"Current EC delta: {(KCECManager.colonyEC[ecStorage.Colony].lastECDelta / KCECManager.colonyEC[ecStorage.Colony].deltaTime):f2} EC/s");
         }
 
         public KCECStorageWindow(KCECStorageFacility facility) : base(facility, Configuration.createWindowID())
         {
-            toolRect = new Rect(100, 100, 400, 800);
+            toolRect = new Rect(100, 100, 400, 350);
+            ec = PartResourceLibrary.Instance.GetDefinition("ElectricCharge");
         }
     }
 

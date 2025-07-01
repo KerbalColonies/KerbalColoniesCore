@@ -62,6 +62,7 @@ namespace KerbalColonies
         public string name { get; protected set; }
         public string displayName { get; protected set; }
         public string category { get; protected set; } = "none";
+        public bool hidden { get; protected set; } = false; // used to hide this type in the production facility list, used for legacy facilities
 
         public SortedDictionary<int, ConfigNode> levelNodes { get; protected set; } = new SortedDictionary<int, ConfigNode> { };
 
@@ -192,6 +193,9 @@ namespace KerbalColonies
             if (node.HasValue("category")) category = node.GetValue("category");
             else category = type.Name;
 
+            if (node.HasValue("hidden")) hidden = true;
+            else hidden = false;
+
 
             resourceCost = new SortedDictionary<int, Dictionary<PartResourceDefinition, double>>();
             ECperSecond = new SortedDictionary<int, double>();
@@ -249,7 +253,6 @@ namespace KerbalColonies
 
     public class KCZeroUpgradeInfoClass : KCFacilityInfoClass
     {
-
         public KCZeroUpgradeInfoClass(ConfigNode node) : base(node)
         {
             if (levelNodes.Count > 0) levelNodes = new SortedDictionary<int, ConfigNode> { { 0, levelNodes[0] } };

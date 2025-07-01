@@ -61,7 +61,7 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities
 
         public double ECProduction(double lastTime, double deltaTime, double currentTime) => Math.Max(0, ECProduced) * deltaTime;
 
-        public double DailyECProduction() => ECProduced * 60 * 60 * 6;
+        public double ECPerSecond() => ECProduced * 60 * 60 * 6;
 
 
         public double ExpectedECConsumption(double lastTime, double deltaTime, double currentTime) => Math.Max(-ECProduced, 0) * deltaTime;

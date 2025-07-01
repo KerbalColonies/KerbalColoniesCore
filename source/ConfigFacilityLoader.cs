@@ -1,6 +1,7 @@
 ﻿using KerbalColonies.colonyFacilities;
 using KerbalColonies.colonyFacilities.Commnet;
 using KerbalColonies.colonyFacilities.ElectricityFacilities;
+using KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.FuelCell;
 using KerbalColonies.colonyFacilities.KCMiningFacility;
 using KerbalColonies.colonyFacilities.KCResourceConverterFacility;
 using KerbalColonies.Electricity;
@@ -133,6 +134,8 @@ namespace KerbalColonies
             KCFacilityTypeRegistry.RegisterType<KCECTestFacility>();
             KCFacilityTypeRegistry.RegisterFacilityInfo<KCECStorageFacility, KCFacilityInfoClass>();
             KCFacilityTypeRegistry.RegisterFacilityInfo<KCECTestFacility, KCFacilityInfoClass>();
+            KCFacilityTypeRegistry.RegisterType<KCFuelCellFacility>();
+            KCFacilityTypeRegistry.RegisterFacilityInfo<KCFuelCellFacility, KCFuelCellInfo>();
 
             try
             {

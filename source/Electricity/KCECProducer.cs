@@ -10,6 +10,6 @@ namespace KerbalColonies.Electricity
     {
         double ECProduction(double lastTime, double deltaTime, double currentTime);
 
-        double DailyECProduction();
+        double ECPerSecond();
     }
 }

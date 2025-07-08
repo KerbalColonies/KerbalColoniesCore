@@ -78,6 +78,9 @@ namespace KerbalColonies
 
             GameEvents.OnRevertToLaunchFlightState.Add(saveGroupDataFromRevert);
             GameEvents.OnRevertToPrelaunchFlightState.Add(saveGroupDataFromRevert);
+
+            GameEvents.onGamePause.Add(Pause);
+            GameEvents.onGameUnpause.Add(UnPause);
         }
 
         protected void Start()
@@ -105,6 +108,9 @@ namespace KerbalColonies
 
             realTime = Time.time;
         }
+
+        public void Pause() => Configuration.Paused = true;
+        public void UnPause() => Configuration.Paused = false;
 
         private float realTime;
         public void Update()
@@ -201,6 +207,9 @@ namespace KerbalColonies
 
             GameEvents.OnRevertToLaunchFlightState.Remove(saveGroupDataFromRevert);
             GameEvents.OnRevertToPrelaunchFlightState.Remove(saveGroupDataFromRevert);
+
+            GameEvents.onGamePause.Remove(Pause);
+            GameEvents.onGameUnpause.Remove(UnPause);
         }
     }
 }

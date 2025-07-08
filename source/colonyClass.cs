@@ -175,7 +175,7 @@ namespace KerbalColonies
 
         public void UpdateColony()
         {
-            if (currentFrameUpdated) return; // Prevent multiple updates in the same frame
+            if (currentFrameUpdated || Configuration.Paused) return; // Prevent multiple updates in the same frame
             ColonyUpdate.ForEach(actionClass => actionClass.action.Invoke(this));
             currentFrameUpdated = true;
         }

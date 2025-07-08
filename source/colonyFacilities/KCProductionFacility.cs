@@ -585,8 +585,9 @@ namespace KerbalColonies.colonyFacilities
                 production = new ConfigNode("production");
                 colony.sharedColonyNodes.Add(production);
             }
+            else production.ClearNodes();
 
-            ConfigNode constructingFacilities = new ConfigNode("constructingFacilities");
+                ConfigNode constructingFacilities = new ConfigNode("constructingFacilities");
             ConstructingFacilities[colony].ToList().ForEach(pair =>
             {
                 ConfigNode facilityNode = new ConfigNode("facilityNode");

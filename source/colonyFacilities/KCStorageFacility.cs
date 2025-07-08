@@ -358,7 +358,6 @@ namespace KerbalColonies.colonyFacilities
             return findFacilityWithResourceType(resource, colony).Sum(s => s.getRessources()[resource]);
         }
 
-        // TODO: make it compatible for negative amounts
         public static double addResourceToColony(PartResourceDefinition resource, double amount, colonyClass colony)
         {
             List<KCStorageFacility> storages = KCStorageFacility.findFacilityWithResourceType(resource, colony);

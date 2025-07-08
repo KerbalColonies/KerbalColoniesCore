@@ -167,6 +167,7 @@ namespace KerbalColonies.colonyFacilities
                 bool oldState = baseInstance.launchSite.ILSIsActive;
 
                 launchSiteName.Add(level, $"KC {HighLogic.CurrentGame.Seed.ToString()} {Colony.DisplayName} {DisplayName} {level}");
+                customName.Add(level, false);
                 targetInstance.launchSite.LaunchSiteName = launchSiteName[level];
                 targetInstance.launchSite.LaunchSiteLength = baseInstance.launchSite.LaunchSiteLength;
                 targetInstance.launchSite.LaunchSiteWidth = baseInstance.launchSite.LaunchSiteWidth;
@@ -185,7 +186,7 @@ namespace KerbalColonies.colonyFacilities
                 targetInstance.launchSite.LaunchSiteAuthor = baseInstance.launchSite.LaunchSiteAuthor;
                 targetInstance.launchSite.refLat = (float)targetInstance.RefLatitude;
                 targetInstance.launchSite.refLon = (float)targetInstance.RefLongitude;
-                targetInstance.launchSite.refAlt = (float)targetInstance.CelestialBody.GetAltitude(targetInstance.position);
+                targetInstance.launchSite.refAlt = (float)targetInstance.RadiusOffset;
                 targetInstance.launchSite.sitecategory = baseInstance.launchSite.sitecategory;
                 targetInstance.launchSite.InitialCameraRotation = baseInstance.launchSite.InitialCameraRotation;
 

@@ -290,6 +290,7 @@ namespace KerbalColonies.colonyFacilities
                                                 Configuration.writeLog($"KC: Upgrading facility {facility.DisplayName} in {CABFacility.Colony.DisplayName} to level {facility.level + 1}");
                                                 facility.facilityInfo.removeResources(facility.level + 1, CABFacility.Colony);
                                                 CABFacility.AddUpgradeableFacility(facility);
+                                                continue;
                                             }
                                             GUI.enabled = true;
                                             GUILayout.BeginHorizontal();

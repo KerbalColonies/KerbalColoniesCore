@@ -160,6 +160,7 @@ namespace KerbalColonies
         public static bool enableLogging = false;           // Enable this only in debug purposes as it floods the logs very much
 #endif
         #endregion
+        public static bool Paused = false;
 
         #region savingV3
 

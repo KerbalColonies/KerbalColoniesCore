@@ -102,7 +102,7 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fis
                 else RefillTime.Add(kvp.Key, 0.0);
 
                 if (n.HasValue("minECThrottle")) MinECThrottle.Add(kvp.Key, double.Parse(n.GetValue("minECThrottle")));
-                else MinECThrottle.Add(kvp.Key, 0.0);
+                else MinECThrottle.Add(kvp.Key, 0.8);
 
                 if (n.HasValue("maxECChangeRate")) MaxECChangeRate.Add(kvp.Key, double.Parse(n.GetValue("maxECChangeRate")));
                 else MaxECChangeRate.Add(kvp.Key, 0.0);
@@ -114,10 +114,10 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fis
                 else ECChangeThreshold.Add(kvp.Key, 0.5);
 
                 if (n.HasValue("powerlevelChangeTime")) PowerlevelChangeTime.Add(kvp.Key, double.Parse(n.GetValue("powerlevelChangeTime")));
-                else PowerlevelChangeTime.Add(kvp.Key, 0.2);
+                else PowerlevelChangeTime.Add(kvp.Key, 8);
 
                 if (n.HasValue("levelOffTime")) LevelOffTime.Add(kvp.Key, double.Parse(n.GetValue("levelOffTime")));
-                else LevelOffTime.Add(kvp.Key, 1);
+                else LevelOffTime.Add(kvp.Key, 16);
             });
         }
     }

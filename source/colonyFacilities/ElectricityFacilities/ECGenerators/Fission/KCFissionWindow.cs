@@ -22,6 +22,8 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fis
             kerbalGUI.StaffingInterface();
 
             GUILayout.Label($"Current power output: {fissionReactor.lastECPerSecond} EC/s");
+            GUILayout.Label($"Current power level: {fissionReactor.lastPowerLevel.Key}");
+            GUILayout.Label($"Current throttle: {fissionReactor.currentThrottle}");
 
             GUILayout.Label("Available Power Levels:");
             scrollPosPowerLevels = GUILayout.BeginScrollView(scrollPosPowerLevels);

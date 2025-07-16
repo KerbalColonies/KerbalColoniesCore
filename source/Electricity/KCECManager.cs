@@ -43,13 +43,7 @@ namespace KerbalColonies.Electricity
 
         public static void ElectricityUpdate(colonyClass colony)
         {
-            KCColonyECData colonyData;
-            if (colonyEC.ContainsKey(colony)) colonyData = colonyEC[colony];
-            else
-            {
-                colonyData = new KCColonyECData();
-                colonyEC[colony] = colonyData;
-            }
+            KCColonyECData colonyData = new KCColonyECData();
 
             getDeltaTime(colony, out double lastTime, out double deltaTime, out double currentTime);
             if (deltaTime == 0) return;
@@ -78,6 +72,8 @@ namespace KerbalColonies.Electricity
                 ECStored[facility.ECStoragePriority].Add(facility);
             });
             colonyData.lastECStored = ECStored.SelectMany(kvp => kvp.Value).ToList().Sum(facility => facility.StoredEC(lastTime, deltaTime, currentTime));
+
+            Configuration.writeDebug($"KCECManager: colony: {colony.Name}, deltaTime: {deltaTime}, current time: {currentTime}, last ec produced: {ECProduced}, last ec consumed: {colonyData.lastECConsumed}, last ec stored: {colonyData.lastECStored}, ec delta: {colonyData.lastECDelta}, ecDelta/s: {colonyData.lastECDelta / colonyData.deltaTime}");
 
             if (colonyData.lastECDelta >= 0)
             {
@@ -122,6 +118,9 @@ namespace KerbalColonies.Electricity
                     }
                 });
             }
+
+            colonyEC.Remove(colony);
+            colonyEC.Add(colony, colonyData);
         }
     }
 }

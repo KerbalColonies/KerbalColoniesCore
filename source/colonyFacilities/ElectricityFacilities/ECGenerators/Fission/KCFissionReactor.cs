@@ -13,6 +13,10 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fis
         public bool Refilling { get; protected set; } = false;
         public double RefillTime = 0.0;
 
+        public bool ManualControl { get; set; } = false;
+        public int ManualPowerLevel { get; set; }
+        public double ManualThrottle { get; set; }
+
         public bool ChangingOutput { get; protected set; } = false;
         public bool ChangingPowerLevel { get; protected set; } = false;
         public bool ChangingThrottle { get; protected set; } = false;
@@ -25,15 +29,27 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fis
         public double ChangeDuration { get; protected set; } = 0.0;
         public bool ResetPowerTarget { get; protected set; } = false;
         public bool ShuttingDown { get; protected set; } = false;
+
         public int PowerLevelTarget { get; protected set; } = -1;
+        public double PowerLevelOutput { get; protected set; }
+        public double PowerLevelThrottleTarget { get; protected set; }
+        public double PowerLevelChangeTime { get; protected set; } // finish time
+        public bool SetPowerLevelChangeTime { get; protected set; } = false;
+        public double PowerLevelLevelOffTime { get; protected set; }
+        public bool SetPowerLevelLevelOffTime { get; protected set; }
+
         public double ThrottleTarget { get; protected set; } = -1;
+        public double ThrottleChangeTime { get; protected set; }
+        public bool SetThrottleChangeTime { get; protected set; }
+        public bool ResetThrottleTarget { get; protected set; } = false;
+        public double OldThrottleTarget { get; protected set; }
+        public double NewThrottleTarget { get; protected set; }
 
         public Dictionary<PartResourceDefinition, double> StoredInput { get; protected set; } = new Dictionary<PartResourceDefinition, double>();
         public Dictionary<PartResourceDefinition, double> StoredOutput { get; protected set; } = new Dictionary<PartResourceDefinition, double>();
         public double lastECPerSecond = 0.0;
         public KeyValuePair<int, double> lastPowerLevel { get; protected set; } = new KeyValuePair<int, double>(-1, 0.0);
-        public KeyValuePair<int, double> lastThrottle { get; protected set; } = new KeyValuePair<int, double>(-1, 0.0);
-        public double currentPowerLevel { get; protected set; } = -1;
+        public int currentPowerLevel { get; protected set; } = -1;
         public double currentThrottle { get; protected set; } = -1;
 
         public KCFissionWindow window { get; protected set; } = null;
@@ -56,109 +72,188 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fis
         {
             Configuration.writeLog($"Changing power level: time: {currentTime}, target: {targetLevel}, levelOutput: {levelOutput}, throttle: {targetThrottle}");
 
-            if (ChangingOutput) return;
-
-            if (ChangingPowerLevel)
-            {
-                if (targetLevel != PowerLevelTarget) return;
-
-                ChangeThrottle(currentTime, lastThrottle.Key, targetThrottle);
-                if (!ChangingThrottle && currentTime - ChangeTime > ChangeDuration / 2 + FissionInfo.PowerlevelChangeTime[level])
-                {
-                    ChangingPowerLevel = false;
-                    lastPowerLevel = new KeyValuePair<int, double>(targetLevel, levelOutput);
-                    lastThrottle = new KeyValuePair<int, double>(targetLevel, targetThrottle);
-                }
-            }
-            else if (lastThrottle.Key == -1)
-            {
-                lastPowerLevel = new KeyValuePair<int, double>(targetLevel, levelOutput);
-                lastThrottle = new KeyValuePair<int, double>(targetLevel, targetThrottle);
-                ChangePowerTarget(0, levelOutput * targetThrottle, currentTime);
-            }
+            if (ChangingPowerLevel || ChangingThrottle) return;
             else
             {
-                if (targetLevel > lastPowerLevel.Key)
-                {
-                    if (currentThrottle < 1) ChangeThrottle(currentTime, lastThrottle.Key, 1);
-                    else
-                    {
-                        lastPowerLevel = new KeyValuePair<int, double>(targetLevel, levelOutput);
-                        lastThrottle = new KeyValuePair<int, double>(targetLevel, targetThrottle);
-                        ChangeThrottle(currentTime, targetLevel, targetThrottle);
-                    }
-                }
-                else
-                {
-                    if (currentThrottle > FissionInfo.MinECThrottle[lastThrottle.Key])
-                    {
-                        double target = Math.Max(FissionInfo.MinECThrottle[lastThrottle.Key], levelOutput / lastPowerLevel.Value);
-                        ChangeThrottle(currentTime, targetLevel, target);
-                        ChangingPowerLevel = true;
-
-                    }
-                    else
-                    {
-                        lastPowerLevel = new KeyValuePair<int, double>(targetLevel, levelOutput);
-                        lastThrottle = new KeyValuePair<int, double>(targetLevel, targetThrottle);
-                        ChangeThrottle(currentTime, targetLevel, targetThrottle);
-                    }
-                }
+                ChangingPowerLevel = true;
+                PowerLevelTarget = targetLevel;
+                PowerLevelThrottleTarget = targetThrottle;
+                SetPowerLevelChangeTime = false;
+                return;
             }
-            PowerLevelTarget = targetLevel;
-            ThrottleTarget = targetThrottle;
         }
 
-        public void ChangeThrottle(double currentTime, int throttleKey, double targetThrottle)
+        public void ChangeThrottle(double currentTime, double targetThrottle)
         {
-            Configuration.writeLog($"Changing throttle: time: {currentTime}, key: {throttleKey}, target: {targetThrottle}");
+            Configuration.writeLog($"Changing throttle: time: {currentTime}, target: {targetThrottle}");
+
+            if (ChangingPowerLevel || ChangingThrottle || ChangingOutput) return;
 
             if (Math.Round(currentThrottle, 3) == Math.Round(targetThrottle, 3))
             {
                 Configuration.writeDebug("Same throttle target!");
-                ChangingThrottle = false;
-                //currentThrottle = Math.Round(currentThrottle, 3);
-                //lastThrottle = new KeyValuePair<int, double>(throttleKey, targetThrottle);
                 return;
-            }
-
-            if (ChangingOutput && !ChangingThrottle)
-            {
-                if (TargetOutput > OldOutput && targetThrottle > lastThrottle.Value)
-                {
-                    if (currentTime - ChangeTime > ChangeDuration / 2)
-                    {
-                        TargetOutput = lastPowerLevel.Value * targetThrottle;
-                        b = 4 * FissionInfo.MaxECChangeRate[level] / a * Math.Sign(TargetOutput - OldOutput);
-                        ChangeDuration = Math.Abs((-1 / b) * Math.Log((a / (a - FissionInfo.ECChangeThreshold[level])) - 1)) * 2;
-
-                        Configuration.writeLog($"Changing throttle target for {name} from {OldOutput} to {TargetOutput} (a: {a}, b: {b}, duration: {ChangeDuration})");
-                        Configuration.writeDebug($"Starttime: {currentTime}");
-
-                        ChangingThrottle = true;
-                        lastThrottle = new KeyValuePair<int, double>(throttleKey, targetThrottle);
-                    }
-                }
-                else if (!ResetPowerTarget)
-                {
-                    StopChangingPowerTarget(currentTime);
-                }
-            }
-            else if (!ChangingThrottle)
-            {
-                if (currentTime - ChangeTime > ChangeDuration + FissionInfo.LevelOffTime[level] / 2)
-                {
-                    Configuration.writeDebug("Throttle isn't changed, starting change");
-                    ChangePowerTarget(lastECPerSecond, lastPowerLevel.Value * targetThrottle, currentTime);
-                    lastThrottle = new KeyValuePair<int, double>(throttleKey, targetThrottle);
-                    ChangingThrottle = true;
-                }
             }
             else
             {
-                Configuration.writeDebug("Finished throttle change");
-                ChangingThrottle = false;
+                OldThrottleTarget = currentThrottle;
+                ThrottleTarget = targetThrottle;
+                ChangingThrottle = true;
+                ResetThrottleTarget = false;
             }
+        }
+
+        public double ChangingPowerTarget(double lastTime, double deltaTime, double currentTime)
+        {
+            Configuration.writeDebug($"KCFissionreactor: ChangingPowerTarget");
+            if (!ChangingPowerLevel)
+            {
+                lastECPerSecond = 0;
+                return 0;
+            }
+            Configuration.writeDebug("KCFissionreactor: ChangingPowerLevel = true");
+
+            if (currentPowerLevel == -1)
+            {
+                currentPowerLevel = 0;
+                currentThrottle = 0;
+            }
+
+            else if (!ChangingOutput)
+            {
+                if (currentPowerLevel == PowerLevelTarget)
+                {
+                    if (currentThrottle == PowerLevelThrottleTarget)
+                    {
+                        // Finished the change, waiting for the time
+                        if (!SetPowerLevelChangeTime)
+                        {
+                            Configuration.writeDebug($"KCFissionreactor: ChangingPowerTarget: Setting power level change time");
+                            PowerLevelChangeTime = currentTime + FissionInfo.PowerlevelChangeTime[PowerLevelTarget];
+                            SetPowerLevelChangeTime = true;
+                        }
+
+                        Configuration.writeDebug($"KCFissionreactor: ChangingPowerTarget: finished the power level change, waiting for time {PowerLevelChangeTime}, current time: {currentTime}");
+
+                        if (currentTime > PowerLevelChangeTime)
+                        {
+                            Configuration.writeLog($"KCFissionreactor: ChangingPowerTarget: reached target time, finished power level change.");
+                            ChangingPowerLevel = false;
+                            SetPowerLevelChangeTime = false;
+                        }
+
+                        lastECPerSecond = PowerLevelOutput * PowerLevelThrottleTarget;
+                        currentThrottle = PowerLevelThrottleTarget;
+                        lastPowerLevel = new KeyValuePair<int, double>(PowerLevelTarget, FissionInfo.ECProduction[PowerLevelTarget]);
+                        Configuration.writeDebug($"KCFissionReactor: last ec/s: {lastECPerSecond}, throttle: {currentThrottle}, ec produced: {lastECPerSecond * deltaTime}");
+                        return lastECPerSecond * deltaTime;
+                    }
+                    else
+                    {
+                        Configuration.writeDebug($"KCFissionreactor: ChangingPowerTarget: Changing to target throttle");
+                        ChangePowerTarget(PowerLevelOutput * PowerLevelThrottleTarget, PowerLevelOutput * PowerLevelThrottleTarget, currentTime);
+                    }
+                }
+                else if (currentPowerLevel > PowerLevelTarget)
+                {
+                    double minThrottle = FissionInfo.MinECThrottle[currentPowerLevel];
+                    if (currentThrottle == minThrottle)
+                    {
+                        if (!SetPowerLevelLevelOffTime)
+                        {
+                            PowerLevelLevelOffTime = currentTime + FissionInfo.LevelOffTime[currentPowerLevel];
+                            SetPowerLevelLevelOffTime = true;
+                        }
+                        
+                        if (currentTime > PowerLevelLevelOffTime)
+                        {
+                            Configuration.writeLog($"KCFissionreactor: ChangingPowerTarget: Reached current power level minimum throttle");
+                            currentPowerLevel = PowerLevelTarget;
+                            lastPowerLevel = new KeyValuePair<int, double>(PowerLevelTarget, FissionInfo.ECProduction[PowerLevelTarget]);
+                            double newOutput = FissionInfo.ECProduction[currentPowerLevel];
+                            ChangePowerTarget(PowerLevelOutput * currentThrottle, newOutput * PowerLevelThrottleTarget, currentTime);
+                            PowerLevelOutput = newOutput;
+                            ResetPowerTarget = true;
+                            SetPowerLevelLevelOffTime = false;
+                        }
+                        else
+                        {
+                            lastECPerSecond = PowerLevelOutput * currentThrottle;
+                            return lastECPerSecond * deltaTime;
+                        }
+                    }
+                    else
+                    {
+                        Configuration.writeLog($"KCFissionreactor: ChangingPowerTarget: throttling down to minimum");
+                        ChangePowerTarget(PowerLevelOutput * currentThrottle, PowerLevelOutput * minThrottle, currentTime);
+                        ResetPowerTarget = true;
+                    }
+                }
+                else if (currentPowerLevel < PowerLevelTarget)
+                {
+                    Configuration.writeLog($"KCFissionreactor: ChangingPowerTarget: increasing power level");
+                    currentPowerLevel = PowerLevelTarget;
+                    lastPowerLevel = new KeyValuePair<int, double>(PowerLevelTarget, FissionInfo.ECProduction[PowerLevelTarget]);
+                    double newOutput = FissionInfo.ECProduction[currentPowerLevel];
+                    ChangePowerTarget(PowerLevelOutput * currentThrottle, newOutput * PowerLevelThrottleTarget, currentTime);
+                    PowerLevelOutput = newOutput;
+                }
+            }
+            else if (currentPowerLevel > PowerLevelTarget && !ResetPowerTarget)
+            {
+                StopChangingPowerTarget(currentTime);
+            }
+            else if (currentPowerLevel < PowerLevelTarget)
+            {
+
+            }
+
+            return ChangingPowerProduced(lastTime, deltaTime, currentTime);
+        }
+
+        public double ChangingThrottleProduced(double lastTime, double deltaTime, double currentTime)
+        {
+            if (!ChangingThrottle)
+            {
+                lastECPerSecond = 0;
+                return 0;
+            }
+
+            if (!ChangingOutput)
+            {
+                if (Math.Round(currentThrottle, 3) == Math.Round(ThrottleTarget, 3))
+                {
+                    if (!SetThrottleChangeTime)
+                    {
+                        Configuration.writeDebug($"KCFissionreactor: ChangingThrottleProduced: Setting throttle change time");
+                        ThrottleChangeTime = currentTime + FissionInfo.LevelOffTime[currentPowerLevel];
+                        SetThrottleChangeTime = true;
+                    }
+
+                    if (currentTime > ThrottleChangeTime)
+                    {
+                        Configuration.writeLog($"KCFissionreactor: ChangingThrottleProduced: finished throttle change");
+                        ChangingThrottle = false;
+                        SetThrottleChangeTime = false;
+                    }
+
+                    currentThrottle = ThrottleTarget;
+                    lastECPerSecond = lastPowerLevel.Value * currentThrottle;
+                    Configuration.writeDebug($"KCFissionReactor: last ec/s: {lastECPerSecond}, throttle: {currentThrottle}, ec produced: {lastECPerSecond * deltaTime}");
+                    return lastECPerSecond * deltaTime;
+                }
+                else
+                {
+                    ChangePowerTarget(lastPowerLevel.Value * currentThrottle, lastPowerLevel.Value * ThrottleTarget, currentTime);
+                }
+            }
+            else if ((OldOutput < TargetOutput && ThrottleTarget < OldThrottleTarget || OldOutput > TargetOutput && ThrottleTarget > OldThrottleTarget) && !ResetPowerTarget)
+            {
+                StopChangingPowerTarget(currentTime);
+                ResetThrottleTarget = true;
+            }
+
+            return ChangingPowerProduced(lastTime, deltaTime, currentTime);
         }
 
         public void ChangePowerTarget(double oldOutput, double targetOutput, double currentTime)
@@ -213,7 +308,11 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fis
 
         protected double ChangingPowerProduced(double lastTime, double deltaTime, double currentTime)
         {
-            if (!ChangingOutput || deltaTime <= 0) return 0.0;
+            if (!ChangingOutput || deltaTime <= 0)
+            {
+                lastECPerSecond = 0;
+                return 0;
+            }
 
             double x0 = lastTime - ChangeTime - ChangeDuration / 2;
             double x1 = x0 + deltaTime;
@@ -221,18 +320,26 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fis
             lastECPerSecond = OldOutput + a / (1 + Math.Pow(Math.E, -b * x1)) - (b < 0 ? a : 0);
 
             ChangingOutput = currentTime - ChangeTime < ChangeDuration;
-            ResetPowerTarget = ResetPowerTarget && ChangingOutput;
-
-            Configuration.writeLog($"Changing power produced: current time: {currentTime}, lastECPerSecond: {lastECPerSecond}");
-
-            currentThrottle = Math.Max(0, lastECPerSecond / TargetOutput);
-
-            return lastECPerSecond * deltaTime;
+            if (!ChangingOutput)
+            {
+                ResetPowerTarget = false;
+                currentThrottle = Math.Round(TargetOutput / PowerLevelOutput, 3);
+                Configuration.writeLog($"KCFissionReactor: finished power change, time: {currentTime}, throttle: {currentThrottle}, last ec/s: {lastECPerSecond}, produced: {lastECPerSecond * deltaTime}");
+                return lastECPerSecond * deltaTime;
+            }
+            else
+            {
+                Configuration.writeDebug($"Changing power produced: current time: {currentTime}, lastECPerSecond: {lastECPerSecond}, last ec/s: {lastECPerSecond}, produced: {lastECPerSecond * deltaTime}");
+                currentThrottle = Math.Ceiling(Math.Max(0, lastECPerSecond / PowerLevelOutput) * 1000) / 1000;
+                return lastECPerSecond * deltaTime;
+            }
         }
 
         public bool CanProduceEC(double deltaTime, int powerLevel)
         {
             if (!built || !Active || Refilling) return false;
+
+            if (powerLevel == -1) powerLevel = 0;
 
             foreach (KeyValuePair<PartResourceDefinition, double> item in FissionInfo.InputResources[powerLevel])
             {
@@ -286,128 +393,115 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fis
                 }
             }
 
+            if (!CanProduceEC(deltaTime, lastPowerLevel.Key))
+            {
+                Active = false;
+            }
+
             if (Active && !ShuttingDown)
             {
                 SortedDictionary<int, double> powerLevels = PossiblePowerLevels();
                 KeyValuePair<int, double> powerLevel = new KeyValuePair<int, double>(-1, 0.0);
-                KeyValuePair<int, double> throttle = new KeyValuePair<int, double>(-1, 0.0);
+                double throttle = 1;
                 double ecDelta = KCECManager.colonyEC[Colony].lastECDelta / KCECManager.colonyEC[Colony].deltaTime;
 
                 bool canStoreEC = KCECStorageFacility.ColonyECCapacity(Colony) > KCECStorageFacility.ColonyEC(Colony);
 
-                powerLevels.ToList().ForEach(kvp =>
+                if (ManualControl)
                 {
-                    double kvpDelta = kvp.Value - lastECPerSecond + ecDelta;
-
-                    double powerLevelDelta = Math.Round(ecDelta - lastECPerSecond + powerLevel.Value * throttle.Value, 4);
-
-                    // ec storages not filled
-                    if (canStoreEC && kvp.Value > powerLevel.Value)
+                    powerLevel = new KeyValuePair<int, double> (ManualPowerLevel, powerLevels[ManualPowerLevel]);
+                    throttle = ManualThrottle;
+                }
+                else
+                {
+                    powerLevels.ToList().ForEach(kvp =>
                     {
-                        powerLevel = kvp;
-                        throttle = new KeyValuePair<int, double>(kvp.Key, 1);
-                    }
-                    // ec Delta < 0
-                    else if (powerLevelDelta < 0 || powerLevel.Key == -1)
-                    {
-                        // minimum throttle for the current kvp
-                        if (kvpDelta > 0)
-                        {
-                            double minThrottle = Math.Max(fissionInfo.MinECThrottle[kvp.Key], Math.Min(1, 1 - kvpDelta / kvp.Value));
+                        double kvpDelta = kvp.Value - lastECPerSecond + ecDelta;
 
-                            powerLevel = kvp;
-                            throttle = new KeyValuePair<int, double>(kvp.Key, minThrottle);
-                        }
-                        else if (kvp.Value > powerLevel.Value)
+                        double powerLevelDelta = Math.Round(ecDelta - lastECPerSecond + powerLevel.Value * throttle, 4);
+
+                        // ec storages not filled
+                        if (canStoreEC && kvp.Value > powerLevel.Value)
                         {
                             powerLevel = kvp;
-                            throttle = new KeyValuePair<int, double>(kvp.Key, 1);
+                            throttle = 1;
                         }
-                    }
-                });
+                        // ec Delta < 0
+                        else if (powerLevelDelta < 0 || powerLevel.Key == -1)
+                        {
+                            // minimum throttle for the current kvp
+                            if (kvpDelta > 0)
+                            {
+                                double minThrottle = Math.Max(fissionInfo.MinECThrottle[kvp.Key], Math.Ceiling(Math.Min(1, 1 - kvpDelta / kvp.Value) * 1000) / 1000.0);
+                                // 1.23456 -> 1234.56 -> 1235 -> 1.235
 
-                if (powerLevel.Key == -1 || throttle.Key == -1 || !CanProduceEC(deltaTime, powerLevel.Key))
+                                powerLevel = kvp;
+                                throttle = minThrottle;
+                            }
+                            else if (kvp.Value > powerLevel.Value)
+                            {
+                                powerLevel = kvp;
+                                throttle = 1;
+                            }
+                        }
+                    });
+                }
+
+
+                if (powerLevel.Key == -1)
                 {
                     lastECPerSecond = 0.0;
                     return 0.0;
                 }
 
-                Configuration.writeDebug($"Fissionreactor: power: {powerLevel.Value}, throttle: {throttle.Value}");
+                Configuration.writeDebug($"Fissionreactor: power: {powerLevel.Value}, throttle: {throttle}");
 
-                if (powerLevel.Key != lastPowerLevel.Key || ChangingPowerLevel)
+                if (powerLevel.Key != lastPowerLevel.Key)
                 {
-                    //ChangePowerTarget(lastECPerSecond, powerLevel.Value, currentTime); // hard change in output is unwanted
-
-                    ChangePowerLevel(currentTime, powerLevel.Key, powerLevel.Value, throttle.Value);
-
-                    /*
-                    if (ChangingOutput && !ResetPowerTarget)
-                    {
-                        StopChangingPowerTarget(currentTime);
-                    }
-                    else if (currentTime - ChangeTime > ChangeDuration + fissionInfo.LevelOffTime[level])
-                    {
-                        ChangePowerTarget(lastECPerSecond, powerLevel.Value, currentTime);
-                        lastPowerLevel = powerLevel;
-                    }*/
+                    ChangePowerLevel(currentTime, powerLevel.Key, powerLevel.Value, throttle);
                 }
-                else if (throttle.Value != lastThrottle.Value || ChangingThrottle)
+                else if (throttle != ThrottleTarget)
                 {
-                    ChangeThrottle(currentTime, throttle.Key, throttle.Value);
+                    ChangeThrottle(currentTime, throttle);
                 }
 
-                FissionInfo.InputResources[lastPowerLevel.Key].ToList().ForEach(item =>
-                {
-                    StoredInput[item.Key] -= item.Value * deltaTime;
-                });
-                FissionInfo.OutputResources[lastPowerLevel.Key].ToList().ForEach(item =>
-                {
-                    StoredOutput[item.Key] += item.Value * deltaTime;
-                });
+                if (lastPowerLevel.Key == -1) lastPowerLevel = new KeyValuePair<int, double>(0, 0);
+                if (throttle == -1) throttle = 1;
 
-                if (ChangingOutput)
+                ConsumeResources(deltaTime);
+
+                if (ChangingPowerLevel)
                 {
-                    return ChangingPowerProduced(lastTime, deltaTime, currentTime);
+                    return ChangingPowerTarget(lastTime, deltaTime, currentTime);
                 }
-                else if (currentTime - ChangeTime <= ChangeDuration + fissionInfo.LevelOffTime[level])
+                else if (ChangingThrottle)
                 {
-                    currentThrottle = lastThrottle.Value;
-                    lastECPerSecond = TargetOutput;
-                    return TargetOutput * deltaTime;
+                    return ChangingThrottleProduced(lastTime, deltaTime, currentTime);
                 }
                 else
                 {
-                    currentThrottle = lastThrottle.Value;
-                    lastECPerSecond = lastPowerLevel.Value * lastThrottle.Value;
+                    currentThrottle = throttle;
+                    lastECPerSecond = lastPowerLevel.Value * currentThrottle;
+                    Configuration.writeDebug($"KCFissionReactor: last ec/s: {lastECPerSecond}, throttle: {currentThrottle}, ec produced: {TargetOutput * deltaTime}");
                     return lastECPerSecond * deltaTime;
                 }
             }
             else
             {
-                if (lastECPerSecond <= 0) return 0;
 
-                if (ChangingOutput)
+                if (ChangingPowerLevel)
                 {
-                    if (!ShuttingDown)
-                    {
-                        if (TargetOutput < OldOutput)
-                        {
-                            TargetOutput = 0;
-                            b = -4 * FissionInfo.MaxECChangeRate[level] / a;
-                            ChangeDuration = Math.Abs((-1 / b) * Math.Log((a / (a - FissionInfo.ECChangeThreshold[level])) - 1)) * 2;
-
-                            Configuration.writeLog($"Disabling fission reactor {name}, oldoutput: {OldOutput}, b: {b}, duration: {ChangeDuration}");
-                            ShuttingDown = true;
-                        }
-                        else if (!ResetPowerTarget)
-                        {
-                            StopChangingPowerTarget(currentTime);
-                        }
-                    }
+                    ConsumeResources(deltaTime);
+                    return ChangingPowerTarget(lastTime, deltaTime, currentTime);
+                }
+                else if (ChangingThrottle)
+                {
+                    ConsumeResources(deltaTime);
+                    return ChangingThrottleProduced(lastTime, deltaTime, currentTime);
                 }
                 else if (lastECPerSecond > fissionInfo.ECChangeThreshold[level])
                 {
-                    if (currentTime - ChangeTime > ChangeDuration + fissionInfo.LevelOffTime[level])
+                    if (!ChangingOutput)
                     {
                         ChangePowerTarget(lastECPerSecond, 0, currentTime);
                         ShuttingDown = true;
@@ -415,10 +509,12 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fis
                 }
                 else
                 {
+                    lastECPerSecond = 0;
+                    currentThrottle = 0;
+
                     if (currentTime - ChangeTime > ChangeDuration + fissionInfo.LevelOffTime[level])
                     {
                         ShuttingDown = false;
-                        lastECPerSecond = 0;
                         ChangingOutput = false;
                         lastPowerLevel = new KeyValuePair<int, double>(-1, 0.0);
                         Configuration.writeLog($"Finishing shutdown of fission reactor {name} at time {currentTime}");
@@ -427,8 +523,23 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fis
                     return 0;
                 }
 
+                if (lastECPerSecond <= 0) return 0;
+
+                ConsumeResources(deltaTime);
                 return ChangingPowerProduced(lastTime, deltaTime, currentTime);
             }
+        }
+
+        public void ConsumeResources(double deltaTime)
+        {
+            FissionInfo.InputResources[lastPowerLevel.Key].ToList().ForEach(item =>
+            {
+                StoredInput[item.Key] = Math.Max(0, StoredInput[item.Key] - item.Value * currentThrottle * deltaTime);
+            });
+            FissionInfo.OutputResources[lastPowerLevel.Key].ToList().ForEach(item =>
+            {
+                StoredOutput[item.Key] = Math.Min(FissionInfo.OutputStorage[level][item.Key], StoredOutput[item.Key] + item.Value * currentThrottle * deltaTime);
+            });
         }
 
         public double ECProduction(double lastTime, double deltaTime, double currentTime) => ProduceEC(lastTime, deltaTime, currentTime);

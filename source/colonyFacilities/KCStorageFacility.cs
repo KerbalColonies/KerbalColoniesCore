@@ -358,6 +358,11 @@ namespace KerbalColonies.colonyFacilities
             return findFacilityWithResourceType(resource, colony).Sum(s => s.getRessources()[resource]);
         }
 
+        public static double colonyResourceSpace(PartResourceDefinition resource, colonyClass colony)
+        {
+            return findEmptyStorageFacilities(colony).Sum(s => s.getEmptyAmount(resource));
+        }
+
         public static double addResourceToColony(PartResourceDefinition resource, double amount, colonyClass colony)
         {
             List<KCStorageFacility> storages = KCStorageFacility.findFacilityWithResourceType(resource, colony);

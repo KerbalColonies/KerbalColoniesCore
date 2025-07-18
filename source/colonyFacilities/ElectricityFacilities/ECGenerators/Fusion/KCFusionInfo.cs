@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
-namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fission
+namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fusion
 {
-    public class KCFissionInfo : KCKerbalFacilityInfoClass
+    public class KCFusionInfo : KCKerbalFacilityInfoClass
     {
         public Dictionary<int, double> ECProduction { get; protected set; } = new Dictionary<int, double>();
         public Dictionary<int, double> MinECThrottle { get; protected set; } = new Dictionary<int, double>();
@@ -15,14 +17,12 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fis
         public Dictionary<int, double> LevelOffTime { get; protected set; } = new Dictionary<int, double>();
 
         public Dictionary<int, Dictionary<PartResourceDefinition, double>> InputResources { get; protected set; } = new Dictionary<int, Dictionary<PartResourceDefinition, double>>();
-        public Dictionary<int, Dictionary<PartResourceDefinition, double>> InputStorage { get; protected set; } = new Dictionary<int, Dictionary<PartResourceDefinition, double>>();
         public Dictionary<int, Dictionary<PartResourceDefinition, double>> OutputResources { get; protected set; } = new Dictionary<int, Dictionary<PartResourceDefinition, double>>();
-        public Dictionary<int, Dictionary<PartResourceDefinition, double>> OutputStorage { get; protected set; } = new Dictionary<int, Dictionary<PartResourceDefinition, double>>();
         public Dictionary<int, int> MinKerbals { get; protected set; } = new Dictionary<int, int>();
         public Dictionary<int, int> MinKerbalLevel { get; protected set; } = new Dictionary<int, int>();
-        public Dictionary<int, double> RefillTime { get; protected set; } = new Dictionary<int, double>();
+        public Dictionary<int, Dictionary<string, int>> RequiredTraits { get; protected set; } = new Dictionary<int, Dictionary<string, int>>();
 
-        public KCFissionInfo(ConfigNode node) : base(node)
+        public KCFusionInfo(ConfigNode node) : base(node)
         {
             levelNodes.ToList().ForEach(kvp =>
             {
@@ -46,21 +46,6 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fis
                 else
                     InputResources.Add(kvp.Key, new Dictionary<PartResourceDefinition, double>());
 
-                if (n.HasNode("InputStorage"))
-                {
-                    ConfigNode inputStorageNode = n.GetNode("InputStorage");
-                    Dictionary<PartResourceDefinition, double> inputStorageList = new Dictionary<PartResourceDefinition, double>();
-                    foreach (ConfigNode.Value v in inputStorageNode.values)
-                    {
-                        PartResourceDefinition resourceDef = PartResourceLibrary.Instance.GetDefinition(v.name);
-                        double amount = double.Parse(v.value);
-                        inputStorageList.Add(resourceDef, amount);
-                    }
-                    InputStorage.Add(kvp.Key, inputStorageList);
-                }
-                else
-                    InputStorage.Add(kvp.Key, new Dictionary<PartResourceDefinition, double>());
-
                 if (n.HasNode("OutputResources"))
                 {
                     ConfigNode outputNode = n.GetNode("OutputResources");
@@ -76,30 +61,12 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fis
                 else
                     OutputResources.Add(kvp.Key, new Dictionary<PartResourceDefinition, double>());
 
-                if (n.HasNode("OutputStorage"))
-                {
-                    ConfigNode outputStorageNode = n.GetNode("OutputStorage");
-                    Dictionary<PartResourceDefinition, double> outputStorageList = new Dictionary<PartResourceDefinition, double>();
-                    foreach (ConfigNode.Value v in outputStorageNode.values)
-                    {
-                        PartResourceDefinition resourceDef = PartResourceLibrary.Instance.GetDefinition(v.name);
-                        double amount = double.Parse(v.value);
-                        outputStorageList.Add(resourceDef, amount);
-                    }
-                    OutputStorage.Add(kvp.Key, outputStorageList);
-                }
-                else
-                    OutputStorage.Add(kvp.Key, new Dictionary<PartResourceDefinition, double>());
-
 
                 if (n.HasValue("minKerbals")) MinKerbals.Add(kvp.Key, int.Parse(n.GetValue("minKerbals")));
                 else MinKerbals.Add(kvp.Key, maxKerbalsPerLevel[kvp.Key]);
 
                 if (n.HasValue("minKerbalLevel")) MinKerbalLevel.Add(kvp.Key, int.Parse(n.GetValue("minKerbalLevel")));
                 else MinKerbalLevel.Add(kvp.Key, 0);
-
-                if (n.HasValue("refillTime")) RefillTime.Add(kvp.Key, double.Parse(n.GetValue("refillTime")));
-                else RefillTime.Add(kvp.Key, 0.0);
 
                 if (n.HasValue("minECThrottle")) MinECThrottle.Add(kvp.Key, double.Parse(n.GetValue("minECThrottle")));
                 else MinECThrottle.Add(kvp.Key, 0.0);
@@ -118,6 +85,24 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fis
 
                 if (n.HasValue("levelOffTime")) LevelOffTime.Add(kvp.Key, double.Parse(n.GetValue("levelOffTime")));
                 else LevelOffTime.Add(kvp.Key, 0);
+
+
+                if (n.HasNode("RequiredTraits"))
+                {
+                    ConfigNode traitsNode = n.GetNode("RequiredTraits");
+                    Dictionary<string, int> traitsList = new Dictionary<string, int>();
+                    foreach (ConfigNode.Value v in traitsNode.values)
+                    {
+                        string traitName = v.name.ToLower();
+                        int level = int.Parse(v.value);
+                        traitsList.Add(traitName, level);
+                    }
+                    RequiredTraits.Add(kvp.Key, traitsList);
+                }
+                else if (kvp.Key > 0)
+                    RequiredTraits.Add(kvp.Key, RequiredTraits[kvp.Key - 1]);
+                else
+                    RequiredTraits.Add(kvp.Key, new Dictionary<string, int>());
             });
         }
     }

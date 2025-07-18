@@ -3,6 +3,7 @@ using KerbalColonies.colonyFacilities.Commnet;
 using KerbalColonies.colonyFacilities.ElectricityFacilities;
 using KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fission;
 using KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.FuelCell;
+using KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fusion;
 using KerbalColonies.colonyFacilities.KCMiningFacility;
 using KerbalColonies.colonyFacilities.KCResourceConverterFacility;
 using KerbalColonies.Electricity;
@@ -139,6 +140,8 @@ namespace KerbalColonies
             KCFacilityTypeRegistry.RegisterFacilityInfo<KCFuelCellFacility, KCFuelCellInfo>();
             KCFacilityTypeRegistry.RegisterType<KCFissionReactor>();
             KCFacilityTypeRegistry.RegisterFacilityInfo<KCFissionReactor, KCFissionInfo>();
+            KCFacilityTypeRegistry.RegisterType<KCFusionReactor>();
+            KCFacilityTypeRegistry.RegisterFacilityInfo<KCFusionReactor, KCFusionInfo>();
 
             try
             {

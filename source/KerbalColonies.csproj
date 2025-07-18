@@ -52,6 +52,9 @@
     <Compile Include="colonyFacilities\ElectricityFacilities\ECGenerators\FuelCell\KCFuelCellWindow.cs" />
     <Compile Include="colonyFacilities\ElectricityFacilities\ECGenerators\Fission\KCFissionInfo.cs" />
     <Compile Include="colonyFacilities\ElectricityFacilities\ECGenerators\Fission\KCFissionReactor.cs" />
+    <Compile Include="colonyFacilities\ElectricityFacilities\ECGenerators\Fusion\KCFusionInfo.cs" />
+    <Compile Include="colonyFacilities\ElectricityFacilities\ECGenerators\Fusion\KCFusionReactor.cs" />
+    <Compile Include="colonyFacilities\ElectricityFacilities\ECGenerators\Fusion\KCFusionWindow.cs" />
     <Compile Include="colonyFacilities\ElectricityFacilities\ECGenerators\Windturbine\KCWindturbineFacility.cs" />
     <Compile Include="colonyFacilities\ElectricityFacilities\KCECStorageFacility.cs" />
     <Compile Include="colonyFacilities\ElectricityFacilities\KCECTestFacility.cs" />

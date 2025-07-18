@@ -1,17 +1,18 @@
-﻿using KerbalColonies.Electricity;
+﻿using KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fission;
+using KerbalColonies.Electricity;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
-namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fission
+namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fusion
 {
-    public class KCFissionReactor : KCKerbalFacilityBase, KCECProducer
+    public class KCFusionReactor : KCKerbalFacilityBase, KCECProducer, KCECConsumer
     {
-        public KCFissionInfo FissionInfo => (KCFissionInfo)facilityInfo;
+        public KCFusionInfo FusionInfo => (KCFusionInfo)facilityInfo;
 
         public bool Active { get; set; } = false;
-        public bool Refilling { get; protected set; } = false;
-        public double RefillTime = 0.0;
 
         public bool ManualControl { get; set; } = false;
         public int ManualPowerLevel { get; set; }
@@ -45,28 +46,27 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fis
         public double OldThrottleTarget { get; protected set; }
         public double NewThrottleTarget { get; protected set; }
 
-        public Dictionary<PartResourceDefinition, double> StoredInput { get; protected set; } = new Dictionary<PartResourceDefinition, double>();
-        public Dictionary<PartResourceDefinition, double> StoredOutput { get; protected set; } = new Dictionary<PartResourceDefinition, double>();
         public double lastECPerSecond = 0.0;
+        public double ActualLastECPerSecond { get; protected set; } = 0.0; // the last EC per second produced, used for the GUI. Also includes the base load, unlike the lastECPerSecond
         public KeyValuePair<int, double> lastPowerLevel { get; protected set; } = new KeyValuePair<int, double>(-1, 0.0);
         public int currentPowerLevel { get; protected set; } = -1;
         public double currentThrottle { get; protected set; } = -1;
 
-        public KCFissionWindow window { get; protected set; } = null;
+        public bool OutOfEC { get; protected set; } = false; // if the reactor is out of EC, it will not produce any power
 
-        public override List<ProtoCrewMember> filterKerbals(List<ProtoCrewMember> kerbals) => base.filterKerbals(kerbals).Where(k => k.experienceLevel >= FissionInfo.MinKerbalLevel[level]).ToList();
+        public KCFusionWindow window { get; protected set; } = null;
 
-        public SortedDictionary<int, double> AvailablePowerLevels() => new SortedDictionary<int, double>(FissionInfo.ECProduction.Where(kvp => kvp.Key <= level).ToDictionary(kvp => kvp.Key, kvp => kvp.Value));
-        public SortedDictionary<int, double> PossiblePowerLevels() => new SortedDictionary<int, double>(AvailablePowerLevels().Where(kvp => FissionInfo.MinKerbals[kvp.Key] <= kerbals.Count).ToDictionary(kvp => kvp.Key, kvp => kvp.Value));
+        public override List<ProtoCrewMember> filterKerbals(List<ProtoCrewMember> kerbals) => base.filterKerbals(kerbals).Where(k => k.experienceLevel >= FusionInfo.MinKerbalLevel[level]).ToList();
 
-        public void Refill()
-        {
-            if (Active) return;
-
-            Refilling = true;
-            RefillTime = 0.0;
-        }
-
+        public SortedDictionary<int, double> AvailablePowerLevels() => new SortedDictionary<int, double>(FusionInfo.ECProduction.Where(kvp => kvp.Key <= level).ToDictionary(kvp => kvp.Key, kvp => kvp.Value));
+        public SortedDictionary<int, double> PossiblePowerLevels() => new SortedDictionary<int, double>(AvailablePowerLevels().Where(kvp => {
+            if (FusionInfo.MinKerbals[kvp.Key] > kerbals.Count) return false;
+            foreach (KeyValuePair<string, int> traitKVP in FusionInfo.RequiredTraits[kvp.Key])
+            {
+                if (kerbals.Count(k => k.Key.trait.ToLower() == traitKVP.Key.ToLower()) < traitKVP.Value) return false;
+            }
+            return true;
+        }).ToDictionary(kvp => kvp.Key, kvp => kvp.Value));
 
         public void ChangePowerLevel(double currentTime, int targetLevel, double levelOutput, double targetThrottle)
         {
@@ -116,7 +116,6 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fis
             if (currentPowerLevel == -1)
             {
                 currentPowerLevel = 0;
-                PowerLevelOutput = FissionInfo.ECProduction[0];
                 currentThrottle = 0;
             }
 
@@ -130,7 +129,7 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fis
                         if (!SetPowerLevelChangeTime)
                         {
                             Configuration.writeDebug($"KCFissionreactor: ChangingPowerTarget: Setting power level change time");
-                            PowerLevelChangeTime = currentTime + FissionInfo.PowerlevelChangeTime[PowerLevelTarget];
+                            PowerLevelChangeTime = currentTime + FusionInfo.PowerlevelChangeTime[PowerLevelTarget];
                             SetPowerLevelChangeTime = true;
                         }
 
@@ -145,34 +144,33 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fis
 
                         lastECPerSecond = PowerLevelOutput * PowerLevelThrottleTarget;
                         currentThrottle = PowerLevelThrottleTarget;
-                        lastPowerLevel = new KeyValuePair<int, double>(PowerLevelTarget, FissionInfo.ECProduction[PowerLevelTarget]);
+                        lastPowerLevel = new KeyValuePair<int, double>(PowerLevelTarget, FusionInfo.ECProduction[PowerLevelTarget]);
                         Configuration.writeDebug($"KCFissionReactor: last ec/s: {lastECPerSecond}, throttle: {currentThrottle}, ec produced: {lastECPerSecond * deltaTime}");
                         return lastECPerSecond * deltaTime;
                     }
                     else
                     {
-                        lastPowerLevel = new KeyValuePair<int, double>(PowerLevelTarget, FissionInfo.ECProduction[PowerLevelTarget]);
                         Configuration.writeDebug($"KCFissionreactor: ChangingPowerTarget: Changing to target throttle");
-                        ChangePowerTarget(PowerLevelOutput * currentThrottle, PowerLevelOutput * PowerLevelThrottleTarget, currentTime);
+                        ChangePowerTarget(PowerLevelOutput * PowerLevelThrottleTarget, PowerLevelOutput * PowerLevelThrottleTarget, currentTime);
                     }
                 }
                 else if (currentPowerLevel > PowerLevelTarget)
                 {
-                    double minThrottle = FissionInfo.MinECThrottle[currentPowerLevel];
+                    double minThrottle = FusionInfo.MinECThrottle[currentPowerLevel];
                     if (currentThrottle == minThrottle)
                     {
                         if (!SetPowerLevelLevelOffTime)
                         {
-                            PowerLevelLevelOffTime = currentTime + FissionInfo.LevelOffTime[currentPowerLevel];
+                            PowerLevelLevelOffTime = currentTime + FusionInfo.LevelOffTime[currentPowerLevel];
                             SetPowerLevelLevelOffTime = true;
                         }
-                        
+
                         if (currentTime > PowerLevelLevelOffTime)
                         {
                             Configuration.writeLog($"KCFissionreactor: ChangingPowerTarget: Reached current power level minimum throttle");
                             currentPowerLevel = PowerLevelTarget;
-                            lastPowerLevel = new KeyValuePair<int, double>(PowerLevelTarget, FissionInfo.ECProduction[PowerLevelTarget]);
-                            double newOutput = FissionInfo.ECProduction[currentPowerLevel];
+                            lastPowerLevel = new KeyValuePair<int, double>(PowerLevelTarget, FusionInfo.ECProduction[PowerLevelTarget]);
+                            double newOutput = FusionInfo.ECProduction[currentPowerLevel];
                             ChangePowerTarget(PowerLevelOutput * currentThrottle, newOutput * PowerLevelThrottleTarget, currentTime);
                             PowerLevelOutput = newOutput;
                             ResetPowerTarget = true;
@@ -195,8 +193,8 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fis
                 {
                     Configuration.writeLog($"KCFissionreactor: ChangingPowerTarget: increasing power level");
                     currentPowerLevel = PowerLevelTarget;
-                    lastPowerLevel = new KeyValuePair<int, double>(PowerLevelTarget, FissionInfo.ECProduction[PowerLevelTarget]);
-                    double newOutput = FissionInfo.ECProduction[currentPowerLevel];
+                    lastPowerLevel = new KeyValuePair<int, double>(PowerLevelTarget, FusionInfo.ECProduction[PowerLevelTarget]);
+                    double newOutput = FusionInfo.ECProduction[currentPowerLevel];
                     ChangePowerTarget(PowerLevelOutput * currentThrottle, newOutput * PowerLevelThrottleTarget, currentTime);
                     PowerLevelOutput = newOutput;
                 }
@@ -228,7 +226,7 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fis
                     if (!SetThrottleChangeTime)
                     {
                         Configuration.writeDebug($"KCFissionreactor: ChangingThrottleProduced: Setting throttle change time");
-                        ThrottleChangeTime = currentTime + FissionInfo.LevelOffTime[currentPowerLevel];
+                        ThrottleChangeTime = currentTime + FusionInfo.LevelOffTime[currentPowerLevel];
                         SetThrottleChangeTime = true;
                     }
 
@@ -265,14 +263,14 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fis
             OldOutput = oldOutput;
             TargetOutput = targetOutput;
 
-            b = 4 * FissionInfo.MaxECChangeRate[level] / a * Math.Sign(targetOutput - oldOutput);
+            b = 4 * FusionInfo.MaxECChangeRate[level] / a * Math.Sign(targetOutput - oldOutput);
 
-            ChangeDuration = Math.Abs((-1 / b) * Math.Log((a / (a - FissionInfo.ECChangeThreshold[level])) - 1)) * 2;
+            ChangeDuration = Math.Abs((-1 / b) * Math.Log((a / (a - FusionInfo.ECChangeThreshold[level])) - 1)) * 2;
 
-            while (ChangeDuration < FissionInfo.MinECRateChangeTime[level])
+            while (ChangeDuration < FusionInfo.MinECRateChangeTime[level])
             {
                 b *= 0.99;
-                ChangeDuration = Math.Abs((-1 / b) * Math.Log((a / (a - FissionInfo.ECChangeThreshold[level])) - 1)) * 2;
+                ChangeDuration = Math.Abs((-1 / b) * Math.Log((a / (a - FusionInfo.ECChangeThreshold[level])) - 1)) * 2;
             }
 
             ChangeTime = currentTime;
@@ -291,7 +289,7 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fis
             double x = currentTime - ChangeTime - ChangeDuration / 2;
             LastResetOutput = TargetOutput;
 
-            b = 4 * FissionInfo.MaxECChangeRate[level] / a * Math.Sign(TargetOutput - OldOutput);
+            b = 4 * FusionInfo.MaxECChangeRate[level] / a * Math.Sign(TargetOutput - OldOutput);
 
             if (TargetOutput > OldOutput)
                 TargetOutput = OldOutput + a / (1 + Math.Pow(Math.E, -b * x)) * 2;
@@ -339,21 +337,21 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fis
 
         public bool CanProduceEC(double deltaTime, int powerLevel)
         {
-            if (!built || !Active || Refilling) return false;
+            if (!built || !Active) return false;
 
             if (powerLevel == -1) powerLevel = 0;
 
-            foreach (KeyValuePair<PartResourceDefinition, double> item in FissionInfo.InputResources[powerLevel])
+            foreach (KeyValuePair<PartResourceDefinition, double> item in FusionInfo.InputResources[powerLevel])
             {
-                if (!StoredInput.ContainsKey(item.Key) || StoredInput[item.Key] < item.Value * deltaTime)
+                if (KCStorageFacility.colonyResources(item.Key, Colony) < item.Value * deltaTime)
                 {
                     Configuration.writeDebug($"KCFissionReactor ({name}): Not enough {item.Key.name} to produce EC");
                     return false;
                 }
             }
-            foreach (KeyValuePair<PartResourceDefinition, double> item in FissionInfo.OutputResources[powerLevel])
+            foreach (KeyValuePair<PartResourceDefinition, double> item in FusionInfo.OutputResources[powerLevel])
             {
-                if (!StoredOutput.ContainsKey(item.Key) || StoredOutput[item.Key] + item.Value * deltaTime > FissionInfo.OutputStorage[level][item.Key])
+                if (KCStorageFacility.colonyResourceSpace(item.Key, Colony) < item.Value * deltaTime)
                 {
                     Configuration.writeDebug($"KCFissionReactor ({name}): Unable to store {item.Key.name}");
                     return false;
@@ -365,56 +363,22 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fis
 
         public double ProduceEC(double lastTime, double deltaTime, double currentTime)
         {
-            KCFissionInfo fissionInfo = FissionInfo;
+            KCFusionInfo fusionInfo = FusionInfo;
 
-            if (Refilling && lastECPerSecond <= 0)
-            {
-                Active = false;
-
-                RefillTime += deltaTime * kerbals.Count;
-                if (RefillTime >= FissionInfo.RefillTime[level])
-                {
-                    Refilling = false;
-                    StoredInput.ToList().ForEach(kvp =>
-                    {
-                        double requestedAmount = fissionInfo.InputStorage[level][kvp.Key] - kvp.Value;
-                        double missingAmount = KCStorageFacility.addResourceToColony(kvp.Key, -requestedAmount, Colony);
-                        StoredInput[kvp.Key] += requestedAmount + missingAmount;
-                    });
-                    StoredOutput.ToList().ForEach(kvp =>
-                    {
-                        double requestedAmount = kvp.Value;
-                        double missingAmount = KCStorageFacility.addResourceToColony(kvp.Key, requestedAmount, Colony);
-                        StoredOutput[kvp.Key] = missingAmount;
-                    });
-                }
-                else
-                {
-                    lastECPerSecond = 0.0;
-                    return 0.0;
-                }
-            }
-
-            if (!CanProduceEC(deltaTime, lastPowerLevel.Key))
-            {
-                Active = false;
-            }
+            SortedDictionary<int, double> powerLevels = PossiblePowerLevels();
+            if (!CanProduceEC(deltaTime, lastPowerLevel.Key) || OutOfEC || powerLevels.Count == 0) Active = false;
 
             if (Active && !ShuttingDown)
             {
-                SortedDictionary<int, double> powerLevels = PossiblePowerLevels();
                 KeyValuePair<int, double> powerLevel = new KeyValuePair<int, double>(-1, 0.0);
                 double throttle = 1;
-
-                if (!KCECManager.colonyEC.ContainsKey(Colony)) return 0;
-
                 double ecDelta = KCECManager.colonyEC[Colony].lastECDelta / KCECManager.colonyEC[Colony].deltaTime;
 
                 bool canStoreEC = KCECStorageFacility.ColonyECCapacity(Colony) > KCECStorageFacility.ColonyEC(Colony);
 
                 if (ManualControl)
                 {
-                    powerLevel = new KeyValuePair<int, double> (ManualPowerLevel, powerLevels[ManualPowerLevel]);
+                    powerLevel = new KeyValuePair<int, double>(ManualPowerLevel, powerLevels[ManualPowerLevel]);
                     throttle = ManualThrottle;
                 }
                 else
@@ -437,7 +401,7 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fis
                             // minimum throttle for the current kvp
                             if (kvpDelta > 0)
                             {
-                                double minThrottle = Math.Max(fissionInfo.MinECThrottle[kvp.Key], Math.Ceiling(Math.Min(1, 1 - kvpDelta / kvp.Value) * 1000) / 1000.0);
+                                double minThrottle = Math.Max(fusionInfo.MinECThrottle[kvp.Key], Math.Ceiling(Math.Min(1, 1 - kvpDelta / kvp.Value) * 1000) / 1000.0);
                                 // 1.23456 -> 1234.56 -> 1235 -> 1.235
 
                                 powerLevel = kvp;
@@ -451,7 +415,6 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fis
                         }
                     });
                 }
-
 
                 if (powerLevel.Key == -1)
                 {
@@ -470,6 +433,7 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fis
                     ChangeThrottle(currentTime, throttle);
                 }
 
+                if (lastPowerLevel.Key == -1) lastPowerLevel = new KeyValuePair<int, double>(0, 0);
                 if (throttle == -1) throttle = 1;
 
                 ConsumeResources(deltaTime);
@@ -503,7 +467,7 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fis
                     ConsumeResources(deltaTime);
                     return ChangingThrottleProduced(lastTime, deltaTime, currentTime);
                 }
-                else if (lastECPerSecond > fissionInfo.ECChangeThreshold[level])
+                else if (lastECPerSecond > fusionInfo.ECChangeThreshold[level])
                 {
                     if (!ChangingOutput)
                     {
@@ -516,7 +480,7 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fis
                     lastECPerSecond = 0;
                     currentThrottle = 0;
 
-                    if (currentTime - ChangeTime > ChangeDuration + fissionInfo.LevelOffTime[level])
+                    if (currentTime - ChangeTime > ChangeDuration + fusionInfo.LevelOffTime[level])
                     {
                         ShuttingDown = false;
                         ChangingOutput = false;
@@ -536,21 +500,47 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fis
 
         public void ConsumeResources(double deltaTime)
         {
-            if (lastPowerLevel.Key == -1) return;
-
-            FissionInfo.InputResources[lastPowerLevel.Key].ToList().ForEach(item =>
+            FusionInfo.InputResources[lastPowerLevel.Key].ToList().ForEach(item =>
             {
-                StoredInput[item.Key] = Math.Max(0, StoredInput[item.Key] - item.Value * currentThrottle * deltaTime);
+                KCStorageFacility.addResourceToColony(item.Key, item.Value * currentThrottle * deltaTime, Colony);
             });
-            FissionInfo.OutputResources[lastPowerLevel.Key].ToList().ForEach(item =>
+            FusionInfo.OutputResources[lastPowerLevel.Key].ToList().ForEach(item =>
             {
-                StoredOutput[item.Key] = Math.Min(FissionInfo.OutputStorage[level][item.Key], StoredOutput[item.Key] + item.Value * currentThrottle * deltaTime);
+                KCStorageFacility.addResourceToColony(item.Key, -item.Value * currentThrottle * deltaTime, Colony);
             });
         }
 
-        public double ECProduction(double lastTime, double deltaTime, double currentTime) => ProduceEC(lastTime, deltaTime, currentTime);
+        private double producedEC = 0.0;
+        public void ExecuteProduction(double lastTime, double deltaTime, double currentTime)
+        {
+            if (Active || ShuttingDown)
+            {
+                producedEC = ProduceEC(lastTime, deltaTime, currentTime) - FusionInfo.ECperSecond[lastPowerLevel.Key] * deltaTime;
+                ActualLastECPerSecond = lastECPerSecond - FusionInfo.ECperSecond[lastPowerLevel.Key] * deltaTime;
+            }
+            else
+            {
+                producedEC = 0.0;
+                ActualLastECPerSecond = 0.0;
+            }
+        }
+        public double ECProduction(double lastTime, double deltaTime, double currentTime)
+        {
+            ExecuteProduction(lastTime, deltaTime, currentTime);
+            return Math.Max(producedEC, 0);
+        }
 
-        public double ECPerSecond() => lastECPerSecond;
+        public double ECPerSecond() => ActualLastECPerSecond;
+
+        public int ECConsumptionPriority { get; set; } = int.MinValue;
+        public double ExpectedECConsumption(double lastTime, double deltaTime, double currentTime) => Math.Min(ActualLastECPerSecond * deltaTime, 0);
+
+        public void ConsumeEC(double lastTime, double deltaTime, double currentTime) => OutOfEC = false;
+
+        public void ÍnsufficientEC(double lastTime, double deltaTime, double currentTime, double remainingEC) => OutOfEC = true;
+
+        public double DailyECConsumption() => facilityInfo.ECperSecond[level] * 6 * 3600;
+
 
         public override void OnBuildingClicked()
         {
@@ -567,8 +557,6 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fis
 
             ConfigNode fissionNode = new ConfigNode("fissionNode");
             fissionNode.AddValue("Active", Active);
-            fissionNode.AddValue("Refilling", Refilling);
-            fissionNode.AddValue("RefillTime", RefillTime);
             fissionNode.AddValue("ManualControl", ManualControl);
             fissionNode.AddValue("ManualPowerLevel", ManualPowerLevel);
             fissionNode.AddValue("ManualThrottle", ManualThrottle);
@@ -601,27 +589,17 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fis
             fissionNode.AddValue("currentPowerLevel", currentPowerLevel);
             fissionNode.AddValue("currentThrottle", currentThrottle);
 
-            ConfigNode storedInputNode = new ConfigNode("storedInputNode");
-            StoredInput.ToList().ForEach(kvp => storedInputNode.AddValue(kvp.Key.name, kvp.Value));
-            fissionNode.AddNode(storedInputNode);
-
-            ConfigNode storedOutputNode = new ConfigNode("storedOutputNode");
-            StoredOutput.ToList().ForEach(kvp => storedOutputNode.AddValue(kvp.Key.name, kvp.Value));
-            fissionNode.AddNode(storedOutputNode);
-
             node.AddNode(fissionNode);
             return node;
         }
 
-        public KCFissionReactor(colonyClass colony, KCFacilityInfoClass facilityInfo, ConfigNode node) : base(colony, facilityInfo, node)
+        public KCFusionReactor(colonyClass colony, KCFacilityInfoClass facilityInfo, ConfigNode node) : base(colony, facilityInfo, node)
         {
-            window = new KCFissionWindow(this);
+            window = new KCFusionWindow(this);
 
             ConfigNode fissionNode = node.GetNode("fissionNode");
 
             Active = bool.Parse(fissionNode.GetValue("Active"));
-            Refilling = bool.Parse(fissionNode.GetValue("Refilling"));
-            RefillTime = double.Parse(fissionNode.GetValue("RefillTime"));
             ManualControl = bool.Parse(fissionNode.GetValue("ManualControl"));
             ManualPowerLevel = int.Parse(fissionNode.GetValue("ManualPowerLevel"));
             ManualThrottle = double.Parse(fissionNode.GetValue("ManualThrottle"));
@@ -651,35 +629,15 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fis
             NewThrottleTarget = double.Parse(fissionNode.GetValue("NewThrottleTarget"));
             lastECPerSecond = double.Parse(fissionNode.GetValue("lastECPerSecond"));
             int lastPowerLevelKey = int.Parse(fissionNode.GetValue("lastPowerLevel"));
-            lastPowerLevel = new KeyValuePair<int, double>(lastPowerLevelKey, lastPowerLevelKey != -1 ? FissionInfo.ECProduction[lastPowerLevelKey] : 0);
+            lastPowerLevel = new KeyValuePair<int, double>(lastPowerLevelKey, FusionInfo.ECProduction[lastPowerLevelKey]);
             currentPowerLevel = int.Parse(fissionNode.GetValue("currentPowerLevel"));
             currentThrottle = double.Parse(fissionNode.GetValue("currentThrottle"));
-
-            ConfigNode storedInputNode = fissionNode.GetNode("storedInputNode");
-            foreach (ConfigNode.Value v in storedInputNode.values)
-            {
-                PartResourceDefinition resourceDef = PartResourceLibrary.Instance.GetDefinition(v.name);
-                double amount = double.Parse(v.value);
-                StoredInput.Add(resourceDef, amount);
-            }
-
-            ConfigNode storedOutputNode = fissionNode.GetNode("storedOutputNode");
-            foreach (ConfigNode.Value v in storedOutputNode.values)
-            {
-                PartResourceDefinition resourceDef = PartResourceLibrary.Instance.GetDefinition(v.name);
-                double amount = double.Parse(v.value);
-                StoredOutput.Add(resourceDef, amount);
-            }
         }
 
-        public KCFissionReactor(colonyClass colony, KCFacilityInfoClass facilityInfo, bool enabled) : base(colony, facilityInfo, enabled)
+        public KCFusionReactor(colonyClass colony, KCFacilityInfoClass facilityInfo, bool enabled) : base(colony, facilityInfo, enabled)
         {
-            window = new KCFissionWindow(this);
-            FissionInfo.InputStorage[level].ToList().ForEach(kvp => StoredInput.Add(kvp.Key, 0));
-            FissionInfo.OutputStorage[level].ToList().ForEach(kvp => StoredOutput.Add(kvp.Key, 0));
-
-            lastPowerLevel = new KeyValuePair<int, double>(-1, 0.0);
-            currentPowerLevel = -1;
+            window = new KCFusionWindow(this);
         }
     }
+
 }

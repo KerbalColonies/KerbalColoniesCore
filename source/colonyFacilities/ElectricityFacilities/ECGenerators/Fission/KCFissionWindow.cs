@@ -82,7 +82,7 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fis
 
                     GUI.enabled = !fissionReactor.Refilling;
                     fissionReactor.Active = GUILayout.Toggle(fissionReactor.Active, "Reactor active");
-                    GUI.enabled = !fissionReactor.Active && !fissionReactor.ShuttingDown;
+                    GUI.enabled = !fissionReactor.Active && !fissionReactor.ShuttingDown && !fissionReactor.Refilling;
                     if (GUILayout.Button("Refill Reactor"))
                         fissionReactor.Refill();
                     GUI.enabled = true;
@@ -122,6 +122,7 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fis
             fissionReactor = reactor;
             kerbalGUI = new KerbalGUI(reactor, true);
             toolRect = new Rect(100, 100, 800, 600);
+            manualLevel = fissionReactor.ManualPowerLevel;
         }
     }
 }

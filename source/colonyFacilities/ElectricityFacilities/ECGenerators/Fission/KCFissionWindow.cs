@@ -2,8 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using UnityEngine;
 
 namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fission
@@ -63,19 +61,37 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fis
                         fissionReactor.ManualControl = false;
                     }
                     GUI.enabled = fissionReactor.ManualControl;
-                    GUILayout.BeginHorizontal();
+                    SortedDictionary<int, double> possiblePowerLevels = fissionReactor.PossiblePowerLevels();
+                    if (possiblePowerLevels.Count == 0)
                     {
-                        GUILayout.Label($"Level: {fissionReactor.ManualPowerLevel}");
-                        GUILayout.FlexibleSpace();
-                        manualLevel = GUILayout.HorizontalSlider(manualLevel, powerLevels.First().Key, powerLevels.Last().Key, GUILayout.Width(300));
-                        fissionReactor.ManualPowerLevel = (int)Math.Round(manualLevel, 0);
+                        GUILayout.BeginHorizontal();
+                        {
+                            GUILayout.Label("Level: 0");
+                            GUILayout.FlexibleSpace();
+                            manualLevel = 0;
+                            manualLevel = GUILayout.HorizontalSlider(manualLevel, 0, 0, GUILayout.Width(300));
+                            fissionReactor.ManualPowerLevel = (int)Math.Round(manualLevel, 0);
+                        }
+                        GUILayout.EndHorizontal();
                     }
-                    GUILayout.EndHorizontal();
+                    else
+                    {
+                        GUILayout.BeginHorizontal();
+                        {
+                            GUILayout.Label($"Level: {fissionReactor.ManualPowerLevel}");
+                            GUILayout.FlexibleSpace();
+                            manualLevel = GUILayout.HorizontalSlider(manualLevel, possiblePowerLevels.First().Key, possiblePowerLevels.Last().Key, GUILayout.Width(300));
+                            fissionReactor.ManualPowerLevel = (int)Math.Round(manualLevel, 0);
+                        }
+                        GUILayout.EndHorizontal();
+                    }
+
                     GUILayout.BeginHorizontal();
                     {
                         GUILayout.Label($"Throttle: {fissionReactor.ManualThrottle}");
                         GUILayout.FlexibleSpace();
                         fissionReactor.ManualThrottle = Math.Round(GUILayout.HorizontalSlider((float)fissionReactor.ManualThrottle, (float)fissionReactor.FissionInfo.MinECThrottle[fissionReactor.ManualPowerLevel], 1, GUILayout.Width(300)), 3);
+                        fissionReactor.ManualThrottle = Math.Max(fissionReactor.ManualThrottle, fissionReactor.FissionInfo.MinECThrottle[fissionReactor.ManualPowerLevel]);
                     }
                     GUILayout.EndHorizontal();
 
@@ -90,12 +106,14 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fis
                     {
                         GUILayout.BeginVertical();
                         {
-    {                        GUILayout.Label("Input Resources:");
-                            inputScrollPos = GUILayout.BeginScrollView(inputScrollPos);
                             {
-                                fissionReactor.StoredInput.ToList().ForEach(kvp => GUILayout.Label($"{kvp.Key.name}: {kvp.Value}/{fissionReactor.FissionInfo.InputStorage[fissionReactor.level][kvp.Key]}"));
+                                GUILayout.Label("Input Resources:");
+                                inputScrollPos = GUILayout.BeginScrollView(inputScrollPos);
+                                {
+                                    fissionReactor.StoredInput.ToList().ForEach(kvp => GUILayout.Label($"{kvp.Key.name}: {kvp.Value}/{fissionReactor.FissionInfo.InputStorage[fissionReactor.level][kvp.Key]}"));
+                                }
+                                GUILayout.EndScrollView();
                             }
-                            GUILayout.EndScrollView();}
                         }
                         GUILayout.EndVertical();
 

@@ -395,14 +395,14 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fis
                 }
             }
 
-            if (!CanProduceEC(deltaTime, lastPowerLevel.Key))
+            SortedDictionary<int, double> powerLevels = PossiblePowerLevels();
+            if (!CanProduceEC(deltaTime, lastPowerLevel.Key) || powerLevels.Count == 0)
             {
                 Active = false;
             }
 
             if (Active && !ShuttingDown)
             {
-                SortedDictionary<int, double> powerLevels = PossiblePowerLevels();
                 KeyValuePair<int, double> powerLevel = new KeyValuePair<int, double>(-1, 0.0);
                 double throttle = 1;
 

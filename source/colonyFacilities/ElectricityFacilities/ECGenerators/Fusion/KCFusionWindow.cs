@@ -63,15 +63,32 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fus
                     {
                         fusionReactor.ManualControl = false;
                     }
+
+                    SortedDictionary<int, double> possiblePowerLevels = fusionReactor.PossiblePowerLevels();
                     GUI.enabled = fusionReactor.ManualControl;
-                    GUILayout.BeginHorizontal();
+                    if (possiblePowerLevels.Count == 0)
                     {
-                        GUILayout.Label($"Level: {fusionReactor.ManualPowerLevel}");
-                        GUILayout.FlexibleSpace();
-                        manualLevel = GUILayout.HorizontalSlider(manualLevel, powerLevels.First().Key, powerLevels.Last().Key, GUILayout.Width(300));
-                        fusionReactor.ManualPowerLevel = (int)Math.Round(manualLevel, 0);
+                        GUILayout.BeginHorizontal();
+                        {
+                            GUILayout.Label("Level: 0");
+                            GUILayout.FlexibleSpace();
+                            manualLevel = 0;
+                            manualLevel = GUILayout.HorizontalSlider(manualLevel, 0, 0, GUILayout.Width(300));
+                            fusionReactor.ManualPowerLevel = (int)Math.Round(manualLevel, 0);
+                        }
+                        GUILayout.EndHorizontal();
                     }
-                    GUILayout.EndHorizontal();
+                    else
+                    {
+                        GUILayout.BeginHorizontal();
+                        {
+                            GUILayout.Label($"Level: {fusionReactor.ManualPowerLevel}");
+                            GUILayout.FlexibleSpace();
+                            manualLevel = GUILayout.HorizontalSlider(manualLevel, possiblePowerLevels.First().Key, possiblePowerLevels.Last().Key, GUILayout.Width(300));
+                            fusionReactor.ManualPowerLevel = (int)Math.Round(manualLevel, 0);
+                        }
+                        GUILayout.EndHorizontal();
+                    }
                     GUILayout.BeginHorizontal();
                     {
                         GUILayout.Label($"Throttle: {fusionReactor.ManualThrottle}");
@@ -91,7 +108,7 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fus
                                 GUILayout.Label("Input Resources:");
                                 inputScrollPos = GUILayout.BeginScrollView(inputScrollPos);
                                 {
-                                    fusionReactor.FusionInfo.InputResources[fusionReactor.lastPowerLevel.Key].ToList().ForEach(kvp => GUILayout.Label($"{kvp.Key.displayName}: {kvp.Value}/s * throttle"));
+                                    fusionReactor.FusionInfo.InputResources[fusionReactor.lastPowerLevel.Key == -1 ? 0 : fusionReactor.lastPowerLevel.Key].ToList().ForEach(kvp => GUILayout.Label($"{kvp.Key.displayName}: {kvp.Value}/s * throttle"));
                                 }
                                 GUILayout.EndScrollView();
                             }
@@ -103,7 +120,7 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fus
                             GUILayout.Label("Output Resources:");
                             outputScrollPos = GUILayout.BeginScrollView(outputScrollPos);
                             {
-                                fusionReactor.FusionInfo.OutputResources[fusionReactor.lastPowerLevel.Key].ToList().ForEach(kvp => GUILayout.Label($"{kvp.Key.displayName}: {kvp.Value}/s * throttle"));
+                                fusionReactor.FusionInfo.OutputResources[fusionReactor.lastPowerLevel.Key == -1 ? 0 : fusionReactor.lastPowerLevel.Key].ToList().ForEach(kvp => GUILayout.Label($"{kvp.Key.displayName}: {kvp.Value}/s * throttle"));
                             }
                             GUILayout.EndScrollView();
                         }
@@ -121,6 +138,7 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fus
             fusionReactor = reactor;
             kerbalGUI = new KerbalGUI(reactor, true);
             toolRect = new Rect(100, 100, 800, 600);
+            manualLevel = fusionReactor.ManualPowerLevel;
         }
     }
 }

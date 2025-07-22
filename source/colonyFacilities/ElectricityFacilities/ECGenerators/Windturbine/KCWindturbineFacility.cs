@@ -84,7 +84,8 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Win
                     continue;
                 }
 
-                ECPerSecond += facilityInfo.ECperSecond[i] * densityList[KKgroups[i - offset]];
+                if (KKgroups.Count >= i - offset + 1 && densityList.ContainsKey(KKgroups[i - offset]))
+                    ECPerSecond += facilityInfo.ECperSecond[i] * densityList[KKgroups[i - offset]];
             }
 
             Configuration.writeDebug($"KCWindTurbineFacility ({DisplayName}): EC per second: {ECPerSecond}");

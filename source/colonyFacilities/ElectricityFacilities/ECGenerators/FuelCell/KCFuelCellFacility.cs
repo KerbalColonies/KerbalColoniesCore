@@ -52,7 +52,7 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fue
 
         public double ECProduction(double lastTime, double deltaTime, double currentTime) => ProduceEC(deltaTime);
 
-        public double ECPerSecond() => fuelCellInfo.ECProduction[level];
+        public double ECPerSecond() => built && enabled ? fuelCellInfo.ECProduction[level] : 0;
 
 
         public override void OnBuildingClicked()
@@ -63,6 +63,8 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fue
         {
             window.Toggle();
         }
+
+        public override string GetFacilityProductionDisplay() => $"Fuel cell production rate: {ECPerSecond()} EC/s";
 
         public KCFuelCellFacility(colonyClass colony, KCFacilityInfoClass facilityInfo, ConfigNode node) : base(colony, facilityInfo, node)
         {

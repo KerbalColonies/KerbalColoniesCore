@@ -566,6 +566,8 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fus
             window.Toggle();
         }
 
+        public override string GetFacilityProductionDisplay() => $"Fusion reactor production rate: {ECPerSecond()} EC/s";
+
         public override ConfigNode getConfigNode()
         {
             ConfigNode node = base.getConfigNode();

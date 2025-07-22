@@ -1,4 +1,5 @@
-﻿using System;
+﻿using KerbalColonies.UI;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -106,7 +107,7 @@ namespace KerbalColonies.colonyFacilities
 
         internal static void OnBuildingClickedHandler(KerbalKonstructs.Core.StaticInstance instance)
         {
-            if (!Configuration.ClickToOpen) return;
+            if (!Configuration.ClickToOpen || ColonyBuilding.buildQueue.Count > 0) return;
 
             if (Configuration.GroupFacilities.ContainsKey(instance.Group))
             {

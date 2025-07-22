@@ -107,6 +107,7 @@ namespace KerbalColonies
             );
 
             realTime = Time.time;
+            Configuration.Paused = false;
         }
 
         public void Pause() => Configuration.Paused = true;

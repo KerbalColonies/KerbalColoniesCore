@@ -144,6 +144,8 @@ namespace KerbalColonies
 
                 foreach (KeyValuePair<PartResourceDefinition, double> resource in resourceCost[level])
                 {
+                    if (resource.Value == 0) continue;
+
                     double remainingAmount = resource.Value * Configuration.FacilityCostMultiplier;
 
                     double vesselAmount = 0;
@@ -152,21 +154,21 @@ namespace KerbalColonies
                     {
                         FlightGlobals.ActiveVessel.GetConnectedResourceTotals(resource.Key.id, out double amount, out double maxAmount);
                         vesselAmount = amount;
-                    }
 
-                    if (vesselAmount >= resource.Value * Configuration.FacilityCostMultiplier)
-                    {
-                        FlightGlobals.ActiveVessel.RequestResource(FlightGlobals.ActiveVessel.rootPart, resource.Key.id, resource.Value * Configuration.FacilityCostMultiplier, true);
-                    }
-                    else
-                    {
-                        if (colony.CAB.PlayerInColony)
+                        if (vesselAmount >= resource.Value * Configuration.FacilityCostMultiplier)
                         {
-                            FlightGlobals.ActiveVessel.RequestResource(FlightGlobals.ActiveVessel.rootPart, resource.Key.id, vesselAmount, true);
+                            FlightGlobals.ActiveVessel.RequestResource(FlightGlobals.ActiveVessel.rootPart, resource.Key.id, resource.Value * Configuration.FacilityCostMultiplier, true);
                         }
-                        remainingAmount -= vesselAmount;
+                        else
+                        {
+                            if (colony.CAB.PlayerInColony)
+                            {
+                                FlightGlobals.ActiveVessel.RequestResource(FlightGlobals.ActiveVessel.rootPart, resource.Key.id, vesselAmount, true);
+                            }
+                            remainingAmount -= vesselAmount;
 
-                        KCStorageFacility.addResourceToColony(resource.Key, -remainingAmount, colony);
+                            KCStorageFacility.addResourceToColony(resource.Key, -remainingAmount, colony);
+                        }
                     }
                 }
                 if (Funding.Instance != null)

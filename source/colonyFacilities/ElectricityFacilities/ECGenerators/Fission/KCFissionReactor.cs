@@ -562,6 +562,9 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fis
             window.Toggle();
         }
 
+        public override string GetFacilityProductionDisplay() => $"Fission reactor production rate: {ECPerSecond()} EC/s";
+
+
         public override ConfigNode getConfigNode()
         {
             ConfigNode node = base.getConfigNode();

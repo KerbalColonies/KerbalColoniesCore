@@ -157,7 +157,8 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fus
                 }
                 else if (currentPowerLevel > PowerLevelTarget)
                 {
-                    double minThrottle = FusionInfo.MinECThrottle[currentPowerLevel];
+
+                    double minThrottle = Math.Max(FusionInfo.ECProduction[PowerLevelTarget] / FusionInfo.ECProduction[currentPowerLevel], FusionInfo.MinECThrottle[currentPowerLevel]);
                     if (currentThrottle == minThrottle)
                     {
                         if (!SetPowerLevelLevelOffTime)

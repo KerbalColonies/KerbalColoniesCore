@@ -299,8 +299,8 @@ namespace KerbalColonies.UI
         public static Texture tXPGained = GameDatabase.Instance.GetTexture("KerbalKonstructs/Assets/xpgained", false);
         public static Texture tXPUngained = GameDatabase.Instance.GetTexture("KerbalKonstructs/Assets/xpungained", false);
         public KerbalSelectorGUI ksg;
-        public bool disableTransferWindow { get; set; }
-
+        public bool DisableTransferWindow { get; set; }
+        public Dictionary<string, int> RequiredTraitCounts { get; set; } = new Dictionary<string, int>();
         public void StaffingInterface()
         {
             int kerbalCount = fac.getKerbals().Count;
@@ -331,9 +331,57 @@ namespace KerbalColonies.UI
             float CountCurrent = fac.getKerbals().Count;
             float CountEmpty = fac.MaxKerbals - CountCurrent;
 
+            List<ProtoCrewMember> kerbals = fac.getKerbals();
             scrollPos = GUILayout.BeginScrollView(scrollPos);
             {
-                foreach (ProtoCrewMember pcm in fac.getKerbals())
+                if (RequiredTraitCounts.Count > 0)
+                {
+                    RequiredTraitCounts.ToList().ForEach(kvp =>
+                    {
+                        List<ProtoCrewMember> traitKerbals = kerbals.Where(k => k.experienceTrait.Config.Name.ToLower() == kvp.Key.ToLower()).ToList();
+                        GUILayout.Label($"Required {kvp.Key}: {traitKerbals.Count}/{kvp.Value}");
+                        for (int i = 0; i < traitKerbals.Count; i++)
+                        {
+                            ProtoCrewMember pcm = traitKerbals[i];
+                            kerbals.Remove(pcm);
+                            GUILayout.BeginHorizontal(GUILayout.Height(80));
+                            string suitPath = pcm.GetKerbalIconSuitPath();
+                            if (suitPath.Contains("vintage") && ExpansionsLoader.IsExpansionInstalled("MakingHistory"))
+                                GUILayout.Box(MissionsUtils.METexture(suitPath + ".tif"), GUILayout.Height(80));
+                            else if (suitPath.Contains("future") && ExpansionsLoader.IsExpansionInstalled("Serenity"))
+                                GUILayout.Box(SerenityUtils.SerenityTexture(suitPath + ".tif"), GUILayout.Height(80));
+                            else
+                                GUILayout.Box(AssetBase.GetTexture(pcm.GetKerbalIconSuitPath()), GUILayout.Height(80));
+
+
+                            GUILayout.BeginVertical();
+                            GUILayout.Label(pcm.displayName, LabelInfo);
+                            GUILayout.Label(pcm.trait, LabelInfo);
+                            GUILayout.Label(pcm.gender.ToString(), LabelInfo);
+                            GUILayout.Label($"Level: {pcm.experienceLevel}", LabelInfo);
+                            GUILayout.EndVertical();
+
+                            GUILayout.FlexibleSpace();
+                            GUILayout.EndHorizontal();
+                        }
+                        if (traitKerbals.Count < kvp.Value)
+                        {
+                            for (int i = 0; i < kvp.Value - traitKerbals.Count; i++)
+                            {
+                                GUILayout.BeginHorizontal(GUILayout.Height(80));
+                                GUILayout.Box(tNoKerbal);
+                                GUILayout.FlexibleSpace();
+                                GUILayout.EndHorizontal();
+                            }
+                        }
+                    });
+
+                    GUILayout.Space(10);
+                    GUILayout.Label("Other kerbals:");
+                }
+
+
+                foreach (ProtoCrewMember pcm in kerbals)
                 {
                     GUILayout.BeginHorizontal(GUILayout.Height(80));
                     string suitPath = pcm.GetKerbalIconSuitPath();
@@ -359,12 +407,10 @@ namespace KerbalColonies.UI
                 while (CountEmpty > 0)
                 {
                     GUILayout.BeginHorizontal(GUILayout.Height(80));
-
                     GUILayout.Box(tNoKerbal);
                     GUILayout.FlexibleSpace();
                     CountEmpty = CountEmpty - 1;
                     GUILayout.EndHorizontal();
-
                 }
             }
             GUILayout.EndScrollView();
@@ -380,7 +426,7 @@ namespace KerbalColonies.UI
 
             if (ksg != null)
             {
-                if (ksg.mode == KerbalSelectorGUI.SwitchModes.ActiveVessel && !fac.Colony.CAB.PlayerInColony || disableTransferWindow) { GUI.enabled = false; }
+                if (ksg.mode == KerbalSelectorGUI.SwitchModes.ActiveVessel && !fac.Colony.CAB.PlayerInColony || DisableTransferWindow) { GUI.enabled = false; }
                 GUILayout.BeginHorizontal();
                 {
                     if (GUILayout.Button("Assign/Retrive Kerbals", GUILayout.Height(23)))

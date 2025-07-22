@@ -1,4 +1,5 @@
-﻿using KerbalColonies.Electricity;
+﻿using KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fusion;
+using KerbalColonies.Electricity;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -158,7 +159,7 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fis
                 }
                 else if (currentPowerLevel > PowerLevelTarget)
                 {
-                    double minThrottle = FissionInfo.MinECThrottle[currentPowerLevel];
+                    double minThrottle = Math.Max(FissionInfo.ECProduction[PowerLevelTarget] / FissionInfo.ECProduction[currentPowerLevel], FissionInfo.MinECThrottle[currentPowerLevel]);
                     if (currentThrottle == minThrottle)
                     {
                         if (!SetPowerLevelLevelOffTime)

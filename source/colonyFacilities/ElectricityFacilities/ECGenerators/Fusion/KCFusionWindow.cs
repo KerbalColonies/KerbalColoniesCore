@@ -3,8 +3,6 @@ using KerbalColonies.UI;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using UnityEngine;
 
 namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fusion
@@ -21,6 +19,7 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fus
         protected override void CustomWindow()
         {
             fusionReactor.Colony.UpdateColony();
+            kerbalGUI.RequiredTraitCounts = new Dictionary<string, int>(fusionReactor.FusionInfo.RequiredTraits[fusionReactor.ManualControl ? fusionReactor.ManualPowerLevel : fusionReactor.lastPowerLevel.Key == -1 ? 0 : fusionReactor.lastPowerLevel.Key]);
 
             GUILayout.BeginHorizontal();
             {
@@ -41,7 +40,28 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fus
                     GUILayout.Label("Available Power Levels:");
                     scrollPosPowerLevels = GUILayout.BeginScrollView(scrollPosPowerLevels, GUILayout.Height(125));
                     {
-                        powerLevels.ToList().ForEach(kvp => GUILayout.Label($"Power Level: {fusionReactor.FusionInfo.MinKerbals[kvp.Key]} Kerbals = {kvp.Value} EC/s"));
+                        powerLevels.ToList().ForEach(kvp =>
+                        {
+                            GUILayout.Label($"Power Level: {fusionReactor.FusionInfo.MinKerbals[kvp.Key]} Kerbals = {kvp.Value - fusionReactor.FusionInfo.ECperSecond[kvp.Key]} EC/s");
+                            Dictionary<string, int> requiredTraits = fusionReactor.FusionInfo.RequiredTraits[kvp.Key];
+                            if (requiredTraits.Count > 0)
+                            {
+                                GUILayout.BeginHorizontal();
+                                {
+                                    GUILayout.Space(16);
+                                    GUILayout.BeginVertical();
+                                    {
+                                        requiredTraits.ToList().ForEach(trait =>
+                                        {
+                                            GUILayout.Label($"{trait.Key}: {trait.Value} Kerbals");
+                                        });
+                                    }
+                                    GUILayout.EndVertical();
+                                }
+                                GUILayout.EndHorizontal();
+                            }
+
+                        });
                     }
                     GUILayout.EndScrollView();
 
@@ -55,8 +75,7 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fus
                             if (fusionReactor.ManualPowerLevel < 0) fusionReactor.ManualPowerLevel = 0;
                             manualLevel = fusionReactor.ManualPowerLevel;
                             fusionReactor.ManualThrottle = fusionReactor.currentThrottle;
-                            if (fusionReactor.ManualThrottle == 0) fusionReactor.ManualThrottle = fusionReactor.FusionInfo.MinECThrottle[fusionReactor.ManualPowerLevel];
-
+                            if (fusionReactor.ManualThrottle <= 0) fusionReactor.ManualThrottle = fusionReactor.FusionInfo.MinECThrottle[fusionReactor.ManualPowerLevel];
                         }
                     }
                     else
@@ -94,6 +113,7 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fus
                         GUILayout.Label($"Throttle: {fusionReactor.ManualThrottle}");
                         GUILayout.FlexibleSpace();
                         fusionReactor.ManualThrottle = Math.Round(GUILayout.HorizontalSlider((float)fusionReactor.ManualThrottle, (float)fusionReactor.FusionInfo.MinECThrottle[fusionReactor.ManualPowerLevel], 1, GUILayout.Width(300)), 3);
+                        fusionReactor.ManualThrottle = Math.Max(fusionReactor.ManualThrottle, fusionReactor.FusionInfo.MinECThrottle[fusionReactor.ManualPowerLevel]);
                     }
                     GUILayout.EndHorizontal();
 
@@ -137,6 +157,7 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fus
         {
             fusionReactor = reactor;
             kerbalGUI = new KerbalGUI(reactor, true);
+            kerbalGUI.RequiredTraitCounts = new Dictionary<string, int>(fusionReactor.FusionInfo.RequiredTraits[fusionReactor.lastPowerLevel.Key == -1 ? 0 : fusionReactor.lastPowerLevel.Key]);
             toolRect = new Rect(100, 100, 800, 600);
             manualLevel = fusionReactor.ManualPowerLevel;
         }

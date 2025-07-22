@@ -145,7 +145,7 @@ namespace KerbalColonies.colonyFacilities
 
             enabled = built && !OutOfEC;
             if (crewQuartersWindow == null) crewQuartersWindow = new KCCrewQuartersWindow(this);
-            crewQuartersWindow.kerbalGUI.disableTransferWindow = !enabled;
+            crewQuartersWindow.kerbalGUI.DisableTransferWindow = !enabled;
         }
 
         public override void OnBuildingClicked()

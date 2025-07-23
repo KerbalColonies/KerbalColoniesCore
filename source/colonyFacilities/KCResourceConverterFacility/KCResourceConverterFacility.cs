@@ -34,7 +34,12 @@ namespace KerbalColonies.colonyFacilities.KCResourceConverterFacility
                 foreach (ConfigNode node in nodes)
                 {
                     string conversionName = node.GetValue("name");
-                    if (string.IsNullOrEmpty(conversionName)) throw new MissingFieldException($"The facility {node.GetValue("name")} has no name.");
+                    if (string.IsNullOrEmpty(conversionName))
+                    {
+                        ConfigFacilityLoader.exceptions.Add(new MissingFieldException("Resource conversion rate without a name."));
+                        ConfigFacilityLoader.failedConfigs.Add("ResourceConversionRate");
+                        continue;
+                    }
                     Configuration.writeDebug($"Loading conversion rate {conversionName}");
                     string displayName = node.GetValue("displayName");
                     Dictionary<PartResourceDefinition, double> InputResources = new Dictionary<PartResourceDefinition, double>();
@@ -47,8 +52,11 @@ namespace KerbalColonies.colonyFacilities.KCResourceConverterFacility
                         PartResourceDefinition resourceDef = PartResourceLibrary.Instance.GetDefinition(v.name);
                         if (resourceDef == null)
                         {
-                            Configuration.writeDebug($"The PartResourceLibrary contains no definition for {v.name}.");
-                            throw new MissingFieldException($"{conversionName} contains an invalid input resource name {v.name}.");
+                            Configuration.writeLog($"The PartResourceLibrary contains no definition for {v.name}.");
+
+                            ConfigFacilityLoader.exceptions.Add(new MissingFieldException($"{conversionName} contains an invalid input resource name {v.name}."));
+                            ConfigFacilityLoader.failedConfigs.Add($"ResourceConversionRate: {conversionName}");
+                            continue;
                         }
                         double amount = double.Parse(v.value);
                         InputResources.Add(resourceDef, amount);
@@ -60,8 +68,11 @@ namespace KerbalColonies.colonyFacilities.KCResourceConverterFacility
                         PartResourceDefinition resourceDef = PartResourceLibrary.Instance.GetDefinition(v.name);
                         if (resourceDef == null)
                         {
-                            Configuration.writeDebug($"The PartResourceLibrary contains no definition for {v.name}.");
-                            throw new MissingFieldException($"{conversionName} contains an invalid output resource name {v.name}.");
+                            Configuration.writeLog($"The PartResourceLibrary contains no definition for {v.name}.");
+
+                            ConfigFacilityLoader.exceptions.Add(new MissingFieldException($"{conversionName} contains an invalid output resource name {v.name}."));
+                            ConfigFacilityLoader.failedConfigs.Add($"ResourceConversionRate: {conversionName}");
+                            continue;
                         }
                         double amount = double.Parse(v.value);
                         OutputResources.Add(resourceDef, amount);
@@ -84,8 +95,12 @@ namespace KerbalColonies.colonyFacilities.KCResourceConverterFacility
                 foreach (ConfigNode node in conversionListNodes)
                 {
                     string conversionName = node.GetValue("name");
-                    if (string.IsNullOrEmpty(conversionName)) throw new MissingFieldException($"The facility {node.GetValue("name")} has no name.");
-
+                    if (string.IsNullOrEmpty(conversionName))
+                    {
+                        ConfigFacilityLoader.exceptions.Add(new MissingFieldException("Resource conversion list without a name."));
+                        ConfigFacilityLoader.failedConfigs.Add("ResourceConversionList");
+                        continue;
+                    }
                     string recipeName = node.GetValue("recipeName");
                     List<string> recipeNames = new List<string> { };
                     if (recipeName != null) recipeNames = recipeName.Split(',').ToList().Select(s => s.Trim()).ToList();
@@ -96,7 +111,9 @@ namespace KerbalColonies.colonyFacilities.KCResourceConverterFacility
 
                     if (conversionList.Count == 0 && recipeNames.Count == 0)
                     {
-                        throw new MissingFieldException($"The conversionlist {node.GetValue("name")} has no conversion list or recipe names.");
+                        ConfigFacilityLoader.exceptions.Add(new MissingFieldException($"The conversionlist {node.GetValue("name")} has no conversion list or recipe names."));
+                        ConfigFacilityLoader.failedConfigs.Add($"ResourceConversionList: {conversionName}");
+                        continue;
                     }
 
                     try

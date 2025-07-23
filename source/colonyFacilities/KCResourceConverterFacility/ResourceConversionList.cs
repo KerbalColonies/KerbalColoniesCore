@@ -65,7 +65,29 @@ namespace KerbalColonies.colonyFacilities.KCResourceConverterFacility
             if (RecipeNames != null) this.RecipeNames = RecipeNames;
 
             if (!AllConversionLists.Contains(this)) AllConversionLists.Add(this);
-            else throw new Exception($"The recipe list {name} already exists in the list of conversion lists. Please check your config file.");
+            else
+            {
+                ResourceConversionList existingList = AllConversionLists.FirstOrDefault(r => r.Name == name);
+                Configuration.writeLog($"Warning: The recipe list {name} already exists in the list of conversion lists.");
+                Configuration.writeLog("Adding new recipes to the existing list:");
+                RecipeNames.ForEach(recipe =>
+                {
+                    if (!existingList.RecipeNames.Contains(recipe))
+                    {
+                        existingList.RecipeNames.Add(recipe);
+                        Configuration.writeLog($"- {recipe}");
+                    }
+                });
+                Configuration.writeLog("\nAdding new conversion lists to the existing list:");
+                ConversionList.ForEach(conversionList =>
+                {
+                    if (!existingList.ConversionList.Contains(conversionList))
+                    {
+                        existingList.ConversionList.Add(conversionList);
+                        Configuration.writeLog($"- {conversionList}");
+                    }
+                });
+            }
         }
     }
 }

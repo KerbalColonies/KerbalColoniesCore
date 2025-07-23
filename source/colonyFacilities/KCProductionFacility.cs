@@ -103,7 +103,11 @@ namespace KerbalColonies.colonyFacilities
 
         public static void addAllTypes() => Configuration.BuildableFacilities.ForEach(info => addType(info));
 
-        protected override void OnOpen() => selectedType = null;
+        protected override void OnOpen()
+        {
+            selectedType = null;
+            toolRect = new Rect(100, 100, 620, 700);
+        }
 
         protected override void CustomWindow()
         {

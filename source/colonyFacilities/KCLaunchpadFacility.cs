@@ -145,6 +145,17 @@ namespace KerbalColonies.colonyFacilities
                 if (uuid == null) throw new System.Exception("KC Launchpadfacility: unable to find any KK static for the launchpad.");
 
                 KerbalKonstructs.Core.StaticInstance targetInstance = KerbalKonstructs.API.getStaticInstanceByUUID(uuid);
+
+                launchSiteName.Add(level, $"KC {HighLogic.CurrentGame.Seed.ToString()} {Colony.DisplayName} {DisplayName} {level}");
+                customName.Add(level, false);
+
+                KerbalKonstructs.Core.KKLaunchSite existingLaunchsite = KerbalKonstructs.Core.LaunchSiteManager.GetLaunchSiteByName(launchSiteName[level]);
+                if (existingLaunchsite != null)
+                {
+                    Configuration.writeLog($"Launchsite {launchSiteName[level]} already exists, deleting it.");
+                    KerbalKonstructs.Core.LaunchSiteManager.DeleteLaunchSite(existingLaunchsite);
+                }
+
                 if (targetInstance.launchSite == null)
                 {
                     targetInstance.launchSite = new KerbalKonstructs.Core.KKLaunchSite();
@@ -163,11 +174,8 @@ namespace KerbalColonies.colonyFacilities
                     targetInstance.launchSite.body = targetInstance.CelestialBody;
                 }
 
-                string oldName = name;
                 bool oldState = baseInstance.launchSite.ILSIsActive;
 
-                launchSiteName.Add(level, $"KC {HighLogic.CurrentGame.Seed.ToString()} {Colony.DisplayName} {DisplayName} {level}");
-                customName.Add(level, false);
                 targetInstance.launchSite.LaunchSiteName = launchSiteName[level];
                 targetInstance.launchSite.LaunchSiteLength = baseInstance.launchSite.LaunchSiteLength;
                 targetInstance.launchSite.LaunchSiteWidth = baseInstance.launchSite.LaunchSiteWidth;
@@ -198,23 +206,13 @@ namespace KerbalColonies.colonyFacilities
 
                 if (ILSConfig.DetectNavUtils())
                 {
-                    bool regenerateILSConfig = false;
-
-                    if (oldName != null && !oldName.Equals(name))
-                    {
-                        ILSConfig.RenameSite(targetInstance.launchSite.LaunchSiteName, name);
-                        regenerateILSConfig = true;
-                    }
-
+                    ILSConfig.RenameSite(targetInstance.launchSite.LaunchSiteName, name);
 
                     bool state = baseInstance.launchSite.ILSIsActive;
-                    if (oldState != state || regenerateILSConfig)
-                    {
-                        if (state)
-                            ILSConfig.GenerateFullILSConfig(targetInstance);
-                        else
-                            ILSConfig.DropILSConfig(targetInstance.launchSite.LaunchSiteName, true);
-                    }
+                    if (state)
+                        ILSConfig.GenerateFullILSConfig(targetInstance);
+                    else
+                        ILSConfig.DropILSConfig(targetInstance.launchSite.LaunchSiteName, true);
                 }
 
 
@@ -480,7 +478,7 @@ namespace KerbalColonies.colonyFacilities
 
             instance.ToList().ForEach(kvp =>
             {
-                if (HighLogic.LoadedScene == GameScenes.SPACECENTER) KerbalKonstructs.Core.LaunchSiteManager.OpenLaunchSite(kvp.Value.launchSite);
+                if (HighLogic.LoadedScene == GameScenes.SPACECENTER) KerbalKonstructs.Core.LaunchSiteManager.CloseLaunchSite(kvp.Value.launchSite);
                 else KerbalKonstructs.Core.LaunchSiteManager.OpenLaunchSite(kvp.Value.launchSite);
             });
 

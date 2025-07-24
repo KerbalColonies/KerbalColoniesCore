@@ -92,7 +92,7 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Win
             return ECPerSecond;
         }
 
-        public override string GetFacilityProductionDisplay() => $"Wind turbine production rate: {ECPerSecond()} EC/s";
+        public override string GetFacilityProductionDisplay() => $"Wind turbine production rate: {ECPerSecond():F2} EC/s";
 
         public override ConfigNode getConfigNode()
         {

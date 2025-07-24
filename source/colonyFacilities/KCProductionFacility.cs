@@ -521,6 +521,35 @@ namespace KerbalColonies.colonyFacilities
             }
         }
 
+        public static void CABDisplay(colonyClass colony)
+        {
+            GUILayout.Space(10);
+            GUILayout.BeginVertical(GUILayout.Width(KC_CAB_Window.CABInfoWidth), GUILayout.Height(80));
+            {
+                GUILayout.Label($"<b>Production:</b>");
+                DailyProductions(colony, out double dailyProduction, out double dailyVesselProduction);
+                GUILayout.BeginHorizontal();
+                {
+                    GUILayout.BeginVertical(GUILayout.Width(KC_CAB_Window.CABInfoWidth / 2 - 10));
+                    {
+                        GUILayout.Label($"Daily production: {dailyProduction:f2}");
+                        GUILayout.Label($"Facilities building/upgrading: {ConstructingFacilities[colony].Count + UpgradingFacilities[colony].Count}");
+                        GUILayout.Label($"Facilities built/upgraded: {ConstructedFacilities[colony].Count + UpgradedFacilities[colony].Count}");
+                    }
+                    GUILayout.EndVertical();
+                    GUILayout.BeginVertical(GUILayout.Width(KC_CAB_Window.CABInfoWidth / 2 - 10));
+                    {
+                        GUILayout.Label($"Daily vessel production: {dailyVesselProduction:f2}");
+                        GUILayout.Label($"Vessels building: {KCHangarFacility.GetConstructingVessels(colony).Count}");
+                    }
+                    GUILayout.EndVertical();
+                    GUILayout.FlexibleSpace();
+                }
+                GUILayout.EndHorizontal();
+            }
+            GUILayout.EndVertical();
+        }
+
         protected KCProductionWindow prdWindow;
         public KCProductionInfo KCProductionInfo => (KCProductionInfo)facilityInfo;
 

@@ -1,4 +1,5 @@
-﻿using KerbalColonies.Electricity;
+﻿using Experience;
+using KerbalColonies.Electricity;
 using KerbalColonies.UI;
 using System.Collections.Generic;
 using System.Linq;
@@ -66,15 +67,63 @@ namespace KerbalColonies.colonyFacilities
 
     internal class KCCrewQuarters : KCKerbalFacilityBase, KCECConsumer
     {
+        private static Dictionary<colonyClass, Vector2> CABInfoTraitScrollPos = new Dictionary<colonyClass, Vector2>();
+        public static void CABDisplay(colonyClass colony)
+        {
+            if (!CABInfoTraitScrollPos.ContainsKey(colony)) CABInfoTraitScrollPos.Add(colony, Vector2.zero);
+
+            GUILayout.Space(10);
+
+            List<ProtoCrewMember> kerbals = GetAllKerbalsInColony(colony).Keys.ToList();
+            Dictionary<ExperienceTraitConfig, int> traitCounts = new Dictionary<ExperienceTraitConfig, int>();
+            kerbals.ForEach(k =>
+            {
+                if (traitCounts.ContainsKey(k.experienceTrait.Config)) traitCounts[k.experienceTrait.Config]++;
+                else traitCounts.Add(k.experienceTrait.Config, 1);
+            });
+            traitCounts.ToList().Sort((x, y) => x.Key.Title.CompareTo(y.Key.Title));
+
+
+            GUILayout.BeginVertical(GUILayout.Width(KC_CAB_Window.CABInfoWidth), GUILayout.Height(traitCounts.Count > 0 ? 100 : 70));
+            {
+                GUILayout.Label($"<b>Crew Quarters:</b>");
+
+                GUILayout.BeginHorizontal();
+                {
+                    GUILayout.BeginVertical(GUILayout.Width(KC_CAB_Window.CABInfoWidth / 2 - 10));
+                    {
+                        GUILayout.Label($"Kerbals: {ColonyKerbalCount(colony)}/{ColonyKerbalCapacity(colony)}");
+                        GUILayout.Label($"Crew quarters: {CrewQuartersInColony(colony).Count}");
+                    }
+                    GUILayout.EndVertical();
+                    GUILayout.BeginVertical(GUILayout.Width(KC_CAB_Window.CABInfoWidth / 2 - 10));
+                    {
+
+                        if (traitCounts.Count > 0)
+                        {
+                            CABInfoTraitScrollPos[colony] = GUILayout.BeginScrollView(CABInfoTraitScrollPos[colony], GUILayout.Height(100));
+                            {
+                                traitCounts.ToList().ForEach(kvp => GUILayout.Label($"{kvp.Key.Title}: {kvp.Value}"));
+                            }
+                            GUILayout.EndScrollView();
+                        }
+
+                    }
+                    GUILayout.EndVertical();
+                }
+                GUILayout.EndHorizontal();
+
+            }
+            GUILayout.EndVertical();
+        }
+
         public static List<KCCrewQuarters> CrewQuartersInColony(colonyClass colony)
         {
             return colony.Facilities.Where(f => f is KCCrewQuarters).Select(f => (KCCrewQuarters)f).ToList();
         }
 
-        public static int ColonyKerbalCapacity(colonyClass colony)
-        {
-            return CrewQuartersInColony(colony).Sum(crewQuarter => crewQuarter.MaxKerbals);
-        }
+        public static int ColonyKerbalCapacity(colonyClass colony) => CrewQuartersInColony(colony).Sum(crewQuarter => crewQuarter.MaxKerbals);
+        public static int ColonyKerbalCount(colonyClass colony) => CrewQuartersInColony(colony).Sum(crewQuarter => crewQuarter.kerbals.Count);
 
         public static KCCrewQuarters FindKerbalInCrewQuarters(colonyClass colony, ProtoCrewMember kerbal)
         {

@@ -1,11 +1,9 @@
-﻿using KerbalColonies.UI;
-using KerbalKonstructs;
+﻿using KerbalColonies.Electricity;
 using KerbalKonstructs.Core;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using UnityEngine;
 
 // KC: Kerbal Colonies
 // This mod aimes to create a Colony system with Kerbal Konstructs statics
@@ -26,7 +24,7 @@ using UnityEngine;
 
 namespace KerbalColonies.colonyFacilities.KCMiningFacility
 {
-    public class KCMiningFacility : KCKerbalFacilityBase
+    public class KCMiningFacility : KCKerbalFacilityBase, KCECConsumer
     {
         protected KCMiningFacilityWindow miningFacilityWindow;
 
@@ -74,7 +72,7 @@ namespace KerbalColonies.colonyFacilities.KCMiningFacility
             request.Longitude = staticInstance.RefLongitude;
             request.Latitude = staticInstance.RefLatitude;
             request.Altitude = kkgroup.RadiusOffset;
-            groupDensities.Add(kkgroup.Group, new Dictionary<PartResourceDefinition, double> { });
+            if (!groupDensities.TryAdd(kkgroup.Group, new Dictionary<PartResourceDefinition, double> { })) groupDensities[kkgroup.Group].Clear();
 
             miningFacilityInfo.rates[level].ForEach(rate =>
             {
@@ -89,23 +87,12 @@ namespace KerbalColonies.colonyFacilities.KCMiningFacility
 
         public override void Update()
         {
-            /* Pending implementation, needs an window during the placement for the production rate
-            KerbalKonstructs.Core.StaticInstance instance = API.GetGroupStatics(KKgroups[0], FlightGlobals.Bodies.First(b => FlightGlobals.GetBodyIndex(b) == Colony.BodyID).name).FirstOrDefault();
-
-            AbundanceRequest request = new AbundanceRequest();
-            request.BodyId = Colony.BodyID;
-            request.ResourceType = HarvestTypes.Planetary;
-            request.ResourceName = "Ore"; // Default resource, can be changed based on the facility's configuration
-            request.Longitude = instance.RefLongitude;
-            request.Latitude = instance.RefLatitude;
-            request.Altitude = instance.RadiusOffset;
-            Configuration.writeLog($"Requesting abundance for resource {request.ResourceName} at location ({request.Longitude}, {request.Latitude}) on body {Colony.BodyID}");
-            Configuration.writeLog($"Abundance: {ResourceMap.Instance.GetAbundance(request)}");
-            */
-
             double deltaTime = Planetarium.GetUniversalTime() - lastUpdateTime;
 
             lastUpdateTime = Planetarium.GetUniversalTime();
+
+            enabled = built && kerbals.Count > 0 && !outOfEC && enabled;
+            if (!enabled) return;
 
             KCMiningFacilityInfo facilityInfo = miningFacilityInfo;
 
@@ -127,14 +114,6 @@ namespace KerbalColonies.colonyFacilities.KCMiningFacility
                 if (autoTransferResources.ContainsKey(res.Key) && autoTransferResources[res.Key] && res.Value > 0) storedResoures[res.Key] = Math.Min(maxPerResource[res.Key], KCStorageFacility.addResourceToColony(res.Key, res.Value, Colony));
                 else if (maxPerResource.ContainsKey(res.Key)) storedResoures[res.Key] = Math.Min(maxPerResource[res.Key], res.Value);
             });
-
-            //miningFacilityInfo.rates[level].ForEach(rate =>
-            //{
-            //    if (storedResoures.ContainsKey(rate.resource)) storedResoures[rate.resource] += ((rate.rate / 6 / 60 / 60) * deltaTime) * kerbals.Count;
-            //    else storedResoures.Add(rate.resource, ((rate.rate / 6 / 60 / 60) * deltaTime) * kerbals.Count);
-
-            //    storedResoures[rate.resource] = Math.Min(rate.max, storedResoures[rate.resource]);
-            //});
         }
 
         public override void OnBuildingClicked()
@@ -157,6 +136,12 @@ namespace KerbalColonies.colonyFacilities.KCMiningFacility
                 else
                     sb.AppendLine($"{(groupDensities.Sum(kvp => kvp.Value[rate.resource]) * kerbals.Count):f2} {rate.resource.displayName}/day\n0/{rate.max:f2} stored");
             });
+
+            if (facilityInfo.ECperSecond[level] > 0)
+            {
+                sb.AppendLine($"EC Consumption: {(enabled ? facilityInfo.ECperSecond[level] * kerbals.Count : 0):f2} EC/s");
+            }
+
             return sb.ToString();
         }
 
@@ -169,6 +154,17 @@ namespace KerbalColonies.colonyFacilities.KCMiningFacility
             }
             return false;
         }
+
+        public int ECConsumptionPriority { get; set; } = 0;
+        public bool outOfEC { get; set; } = false;
+        public double ExpectedECConsumption(double lastTime, double deltaTime, double currentTime) => enabled ? facilityInfo.ECperSecond[level] * kerbals.Count * deltaTime : 0;
+
+        public void ConsumeEC(double lastTime, double deltaTime, double currentTime) => outOfEC = false;
+
+        public void ÍnsufficientEC(double lastTime, double deltaTime, double currentTime, double remainingEC) => outOfEC = true;
+
+        public double DailyECConsumption() => enabled ? facilityInfo.ECperSecond[level] * kerbals.Count * 6 * 3600 : 0;
+
 
         public override ConfigNode getConfigNode()
         {

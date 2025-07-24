@@ -1,10 +1,8 @@
 ﻿using KerbalColonies.UI;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using UnityEngine;
+using static KSP.UI.Screens.SpaceCenter.BuildingPicker;
 
 namespace KerbalColonies.colonyFacilities.KCMiningFacility
 {
@@ -26,7 +24,24 @@ namespace KerbalColonies.colonyFacilities.KCMiningFacility
             GUILayout.BeginHorizontal();
             {
                 GUILayout.BeginVertical(GUILayout.Width(300));
-                kerbalGUI.StaffingInterface();
+                {
+                    kerbalGUI.StaffingInterface();
+
+                    facility.enabled = GUILayout.Toggle(facility.enabled, "Enabled", GUILayout.Width(100));
+
+                    if (facility.facilityInfo.ECperSecond[facility.level] > 0)
+                    {
+                        GUILayout.BeginHorizontal();
+                        {
+                            GUILayout.Label($"EC Consumption Priority: {miningFacility.ECConsumptionPriority}", GUILayout.Height(18));
+                            GUILayout.FlexibleSpace();
+                            if (GUILayout.RepeatButton("--", GUILayout.Width(30), GUILayout.Height(23)) | GUILayout.Button("-", GUILayout.Width(30), GUILayout.Height(23))) miningFacility.ECConsumptionPriority--;
+                            if (GUILayout.Button("+", GUILayout.Width(30), GUILayout.Height(23)) | GUILayout.RepeatButton("++", GUILayout.Width(30), GUILayout.Height(23))) miningFacility.ECConsumptionPriority++;
+                        }
+                        GUILayout.EndHorizontal();
+                    }
+                }
+
                 GUILayout.EndVertical();
 
                 Dictionary<PartResourceDefinition, double> maxPerResource = new Dictionary<PartResourceDefinition, double> { };

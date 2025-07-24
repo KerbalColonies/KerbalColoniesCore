@@ -564,7 +564,7 @@ namespace KerbalColonies.colonyFacilities
             return false;
         }
 
-        public override string GetFacilityProductionDisplay() => $"{currentVolume:f2}/{maxVolume:f2}m³ used\n{resources.Count} resources stored {(facilityInfo.ECperSecond[level] > 0 ? $"\n{(locked ? 0 : facilityInfo.ECperSecond[level])} EC/s" : "")}";
+        public override string GetFacilityProductionDisplay() => $"{currentVolume:f2}/{maxVolume:f2}m³ used\n{resources.Count} resources stored {(facilityInfo.ECperSecond[level] > 0 ? $"\n{(locked ? 0 : facilityInfo.ECperSecond[level]):f2} EC/s" : "")}";
 
 
         public int ECConsumptionPriority { get; set; } = 0;

@@ -294,7 +294,7 @@ namespace KerbalColonies.colonyFacilities.KCResourceConverterFacility
 
         public override void OnRemoteClicked() => kCResourceConverterWindow.Toggle();
 
-        public override string GetFacilityProductionDisplay() => $"{(enabled ? "Enabled" : "Disabled")}\nRecipe: {activeRecipe.DisplayName}{(facilityInfo.ECperSecond[level] > 0 ? $"\nEC/s: {(enabled ? facilityInfo.ECperSecond[level] * ISRUcount() : 0)}" : "")}";
+        public override string GetFacilityProductionDisplay() => $"{(enabled ? "Enabled" : "Disabled")}\nRecipe: {activeRecipe.DisplayName}{(facilityInfo.ECperSecond[level] > 0 ? $"\nEC/s: {(enabled ? facilityInfo.ECperSecond[level] * ISRUcount() : 0):f2}" : "")}";
 
         public override ConfigNode getConfigNode()
         {

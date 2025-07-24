@@ -133,7 +133,7 @@ namespace KerbalColonies.colonyFacilities
             researchFacilityWindow.Toggle();
         }
 
-        public override string GetFacilityProductionDisplay() => $"Science Points: {sciencePoints:f2} / {MaxSciencePoints:f2}\nDaily rate: {(researchFacilityInfo.sciencePointsPerDayperResearcher[level] * kerbals.Count):f2}";
+        public override string GetFacilityProductionDisplay() => $"Science Points: {sciencePoints:f2} / {MaxSciencePoints:f2}\nDaily rate: {(researchFacilityInfo.sciencePointsPerDayperResearcher[level] * kerbals.Count):f2}{(facilityInfo.ECperSecond[level] > 0 ? $"\n{facilityInfo.ECperSecond[level]:f2} EC/s" : "")}";
 
         public bool RetrieveSciencePoints()
         {

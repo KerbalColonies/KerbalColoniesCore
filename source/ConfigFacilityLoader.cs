@@ -164,6 +164,10 @@ namespace KerbalColonies
             colonyClass.ColonyUpdate.Add(new ColonyUpdateAction(colonyClass.ColonyUpdateHandler, 0));
             colonyClass.ColonyUpdate.Add(new ColonyUpdateAction(KCProductionFacility.ExecuteProduction, 10));
             colonyClass.ColonyUpdate.Add(new ColonyUpdateAction(KCECManager.ElectricityUpdate, 5));
+
+            KC_CAB_Window.CABInfoWindow += KCECManager.CABDisplay;
+            KC_CAB_Window.CABInfoWindow += KCCrewQuarters.CABDisplay;
+            KC_CAB_Window.CABInfoWindow += KCProductionFacility.CABDisplay;
         }
 
         protected void Start()

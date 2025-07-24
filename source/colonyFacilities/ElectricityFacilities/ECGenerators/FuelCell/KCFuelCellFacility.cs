@@ -64,7 +64,7 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fue
             window.Toggle();
         }
 
-        public override string GetFacilityProductionDisplay() => $"Fuel cell production rate: {ECPerSecond()} EC/s";
+        public override string GetFacilityProductionDisplay() => $"Fuel cell production rate: {ECPerSecond():f2} EC/s";
 
         public KCFuelCellFacility(colonyClass colony, KCFacilityInfoClass facilityInfo, ConfigNode node) : base(colony, facilityInfo, node)
         {

@@ -1,9 +1,7 @@
-﻿using System;
+﻿using KerbalColonies.colonyFacilities;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
+using UnityEngine;
 
 namespace KerbalColonies.Electricity
 {
@@ -21,6 +19,37 @@ namespace KerbalColonies.Electricity
     public class KCECManager
     {
         public static Dictionary<colonyClass, KCColonyECData> colonyEC = new Dictionary<colonyClass, KCColonyECData>();
+
+        public static void CABDisplay(colonyClass colony)
+        {
+            if (!colonyEC.ContainsKey(colony)) return;
+
+            GUILayout.Space(10);
+            GUILayout.BeginVertical(GUILayout.Width(KC_CAB_Window.CABInfoWidth), GUILayout.Height(70));
+            {
+                KCColonyECData colonyData = colonyEC[colony];
+
+                GUILayout.Label($"<b>Electricity:</b>");
+                GUILayout.BeginHorizontal();
+                {
+                    GUILayout.BeginVertical(GUILayout.Width(KC_CAB_Window.CABInfoWidth / 2 - 10));
+                    {
+                        GUILayout.Label($"Produced: {(colonyData.lastECProduced / colonyData.deltaTime):F2} EC/s");
+                        GUILayout.Label($"Consumed: {(colonyData.lastECConsumed / colonyData.deltaTime):F2} EC/s");
+                    }
+                    GUILayout.EndVertical();
+                    GUILayout.BeginVertical(GUILayout.Width(KC_CAB_Window.CABInfoWidth / 2 - 10));
+                    {
+                        GUILayout.Label($"Stored: {(colonyData.lastECStored / colonyData.deltaTime):F2} EC/s");
+                        GUILayout.Label($"Delta: {(colonyData.lastECDelta / colonyData.deltaTime):F2} EC/s");
+                    }
+                    GUILayout.EndVertical();
+                    GUILayout.FlexibleSpace();
+                }
+                GUILayout.EndHorizontal();
+            }
+            GUILayout.EndVertical();
+        }
 
         private static void getDeltaTime(colonyClass colony, out double lastTime, out double deltaTime, out double currentTime)
         {
@@ -108,7 +137,7 @@ namespace KerbalColonies.Electricity
                         facility.ConsumeEC(lastTime, deltaTime, currentTime);
                     }
                     else if (remainingEC > 0)
-                    { 
+                    {
                         facility.ÍnsufficientEC(lastTime, deltaTime, currentTime, remainingEC);
                         remainingEC = 0;
                     }

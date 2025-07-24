@@ -111,7 +111,7 @@ namespace KerbalColonies.colonyFacilities
 
         protected override void CustomWindow()
         {
-            KCProductionFacility.ExecuteProduction(productionFacility.Colony);
+            facility.Colony.UpdateColony();
 
             if (kerbalGUI == null)
             {

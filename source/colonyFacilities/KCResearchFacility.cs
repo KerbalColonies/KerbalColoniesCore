@@ -53,7 +53,7 @@ namespace KerbalColonies.colonyFacilities
 
         protected override void CustomWindow()
         {
-            researchFacility.Update();
+            researchFacility.Colony.UpdateColony();
 
             if (kerbalGUI == null)
             {

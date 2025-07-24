@@ -14,7 +14,7 @@ namespace KerbalColonies.colonyFacilities.KCMiningFacility
         private Vector2 resourceScrollPos = new Vector2();
         protected override void CustomWindow()
         {
-            miningFacility.Update();
+            miningFacility.Colony.UpdateColony();
 
             if (kerbalGUI == null)
             {

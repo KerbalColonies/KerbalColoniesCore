@@ -77,7 +77,7 @@ namespace KerbalColonies.colonyFacilities
 
         protected override void CustomWindow()
         {
-            hangar.Update();
+            hangar.Colony.UpdateColony();
             List<StoredVessel> vesselList = hangar.storedVessels.ToList();
             scrollPos = GUILayout.BeginScrollView(scrollPos);
             GUILayout.BeginVertical();
@@ -85,6 +85,8 @@ namespace KerbalColonies.colonyFacilities
             {
                 GUILayout.BeginHorizontal();
                 GUILayout.Label(vessel.vesselName);
+
+                GUILayout.FlexibleSpace();
 
                 if (vessel.vesselBuildTime == null)
                 {
@@ -96,6 +98,12 @@ namespace KerbalColonies.colonyFacilities
                 else
                 {
                     GUILayout.Label($"Build time: {(vessel.entireVesselBuildTime - vessel.vesselBuildTime):f2}/{vessel.entireVesselBuildTime:f2}");
+                }
+
+                if (GUILayout.Button("<b>x</b>", UIConfig.ButtonRed))
+                {
+                    Configuration.writeLog($"Removing vessel {vessel.vesselName} from hangar {hangar.name}");
+                    hangar.storedVessels.Remove(vessel);
                 }
                 GUILayout.EndHorizontal();
             });
@@ -126,7 +134,7 @@ namespace KerbalColonies.colonyFacilities
         public KCHangarFacilityWindow(KCHangarFacility hangar) : base(hangar, Configuration.createWindowID())
         {
             this.hangar = hangar;
-            toolRect = new Rect(100, 100, 400, 800);
+            toolRect = new Rect(100, 100, 450, 800);
         }
     }
 

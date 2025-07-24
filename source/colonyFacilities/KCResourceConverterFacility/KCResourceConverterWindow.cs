@@ -19,7 +19,7 @@ namespace KerbalColonies.colonyFacilities.KCResourceConverterFacility
 
         protected override void CustomWindow()
         {
-            resourceConverter.Update();
+            resourceConverter.Colony.UpdateColony();
 
             if (kerbalGUI == null)
             {

@@ -31,6 +31,8 @@ namespace KerbalColonies.colonyFacilities
 
         protected override void CustomWindow()
         {
+            facility.Colony.UpdateColony();
+
             GUILayout.BeginVertical();
             kerbalGUI.StaffingInterface();
             if (facility.facilityInfo.ECperSecond[facility.level] > 0)

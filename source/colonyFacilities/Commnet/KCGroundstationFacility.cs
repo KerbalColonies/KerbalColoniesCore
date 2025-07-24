@@ -23,12 +23,12 @@ using UnityEngine;
 
 namespace KerbalColonies.colonyFacilities.Commnet
 {
-    public class KCCommNetWindow : KCFacilityWindowBase
+    public class KCGroundstationWindow : KCFacilityWindowBase
     {
         KCGroundstationFacility groundStation;
         public KerbalGUI kerbalGUI;
 
-        bool changeLaunchpadName = false;
+        bool changeNodeNode = false;
         KCCommNetNodeInfo targetInstance;
         string newName;
         Vector2 scrollPos = Vector2.zero;
@@ -52,7 +52,7 @@ namespace KerbalColonies.colonyFacilities.Commnet
                         {
                             if (GUILayout.Button($"{node.FacilityLevel}: {node.Name}", UIConfig.ButtonNoBG))
                             {
-                                changeLaunchpadName = true;
+                                changeNodeNode = true;
                                 targetInstance = node;
                                 newName = node.Name;
                             }
@@ -60,7 +60,7 @@ namespace KerbalColonies.colonyFacilities.Commnet
                     }
                     GUILayout.EndScrollView();
 
-                    if (changeLaunchpadName)
+                    if (changeNodeNode)
                     {
                         GUILayout.Label($"Changing name of commnet node {targetInstance.Name}:");
                         newName = GUILayout.TextField(newName);
@@ -70,11 +70,11 @@ namespace KerbalColonies.colonyFacilities.Commnet
                             if (GUILayout.Button("OK", GUILayout.Height(23)))
                             {
                                 targetInstance.SetCustomName(newName);
-                                changeLaunchpadName = false;
+                                changeNodeNode = false;
                             }
                             if (GUILayout.Button("Cancel", GUILayout.Height(23)))
                             {
-                                changeLaunchpadName = false;
+                                changeNodeNode = false;
                             }
                         }
                         GUILayout.EndHorizontal();
@@ -108,7 +108,7 @@ namespace KerbalColonies.colonyFacilities.Commnet
             groundStation.rebuildCommNetNodes = true;
         }
 
-        public KCCommNetWindow(KCGroundstationFacility groundStation) : base(groundStation, Configuration.createWindowID())
+        public KCGroundstationWindow(KCGroundstationFacility groundStation) : base(groundStation, Configuration.createWindowID())
         {
             this.groundStation = groundStation;
 
@@ -120,7 +120,7 @@ namespace KerbalColonies.colonyFacilities.Commnet
     public class KCGroundstationFacility : KCKerbalFacilityBase, KCECConsumer
     {
         public SortedSet<KCCommNetNodeInfo> commNetNodes { get; set; } = new SortedSet<KCCommNetNodeInfo>();
-        public KCCommNetWindow commNetWindow { get; protected set; }
+        public KCGroundstationWindow groundstationWindow { get; protected set; }
         public KCGroundStationInfo groundStationInfo => (KCGroundStationInfo)facilityInfo;
         public bool rebuildCommNetNodes { get; set; } = false;
 
@@ -175,11 +175,11 @@ namespace KerbalColonies.colonyFacilities.Commnet
 
         public override void OnBuildingClicked()
         {
-            commNetWindow.Toggle();
+            groundstationWindow.Toggle();
         }
         public override void OnRemoteClicked()
         {
-            commNetWindow.Toggle();
+            groundstationWindow.Toggle();
         }
 
         public bool outOfEC { get; protected set; } = false;
@@ -212,7 +212,7 @@ namespace KerbalColonies.colonyFacilities.Commnet
             AllowClick = false;
             AllowRemote = false;
 
-            commNetWindow = new KCCommNetWindow(this);
+            groundstationWindow = new KCGroundstationWindow(this);
         }
 
         public KCGroundstationFacility(colonyClass colony, KCFacilityInfoClass facilityInfo, bool enabled) : base(colony, facilityInfo, enabled)
@@ -220,7 +220,7 @@ namespace KerbalColonies.colonyFacilities.Commnet
             AllowClick = false;
             AllowRemote = false;
 
-            commNetWindow = new KCCommNetWindow(this);
+            groundstationWindow = new KCGroundstationWindow(this);
         }
     }
 }

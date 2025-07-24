@@ -29,7 +29,7 @@ namespace KerbalColonies.colonyFacilities
     {
         KCCommNetFacility commNetFacility;
 
-        bool changeLaunchpadName = false;
+        bool changeNodeName = false;
         KCCommNetNodeInfo targetInstance;
         string newName;
         Vector2 scrollPos = Vector2.zero;
@@ -44,7 +44,7 @@ namespace KerbalColonies.colonyFacilities
                 {
                     if (GUILayout.Button($"{node.FacilityLevel}: {node.Name}", UIConfig.ButtonNoBG))
                     {
-                        changeLaunchpadName = true;
+                        changeNodeName = true;
                         targetInstance = node;
                         newName = node.Name;
                     }
@@ -52,7 +52,7 @@ namespace KerbalColonies.colonyFacilities
             }
             GUILayout.EndScrollView();
 
-            if (changeLaunchpadName)
+            if (changeNodeName)
             {
                 GUILayout.Label($"Changing name of commnet node {targetInstance.Name}:");
                 newName = GUILayout.TextField(newName);
@@ -62,11 +62,11 @@ namespace KerbalColonies.colonyFacilities
                     if (GUILayout.Button("OK", GUILayout.Height(23)))
                     {
                         targetInstance.SetCustomName(newName);
-                        changeLaunchpadName = false;
+                        changeNodeName = false;
                     }
                     if (GUILayout.Button("Cancel", GUILayout.Height(23)))
                     {
-                        changeLaunchpadName = false;
+                        changeNodeName = false;
                     }
                 }
                 GUILayout.EndHorizontal();

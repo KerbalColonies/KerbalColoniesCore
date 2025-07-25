@@ -15,6 +15,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/
 
+using KerbalColonies.UI;
+
 namespace KerbalColonies
 {
     public class KCPartModule : PartModule
@@ -25,6 +27,11 @@ namespace KerbalColonies
         [KSPEvent(name = "Activate", guiName = "Build colony", active = true, guiActive = true)]
         public void Activate()
         {
+            if (KCLegacySaveWarning.LoadedSaves.ContainsKey(HighLogic.CurrentGame.Seed.ToString()))
+            {
+                Configuration.writeLog("A legacy save was detected, no colony was created!");
+            }
+
             Vessel vessel = FlightGlobals.ActiveVessel;
             if (vessel.srfSpeed >= 0.5f && !vessel.Landed)
             {
@@ -72,18 +79,6 @@ namespace KerbalColonies
         public override void OnStart(StartState state)
         {
 
-        }
-        internal void writeDebug(string text)
-        {
-            if (Configuration.enableLogging)
-            {
-                writeLog(text);
-            }
-        }
-
-        internal void writeLog(string text)
-        {
-            KSPLog.print(Configuration.APP_NAME + ": " + text);
         }
     }
 }

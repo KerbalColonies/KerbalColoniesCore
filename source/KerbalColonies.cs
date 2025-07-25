@@ -1,5 +1,4 @@
 ﻿using KerbalColonies.colonyFacilities;
-using KerbalColonies.Settings;
 using KerbalColonies.UI;
 using KSP.UI.Screens;
 using System.Collections.Generic;
@@ -76,8 +75,8 @@ namespace KerbalColonies
 
             KerbalKonstructs.API.RegisterOnStaticClicked(KCFacilityBase.OnBuildingClickedHandler);
 
-            GameEvents.OnRevertToLaunchFlightState.Add(saveGroupDataFromRevert);
-            GameEvents.OnRevertToPrelaunchFlightState.Add(saveGroupDataFromRevert);
+            //GameEvents.OnRevertToLaunchFlightState.Add(saveGroupDataFromRevert);
+            //GameEvents.OnRevertToPrelaunchFlightState.Add(saveGroupDataFromRevert);
 
             GameEvents.onGamePause.Add(Pause);
             GameEvents.onGameUnpause.Add(UnPause);
@@ -98,8 +97,18 @@ namespace KerbalColonies
                 toolTip: "Kerbal Colonies overview"
             );
             toolbarControl.AddLeftRightClickCallbacks(
-                () => OverviewWindow.Instance.Toggle(),
-                () => { 
+                () =>
+                {
+                    if ((Configuration.loadedSaveVersion.Major == 3 || Configuration.loadedSaveVersion > Configuration.saveVersion) && KCLegacySaveWarning.LoadedSaves.ContainsKey(HighLogic.CurrentGame.Seed.ToString()))
+                    {
+                        despawned = false;
+                        KCLegacySaveWarning.Instance.Open();
+                        return;
+                    }
+                    OverviewWindow.Instance.Toggle();
+                },
+                () =>
+                {
                     Configuration.ClickToOpen = !Configuration.ClickToOpen;
                     Configuration.writeDebug($"Toggling ClickToOpen: {Configuration.ClickToOpen}");
                     ScreenMessages.PostScreenMessage($"KC: {(Configuration.ClickToOpen ? "enabled" : "disabled")} clicking on buildings.", 10f, ScreenMessageStyle.UPPER_RIGHT);
@@ -150,6 +159,47 @@ namespace KerbalColonies
             }
             else
             {
+                if ((Configuration.loadedSaveVersion.Major == 3 || Configuration.loadedSaveVersion > Configuration.saveVersion) && !despawned && !KCLegacySaveWarning.Instance.IsOpen())
+                {
+                    Configuration.writeDebug("Despawning all statics and launchsites for legacy save.");
+                    despawned = true;
+                    if (!KCLegacySaveWarning.LoadedSaves.ContainsKey(HighLogic.CurrentGame.Seed.ToString()))
+                    {
+                        Configuration.writeDebug("Deleting all statics and launchsites for legacy save.");
+                        Configuration.loadedSaveVersion = Configuration.saveVersion;
+
+                        Configuration.KCgroups.Where(kvp => kvp.Key == HighLogic.CurrentGame.Seed.ToString()).ToDictionary(x => x.Key, x => x.Value).ToList().ForEach(kvp => kvp.Value.ToList().ForEach(bodyKVP =>
+                        {
+                            string bodyName = FlightGlobals.Bodies.First(b => FlightGlobals.GetBodyIndex(b) == bodyKVP.Key).name;
+
+                            bodyKVP.Value.ToList().ForEach(center =>
+                            {
+                                RemoveGroup(center.Key, bodyName);
+                            });
+                            Configuration.KCgroups.Remove(kvp.Key);
+                        }));
+
+                        Configuration.KCgroups.Where(kvp => kvp.Key != HighLogic.CurrentGame.Seed.ToString())
+                        .ToDictionary(x => x.Key, x => x.Value).ToList()
+                        .ForEach(kvp =>
+                        kvp.Value.ToList().ForEach(bodyKVP =>
+                        {
+                            string bodyName = FlightGlobals.Bodies.First(b => FlightGlobals.GetBodyIndex(b) == bodyKVP.Key).name;
+                            bodyKVP.Value.ToList().ForEach(KKgroup =>
+                            {
+                                GetGroupStatics(KKgroup.Key, bodyName).ForEach(s =>
+                                DeactivateStatic(s.UUID));
+
+                                if (KKgroup.Value != null)
+                                {
+                                    if (KKgroup.Value.name == "launchpadNode" && KerbalKonstructs.Core.LaunchSiteManager.GetLaunchSiteByName(KKgroup.Value.GetValue("launchSiteName")) != null) KerbalKonstructs.Core.LaunchSiteManager.CloseLaunchSite(KerbalKonstructs.Core.LaunchSiteManager.GetLaunchSiteByName(KKgroup.Value.GetValue("launchSiteName")));
+                                }
+                            });
+                        }));
+                    }
+                }
+
+                /*
                 if (!despawned)
                 {
                     despawned = true;
@@ -185,6 +235,7 @@ namespace KerbalColonies
                         });
                     });
                 }
+                */
             }
 
             //if (Input.GetKeyDown(KeyCode.U))
@@ -206,8 +257,8 @@ namespace KerbalColonies
 
             KerbalKonstructs.API.UnRegisterOnStaticClicked(KCFacilityBase.OnBuildingClickedHandler);
 
-            GameEvents.OnRevertToLaunchFlightState.Remove(saveGroupDataFromRevert);
-            GameEvents.OnRevertToPrelaunchFlightState.Remove(saveGroupDataFromRevert);
+            //GameEvents.OnRevertToLaunchFlightState.Remove(saveGroupDataFromRevert);
+            //GameEvents.OnRevertToPrelaunchFlightState.Remove(saveGroupDataFromRevert);
 
             GameEvents.onGamePause.Remove(Pause);
             GameEvents.onGameUnpause.Remove(UnPause);

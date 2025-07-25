@@ -1,4 +1,5 @@
 ﻿using KerbalColonies.colonyFacilities;
+using KerbalColonies.UI;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -31,8 +32,24 @@ namespace KerbalColonies
     [KSPScenario(ScenarioCreationOptions.AddToAllGames, GameScenes.SPACECENTER, GameScenes.FLIGHT, GameScenes.EDITOR, GameScenes.TRACKSTATION)]
     internal class Configuration : ScenarioModule
     {
+        ConfigNode loadedNode;
+
         public override void OnLoad(ConfigNode node)
         {
+            loadedNode = node.CreateCopy();
+            Configuration.writeDebug(loadedNode.ToString());
+
+            KCLegacySaveWarning.LoadSettings();
+            LoadColoniesV3();
+
+            string saveName = HighLogic.CurrentGame.Seed.ToString();
+            if (KCLegacySaveWarning.LoadedSaves.ContainsKey(saveName))
+            {
+                loadedSaveVersion = new Version(3, 0, 0);
+                return;
+            }
+
+
             KCgroups.Clear();
             colonyDictionary.Clear();
             GroupFacilities.Clear();
@@ -40,12 +57,25 @@ namespace KerbalColonies
             LoadConfiguration();
             writeDebug("scenariomodule load");
             writeDebug(node.ToString());
-            LoadColoniesV3(node);
+            LoadColoniesV4(node);
         }
         public override void OnSave(ConfigNode node)
         {
+            KCLegacySaveWarning.SaveSettings();
+            SaveColoniesV3();
+            if (KCLegacySaveWarning.LoadedSaves.ContainsKey(HighLogic.CurrentGame.Seed.ToString()))
+            {
+                Configuration.writeLog($"Saving legacy colonies");
+                node.AddData(loadedNode);
+
+                Configuration.writeDebug($"loadedNode = {loadedNode.ToString()}");
+                Configuration.writeDebug($"node = {node.ToString()}");
+
+                return;
+            }
+
             SaveConfiguration();
-            SaveColoniesV3(node);
+            SaveColoniesV4(node);
             writeDebug(node.ToString());
             writeDebug("scenariomodule save");
         }
@@ -164,7 +194,7 @@ namespace KerbalColonies
 
         #region savingV3
 
-        public static Version saveVersion = new Version(3, 2, 0);
+        public static Version saveVersion = new Version(4, 0, 0);
         public static Version loadedSaveVersion;
 
         // New saving
@@ -191,17 +221,9 @@ namespace KerbalColonies
         /// </summary>
         internal static Dictionary<string, Dictionary<int, Dictionary<string, ConfigNode>>> KCgroups = new Dictionary<string, Dictionary<int, Dictionary<string, ConfigNode>>> { };
 
-
-        /// <summary>
-        /// Untested, should maybe work
-        /// </summary>
-        public ConfigNode getKCgroupNode(string groupName)
-        {
-            return KCgroups.Values.SelectMany(x => x.Values).SelectMany(x => x).FirstOrDefault(x => x.Key == groupName).Value;
-        }
-
         internal static void AddGroup(int bodyIndex, string groupName, KCFacilityBase faciltiy)
         {
+            /*
             if (!KCgroups.ContainsKey(HighLogic.CurrentGame.Seed.ToString()))
             {
                 KCgroups.Add(HighLogic.CurrentGame.Seed.ToString(), new Dictionary<int, Dictionary<string, ConfigNode>> { { bodyIndex, new Dictionary<string, ConfigNode> { { groupName, faciltiy.GetSharedNode() } } } });
@@ -214,6 +236,7 @@ namespace KerbalColonies
             {
                 KCgroups[HighLogic.CurrentGame.Seed.ToString()][bodyIndex].Add(groupName, faciltiy.GetSharedNode());
             }
+            */
 
             if (!GroupFacilities.ContainsKey(groupName)) GroupFacilities.Add(groupName, faciltiy);
             else GroupFacilities[groupName] = faciltiy;
@@ -235,8 +258,9 @@ namespace KerbalColonies
         /// </summary>
         internal static Dictionary<string, KCFacilityBase> GroupFacilities = new Dictionary<string, KCFacilityBase> { };
 
-        public static void LoadColoniesV3(ConfigNode persistentNode)
+        public static void LoadColoniesV3()
         {
+            // Loaded to delete legacy KK groups
             string path = $"{Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)}{Path.DirectorySeparatorChar}..{Path.DirectorySeparatorChar}Configs{Path.DirectorySeparatorChar}ColonyDataV3.cfg";
 
             ConfigNode node = ConfigNode.Load(path);
@@ -269,12 +293,22 @@ namespace KerbalColonies
                     }
                 }
             }
+        }
+
+        public static void LoadColoniesV4(ConfigNode persistentNode)
+        {
+            Version.TryParse(persistentNode.GetValue("version") ?? "3.0.0", out loadedSaveVersion);
+            Configuration.writeLog($"Loaded save version: {loadedSaveVersion}");
+
+
+            if (loadedSaveVersion.Major == 3 || loadedSaveVersion > saveVersion)
+            {
+                KCLegacySaveWarning.Instance.Open();
+                return;
+            }
 
             if (persistentNode.HasNode("colonyNode"))
             {
-                Version.TryParse(persistentNode.GetValue("version") ?? "3.1.1", out loadedSaveVersion);
-                Configuration.writeLog($"Loaded save version: {loadedSaveVersion}");
-
                 ConfigNode primaryNode = persistentNode.GetNode("colonyNode");
                 foreach (ConfigNode bodyNode in primaryNode.GetNodes())
                 {
@@ -304,7 +338,7 @@ namespace KerbalColonies
             }
         }
 
-        public static void SaveColoniesV3(ConfigNode persistentNode)
+        public static void SaveColoniesV3()
         {
             string root = "KCgroups";
 
@@ -333,7 +367,10 @@ namespace KerbalColonies
             nodes[0].name = root;
             node.AddNode(nodes[0]);
             node.Save(path);
+        }
 
+        public static void SaveColoniesV4(ConfigNode persistentNode)
+        {
             Configuration.writeLog($"Saving {colonyDictionary.SelectMany(x => x.Value).Count()} on {colonyDictionary.Count} bodies");
             int colonyNodeCount = 0;
             int bodyNodeCount = 0;

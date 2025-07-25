@@ -201,19 +201,10 @@ namespace KerbalColonies
         {
             Name = node.GetValue("name");
 
-            if (Configuration.loadedSaveVersion == new Version(3, 1, 1))
-            {
-                UseCustomDisplayName = false;
-                BodyID = 3;
-                ColonyNumber = 0;
-            }
-            else
-            {
-                UseCustomDisplayName = bool.Parse(node.GetValue("useCustomDisplayName"));
-                if (UseCustomDisplayName) DisplayName = node.GetValue("displayName");
-                BodyID = int.Parse(node.GetValue("bodyID"));
-                ColonyNumber = int.Parse(node.GetValue("colonyNumber"));
-            }
+            UseCustomDisplayName = bool.Parse(node.GetValue("useCustomDisplayName"));
+            if (UseCustomDisplayName) DisplayName = node.GetValue("displayName");
+            BodyID = int.Parse(node.GetValue("bodyID"));
+            ColonyNumber = int.Parse(node.GetValue("colonyNumber"));
 
             Facilities = new List<KCFacilityBase>();
             sharedColonyNodes = node.GetNode("sharedColonyNodes").GetNodes().ToList();

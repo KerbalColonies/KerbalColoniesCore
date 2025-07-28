@@ -82,6 +82,8 @@ namespace KerbalColonies
                     // Doesn't account for leaving the editor
                     foreach (PartResourceDefinition item in PartResourceLibrary.Instance.resourceDefinitions)
                     {
+                        if (KCStorageFacility.blackListedResources.Contains(item.name)) continue;
+
                         FlightGlobals.ActiveVessel.GetConnectedResourceTotals(item.id, out double amount, out double max, true);
                         FlightGlobals.ActiveVessel.RequestResource(FlightGlobals.ActiveVessel.rootPart, item.id, amount, false);
                     }

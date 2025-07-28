@@ -6,21 +6,21 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fis
 {
     public class KCFissionInfo : KCKerbalFacilityInfoClass
     {
-        public Dictionary<int, double> ECProduction { get; protected set; } = new Dictionary<int, double>();
-        public Dictionary<int, double> MinECThrottle { get; protected set; } = new Dictionary<int, double>();
-        public Dictionary<int, double> MaxECChangeRate { get; protected set; } = new Dictionary<int, double>();
-        public Dictionary<int, double> MinECRateChangeTime { get; protected set; } = new Dictionary<int, double>();
-        public Dictionary<int, double> ECChangeThreshold { get; protected set; } = new Dictionary<int, double>();
-        public Dictionary<int, double> PowerlevelChangeTime { get; protected set; } = new Dictionary<int, double>();
-        public Dictionary<int, double> LevelOffTime { get; protected set; } = new Dictionary<int, double>();
+        public SortedDictionary<int, double> ECProduction { get; protected set; } = new SortedDictionary<int, double>();
+        public SortedDictionary<int, double> MinECThrottle { get; protected set; } = new SortedDictionary<int, double>();
+        public SortedDictionary<int, double> MaxECChangeRate { get; protected set; } = new SortedDictionary<int, double>();
+        public SortedDictionary<int, double> MinECRateChangeTime { get; protected set; } = new SortedDictionary<int, double>();
+        public SortedDictionary<int, double> ECChangeThreshold { get; protected set; } = new SortedDictionary<int, double>();
+        public SortedDictionary<int, double> PowerlevelChangeTime { get; protected set; } = new SortedDictionary<int, double>();
+        public SortedDictionary<int, double> LevelOffTime { get; protected set; } = new SortedDictionary<int, double>();
 
-        public Dictionary<int, Dictionary<PartResourceDefinition, double>> InputResources { get; protected set; } = new Dictionary<int, Dictionary<PartResourceDefinition, double>>();
-        public Dictionary<int, Dictionary<PartResourceDefinition, double>> InputStorage { get; protected set; } = new Dictionary<int, Dictionary<PartResourceDefinition, double>>();
-        public Dictionary<int, Dictionary<PartResourceDefinition, double>> OutputResources { get; protected set; } = new Dictionary<int, Dictionary<PartResourceDefinition, double>>();
-        public Dictionary<int, Dictionary<PartResourceDefinition, double>> OutputStorage { get; protected set; } = new Dictionary<int, Dictionary<PartResourceDefinition, double>>();
-        public Dictionary<int, int> MinKerbals { get; protected set; } = new Dictionary<int, int>();
-        public Dictionary<int, int> MinKerbalLevel { get; protected set; } = new Dictionary<int, int>();
-        public Dictionary<int, double> RefillTime { get; protected set; } = new Dictionary<int, double>();
+        public SortedDictionary<int, Dictionary<PartResourceDefinition, double>> InputResources { get; protected set; } = new SortedDictionary<int, Dictionary<PartResourceDefinition, double>>();
+        public SortedDictionary<int, Dictionary<PartResourceDefinition, double>> InputStorage { get; protected set; } = new SortedDictionary<int, Dictionary<PartResourceDefinition, double>>();
+        public SortedDictionary<int, Dictionary<PartResourceDefinition, double>> OutputResources { get; protected set; } = new SortedDictionary<int, Dictionary<PartResourceDefinition, double>>();
+        public SortedDictionary<int, Dictionary<PartResourceDefinition, double>> OutputStorage { get; protected set; } = new SortedDictionary<int, Dictionary<PartResourceDefinition, double>>();
+        public SortedDictionary<int, int> MinKerbals { get; protected set; } = new SortedDictionary<int, int>();
+        public SortedDictionary<int, int> MinKerbalLevel { get; protected set; } = new SortedDictionary<int, int>();
+        public SortedDictionary<int, double> RefillTime { get; protected set; } = new SortedDictionary<int, double>();
 
         public KCFissionInfo(ConfigNode node) : base(node)
         {

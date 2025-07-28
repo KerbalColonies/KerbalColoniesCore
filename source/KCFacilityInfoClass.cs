@@ -1,4 +1,5 @@
 ﻿using KerbalColonies.colonyFacilities;
+using KerbalColonies.colonyFacilities.StorageFacility;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -213,7 +214,8 @@ namespace KerbalColonies
                 int level = int.Parse(n.name);
                 levelNodes.Add(level, n);
             });
-            levelNodes.ToList().ForEach(kvp => {
+            levelNodes.ToList().ForEach(kvp =>
+            {
                 ConfigNode n = kvp.Value;
                 int level = kvp.Key;
                 if (n.HasValue("upgradeType")) UpgradeTypes.Add(level, (UpgradeType)Enum.Parse(typeof(UpgradeType), n.GetValue("upgradeType")));

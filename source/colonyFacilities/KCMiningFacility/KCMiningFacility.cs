@@ -1,4 +1,5 @@
-﻿using KerbalColonies.Electricity;
+﻿using KerbalColonies.colonyFacilities.StorageFacility;
+using KerbalColonies.Electricity;
 using KerbalKonstructs.Core;
 using System;
 using System.Collections.Generic;

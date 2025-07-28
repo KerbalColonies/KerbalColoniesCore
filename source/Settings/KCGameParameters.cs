@@ -24,6 +24,9 @@ namespace KerbalColonies.Settings
         [GameParameters.CustomFloatParameterUI("Facility build time multiplier", toolTip = "Multiplies the build time for all facilities.", addTextField = true, asPercentage = false, autoPersistance = false, logBase = 1.5f, gameMode = GameParameters.GameMode.ANY, maxValue = 10f, newGameOnly = false, displayFormat = "0.00")]
         public float FacilityTimeMultiplier { get => Configuration.FacilityTimeMultiplier; set => Configuration.FacilityTimeMultiplier = value; }
 
+        [GameParameters.CustomFloatParameterUI("Facility range multiplier", toolTip = "Multiplies the range of all facilities.", addTextField = true, asPercentage = false, autoPersistance = false, logBase = 1.5f, gameMode = GameParameters.GameMode.ANY, minValue = 0.1f, maxValue = 10f, newGameOnly = false, displayFormat = "0.00")]
+        public float FacilityRangeMultiplier { get => Configuration.FacilityRangeMultiplier; set => Configuration.FacilityRangeMultiplier = value; }
+
         [GameParameters.CustomFloatParameterUI("Vessel build cost multiplier", toolTip = "Multiplies the build cost for all vessel built at colonies.", addTextField = true, asPercentage = false, autoPersistance = false, logBase = 1.5f, gameMode = GameParameters.GameMode.ANY, maxValue = 10f, newGameOnly = false, displayFormat = "0.00")]
         public float VesselCostMultiplier { get => Configuration.VesselCostMultiplier; set => Configuration.VesselCostMultiplier = value; }
 
@@ -57,6 +60,7 @@ namespace KerbalColonies.Settings
                 case GameParameters.Preset.Easy:
                     FacilityCostMultiplier = 0.5f;
                     FacilityTimeMultiplier = 0.5f;
+                    FacilityRangeMultiplier = 3.0f;
                     VesselCostMultiplier = 0.5f;
                     VesselTimeMultiplier = 0.5f;
                     maxColoniesPerBody = 0;
@@ -64,6 +68,7 @@ namespace KerbalColonies.Settings
                 case GameParameters.Preset.Normal:
                     FacilityCostMultiplier = 1.0f;
                     FacilityTimeMultiplier = 1.0f;
+                    FacilityRangeMultiplier = 1.0f;
                     VesselCostMultiplier = 1.0f;
                     VesselTimeMultiplier = 1.0f;
                     maxColoniesPerBody = 10;
@@ -71,6 +76,7 @@ namespace KerbalColonies.Settings
                 case GameParameters.Preset.Moderate:
                     FacilityCostMultiplier = 1.5f;
                     FacilityTimeMultiplier = 1.5f;
+                    FacilityRangeMultiplier = 0.9f;
                     VesselCostMultiplier = 1.5f;
                     VesselTimeMultiplier = 1.5f;
                     maxColoniesPerBody = 5;
@@ -78,6 +84,7 @@ namespace KerbalColonies.Settings
                 case GameParameters.Preset.Hard:
                     FacilityCostMultiplier = 2.0f;
                     FacilityTimeMultiplier = 2.0f;
+                    FacilityRangeMultiplier = 0.75f;
                     VesselCostMultiplier = 2.0f;
                     VesselTimeMultiplier = 2.0f;
                     maxColoniesPerBody = 3;
@@ -86,6 +93,7 @@ namespace KerbalColonies.Settings
                 default:
                     FacilityCostMultiplier = 1.0f;
                     FacilityTimeMultiplier = 1.0f;
+                    FacilityRangeMultiplier = 1.0f;
                     VesselCostMultiplier = 1.0f;
                     VesselTimeMultiplier = 1.0f;
                     maxColoniesPerBody = 10;

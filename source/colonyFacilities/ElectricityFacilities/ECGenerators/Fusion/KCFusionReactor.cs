@@ -1,9 +1,9 @@
-﻿using KerbalColonies.Electricity;
+﻿using KerbalColonies.colonyFacilities.ElectricityFacilities.ECStorage;
+using KerbalColonies.colonyFacilities.StorageFacility;
+using KerbalColonies.Electricity;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fusion
 {
@@ -58,7 +58,8 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fus
         public override List<ProtoCrewMember> filterKerbals(List<ProtoCrewMember> kerbals) => base.filterKerbals(kerbals).Where(k => k.experienceLevel >= FusionInfo.MinKerbalLevel[level]).ToList();
 
         public SortedDictionary<int, double> AvailablePowerLevels() => new SortedDictionary<int, double>(FusionInfo.ECProduction.Where(kvp => kvp.Key <= level).ToDictionary(kvp => kvp.Key, kvp => kvp.Value));
-        public SortedDictionary<int, double> PossiblePowerLevels() => new SortedDictionary<int, double>(AvailablePowerLevels().Where(kvp => {
+        public SortedDictionary<int, double> PossiblePowerLevels() => new SortedDictionary<int, double>(AvailablePowerLevels().Where(kvp =>
+        {
             if (FusionInfo.MinKerbals[kvp.Key] > kerbals.Count) return false;
             foreach (KeyValuePair<string, int> traitKVP in FusionInfo.RequiredTraits[kvp.Key])
             {

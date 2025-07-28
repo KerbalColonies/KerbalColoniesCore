@@ -177,6 +177,7 @@ namespace KerbalColonies
                                                                // set it to zero to disable the limit
         public static float FacilityCostMultiplier = 1.0f; // Multiplier for the cost of the facilities
         public static float FacilityTimeMultiplier = 1.0f; // Multiplier for the time of the facilities
+        public static float FacilityRangeMultiplier = 1.0f; // Multiplier for the range of the facilities
         public static float VesselCostMultiplier = 1.0f; // Multiplier for the cost of the vessels
         public static float VesselTimeMultiplier = 1.0f; // Multiplier for the time of the vessels
 
@@ -297,7 +298,7 @@ namespace KerbalColonies
 
         public static void LoadColoniesV4(ConfigNode persistentNode)
         {
-            Version.TryParse(persistentNode.GetValue("version") ?? "3.0.0", out loadedSaveVersion);
+            Version.TryParse(persistentNode.GetValue("version") ?? "4.0.0", out loadedSaveVersion);
             Configuration.writeLog($"Loaded save version: {loadedSaveVersion}");
 
 

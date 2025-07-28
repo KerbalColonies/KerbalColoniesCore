@@ -5,8 +5,10 @@ using KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fission
 using KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.FuelCell;
 using KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fusion;
 using KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Windturbine;
+using KerbalColonies.colonyFacilities.ElectricityFacilities.ECStorage;
 using KerbalColonies.colonyFacilities.KCMiningFacility;
 using KerbalColonies.colonyFacilities.KCResourceConverterFacility;
+using KerbalColonies.colonyFacilities.StorageFacility;
 using KerbalColonies.Electricity;
 using KerbalColonies.UI;
 using System;
@@ -135,7 +137,7 @@ namespace KerbalColonies
 
             KCFacilityTypeRegistry.RegisterType<KCECStorageFacility>();
             KCFacilityTypeRegistry.RegisterType<KCECTestFacility>();
-            KCFacilityTypeRegistry.RegisterFacilityInfo<KCECStorageFacility, KCFacilityInfoClass>();
+            KCFacilityTypeRegistry.RegisterFacilityInfo<KCECStorageFacility, KCECStorageInfo>();
             KCFacilityTypeRegistry.RegisterFacilityInfo<KCECTestFacility, KCFacilityInfoClass>();
             KCFacilityTypeRegistry.RegisterType<KCFuelCellFacility>();
             KCFacilityTypeRegistry.RegisterFacilityInfo<KCFuelCellFacility, KCFuelCellInfo>();

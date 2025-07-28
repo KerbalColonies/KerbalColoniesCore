@@ -1,11 +1,12 @@
-﻿using KerbalColonies.Electricity;
+﻿using KerbalColonies.colonyFacilities.StorageFacility;
+using KerbalColonies.Electricity;
 using KerbalColonies.UI;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-namespace KerbalColonies.colonyFacilities.ElectricityFacilities
+namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECStorage
 {
     public class KCECStorageWindow : KCFacilityWindowBase
     {
@@ -24,9 +25,39 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities
             GUILayout.Label($"Stored electric charge:\n{ecStorage.ECStored} / {ecStorage.ECCapacity} EC");
 
             GUILayout.Label("Colony: ");
+
+            KCECStorageInfo info = ecStorage.StorageInfo;
+
+            CelestialBody body = FlightGlobals.Bodies.First(b => FlightGlobals.GetBodyIndex(b) == ecStorage.Colony.BodyID);
+
+            double radius = facility.KKgroups.Average(g => KerbalKonstructs.API.GetGroupCenter(g, body.bodyName).RadiusOffset) + body.Radius;
+            double squareRadius = radius * radius;
+            double unMultiplier = body.gMagnitudeAtCenter / squareRadius;
+
+            float multiplier = info.UseGravityMultiplier[facility.level] ? Math.Max(info.MinGravity[facility.level], Math.Min(info.MaxGravity[facility.level], (float)unMultiplier / 9.80665f)) : 1;
+            if (info.UseGravityMultiplier[facility.level] && !Configuration.Paused) Configuration.writeDebug($"KCECStorageWindow: radius: {radius}, radius²: {squareRadius}, unMultiplier: {unMultiplier}");
+
+
+            List<Type> types = info.RangeTypes[facility.level];
+            List<string> names = info.RangeFacilities[facility.level];
+
+            float range = info.TransferRange[facility.level] * multiplier * Configuration.FacilityRangeMultiplier;
+            bool canTranfer = facility.Colony.Facilities.Where(f => types.Contains(f.GetType()) ^ names.Contains(f.facilityInfo.name)).Any(f => f.playerNearFacility((float)range)) || facility.playerNearFacility((float)range);
+            canTranfer &= !ecStorage.locked;
+            canTranfer &= FlightGlobals.ActiveVessel != null && FlightGlobals.ActiveVessel.LandedOrSplashed && FlightGlobals.ship_srfSpeed <= 0.5; // only allow transfer if the vessel is landed or splashed
+
+
+            // types | names
+            // 0 | 0 -> false
+            // 0 | 1 -> true
+            // 1 | 0 -> true
+            // 1 | 1 -> false
+            // xor
+
+
             GUILayout.BeginHorizontal();
             {
-                if (FlightGlobals.ActiveVessel == null) GUI.enabled = false;
+                GUI.enabled = canTranfer;
                 foreach (double i in valueList)
                 {
                     if (GUILayout.Button(i.ToString(), GUILayout.Height(18), GUILayout.MinWidth(24)))
@@ -65,12 +96,13 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities
                             }
                         }
                     }
-                    GUI.enabled = true;
                 }
             }
             GUILayout.EndHorizontal();
 
+            GUI.enabled = true;
             GUILayout.Label("Facility: ");
+            GUI.enabled = canTranfer;
             GUILayout.BeginHorizontal();
             {
                 if (FlightGlobals.ActiveVessel == null) GUI.enabled = false;
@@ -112,10 +144,11 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities
                             }
                         }
                     }
-                    GUI.enabled = true;
                 }
             }
             GUILayout.EndHorizontal();
+
+            GUI.enabled = true;
 
             ecStorage.locked = GUILayout.Toggle(ecStorage.locked, "Lock storage", GUILayout.Height(18), GUILayout.Width(100));
 
@@ -140,106 +173,6 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities
         {
             toolRect = new Rect(100, 100, 400, 350);
             ec = PartResourceLibrary.Instance.GetDefinition("ElectricCharge");
-        }
-    }
-
-    public class KCECStorageFacility : KCFacilityBase, KCECStorage
-    {
-        public static double ColonyEC(colonyClass colony) => KCFacilityBase.GetAllTInColony<KCECStorageFacility>(colony).Sum(f => f.ECStored);
-        public static double ColonyECCapacity(colonyClass colony) => KCFacilityBase.GetAllTInColony<KCECStorageFacility>(colony).Sum(f => f.ECCapacity);
-        public static SortedDictionary<int, KCECStorageFacility> StoragePriority(colonyClass colony)
-        {
-            SortedDictionary<int, KCECStorageFacility> dict = new SortedDictionary<int, KCECStorageFacility>(KCFacilityBase.GetAllTInColony<KCECStorageFacility>(colony)
-.ToDictionary(f => f.ECStoragePriority, f => f));
-            dict.Reverse();
-            return dict;
-        }
-
-        public static double AddECToColony(colonyClass colony, double deltaEC)
-        {
-            StoragePriority(colony).ToList().ForEach(kvp => deltaEC = kvp.Value.ChangeECStored(deltaEC));
-            return deltaEC;
-        }
-
-        private KCECStorageWindow window;
-        private double eCStored;
-
-        public double ECStored { get => eCStored; set => eCStored = locked ? eCStored : value; }
-        public double ECCapacity { get; set; } = 100000;
-        public int ECStoragePriority { get; set; } = 0;
-        public bool locked { get; set; } = false;
-
-        public double StoredEC(double lastTime, double deltaTime, double currentTime) => locked ? 0 : ECStored;
-
-        public double ChangeECStored(double deltaEC)
-        {
-            if (locked) return deltaEC;
-            if (deltaEC < 0)
-            {
-                if (ECStored + deltaEC >= 0)
-                {
-                    ECStored += deltaEC;
-                    deltaEC = 0;
-                }
-                else
-                {
-                    deltaEC += ECStored;
-                    ECStored = 0;
-                }
-            }
-            else
-            {
-                if (ECStored + deltaEC <= ECCapacity)
-                {
-                    ECStored += deltaEC;
-                    deltaEC = 0;
-                }
-                else
-                {
-                    deltaEC -= ECCapacity - ECStored;
-                    ECStored = ECCapacity;
-                }
-            }
-
-            return deltaEC;
-        }
-
-        public void SetStoredEC(double storedEC) => ECStored = locked ? ECStored : Math.Max(0, Math.Min(ECCapacity, storedEC));
-
-        public override void OnBuildingClicked() => window.Toggle();
-
-        public override void OnRemoteClicked() => window.Toggle();
-
-        public override void Update()
-        {
-            base.Update();
-            locked = built && locked;
-        }
-
-        public override ConfigNode getConfigNode()
-        {
-            ConfigNode node = base.getConfigNode();
-            node.AddValue("ECStored", ECStored);
-            node.AddValue("Priority", ECStoragePriority);
-            node.AddValue("locked", locked);
-            return node;
-        }
-
-        public KCECStorageFacility(colonyClass colony, KCFacilityInfoClass facilityInfo, ConfigNode node) : base(colony, facilityInfo, node)
-        {
-            if (node.HasValue("ECStored"))
-            {
-                ECStored = double.Parse(node.GetValue("ECStored"));
-                ECStoragePriority = int.Parse(node.GetValue("Priority"));
-            }
-            if (node.HasValue("locked")) locked = bool.Parse(node.GetValue("locked"));
-
-            window = new KCECStorageWindow(this);
-        }
-
-        public KCECStorageFacility(colonyClass colony, KCFacilityInfoClass facilityInfo, bool enabled) : base(colony, facilityInfo, enabled)
-        {
-            window = new KCECStorageWindow(this);
         }
     }
 }

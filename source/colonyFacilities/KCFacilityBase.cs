@@ -69,7 +69,7 @@ namespace KerbalColonies.colonyFacilities
             OnDisplayNameChange(displayName);
         }
 
-        public bool playerNearFacility(float distance = 1000f) => FlightGlobals.ActiveVessel != null && KKgroups.Any(groupName =>
+        public bool playerNearFacility(float distance = 2500f) => FlightGlobals.ActiveVessel != null && KKgroups.Any(groupName =>
         {
             KerbalKonstructs.Core.GroupCenter center = KerbalKonstructs.API.GetGroupCenter(groupName, Colony.BodyName);
             return center != null && Vector3.Distance(FlightGlobals.ship_position, center.gameObject.transform.position) < distance;

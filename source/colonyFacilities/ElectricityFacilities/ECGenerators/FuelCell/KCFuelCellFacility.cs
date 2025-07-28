@@ -1,10 +1,6 @@
-﻿using KerbalColonies.Electricity;
-using System;
+﻿using KerbalColonies.colonyFacilities.StorageFacility;
+using KerbalColonies.Electricity;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using static KSP.UI.Screens.Settings.SettingsSetup;
 
 namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.FuelCell
 {

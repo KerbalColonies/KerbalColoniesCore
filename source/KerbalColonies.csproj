@@ -57,7 +57,9 @@
     <Compile Include="colonyFacilities\ElectricityFacilities\ECGenerators\Fusion\KCFusionWindow.cs" />
     <Compile Include="colonyFacilities\ElectricityFacilities\ECGenerators\Windturbine\KCWindturbineFacility.cs" />
     <Compile Include="colonyFacilities\ElectricityFacilities\ECGenerators\Windturbine\KCWindturbinePlacementWindow.cs" />
-    <Compile Include="colonyFacilities\ElectricityFacilities\KCECStorageFacility.cs" />
+    <Compile Include="colonyFacilities\ElectricityFacilities\ECStorage\KCECStorageFacility.cs" />
+    <Compile Include="colonyFacilities\ElectricityFacilities\ECStorage\KCECStorageInfo.cs" />
+    <Compile Include="colonyFacilities\ElectricityFacilities\ECStorage\KCECStorageWindow.cs" />
     <Compile Include="colonyFacilities\ElectricityFacilities\KCECTestFacility.cs" />
     <Compile Include="colonyFacilities\Commnet\KCCommNetFacility.cs" />
     <Compile Include="colonyFacilities\KCLaunchpadFacility.cs" />
@@ -72,6 +74,9 @@
     <Compile Include="colonyFacilities\KCResourceConverterFacility\RecipeSelectorWindow.cs" />
     <Compile Include="colonyFacilities\KCResourceConverterFacility\ResourceConversionList.cs" />
     <Compile Include="colonyFacilities\KCResourceConverterFacility\ResourceConversionRate.cs" />
+    <Compile Include="colonyFacilities\StorageFacility\KCStorageFacility.cs" />
+    <Compile Include="colonyFacilities\StorageFacility\KCStorageFacilityInfo.cs" />
+    <Compile Include="colonyFacilities\StorageFacility\KCStorageFacilityWindow.cs" />
     <Compile Include="Electricity\KCECConsumer.cs" />
     <Compile Include="Electricity\KCECManager.cs" />
     <Compile Include="Electricity\KCECProducer.cs" />
@@ -82,7 +87,6 @@
     <Compile Include="colonyFacilities\KCCrewQuarters.cs" />
     <Compile Include="colonyFacilities\KCMiningFacility\KCMiningFacility.cs" />
     <Compile Include="colonyFacilities\KCResearchFacility.cs" />
-    <Compile Include="colonyFacilities\KCStorageFacility.cs" />
     <Compile Include="colonyFacilities\KC_CAB_Facility.cs" />
     <Compile Include="colonyFacilities\KCResourceConverterFacility\KCResourceConverterFacility.cs" />
     <Compile Include="ConfigFacilityLoader.cs" />

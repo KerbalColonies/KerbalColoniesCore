@@ -1,4 +1,5 @@
-﻿using KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fusion;
+﻿using KerbalColonies.colonyFacilities.ElectricityFacilities.ECStorage;
+using KerbalColonies.colonyFacilities.StorageFacility;
 using KerbalColonies.Electricity;
 using System;
 using System.Collections.Generic;
@@ -167,7 +168,7 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fis
                             PowerLevelLevelOffTime = currentTime + FissionInfo.LevelOffTime[currentPowerLevel];
                             SetPowerLevelLevelOffTime = true;
                         }
-                        
+
                         if (currentTime > PowerLevelLevelOffTime)
                         {
                             Configuration.writeLog($"KCFissionreactor: ChangingPowerTarget: Reached current power level minimum throttle");
@@ -415,7 +416,7 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fis
 
                 if (ManualControl)
                 {
-                    powerLevel = new KeyValuePair<int, double> (ManualPowerLevel, powerLevels[ManualPowerLevel]);
+                    powerLevel = new KeyValuePair<int, double>(ManualPowerLevel, powerLevels[ManualPowerLevel]);
                     throttle = ManualThrottle;
                 }
                 else

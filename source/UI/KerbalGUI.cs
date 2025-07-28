@@ -108,8 +108,8 @@ namespace KerbalColonies.UI
                         {
                             p.protoModuleCrew.Remove(member);
                             int index = p.protoPartSnapshot.GetCrewIndex(member.name);
-                            Configuration.writeDebug(index.ToString());
-                            Configuration.writeDebug(member.seatIdx.ToString());
+                            Configuration.writeLog(index.ToString());
+                            Configuration.writeLog(member.seatIdx.ToString());
                             p.protoPartSnapshot.RemoveCrew(member);
                             p.RemoveCrewmember(member);
                             p.ModulesOnUpdate();
@@ -207,7 +207,7 @@ namespace KerbalColonies.UI
                         {
                             if (toList.Count + 1 <= toCapacity)
                             {
-                                Configuration.writeDebug($"Adding Kerbal {k.name} from {toName} to {fromName}");
+                                Configuration.writeLog($"Adding Kerbal {k.name} from {toName} to {fromName}");
                                 fromListModifier = k;
                                 fromListModifierList.Add(k);
                                 toList.Add(k);
@@ -228,7 +228,7 @@ namespace KerbalColonies.UI
                         {
                             if (fromList.Count + 1 <= fromCapacity)
                             {
-                                Configuration.writeDebug($"Adding Kerbal {k.name} from {fromName} to {toName}");
+                                Configuration.writeLog($"Adding Kerbal {k.name} from {fromName} to {toName}");
                                 toListModifier = k;
                                 toListModifierList.Add(k);
                                 fromList.Add(k);

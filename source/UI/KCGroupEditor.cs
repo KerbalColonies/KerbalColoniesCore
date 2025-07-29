@@ -1,4 +1,5 @@
 ﻿using KerbalColonies.colonyFacilities;
+using KerbalKonstructs.Core;
 using KerbalKonstructs.UI;
 using UnityEngine;
 
@@ -56,6 +57,8 @@ namespace KerbalColonies.UI
 
         protected override void GroupEditorWindow(int windowID)
         {
+            toolRect.size = new Vector2(330, 350);
+
             UpdateVectors();
 
             GUILayout.BeginHorizontal();
@@ -309,7 +312,10 @@ namespace KerbalColonies.UI
                 GUI.enabled = true;
                 if (GUILayout.Button("Save", GUILayout.Height(23)))
                 {
-                    selectedGroup.Save();
+                    selectedGroup.isInSavegame = true;
+                    selectedGroup.childInstances.ForEach(instance => instance.isInSavegame = true);
+
+                    KerbalKonstructs.API.OnGroupSaved.Invoke(selectedGroup);
                     this.Close();
                 }
             }

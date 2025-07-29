@@ -168,16 +168,12 @@ namespace KerbalColonies
 
             if (groupCenter.Group != buildQueue.Peek().groupName) { return; }
 
-            // For future use for KK savegame saving
-            groupCenter.isInSavegame = true;
-
             KerbalKonstructs.API.UnRegisterOnGroupSaved(PlaceNewGroupSave);
             List<KerbalKonstructs.Core.StaticInstance> instances = KerbalKonstructs.API.GetGroupStatics(buildQueue.Peek().groupName).ToList();
 
             foreach (KerbalKonstructs.Core.StaticInstance instance in instances)
             {
                 instance.ToggleAllColliders(true);
-                instance.isInSavegame = true;
             }
 
             buildQueue.Peek().Facility.enabled = true;
@@ -233,6 +229,10 @@ namespace KerbalColonies
                 KerbalKonstructs.API.RegisterOnGroupSaved(ColonyBuilding.PlaceNewGroupSave);
                 ColonyBuilding.buildQueue.Peek().Facility.KKgroups.Add(ColonyBuilding.buildQueue.Peek().groupName); // add the group to the facility groups
                 Configuration.AddGroup(FlightGlobals.GetBodyIndex(FlightGlobals.currentMainBody), ColonyBuilding.buildQueue.Peek().groupName, ColonyBuilding.buildQueue.Peek().Facility);
+            }
+            else
+            {
+                GamePersistence.SaveGame("persistent", HighLogic.SaveFolder, SaveMode.OVERWRITE);
             }
         }
 

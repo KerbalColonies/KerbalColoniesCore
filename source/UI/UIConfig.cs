@@ -2,7 +2,7 @@
 
 // KC: Kerbal Colonies
 // This mod aimes to create a Colony system with Kerbal Konstructs statics
-// Copyright (c) 2024-2025 AMPW, Halengar
+// Copyright (c) 2024-2025 AMPW, Halengar and the KC Team
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -15,7 +15,7 @@
 // GNU General Public License for more details.
 
 // You should have received a copy of the GNU General Public License
-// along with this program.  If not, see <https://www.gnu.org/licenses/
+// along with this program. If not, see <https://www.gnu.org/licenses/
 
 /// This file is a modified version of the UIMain.cs file from the Kerbal Konstructs mod which is licensed under the MIT License.
 

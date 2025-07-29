@@ -1,15 +1,13 @@
 ﻿using KerbalColonies.Electricity;
 using KerbalColonies.UI;
-using Steamworks;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using static KSP.UI.Screens.SpaceCenter.BuildingPicker;
 
 // KC: Kerbal Colonies
 // This mod aimes to create a Colony system with Kerbal Konstructs statics
-// Copyright (c) 2024-2025 AMPW, Halengar
+// Copyright (c) 2024-2025 AMPW, Halengar and the KC Team
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -22,7 +20,7 @@ using static KSP.UI.Screens.SpaceCenter.BuildingPicker;
 // GNU General Public License for more details.
 
 // You should have received a copy of the GNU General Public License
-// along with this program.  If not, see <https://www.gnu.org/licenses/
+// along with this program. If not, see <https://www.gnu.org/licenses/
 
 namespace KerbalColonies.colonyFacilities
 {
@@ -120,7 +118,7 @@ namespace KerbalColonies.colonyFacilities
             lastUpdateTime = Planetarium.GetUniversalTime();
             enabled = built && kerbals.Count > 0 && !outOfEC;
             if (enabled)
-            sciencePoints = Math.Min(researchFacilityInfo.maxSciencePoints[level], sciencePoints + ((researchFacilityInfo.sciencePointsPerDayperResearcher[level] / 6 / 60 / 60) * deltaTime) * kerbals.Count);
+                sciencePoints = Math.Min(researchFacilityInfo.maxSciencePoints[level], sciencePoints + ((researchFacilityInfo.sciencePointsPerDayperResearcher[level] / 6 / 60 / 60) * deltaTime) * kerbals.Count);
         }
 
         public override void OnBuildingClicked()
@@ -144,7 +142,7 @@ namespace KerbalColonies.colonyFacilities
                     sciencePoints = 0;
                     return false;
                 }
-                ResearchAndDevelopment.Instance.AddScience((float) sciencePoints, TransactionReasons.Cheating);
+                ResearchAndDevelopment.Instance.AddScience((float)sciencePoints, TransactionReasons.Cheating);
                 sciencePoints = 0;
                 return true;
             }

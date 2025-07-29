@@ -1,8 +1,6 @@
 ﻿using KerbalColonies.colonyFacilities.CabFacility;
 using KerbalColonies.Electricity;
 using KerbalColonies.UI;
-using KerbalKonstructs.Modules;
-using KSP.UI.Screens.Mapview;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,7 +8,7 @@ using UnityEngine;
 
 // KC: Kerbal Colonies
 // This mod aimes to create a Colony system with Kerbal Konstructs statics
-// Copyright (c) 2024-2025 AMPW, Halengar
+// Copyright (c) 2024-2025 AMPW, Halengar and the KC Team
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -23,7 +21,7 @@ using UnityEngine;
 // GNU General Public License for more details.
 
 // You should have received a copy of the GNU General Public License
-// along with this program.  If not, see <https://www.gnu.org/licenses/
+// along with this program. If not, see <https://www.gnu.org/licenses/
 
 namespace KerbalColonies.colonyFacilities
 {
@@ -121,9 +119,12 @@ namespace KerbalColonies.colonyFacilities
 
             if (sortedTypes.Count == 0) addAllTypes();
 
-            GUILayout.BeginHorizontal(GUILayout.Width(600));{
-                GUILayout.BeginVertical();{
-                    GUILayout.BeginHorizontal(GUILayout.Height(300));{
+            GUILayout.BeginHorizontal(GUILayout.Width(600));
+            {
+                GUILayout.BeginVertical();
+                {
+                    GUILayout.BeginHorizontal(GUILayout.Height(300));
+                    {
                         GUILayout.BeginVertical(GUILayout.Width(300));
                         {
                             kerbalGUI.StaffingInterface();
@@ -621,7 +622,7 @@ namespace KerbalColonies.colonyFacilities
             }
             else production.ClearNodes();
 
-                ConfigNode constructingFacilities = new ConfigNode("constructingFacilities");
+            ConfigNode constructingFacilities = new ConfigNode("constructingFacilities");
             ConstructingFacilities[colony].ToList().ForEach(pair =>
             {
                 ConfigNode facilityNode = new ConfigNode("facilityNode");

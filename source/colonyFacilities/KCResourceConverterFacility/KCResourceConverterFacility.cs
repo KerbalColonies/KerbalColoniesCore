@@ -1,14 +1,12 @@
-﻿using KerbalColonies.Electricity;
-using KerbalColonies.UI;
+﻿using KerbalColonies.colonyFacilities.StorageFacility;
+using KerbalColonies.Electricity;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEngine;
-using KerbalColonies.colonyFacilities.StorageFacility;
 
 // KC: Kerbal Colonies
 // This mod aimes to create a Colony system with Kerbal Konstructs statics
-// Copyright (c) 2024-2025 AMPW, Halengar
+// Copyright (c) 2024-2025 AMPW, Halengar and the KC Team
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -21,7 +19,7 @@ using KerbalColonies.colonyFacilities.StorageFacility;
 // GNU General Public License for more details.
 
 // You should have received a copy of the GNU General Public License
-// along with this program.  If not, see <https://www.gnu.org/licenses/
+// along with this program. If not, see <https://www.gnu.org/licenses/
 
 namespace KerbalColonies.colonyFacilities.KCResourceConverterFacility
 {

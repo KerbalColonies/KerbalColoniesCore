@@ -3,7 +3,7 @@ using System.Runtime.InteropServices;
 
 // KC: Kerbal Colonies
 // This mod aimes to create a Colony system with Kerbal Konstructs statics
-// Copyright (c) 2024-2025 AMPW, Halengar
+// Copyright (c) 2024-2025 AMPW, Halengar and the KC Team
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -16,7 +16,7 @@ using System.Runtime.InteropServices;
 // GNU General Public License for more details.
 
 // You should have received a copy of the GNU General Public License
-// along with this program.  If not, see <https://www.gnu.org/licenses/
+// along with this program. If not, see <https://www.gnu.org/licenses/
 
 // General Information about an assembly is controlled through the following
 // set of attributes. Change these attribute values to modify the information
@@ -48,8 +48,8 @@ using System.Runtime.InteropServices;
 // You can specify all the values or you can default the Build and Revision Numbers
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("1.0.9.0")]
-[assembly: AssemblyFileVersion("1.0.11.0")]
-[assembly: KSPAssembly("KerbalColonies", 1, 0, 11)]
-[assembly: KSPAssemblyDependency("KerbalKonstructs", 1, 9, 1)]
+[assembly: AssemblyVersion("1.1.0.0")]
+[assembly: AssemblyFileVersion("1.1.0.0")]
+[assembly: KSPAssembly("KerbalColonies", 1, 1, 0)]
+[assembly: KSPAssemblyDependency("KerbalKonstructs", 1, 11, 0)]
 [assembly: KSPAssemblyDependency("ToolbarController", 1, 0)]

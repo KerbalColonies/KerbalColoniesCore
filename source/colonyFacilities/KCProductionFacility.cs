@@ -1,4 +1,5 @@
-﻿using KerbalColonies.Electricity;
+﻿using KerbalColonies.colonyFacilities.CabFacility;
+using KerbalColonies.Electricity;
 using KerbalColonies.UI;
 using KerbalKonstructs.Modules;
 using KSP.UI.Screens.Mapview;

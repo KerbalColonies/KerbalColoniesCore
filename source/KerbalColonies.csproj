@@ -43,6 +43,9 @@
   <ItemGroup>
     <Compile Include="ColonyBuilding.cs" />
     <Compile Include="colonyClass.cs" />
+    <Compile Include="colonyFacilities\CabFacility\KC_CAB_Facility.cs" />
+    <Compile Include="colonyFacilities\CabFacility\KC_CAB_Info.cs" />
+    <Compile Include="colonyFacilities\CabFacility\KC_CAB_Window.cs" />
     <Compile Include="colonyFacilities\Commnet\KCCommnetInfo.cs" />
     <Compile Include="colonyFacilities\Commnet\KCCommNetNodeInfo.cs" />
     <Compile Include="colonyFacilities\Commnet\KCGroundstationFacility.cs" />
@@ -87,7 +90,6 @@
     <Compile Include="colonyFacilities\KCCrewQuarters.cs" />
     <Compile Include="colonyFacilities\KCMiningFacility\KCMiningFacility.cs" />
     <Compile Include="colonyFacilities\KCResearchFacility.cs" />
-    <Compile Include="colonyFacilities\KC_CAB_Facility.cs" />
     <Compile Include="colonyFacilities\KCResourceConverterFacility\KCResourceConverterFacility.cs" />
     <Compile Include="ConfigFacilityLoader.cs" />
     <Compile Include="Settings\Configuration.cs" />

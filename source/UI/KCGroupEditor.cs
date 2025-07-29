@@ -1,5 +1,5 @@
 ﻿using KerbalColonies.colonyFacilities;
-using KerbalKonstructs.Core;
+using KerbalColonies.colonyFacilities.CabFacility;
 using KerbalKonstructs.UI;
 using UnityEngine;
 
@@ -53,8 +53,8 @@ namespace KerbalColonies.UI
             }
         }
 
+        public static float oldEditorRange = 0f;
         public static KCFacilityBase selectedFacility;
-
         protected override void GroupEditorWindow(int windowID)
         {
             toolRect.size = new Vector2(330, 350);
@@ -334,6 +334,20 @@ namespace KerbalColonies.UI
             }
 
             GUI.DragWindow(new Rect(0, 0, 10000, 10000));
+        }
+
+        public override void Open()
+        {
+            oldEditorRange = KerbalKonstructs.UI.GroupEditor.maxEditorRange;
+            KC_CAB_Facility cab = selectedFacility.Colony.CAB;
+            KerbalKonstructs.UI.GroupEditor.maxEditorRange = cab.cabInfo.EditorRange[cab.level] * Configuration.EditorRangeMultiplier;
+            base.Open();
+        }
+
+        public override void Close()
+        {
+            KerbalKonstructs.UI.GroupEditor.maxEditorRange = oldEditorRange;
+            base.Close();
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using Experience;
+using KerbalColonies.colonyFacilities.CabFacility;
 using KerbalColonies.Electricity;
 using KerbalColonies.UI;
 using System.Collections.Generic;

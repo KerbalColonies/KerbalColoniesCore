@@ -27,6 +27,9 @@ namespace KerbalColonies.Settings
         [GameParameters.CustomFloatParameterUI("Facility range multiplier", toolTip = "Multiplies the range of all facilities.", addTextField = true, asPercentage = false, autoPersistance = false, logBase = 1.5f, gameMode = GameParameters.GameMode.ANY, minValue = 0.1f, maxValue = 10f, newGameOnly = false, displayFormat = "0.00")]
         public float FacilityRangeMultiplier { get => Configuration.FacilityRangeMultiplier; set => Configuration.FacilityRangeMultiplier = value; }
 
+        [GameParameters.CustomFloatParameterUI("Editor range multiplier", toolTip = "Multiplies the range of KCs custom KK editor.", addTextField = true, asPercentage = false, autoPersistance = false, logBase = 1.5f, gameMode = GameParameters.GameMode.ANY, minValue = 0.1f, maxValue = 10f, newGameOnly = false, displayFormat = "0.00")]
+        public float EditorRangeMultiplier { get => Configuration.EditorRangeMultiplier; set => Configuration.EditorRangeMultiplier = value; }
+
         [GameParameters.CustomFloatParameterUI("Vessel build cost multiplier", toolTip = "Multiplies the build cost for all vessel built at colonies.", addTextField = true, asPercentage = false, autoPersistance = false, logBase = 1.5f, gameMode = GameParameters.GameMode.ANY, maxValue = 10f, newGameOnly = false, displayFormat = "0.00")]
         public float VesselCostMultiplier { get => Configuration.VesselCostMultiplier; set => Configuration.VesselCostMultiplier = value; }
 
@@ -61,6 +64,7 @@ namespace KerbalColonies.Settings
                     FacilityCostMultiplier = 0.5f;
                     FacilityTimeMultiplier = 0.5f;
                     FacilityRangeMultiplier = 3.0f;
+                    EditorRangeMultiplier = 3.0f;
                     VesselCostMultiplier = 0.5f;
                     VesselTimeMultiplier = 0.5f;
                     maxColoniesPerBody = 0;
@@ -69,6 +73,7 @@ namespace KerbalColonies.Settings
                     FacilityCostMultiplier = 1.0f;
                     FacilityTimeMultiplier = 1.0f;
                     FacilityRangeMultiplier = 1.0f;
+                    EditorRangeMultiplier = 1.0f;
                     VesselCostMultiplier = 1.0f;
                     VesselTimeMultiplier = 1.0f;
                     maxColoniesPerBody = 10;
@@ -77,6 +82,7 @@ namespace KerbalColonies.Settings
                     FacilityCostMultiplier = 1.5f;
                     FacilityTimeMultiplier = 1.5f;
                     FacilityRangeMultiplier = 0.9f;
+                    EditorRangeMultiplier = 0.85f;
                     VesselCostMultiplier = 1.5f;
                     VesselTimeMultiplier = 1.5f;
                     maxColoniesPerBody = 5;
@@ -85,6 +91,7 @@ namespace KerbalColonies.Settings
                     FacilityCostMultiplier = 2.0f;
                     FacilityTimeMultiplier = 2.0f;
                     FacilityRangeMultiplier = 0.75f;
+                    EditorRangeMultiplier = 0.75f;
                     VesselCostMultiplier = 2.0f;
                     VesselTimeMultiplier = 2.0f;
                     maxColoniesPerBody = 3;
@@ -94,6 +101,7 @@ namespace KerbalColonies.Settings
                     FacilityCostMultiplier = 1.0f;
                     FacilityTimeMultiplier = 1.0f;
                     FacilityRangeMultiplier = 1.0f;
+                    EditorRangeMultiplier = 1.0f;
                     VesselCostMultiplier = 1.0f;
                     VesselTimeMultiplier = 1.0f;
                     maxColoniesPerBody = 10;
@@ -106,6 +114,8 @@ namespace KerbalColonies.Settings
             //Configuration.FacilityCostMultiplier = FacilityCostMultiplier;
             node.AddValue("FacilityCostMultiplier", FacilityCostMultiplier);
             node.AddValue("FacilityTimeMultiplier", FacilityTimeMultiplier);
+            node.AddValue("FacilityRangeMultiplier", FacilityRangeMultiplier);
+            node.AddValue("EditorRangeMultiplier", EditorRangeMultiplier);
             node.AddValue("VesselCostMultiplier", VesselCostMultiplier);
             node.AddValue("VesselTimeMultiplier", VesselTimeMultiplier);
             node.AddValue("maxColoniesPerBody", maxColoniesPerBody);
@@ -117,6 +127,10 @@ namespace KerbalColonies.Settings
             else FacilityCostMultiplier = 1.0f; // Default value if not set
             if (node.HasValue("FacilityTimeMultiplier")) FacilityTimeMultiplier = float.Parse(node.GetValue("FacilityTimeMultiplier"));
             else FacilityTimeMultiplier = 1.0f; // Default value if not set
+            if (node.HasValue("FacilityRangeMultiplier")) FacilityRangeMultiplier = float.Parse(node.GetValue("FacilityRangeMultiplier"));
+            else FacilityRangeMultiplier = 1.0f; // Default value if not set
+            if (node.HasValue("EditorRangeMultiplier")) EditorRangeMultiplier = float.Parse(node.GetValue("EditorRangeMultiplier"));
+            else EditorRangeMultiplier = 1.0f; // Default value if not set
             if (node.HasValue("VesselCostMultiplier")) VesselCostMultiplier = float.Parse(node.GetValue("VesselCostMultiplier"));
             else VesselCostMultiplier = 1.0f; // Default value if not set
             if (node.HasValue("VesselTimeMultiplier")) VesselTimeMultiplier = float.Parse(node.GetValue("VesselTimeMultiplier"));
@@ -133,6 +147,8 @@ namespace KerbalColonies.Settings
         {
             Configuration.FacilityCostMultiplier = 1.0f;
             Configuration.FacilityTimeMultiplier = 1.0f;
+            Configuration.FacilityRangeMultiplier = 1.0f;
+            Configuration.EditorRangeMultiplier = 1.0f;
             Configuration.VesselCostMultiplier = 1.0f;
             Configuration.VesselTimeMultiplier = 1.0f;
             Configuration.MaxColoniesPerBody = 10;

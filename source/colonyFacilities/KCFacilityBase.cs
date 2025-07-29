@@ -1,4 +1,5 @@
-﻿using KerbalColonies.UI;
+﻿using KerbalColonies.colonyFacilities.CabFacility;
+using KerbalColonies.UI;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -278,7 +279,7 @@ namespace KerbalColonies.colonyFacilities
         /// <para>DON'T USE IT</para>
         /// <para>It doesn't add the facility to the facility list of the colony which means it won't get saved.</para>
         /// </summary>
-        protected KCFacilityBase(KC_CABInfo CABInfo)
+        protected KCFacilityBase(KC_CAB_Info CABInfo)
         {
             this.facilityInfo = CABInfo;
 
@@ -300,7 +301,7 @@ namespace KerbalColonies.colonyFacilities
         /// <para>DON'T USE IT</para>
         /// <para>It doesn't add the facility to the facility list of the colony which means it won't get saved.</para>
         /// </summary>
-        protected KCFacilityBase(KC_CABInfo CABInfo, ConfigNode node)
+        protected KCFacilityBase(KC_CAB_Info CABInfo, ConfigNode node)
         {
             this.facilityInfo = CABInfo;
 

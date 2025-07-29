@@ -1,4 +1,5 @@
 ﻿using KerbalColonies.colonyFacilities;
+using KerbalColonies.colonyFacilities.CabFacility;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -187,7 +188,7 @@ namespace KerbalColonies
             colony.Facilities.ForEach(f => f.Update());
         }
 
-        public colonyClass(string name, KC_CABInfo CABInfo)
+        public colonyClass(string name, KC_CAB_Info CABInfo)
         {
             Name = name;
             BodyID = FlightGlobals.GetBodyIndex(FlightGlobals.currentMainBody);

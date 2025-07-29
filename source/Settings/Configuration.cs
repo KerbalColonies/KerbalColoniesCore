@@ -1,4 +1,5 @@
 ﻿using KerbalColonies.colonyFacilities;
+using KerbalColonies.colonyFacilities.CabFacility;
 using KerbalColonies.UI;
 using System;
 using System.Collections.Generic;
@@ -101,10 +102,10 @@ namespace KerbalColonies
             }
         }
 
-        private static List<KC_CABInfo> cabTypes = new List<KC_CABInfo>(); // The list of all available CAB types
-        public static List<KC_CABInfo> CabTypes { get { return cabTypes; } } // The list of all available CAB types
+        private static List<KC_CAB_Info> cabTypes = new List<KC_CAB_Info>(); // The list of all available CAB types
+        public static List<KC_CAB_Info> CabTypes { get { return cabTypes; } } // The list of all available CAB types
 
-        public static bool RegisterCabInfo(KC_CABInfo info)
+        public static bool RegisterCabInfo(KC_CAB_Info info)
         {
             if (!cabTypes.Contains(info))
             {
@@ -114,7 +115,7 @@ namespace KerbalColonies
             return false;
         }
 
-        public static bool UnregisterCabInfo(KC_CABInfo info)
+        public static bool UnregisterCabInfo(KC_CAB_Info info)
         {
             if (cabTypes.Contains(info))
             {
@@ -151,7 +152,7 @@ namespace KerbalColonies
             return false;
         }
 
-        public static KC_CABInfo GetCABInfoClass(string name)
+        public static KC_CAB_Info GetCABInfoClass(string name)
         {
             return cabTypes.FirstOrDefault(c => c.name == name);
         }
@@ -181,6 +182,7 @@ namespace KerbalColonies
         public static float FacilityCostMultiplier = 1.0f; // Multiplier for the cost of the facilities
         public static float FacilityTimeMultiplier = 1.0f; // Multiplier for the time of the facilities
         public static float FacilityRangeMultiplier = 1.0f; // Multiplier for the range of the facilities
+        public static float EditorRangeMultiplier = 1.0f; // Multiplier for the KC/KK group editor
         public static float VesselCostMultiplier = 1.0f; // Multiplier for the cost of the vessels
         public static float VesselTimeMultiplier = 1.0f; // Multiplier for the time of the vessels
 

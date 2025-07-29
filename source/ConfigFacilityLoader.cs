@@ -1,4 +1,5 @@
 ﻿using KerbalColonies.colonyFacilities;
+using KerbalColonies.colonyFacilities.CabFacility;
 using KerbalColonies.colonyFacilities.Commnet;
 using KerbalColonies.colonyFacilities.ElectricityFacilities;
 using KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fission;
@@ -122,7 +123,7 @@ namespace KerbalColonies
             KCFacilityTypeRegistry.RegisterType<KCCommNetFacility>();
             KCFacilityTypeRegistry.RegisterType<KCGroundstationFacility>();
 
-            KCFacilityTypeRegistry.RegisterFacilityInfo<KC_CAB_Facility, KC_CABInfo>();
+            KCFacilityTypeRegistry.RegisterFacilityInfo<KC_CAB_Facility, KC_CAB_Info>();
             KCFacilityTypeRegistry.RegisterFacilityInfo<KCCommNetFacility, KCCommnetInfo>();
             KCFacilityTypeRegistry.RegisterFacilityInfo<KCGroundstationFacility, KCGroundStationInfo>();
             KCFacilityTypeRegistry.RegisterFacilityInfo<KCCrewQuarters, KCKerbalFacilityInfoClass>();
@@ -192,11 +193,11 @@ namespace KerbalColonies
                 {
                     KCFacilityInfoClass facilityInfo = (KCFacilityInfoClass)Activator.CreateInstance(KCFacilityTypeRegistry.GetInfoType(KCFacilityTypeRegistry.GetType(node.GetValue("type")) ?? throw new Exception($"No type named {node.GetValue("type")} was found")) ?? throw new Exception($"No type named {node.GetValue("type")} was found"), new object[] { node });
 
-                    if (!(facilityInfo is KC_CABInfo))
+                    if (!(facilityInfo is KC_CAB_Info))
                     {
                         if (!Configuration.RegisterBuildableFacility(facilityInfo)) throw new Exception($"A facility with the name {facilityInfo.name} already exists.");
                     }
-                    else Configuration.RegisterCabInfo(facilityInfo as KC_CABInfo);
+                    else Configuration.RegisterCabInfo(facilityInfo as KC_CAB_Info);
                 }
                 catch (Exception e)
                 {
@@ -229,7 +230,7 @@ namespace KerbalColonies
                     Configuration.writeLog($"Invalid facility config: {f.name} \n\nConfig: {f.ToString()} \n\nException: {e}");
                 }
             });
-            List<KC_CABInfo> invalidCABInfos = new List<KC_CABInfo>();
+            List<KC_CAB_Info> invalidCABInfos = new List<KC_CAB_Info>();
             Configuration.CabTypes.ForEach(f =>
             {
                 try

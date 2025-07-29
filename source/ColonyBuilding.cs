@@ -1,4 +1,5 @@
 ﻿using KerbalColonies.colonyFacilities;
+using KerbalColonies.colonyFacilities.CabFacility;
 using KerbalColonies.UI;
 using KerbalKonstructs;
 using KerbalKonstructs.UI;
@@ -93,7 +94,7 @@ namespace KerbalColonies
         {
             scrollPosition = GUILayout.BeginScrollView(scrollPosition);
             {
-                foreach (KC_CABInfo info in Configuration.CabTypes)
+                foreach (KC_CAB_Info info in Configuration.CabTypes)
                 {
                     GUILayout.BeginHorizontal();
                     GUILayout.Label($"{info.displayName}\t");
@@ -260,7 +261,7 @@ namespace KerbalColonies
             if (Configuration.CabTypes.Count == 1)
             {
                 if (!CABSelectorWindow.checkVesselResources(Configuration.CabTypes[0])) { return 1; }
-                KC_CABInfo info = Configuration.CabTypes[0];
+                KC_CAB_Info info = Configuration.CabTypes[0];
                 CABSelectorWindow.removeVesselResources(info);
                 BuildColony(info);
             }
@@ -269,7 +270,7 @@ namespace KerbalColonies
             return 0;
         }
 
-        internal static void BuildColony(KC_CABInfo CABInfo)
+        internal static void BuildColony(KC_CAB_Info CABInfo)
         {
             int colonyCount = Configuration.colonyDictionary[FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody)].Count + 1;
 

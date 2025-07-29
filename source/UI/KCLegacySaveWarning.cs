@@ -2,6 +2,7 @@
 using System.Reflection;
 using UnityEngine;
 using System.IO;
+using System.Linq;
 
 namespace KerbalColonies.UI
 {
@@ -42,31 +43,14 @@ namespace KerbalColonies.UI
         public static Dictionary<string, bool> LoadedSaves { get; private set; } = new Dictionary<string, bool>();
         public static void SaveSettings()
         {
-            if (!LoadedSaves.ContainsKey(HighLogic.CurrentGame.Seed.ToString())) return;
-
             string path = $"{Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)}{Path.DirectorySeparatorChar}..{Path.DirectorySeparatorChar}Configs{Path.DirectorySeparatorChar}LegacySaves.cfg";
-            ConfigNode node = ConfigNode.Load(path);
+            ConfigNode node = new ConfigNode("LegacySaves");
 
-            string saveName = HighLogic.CurrentGame.Seed.ToString();
+            LoadedSaves.ToList().ForEach(kvp => node.AddValue(kvp.Key, kvp.Value));
 
-            if (node != null && node.GetNodes().Length > 0)
-            {
-                ConfigNode[] nodes = node.GetNodes();
-                nodes[0].SetValue(saveName, LoadedSaves[saveName].ToString(), true);
-
-                ConfigNode n = new ConfigNode();
-                n.AddNode(nodes[0]);
-                n.Save(path);
-            }
-            else
-            {
-                node = new ConfigNode("LegacySaves");
-                node.AddValue(saveName, LoadedSaves[saveName]);
-
-                ConfigNode n = new ConfigNode();
-                n.AddNode(node);
-                n.Save(path);
-            }
+            ConfigNode n = new ConfigNode();
+            n.AddNode(node);
+            n.Save(path);
         }
 
         public static void LoadSettings()

@@ -66,7 +66,10 @@ namespace KerbalColonies
             if (KCLegacySaveWarning.LoadedSaves.ContainsKey(HighLogic.CurrentGame.Seed.ToString()))
             {
                 Configuration.writeLog($"Saving legacy colonies");
-                node.AddData(loadedNode);
+                ConfigNode colonyNode = loadedNode.GetNode("colonyNode");
+
+                node.AddNode(colonyNode);
+                node.AddValue("version", loadedNode.GetValue("version"));
 
                 Configuration.writeDebug($"loadedNode = {loadedNode.ToString()}");
                 Configuration.writeDebug($"node = {node.ToString()}");

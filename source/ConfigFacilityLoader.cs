@@ -147,7 +147,7 @@ namespace KerbalColonies
             KCFacilityTypeRegistry.RegisterType<KCFusionReactor>();
             KCFacilityTypeRegistry.RegisterFacilityInfo<KCFusionReactor, KCFusionInfo>();
             KCFacilityTypeRegistry.RegisterType<KCWindturbineFacility>();
-            KCFacilityTypeRegistry.RegisterFacilityInfo<KCWindturbineFacility, KCFacilityInfoClass>();
+            KCFacilityTypeRegistry.RegisterFacilityInfo<KCWindturbineFacility, KCWindturbineInfo>();
 
             try
             {

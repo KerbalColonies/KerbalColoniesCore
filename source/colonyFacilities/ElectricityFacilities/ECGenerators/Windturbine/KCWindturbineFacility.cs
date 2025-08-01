@@ -2,6 +2,7 @@
 using KerbalKonstructs.Core;
 using System.Collections.Generic;
 using System.Linq;
+using System;
 
 // KC: Kerbal Colonies
 // This mod aimes to create a Colony system with Kerbal Konstructs statics
@@ -24,17 +25,21 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Win
 {
     public class KCWindturbineFacility : KCFacilityBase, KCECProducer
     {
+        public KCWindturbineInfo info => (KCWindturbineInfo)facilityInfo;
+
         public Dictionary<string, double> densityList { get; protected set; } = new Dictionary<string, double>();
 
 
         public override void WhileBuildingPlaced(GroupCenter kkGroupname)
         {
+            KCWindturbineInfo facilityInfo = (KCWindturbineInfo)this.facilityInfo;
+
             CelestialBody body = FlightGlobals.GetBodyByName(Colony.BodyName);
 
             double pressure = FlightGlobals.getStaticPressure(kkGroupname.RadiusOffset, body);
             double density = FlightGlobals.getAtmDensity(pressure, FlightGlobals.getExternalTemperature(kkGroupname.RadiusOffset, body));
 
-            double ecPerSecond = facilityInfo.ECperSecond[level] * density;
+            double ecPerSecond = Math.Max(facilityInfo.Minproduction[level], Math.Min(facilityInfo.Maxproduction[level], facilityInfo.ECperSecond[level] * density));
             Configuration.writeDebug($"KCWindTurbineFacility ({DisplayName}): EC per second: {ecPerSecond}, pressure: {pressure}, density: {density}");
 
             KCWindturbinePlacementWindow.Instance.ECProductionRate = ecPerSecond;
@@ -63,6 +68,7 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Win
         {
             if (!built) return 0.0;
 
+            KCWindturbineInfo facilityInfo = (KCWindturbineInfo)this.facilityInfo;
             CelestialBody body = FlightGlobals.GetBodyByName(Colony.BodyName);
 
             double ECPerSecond = 0.0;
@@ -77,7 +83,7 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Win
                 }
 
                 if (KKgroups.Count >= i - offset + 1 && densityList.ContainsKey(KKgroups[i - offset]))
-                    ECPerSecond += facilityInfo.ECperSecond[i] * densityList[KKgroups[i - offset]];
+                    ECPerSecond += Math.Max(facilityInfo.Minproduction[i], Math.Min(facilityInfo.Maxproduction[i], facilityInfo.ECperSecond[i] * densityList[KKgroups[i - offset]]));
             }
 
             Configuration.writeDebug($"KCWindTurbineFacility ({DisplayName}): EC per second: {ECPerSecond}");

@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using static KSP.UI.Screens.SpaceCenter.BuildingPicker;
 
 // KC: Kerbal Colonies
 // This mod aimes to create a Colony system with Kerbal Konstructs statics
@@ -71,6 +72,9 @@ namespace KerbalColonies.colonyFacilities
 
             if (facility.facilityInfo.ECperSecond[facility.level] > 0)
             {
+                GUILayout.Space(10);
+                GUILayout.Label($"EC/s: {(researchFacility.getKerbals().Count > 0 ? researchFacility.facilityInfo.ECperSecond[researchFacility.level] * researchFacility.getKerbals().Count : 0)}");
+                GUILayout.Space(10);
                 GUILayout.BeginHorizontal();
                 {
                     GUILayout.Label($"EC Consumption Priority: {researchFacility.ECConsumptionPriority}", GUILayout.Height(18));
@@ -152,7 +156,7 @@ namespace KerbalColonies.colonyFacilities
         public int ECConsumptionPriority { get; set; } = 0;
         public bool outOfEC { get; set; } = false;
         public double ExpectedECConsumption(double lastTime, double deltaTime, double currentTime) =>
-            (kerbals.Count is int count && count > 0) ? facilityInfo.ECperSecond[level] * deltaTime * count : 0;
+            kerbals.Count > 0 ? facilityInfo.ECperSecond[level] * deltaTime * kerbals.Count : 0;
 
         public void ConsumeEC(double lastTime, double deltaTime, double currentTime) => outOfEC = false;
 

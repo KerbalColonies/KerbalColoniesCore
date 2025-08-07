@@ -154,22 +154,25 @@ namespace KerbalColonies.colonyFacilities
                                 });
                             }
                             GUILayout.EndScrollView();
-                            if (facility.facilityInfo.ECperSecond[facility.level] > 0)
-                            {
-                                GUILayout.Space(10);
-                                GUILayout.BeginHorizontal();
-                                {
-                                    GUILayout.Label($"EC Consumption Priority: {productionFacility.ECConsumptionPriority}", GUILayout.Height(18));
-                                    GUILayout.FlexibleSpace();
-                                    if (GUILayout.RepeatButton("--", GUILayout.Width(30), GUILayout.Height(23)) | GUILayout.Button("-", GUILayout.Width(30), GUILayout.Height(23))) productionFacility.ECConsumptionPriority--;
-                                    if (GUILayout.Button("+", GUILayout.Width(30), GUILayout.Height(23)) | GUILayout.RepeatButton("++", GUILayout.Width(30), GUILayout.Height(23))) productionFacility.ECConsumptionPriority++;
-                                }
-                                GUILayout.EndHorizontal();
-                            }
                         }
                         GUILayout.EndVertical();
                     }
                     GUILayout.EndHorizontal();
+
+                    if (facility.facilityInfo.ECperSecond[facility.level] > 0)
+                    {
+                        GUILayout.Space(10);
+                        GUILayout.Label($"EC/s: {(productionFacility.lastProduction > 0 ? facility.facilityInfo.ECperSecond[facility.level] : 0):f2}");
+                        GUILayout.Space(10);
+                        GUILayout.BeginHorizontal();
+                        {
+                            GUILayout.Label($"EC Consumption Priority: {productionFacility.ECConsumptionPriority}", GUILayout.Height(18));
+                            GUILayout.FlexibleSpace();
+                            if (GUILayout.RepeatButton("--", GUILayout.Width(30), GUILayout.Height(23)) | GUILayout.Button("-", GUILayout.Width(30), GUILayout.Height(23))) productionFacility.ECConsumptionPriority--;
+                            if (GUILayout.Button("+", GUILayout.Width(30), GUILayout.Height(23)) | GUILayout.RepeatButton("++", GUILayout.Width(30), GUILayout.Height(23))) productionFacility.ECConsumptionPriority++;
+                        }
+                        GUILayout.EndHorizontal();
+                    }
 
                     GUILayout.Space(10);
                     GUILayout.Label("Unfinished facilities");

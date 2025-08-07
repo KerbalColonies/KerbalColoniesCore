@@ -24,6 +24,7 @@ namespace KerbalColonies.colonyFacilities.KCMiningFacility
     public class KCMiningFacilityInfo : KCKerbalFacilityInfoClass
     {
         public SortedDictionary<int, List<KCMiningFacilityRate>> rates { get; protected set; } = new SortedDictionary<int, List<KCMiningFacilityRate>> { };
+        public SortedDictionary<int, HarvestTypes> HarvestType { get; protected set; } = new SortedDictionary<int, HarvestTypes> { };
 
         public KCMiningFacilityInfo(ConfigNode node) : base(node)
         {
@@ -53,6 +54,10 @@ namespace KerbalColonies.colonyFacilities.KCMiningFacility
                 }
                 else if (n.Key > 0) rates[n.Key] = rates[n.Key - 1];
                 else throw new MissingFieldException($"The facility {name} (type: {type}) has no resourceProduction (at least for level 0).");
+
+                if (n.Value.HasValue("harvestType")) HarvestType.Add(n.Key, (HarvestTypes)Enum.Parse(typeof(HarvestTypes), n.Value.GetValue("harvestType"), true));
+                else if (n.Key > 0) HarvestType.Add(n.Key, HarvestType[n.Key - 1]);
+                else HarvestType.Add(n.Key, HarvestTypes.Planetary);
             });
         }
     }

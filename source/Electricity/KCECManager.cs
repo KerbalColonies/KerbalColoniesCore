@@ -109,6 +109,7 @@ namespace KerbalColonies.Electricity
                 ECConsumers[facility.ECConsumptionPriority].Add(facility);
             });
             colonyData.lastECConsumed = ECConsumers.SelectMany(kvp => kvp.Value).ToList().Sum(facility => facility.ExpectedECConsumption(lastTime, deltaTime, currentTime));
+            ECConsumers.Reverse();
 
             SortedDictionary<int, List<KCECStorage>> ECStored = new SortedDictionary<int, List<KCECStorage>>();
             colony.Facilities.OfType<KCECStorage>().ToList().ForEach(facility =>
@@ -118,6 +119,7 @@ namespace KerbalColonies.Electricity
                 ECStored[facility.ECStoragePriority].Add(facility);
             });
             colonyData.lastECStored = ECStored.SelectMany(kvp => kvp.Value).ToList().Sum(facility => facility.StoredEC(lastTime, deltaTime, currentTime));
+            ECStored.Reverse();
 
             Configuration.writeDebug($"KCECManager: colony: {colony.Name}, deltaTime: {deltaTime}, current time: {currentTime}, last ec produced: {ECProduced}, last ec consumed: {colonyData.lastECConsumed}, last ec stored: {colonyData.lastECStored}, ec delta: {colonyData.lastECDelta}, ecDelta/s: {colonyData.lastECDelta / colonyData.deltaTime}");
 

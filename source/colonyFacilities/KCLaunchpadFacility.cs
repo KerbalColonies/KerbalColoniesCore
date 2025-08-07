@@ -108,7 +108,9 @@ namespace KerbalColonies.colonyFacilities
 
             if (facility.facilityInfo.ECperSecond[facility.level] > 0)
             {
-                GUILayout.Label($"EC/s: {facility.facilityInfo.ECperSecond[facility.level]}");
+                GUILayout.Space(10);
+                GUILayout.Label($"EC/s: {(launchpad.enabled || launchpad.outOfEC ? facility.facilityInfo.ECperSecond[facility.level] : 0):f2}");
+                GUILayout.Space(10);
                 GUILayout.BeginHorizontal();
                 {
                     GUILayout.Label($"EC Consumption Priority: {launchpad.ECConsumptionPriority}", GUILayout.Height(18));

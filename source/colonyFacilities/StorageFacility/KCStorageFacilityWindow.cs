@@ -277,6 +277,8 @@ namespace KerbalColonies.colonyFacilities.StorageFacility
             if (facility.facilityInfo.ECperSecond[facility.level] > 0)
             {
                 GUILayout.Space(10);
+                GUILayout.Label($"EC/s: {(storageFacility.locked ? facility.facilityInfo.ECperSecond[facility.level] : 0):f2}");
+                GUILayout.Space(10);
                 GUILayout.BeginHorizontal();
                 {
                     GUILayout.Label($"EC Consumption Priority: {storageFacility.ECConsumptionPriority}", GUILayout.Height(18));

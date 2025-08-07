@@ -43,7 +43,7 @@ namespace KerbalColonies.colonyFacilities.KCMiningFacility
             KCMiningFacilityPlacementWindow.Instance.newRates.Clear();
             AbundanceRequest request = new AbundanceRequest();
             request.BodyId = Colony.BodyID;
-            request.ResourceType = HarvestTypes.Planetary;
+            request.ResourceType = miningFacilityInfo.HarvestType[level];
             request.Longitude = staticInstance.RefLongitude;
             request.Latitude = staticInstance.RefLatitude;
             request.Altitude = kkGroupname.RadiusOffset;
@@ -133,9 +133,9 @@ namespace KerbalColonies.colonyFacilities.KCMiningFacility
             miningFacilityInfo.rates[level].ForEach(rate =>
             {
                 if (storedResoures.ContainsKey(rate.resource))
-                    sb.AppendLine($"{(groupDensities.Sum(kvp => kvp.Value[rate.resource]) * kerbals.Count):f2} {rate.resource.displayName}/day\n{storedResoures[rate.resource]:f2}/{rate.max:f2} stored");
+                    sb.AppendLine($"{(groupDensities.Sum(kvp => kvp.Value.ContainsKey(rate.resource) ? kvp.Value[rate.resource] : 0) * kerbals.Count):f2} {rate.resource.displayName}/day\n{storedResoures[rate.resource]:f2}/{rate.max:f2} stored");
                 else
-                    sb.AppendLine($"{(groupDensities.Sum(kvp => kvp.Value[rate.resource]) * kerbals.Count):f2} {rate.resource.displayName}/day\n0/{rate.max:f2} stored");
+                    sb.AppendLine($"{(groupDensities.Sum(kvp => kvp.Value.ContainsKey(rate.resource) ? kvp.Value[rate.resource] : 0) * kerbals.Count):f2} {rate.resource.displayName}/day\n0/{rate.max:f2} stored");
             });
 
             if (facilityInfo.ECperSecond[level] > 0)

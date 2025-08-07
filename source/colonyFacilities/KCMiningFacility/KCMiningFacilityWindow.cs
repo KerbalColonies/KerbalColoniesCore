@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using static KSP.UI.Screens.SpaceCenter.BuildingPicker;
 
 // KC: Kerbal Colonies
 // This mod aimes to create a Colony system with Kerbal Konstructs statics
@@ -47,6 +48,8 @@ namespace KerbalColonies.colonyFacilities.KCMiningFacility
 
                     if (facility.facilityInfo.ECperSecond[facility.level] > 0)
                     {
+                        GUILayout.Space(10);
+                        GUILayout.Label($"EC/s: {(facility.enabled ? facility.facilityInfo.ECperSecond[facility.level] * miningFacility.getKerbals().Count : 0):f2}");
                         GUILayout.BeginHorizontal();
                         {
                             GUILayout.Label($"EC Consumption Priority: {miningFacility.ECConsumptionPriority}", GUILayout.Height(18));

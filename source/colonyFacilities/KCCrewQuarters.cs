@@ -39,6 +39,8 @@ namespace KerbalColonies.colonyFacilities
             if (facility.facilityInfo.ECperSecond[facility.level] > 0)
             {
                 GUILayout.Space(10);
+                GUILayout.Label($"EC/s: {(CrewQuarterFacility.enabled && CrewQuarterFacility.getKerbals().Count > 0 || CrewQuarterFacility.OutOfEC ? facility.facilityInfo.ECperSecond[facility.level] : 0):f2}");
+                GUILayout.Space(10);
                 GUILayout.BeginHorizontal();
                 {
                     GUILayout.Label($"EC Consumption Priority: {CrewQuarterFacility.ECConsumptionPriority}", GUILayout.Height(18));

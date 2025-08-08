@@ -85,6 +85,8 @@ namespace KerbalColonies
         // 500 per day * 2 kerbin days = 250
         public SortedDictionary<int, double> UpgradeTimes { get; protected set; } = new SortedDictionary<int, double> { };
 
+        public SortedDictionary<int, int> MinCABLevel { get; protected set; } = new SortedDictionary<int, int> { };
+
         /// <summary>
         /// Used for custom checks (e.g. if a specific facility already exists in the colony), returns true if the facility can be built or upgraded.
         /// </summary>
@@ -251,6 +253,10 @@ namespace KerbalColonies
 
                 if (n.HasValue("upgradeTime")) UpgradeTimes.Add(level, double.Parse(n.GetValue("upgradeTime")));
                 else UpgradeTimes.Add(level, 0);
+
+                if (n.HasValue("minCABLevel")) MinCABLevel.Add(level, int.Parse(n.GetValue("minCABLevel")));
+                else if (level > 0) MinCABLevel.Add(level, MinCABLevel[level - 1]);
+                else MinCABLevel.Add(level, 0);
             });
         }
     }

@@ -12,6 +12,7 @@ using KerbalColonies.colonyFacilities.KCResourceConverterFacility;
 using KerbalColonies.colonyFacilities.StorageFacility;
 using KerbalColonies.Electricity;
 using KerbalColonies.UI;
+using KerbalColonies.UI.SingleTimeWindow;
 using System;
 using System.Collections.Generic;
 using UnityEngine;

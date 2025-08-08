@@ -15,6 +15,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/
 
+using System.Linq;
+
 namespace KerbalColonies.colonyFacilities.CabFacility
 {
     public class KC_CAB_Facility : KCFacilityBase
@@ -23,41 +25,10 @@ namespace KerbalColonies.colonyFacilities.CabFacility
 
         private KC_CAB_Window window;
 
-        private ConfigNode cabNode;
-
         public KC_CAB_Info cabInfo => (KC_CAB_Info)facilityInfo;
 
-        private bool initialized = false;
         public override void Update()
         {
-            if (!initialized)
-            {
-                initialized = true;
-                if (cabNode != null && cabNode.HasNode("constructingFacilities"))
-                {
-                    foreach (ConfigNode facilityNode in cabNode.GetNode("constructingFacilities").GetNodes("facilityNode"))
-                    {
-                        KCFacilityBase facility = KCFacilityBase.GetFacilityByID(int.Parse(facilityNode.GetValue("facilityID")));
-                        if (facility != null) KCProductionFacility.AddConstructingFacility(facility, double.Parse(facilityNode.GetValue("remainingTime")));
-                    }
-                    foreach (ConfigNode facilityNode in cabNode.GetNode("constructedFacilities").GetNodes("facilityNode"))
-                    {
-                        KCFacilityBase facility = KCFacilityBase.GetFacilityByID(int.Parse(facilityNode.GetValue("facilityID")));
-                        if (facility != null) KCProductionFacility.AddConstructedFacility(facility);
-                    }
-                    foreach (ConfigNode facilityNode in cabNode.GetNode("upgradingFacilities").GetNodes("facilityNode"))
-                    {
-                        KCFacilityBase facility = KCFacilityBase.GetFacilityByID(int.Parse(facilityNode.GetValue("facilityID")));
-                        if (facility != null) KCProductionFacility.AddUpgradingFacility(facility, double.Parse(facilityNode.GetValue("remainingTime")));
-                    }
-                    foreach (ConfigNode facilityNode in cabNode.GetNode("upgradedFacilities").GetNodes("facilityNode"))
-                    {
-                        KCFacilityBase facility = KCFacilityBase.GetFacilityByID(int.Parse(facilityNode.GetValue("facilityID")));
-                        if (facility != null) KCProductionFacility.AddUpgradedFacility(facility);
-                    }
-                }
-            }
-
             PlayerInColony = playerNearFacility();
 
             base.Update();
@@ -119,16 +90,12 @@ namespace KerbalColonies.colonyFacilities.CabFacility
         {
             this.Colony = colony;
 
-            cabNode = node;
-
             window = new KC_CAB_Window(this);
         }
 
         public KC_CAB_Facility(colonyClass colony, KC_CAB_Info CABInfo) : base(CABInfo)
         {
             this.Colony = colony;
-
-            initialized = true;
 
             window = new KC_CAB_Window(this);
         }

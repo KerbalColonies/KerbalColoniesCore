@@ -245,7 +245,9 @@ namespace KerbalColonies.colonyFacilities.CabFacility
                                     {
                                         if (facility.upgradeable && facility.level < facility.maxLevel)
                                         {
-                                            if (!facility.facilityInfo.checkResources(facility.level + 1, CABFacility.Colony)) GUI.enabled = false;
+                                            bool higherCABLevelNeeded = facility.facilityInfo.MinCABLevel[facility.level] > CABFacility.level;
+
+                                            if (!facility.facilityInfo.checkResources(facility.level + 1, CABFacility.Colony) || higherCABLevelNeeded) GUI.enabled = false;
                                             if (GUILayout.Button("Upgrade"))
                                             {
                                                 Configuration.writeLog($"KC: Upgrading facility {facility.DisplayName} in {CABFacility.Colony.DisplayName} to level {facility.level + 1}");
@@ -269,6 +271,7 @@ namespace KerbalColonies.colonyFacilities.CabFacility
                                             }
                                             GUILayout.EndHorizontal();
                                             GUILayout.Label($"Time: {facility.facilityInfo.UpgradeTimes[facility.level + 1] * Configuration.FacilityTimeMultiplier}");
+                                            if (higherCABLevelNeeded) GUILayout.Label($"CAB Level required: {facility.facilityInfo.MinCABLevel[facility.level]} (current: {CABFacility.level})");
                                         }
                                         else
                                         {

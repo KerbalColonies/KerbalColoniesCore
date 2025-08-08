@@ -88,10 +88,12 @@ namespace KerbalColonies.colonyFacilities
         Vector2 scrollPosUnfinishedFacilities = new Vector2();
         Vector2 scrollPosVesselCost = new Vector2();
 
-        private static SortedDictionary<string, List<KCFacilityInfoClass>> sortedTypes = new SortedDictionary<string, List<KCFacilityInfoClass>>() { };
-        public static SortedDictionary<string, List<KCFacilityInfoClass>> SortedTypes => sortedTypes;
 
-        public static void addType(KCFacilityInfoClass info)
+        private int cabLevel;
+        private SortedDictionary<string, List<KCFacilityInfoClass>> sortedTypes = new SortedDictionary<string, List<KCFacilityInfoClass>>() { };
+        public SortedDictionary<string, List<KCFacilityInfoClass>> SortedTypes => sortedTypes;
+
+        public void addType(KCFacilityInfoClass info)
         {
             if (info.hidden) return;
 
@@ -100,7 +102,7 @@ namespace KerbalColonies.colonyFacilities
             else if (!sortedTypes[info.category].Contains(info)) sortedTypes[info.category].Add(info);
         }
 
-        public static void addAllTypes() => Configuration.BuildableFacilities.ForEach(info => addType(info));
+        public void addAllTypes() => Configuration.BuildableFacilities.ForEach(info => addType(info));
 
         protected override void OnOpen()
         {
@@ -118,6 +120,8 @@ namespace KerbalColonies.colonyFacilities
             }
 
             if (sortedTypes.Count == 0) addAllTypes();
+
+            cabLevel = facility.Colony.CAB.level;
 
             GUILayout.BeginHorizontal(GUILayout.Width(600));
             {
@@ -284,6 +288,8 @@ namespace KerbalColonies.colonyFacilities
                         {
                             foreach (KCFacilityInfoClass t in SortedTypes[selectedType])
                             {
+                                bool cabLevelPass = t.MinCABLevel[0] <= cabLevel;
+
                                 GUILayout.BeginHorizontal();
                                 GUILayout.Label($"{t.displayName}\t");
                                 GUILayout.FlexibleSpace();
@@ -300,13 +306,14 @@ namespace KerbalColonies.colonyFacilities
                                 GUILayout.Label($"Funds: {((t.Funds.Count > 0 ? t.Funds[0] : 0) * Configuration.FacilityCostMultiplier):f2}");
                                 //GUILayout.Label($"ECperSecond: {t.ECperSecond}");
                                 GUILayout.Label($"Time: {(t.UpgradeTimes[0] * Configuration.FacilityTimeMultiplier):f2}");
+                                if (!cabLevelPass) GUILayout.Label($"Minimum CAB Level: {t.MinCABLevel[0]}");
                                 GUILayout.EndVertical();
 
                                 GUILayout.EndHorizontal();
 
                                 GUILayout.Space(10);
 
-                                if (!t.checkResources(0, productionFacility.Colony)) { GUI.enabled = false; }
+                                if (!t.checkResources(0, productionFacility.Colony) || !cabLevelPass) { GUI.enabled = false; }
 
                                 if (GUILayout.Button("Build"))
                                 {

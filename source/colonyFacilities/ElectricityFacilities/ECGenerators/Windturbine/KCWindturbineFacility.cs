@@ -39,7 +39,7 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Win
             double pressure = FlightGlobals.getStaticPressure(kkGroupname.RadiusOffset, body);
             double density = FlightGlobals.getAtmDensity(pressure, FlightGlobals.getExternalTemperature(kkGroupname.RadiusOffset, body));
 
-            double ecPerSecond = Math.Max(facilityInfo.Minproduction[level], Math.Min(facilityInfo.Maxproduction[level], facilityInfo.ECperSecond[level] * density));
+            double ecPerSecond = density > 0 ? Math.Max(facilityInfo.Minproduction[level], Math.Min(facilityInfo.Maxproduction[level], facilityInfo.ECperSecond[level] * density)) : 0;
             Configuration.writeDebug($"KCWindTurbineFacility ({DisplayName}): EC per second: {ecPerSecond}, pressure: {pressure}, density: {density}");
 
             KCWindturbinePlacementWindow.Instance.ECProductionRate = ecPerSecond;
@@ -82,7 +82,7 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Win
                     continue;
                 }
 
-                if (KKgroups.Count >= i - offset + 1 && densityList.ContainsKey(KKgroups[i - offset]))
+                if (KKgroups.Count >= i - offset + 1 && densityList.ContainsKey(KKgroups[i - offset]) && densityList[KKgroups[i - offset]] > 0)
                     ECPerSecond += Math.Max(facilityInfo.Minproduction[i], Math.Min(facilityInfo.Maxproduction[i], facilityInfo.ECperSecond[i] * densityList[KKgroups[i - offset]]));
             }
 
@@ -107,7 +107,7 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Win
                     continue;
                 }
 
-                if (KKgroups.Count >= i - offset + 1 && densityList.ContainsKey(KKgroups[i - offset]))
+                if (KKgroups.Count >= i - offset + 1 && densityList.ContainsKey(KKgroups[i - offset]) && densityList[KKgroups[i - offset]] > 0)
                     ECPerSecond += facilityInfo.ECperSecond[i] * densityList[KKgroups[i - offset]];
             }
 

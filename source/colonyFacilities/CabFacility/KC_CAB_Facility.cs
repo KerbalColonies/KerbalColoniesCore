@@ -98,6 +98,21 @@ namespace KerbalColonies.colonyFacilities.CabFacility
             this.Colony = colony;
 
             window = new KC_CAB_Window(this);
+
+            for (int i = 1; i < CABInfo.levelNodes.Count; i++)
+            {
+                if ((CABInfo.resourceCost[i].Count == 0 || CABInfo.resourceCost[i].Values.Sum() == 0)
+                    && CABInfo.Funds[i] == 0
+                    && CABInfo.UpgradeTimes[i] == 0)
+                {
+                    this.level = i;
+                }
+                else
+                {
+                    break;
+                }
+            }
+            Configuration.writeDebug($"Setting the {colony.DisplayName} CAB level to {level}");
         }
     }
 }

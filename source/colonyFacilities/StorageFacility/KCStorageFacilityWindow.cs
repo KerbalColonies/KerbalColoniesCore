@@ -130,8 +130,6 @@ namespace KerbalColonies.colonyFacilities.StorageFacility
         protected override void CustomWindow()
         {
             storageFacility.Colony.UpdateColony();
-            if (!storageFacility.enabled) GUI.enabled = false;
-            else GUI.enabled = true;
             GUILayout.BeginHorizontal();
             GUILayout.Label($"MaxVolume: {storageFacility.storageInfo.maxVolume[storageFacility.level]:f2}", LabelGreen, GUILayout.Height(18));
             GUILayout.FlexibleSpace();
@@ -158,7 +156,7 @@ namespace KerbalColonies.colonyFacilities.StorageFacility
 
             float range = info.TransferRange[facility.level] * multiplier * Configuration.FacilityRangeMultiplier;
             bool canTranfer = facility.Colony.Facilities.Where(f => types.Contains(f.GetType()) ^ names.Contains(f.facilityInfo.name)).Any(f => f.playerNearFacility((float)range)) || facility.playerNearFacility((float)range);
-            canTranfer &= !storageFacility.enabled;
+            canTranfer &= storageFacility.enabled;
             canTranfer |= trashResources; // allow transfer if trashing resources, so that the user can delete resources from the storage facility
             canTranfer &= FlightGlobals.ActiveVessel != null && FlightGlobals.ActiveVessel.LandedOrSplashed && FlightGlobals.ship_srfSpeed <= 0.5; // only allow transfer if the vessel is landed or splashed
 

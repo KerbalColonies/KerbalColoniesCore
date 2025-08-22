@@ -148,7 +148,7 @@ namespace KerbalColonies.colonyFacilities
 
                 KerbalKonstructs.Core.StaticInstance targetInstance = KerbalKonstructs.API.getStaticInstanceByUUID(uuid);
 
-                launchSiteName.Add(level, $"KC {HighLogic.CurrentGame.Seed.ToString()} {Colony.DisplayName} {DisplayName} {level}");
+                launchSiteName.Add(level, $"KC {Colony.DisplayName} {DisplayName} {level}");
                 customName.Add(level, false);
 
                 KerbalKonstructs.Core.KKLaunchSite existingLaunchsite = KerbalKonstructs.Core.LaunchSiteManager.GetLaunchSiteByName(launchSiteName[level]);
@@ -360,7 +360,7 @@ namespace KerbalColonies.colonyFacilities
                 {
                     KerbalKonstructs.Core.KKLaunchSite launchSite = instance[kvp.Key].launchSite;
                     KerbalKonstructs.Core.LaunchSiteManager.DeleteLaunchSite(launchSite);
-                    launchSite.LaunchSiteName = $"KC {HighLogic.CurrentGame.Seed.ToString()} {Colony.DisplayName} {DisplayName} {kvp.Key}";
+                    launchSite.LaunchSiteName = $"KC {Colony.DisplayName} {DisplayName} {kvp.Key}";
                     launchSiteName[kvp.Key] = launchSite.LaunchSiteName;
                     KerbalKonstructs.Core.LaunchSiteManager.RegisterLaunchSite(launchSite);
                     instance[kvp.Key].SaveConfig();
@@ -376,7 +376,7 @@ namespace KerbalColonies.colonyFacilities
                 {
                     KerbalKonstructs.Core.KKLaunchSite launchSite = instance[kvp.Key].launchSite;
                     KerbalKonstructs.Core.LaunchSiteManager.DeleteLaunchSite(launchSite);
-                    launchSite.LaunchSiteName = $"KC {HighLogic.CurrentGame.Seed.ToString()} {Colony.DisplayName} {DisplayName} {kvp.Key}";
+                    launchSite.LaunchSiteName = $"KC {Colony.DisplayName} {DisplayName} {kvp.Key}";
                     launchSiteName[kvp.Key] = launchSite.LaunchSiteName;
                     KerbalKonstructs.Core.LaunchSiteManager.RegisterLaunchSite(launchSite);
                     instance[kvp.Key].SaveConfig();

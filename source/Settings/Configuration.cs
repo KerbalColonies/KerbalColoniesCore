@@ -229,21 +229,6 @@ namespace KerbalColonies
 
         internal static void AddGroup(int bodyIndex, string groupName, KCFacilityBase faciltiy)
         {
-            /*
-            if (!KCgroups.ContainsKey(HighLogic.CurrentGame.Seed.ToString()))
-            {
-                KCgroups.Add(HighLogic.CurrentGame.Seed.ToString(), new Dictionary<int, Dictionary<string, ConfigNode>> { { bodyIndex, new Dictionary<string, ConfigNode> { { groupName, faciltiy.GetSharedNode() } } } });
-            }
-            else if (!KCgroups[HighLogic.CurrentGame.Seed.ToString()].ContainsKey(bodyIndex))
-            {
-                KCgroups[HighLogic.CurrentGame.Seed.ToString()].Add(bodyIndex, new Dictionary<string, ConfigNode> { { groupName, faciltiy.GetSharedNode() } });
-            }
-            else if (!KCgroups[HighLogic.CurrentGame.Seed.ToString()][bodyIndex].ContainsKey(groupName))
-            {
-                KCgroups[HighLogic.CurrentGame.Seed.ToString()][bodyIndex].Add(groupName, faciltiy.GetSharedNode());
-            }
-            */
-
             if (!GroupFacilities.ContainsKey(groupName)) GroupFacilities.Add(groupName, faciltiy);
             else GroupFacilities[groupName] = faciltiy;
         }

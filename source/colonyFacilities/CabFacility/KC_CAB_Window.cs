@@ -90,16 +90,17 @@ namespace KerbalColonies.colonyFacilities.CabFacility
                     {
                         GUILayout.BeginHorizontal();
                         {
-                            GUILayout.BeginVertical(GUILayout.Width(195));
+                            GUILayout.BeginVertical(GUILayout.Width(250));
                             {
                                 GUILayout.Label($"<b>{CABFacility.Colony.DisplayName}{(CABFacility.Colony.UseCustomDisplayName ? $" ({CABFacility.Colony.BodyName})" : "")}</b>");
+                                GUILayout.Label($"CAB Level: {CABFacility.level}/{CABFacility.maxLevel}");
                                 GUILayout.Label($"Facilities: {CABFacility.Colony.Facilities.Count}");
                             }
                             GUILayout.EndVertical();
 
                             GUILayout.FlexibleSpace();
 
-                            GUILayout.BeginVertical(GUILayout.Width(195));
+                            GUILayout.BeginVertical(GUILayout.Width(250));
                             {
                                 if (KCProductionFacility.ConstructedFacilities[CABFacility.Colony].Contains(CABFacility))
                                 {
@@ -144,20 +145,12 @@ namespace KerbalColonies.colonyFacilities.CabFacility
                                             CABFacility.AddUpgradeableFacility(CABFacility);
                                         }
                                         GUI.enabled = true;
-                                        GUILayout.BeginHorizontal();
+                                        GUILayout.Label("Upgrade cost:");
+                                        CABFacility.facilityInfo.resourceCost[CABFacility.level + 1].ToList().ForEach(pair =>
                                         {
-                                            GUILayout.Label("Upgrade cost:");
-                                            GUILayout.BeginVertical();
-                                            {
-                                                CABFacility.facilityInfo.resourceCost[CABFacility.level + 1].ToList().ForEach(pair =>
-                                                {
-                                                    GUILayout.Label($"{pair.Key.displayName}: {pair.Value * Configuration.FacilityCostMultiplier}");
-                                                });
-                                                if (CABFacility.facilityInfo.Funds[CABFacility.level + 1] != 0) GUILayout.Label($"Funds: {CABFacility.facilityInfo.Funds[CABFacility.level + 1] * Configuration.FacilityCostMultiplier}");
-                                            }
-                                            GUILayout.EndVertical();
-                                        }
-                                        GUILayout.EndHorizontal();
+                                            GUILayout.Label($"- {pair.Key.displayName}: {pair.Value * Configuration.FacilityCostMultiplier}");
+                                        });
+                                        if (CABFacility.facilityInfo.Funds[CABFacility.level + 1] != 0) GUILayout.Label($"Funds: {CABFacility.facilityInfo.Funds[CABFacility.level + 1] * Configuration.FacilityCostMultiplier}");
                                         GUILayout.Label($"Time: {CABFacility.facilityInfo.UpgradeTimes[CABFacility.level + 1] * Configuration.FacilityTimeMultiplier}");
                                     }
                                     else
@@ -256,20 +249,13 @@ namespace KerbalColonies.colonyFacilities.CabFacility
                                                 continue;
                                             }
                                             GUI.enabled = true;
-                                            GUILayout.BeginHorizontal();
+
+                                            GUILayout.Label("Upgrade cost:");
+                                            facility.facilityInfo.resourceCost[facility.level + 1].ToList().ForEach(pair =>
                                             {
-                                                GUILayout.Label("Upgrade cost:");
-                                                GUILayout.BeginVertical();
-                                                {
-                                                    facility.facilityInfo.resourceCost[facility.level + 1].ToList().ForEach(pair =>
-                                                    {
-                                                        GUILayout.Label($"{pair.Key.displayName}: {pair.Value * Configuration.FacilityCostMultiplier}");
-                                                    });
-                                                    if (facility.facilityInfo.Funds[facility.level + 1] != 0) GUILayout.Label($"Funds: {facility.facilityInfo.Funds[facility.level + 1] * Configuration.FacilityCostMultiplier}");
-                                                }
-                                                GUILayout.EndVertical();
-                                            }
-                                            GUILayout.EndHorizontal();
+                                                GUILayout.Label($"- {pair.Key.displayName}: {pair.Value * Configuration.FacilityCostMultiplier}");
+                                            });
+                                            if (facility.facilityInfo.Funds[facility.level + 1] != 0) GUILayout.Label($"Funds: {facility.facilityInfo.Funds[facility.level + 1] * Configuration.FacilityCostMultiplier}");
                                             GUILayout.Label($"Time: {facility.facilityInfo.UpgradeTimes[facility.level + 1] * Configuration.FacilityTimeMultiplier}");
                                             if (higherCABLevelNeeded) GUILayout.Label($"CAB Level required: {facility.facilityInfo.MinCABLevel[facility.level]} (current: {CABFacility.level})");
                                         }

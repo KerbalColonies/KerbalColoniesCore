@@ -50,12 +50,12 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fue
         {
             if (!canProduceEC(deltaTime))
             {
-                Configuration.writeLog($"KCFuelCellFacility ({DisplayName}): Cannot produce EC due to insufficient resources");
+                Configuration.writeDebug($"KCFuelCellFacility ({DisplayName}): Cannot produce EC due to insufficient resources");
                 return 0.0;
             }
 
             double ecProduced = fuelCellInfo.ECProduction[level] * deltaTime;
-            Configuration.writeLog($"KCFuelCellFacility ({DisplayName}): Produced {ecProduced} EC");
+            Configuration.writeDebug($"KCFuelCellFacility ({DisplayName}): Produced {ecProduced} EC");
             foreach (KeyValuePair<PartResourceDefinition, double> item in fuelCellInfo.ResourceConsumption[level])
             {
                 KCStorageFacility.addResourceToColony(item.Key, -item.Value * deltaTime, Colony);

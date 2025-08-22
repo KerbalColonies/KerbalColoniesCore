@@ -1,3 +1,17 @@
+# v1.1.0
+- Added an electricity system with an ec storage, wind turbines, fuel cells and fission and fusion reactors
+- Reworked the commnet facility to now be either an unmanned commnet node or an (optionally) manned commnet node
+- Reworked the launchpad facility to support multiple levels
+- Reworked the saving system to store everything in scenario modules (except the settings), including the KK statics/groups
+- Fixed the hangar facility size (a rework is planned for v1.2)
+- Added a "CAB" tab to the cab window which now features a colony overview with the most important things like ec production/consumption/delta/stored
+- Reworked the CAB facility to allow upgrades and added minimum CAB level options to the other facilities
+- Added editor range limits which can change based on the CAB level, default is 1km
+- Reworked the resource conversion list system to continue loading the other lists if one of them fails
+- Resource conversion lists with the same name are now additive
+- Added a category parameter to show a nice displayname for the types instead of the source code name\nThis also allows for splitting/merging of different types as it's set in each facility config
+- Reworked the ISRU facility to allow the use of previous ISRU level counts with the same kerbal requirement and added a minimum kerbal parameter to allow higher levels with fewer kerbals. In the EPL config this results in a fully automated final level but only 2 ISRUs.
+
 # v1.0.11 hotfix
 - Fixed the launchpad facility OnGroupPlaced not generating a launchpad, see issue [#35](https://github.com/KerbalColonies/KerbalColoniesCore/issues/35) and [#36](https://github.com/KerbalColonies/KerbalColoniesCore/issues/36)
 

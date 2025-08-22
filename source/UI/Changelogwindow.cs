@@ -30,6 +30,8 @@ namespace KerbalColonies.UI
     {
         string ParseMarkdownToGUI(string markdown)
         {
+            markdown = markdown.Replace("\\n", "\n");
+
             if (markdown.StartsWith("# "))
             {
                 return $"<size=20><b>{markdown.Substring(2).Trim()}</b></size>";

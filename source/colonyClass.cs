@@ -183,7 +183,7 @@ namespace KerbalColonies
 
         public static void ColonyUpdateHandler(colonyClass colony)
         {
-            Configuration.writeLog($"Updating colony {colony.Name} with {colony.Facilities.Count} facilities and {colony.sharedColonyNodes.Count} shared nodes.");
+            Configuration.writeDebug($"Updating colony {colony.Name} with {colony.Facilities.Count} facilities and {colony.sharedColonyNodes.Count} shared nodes.");
             colony.CAB.Update();
             colony.Facilities.ForEach(f => f.Update());
         }

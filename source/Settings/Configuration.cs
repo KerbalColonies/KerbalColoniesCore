@@ -335,6 +335,8 @@ namespace KerbalColonies
 
             ConfigNode[] nodes = new ConfigNode[1] { new ConfigNode() };
 
+            if (KCgroups.Count == 0) return;
+
             foreach (KeyValuePair<string, Dictionary<int, Dictionary<string, ConfigNode>>> gameKVP in KCgroups)
             {
                 ConfigNode saveGameNode = new ConfigNode(gameKVP.Key, "The savegame name");

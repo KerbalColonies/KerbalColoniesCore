@@ -148,10 +148,10 @@ namespace KerbalColonies.colonyFacilities.CabFacility
                                         GUILayout.Label("Upgrade cost:");
                                         CABFacility.facilityInfo.resourceCost[CABFacility.level + 1].ToList().ForEach(pair =>
                                         {
-                                            GUILayout.Label($"- {pair.Key.displayName}: {pair.Value * Configuration.FacilityCostMultiplier}");
+                                            GUILayout.Label($"- {pair.Key.displayName}: {pair.Value * Configuration.FacilityCostMultiplier:f3}");
                                         });
-                                        if (CABFacility.facilityInfo.Funds[CABFacility.level + 1] != 0) GUILayout.Label($"Funds: {CABFacility.facilityInfo.Funds[CABFacility.level + 1] * Configuration.FacilityCostMultiplier}");
-                                        GUILayout.Label($"Time: {CABFacility.facilityInfo.UpgradeTimes[CABFacility.level + 1] * Configuration.FacilityTimeMultiplier}");
+                                        if (CABFacility.facilityInfo.Funds[CABFacility.level + 1] != 0) GUILayout.Label($"Funds: {CABFacility.facilityInfo.Funds[CABFacility.level + 1] * Configuration.FacilityCostMultiplier:f3}");
+                                        GUILayout.Label($"Time: {CABFacility.facilityInfo.UpgradeTimes[CABFacility.level + 1] * Configuration.FacilityTimeMultiplier:f3}");
                                     }
                                     else
                                     {
@@ -253,10 +253,10 @@ namespace KerbalColonies.colonyFacilities.CabFacility
                                             GUILayout.Label("Upgrade cost:");
                                             facility.facilityInfo.resourceCost[facility.level + 1].ToList().ForEach(pair =>
                                             {
-                                                GUILayout.Label($"- {pair.Key.displayName}: {pair.Value * Configuration.FacilityCostMultiplier}");
+                                                GUILayout.Label($"- {pair.Key.displayName}: {pair.Value * Configuration.FacilityCostMultiplier:f3}");
                                             });
-                                            if (facility.facilityInfo.Funds[facility.level + 1] != 0) GUILayout.Label($"Funds: {facility.facilityInfo.Funds[facility.level + 1] * Configuration.FacilityCostMultiplier}");
-                                            GUILayout.Label($"Time: {facility.facilityInfo.UpgradeTimes[facility.level + 1] * Configuration.FacilityTimeMultiplier}");
+                                            if (facility.facilityInfo.Funds[facility.level + 1] != 0) GUILayout.Label($"Funds: {facility.facilityInfo.Funds[facility.level + 1] * Configuration.FacilityCostMultiplier:f3}");
+                                            GUILayout.Label($"Time: {facility.facilityInfo.UpgradeTimes[facility.level + 1] * Configuration.FacilityTimeMultiplier:f3}");
                                             if (higherCABLevelNeeded) GUILayout.Label($"CAB Level required: {facility.facilityInfo.MinCABLevel[facility.level]} (current: {CABFacility.level})");
                                         }
                                         else

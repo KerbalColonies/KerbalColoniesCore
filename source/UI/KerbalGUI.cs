@@ -195,6 +195,11 @@ namespace KerbalColonies.UI
             ProtoCrewMember fromListModifier = null;
             ProtoCrewMember toListModifier = null;
 
+            List<string> allowedTraits = fromFac.kerbalFacilityInfoClass.allowedTraits[fromFac.level];
+            List<string> forbiddenTraits = fromFac.kerbalFacilityInfoClass.forbiddenTraits[fromFac.level];
+            if (allowedTraits.Count > 0) GUILayout.Label($"Allowed traits: {string.Join(", ", allowedTraits)}", LabelGreen);
+            else if (forbiddenTraits.Count > 0) GUILayout.Label($"Forbidden traits: {string.Join(", ", forbiddenTraits)}", LabelGreen);
+
             GUILayout.BeginHorizontal();
             {
                 GUILayout.BeginVertical(GUILayout.Width(toolRect.width * 0.48f));

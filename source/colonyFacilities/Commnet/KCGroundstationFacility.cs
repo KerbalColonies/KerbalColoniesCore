@@ -128,7 +128,7 @@ namespace KerbalColonies.colonyFacilities.Commnet
         {
             Configuration.writeLog($"KC CommNetFacility: OnGroupPlaced {facilityInfo.BasegroupNames[level]}");
 
-            double newRange = (groundStationInfo.range[level] + groundStationInfo.kerbalRange[level]) * (1 + groundStationInfo.kerbalMultiplier[level] * kerbals.Count);
+            double newRange = (groundStationInfo.range[level] + groundStationInfo.kerbalRange[level] * kerbals.Count) * (1 + groundStationInfo.kerbalMultiplier[level] * kerbals.Count);
 
             KCCommNetNodeInfo oldNode = commNetNodes.FirstOrDefault(node => node.GroupCenter == kkgroup);
             if (oldNode != null)
@@ -168,7 +168,7 @@ namespace KerbalColonies.colonyFacilities.Commnet
             {
                 rebuildCommNetNodes = false;
                 commNetNodes.ToList().ForEach(node =>
-                    node.SetRange((groundStationInfo.range[node.FacilityLevel] + groundStationInfo.kerbalRange[node.FacilityLevel]) * (1 + groundStationInfo.kerbalMultiplier[node.FacilityLevel] * kerbals.Count))
+                    node.SetRange((groundStationInfo.range[node.FacilityLevel] + groundStationInfo.kerbalRange[node.FacilityLevel] * kerbals.Count) * (1 + groundStationInfo.kerbalMultiplier[node.FacilityLevel] * kerbals.Count))
                 );
             }
         }

@@ -112,10 +112,10 @@ namespace KerbalColonies
 
         protected void Awake()
         {
+            KCFacilityTypeRegistry.RegisterType<KC_CAB_Facility>();
             KCFacilityTypeRegistry.RegisterType<KCStorageFacility>();
             KCFacilityTypeRegistry.RegisterType<KCCrewQuarters>();
             KCFacilityTypeRegistry.RegisterType<KCResearchFacility>();
-            KCFacilityTypeRegistry.RegisterType<KC_CAB_Facility>();
             KCFacilityTypeRegistry.RegisterType<KCMiningFacility>();
             KCFacilityTypeRegistry.RegisterType<KCProductionFacility>();
             KCFacilityTypeRegistry.RegisterType<KCResourceConverterFacility>();
@@ -123,6 +123,11 @@ namespace KerbalColonies
             KCFacilityTypeRegistry.RegisterType<KCLaunchpadFacility>();
             KCFacilityTypeRegistry.RegisterType<KCCommNetFacility>();
             KCFacilityTypeRegistry.RegisterType<KCGroundstationFacility>();
+            KCFacilityTypeRegistry.RegisterType<KCECStorageFacility>();
+            KCFacilityTypeRegistry.RegisterType<KCWindturbineFacility>();
+            KCFacilityTypeRegistry.RegisterType<KCFuelCellFacility>();
+            KCFacilityTypeRegistry.RegisterType<KCFissionReactor>();
+            KCFacilityTypeRegistry.RegisterType<KCFusionReactor>();
 
             KCFacilityTypeRegistry.RegisterFacilityInfo<KC_CAB_Facility, KC_CAB_Info>();
             KCFacilityTypeRegistry.RegisterFacilityInfo<KCCommNetFacility, KCCommnetInfo>();
@@ -135,20 +140,16 @@ namespace KerbalColonies
             KCFacilityTypeRegistry.RegisterFacilityInfo<KCResearchFacility, KCResearchFacilityInfoClass>();
             KCFacilityTypeRegistry.RegisterFacilityInfo<KCResourceConverterFacility, KCResourceConverterInfo>();
             KCFacilityTypeRegistry.RegisterFacilityInfo<KCStorageFacility, KCStorageFacilityInfo>();
-
-
-            KCFacilityTypeRegistry.RegisterType<KCECStorageFacility>();
-            KCFacilityTypeRegistry.RegisterType<KCECTestFacility>();
             KCFacilityTypeRegistry.RegisterFacilityInfo<KCECStorageFacility, KCECStorageInfo>();
-            KCFacilityTypeRegistry.RegisterFacilityInfo<KCECTestFacility, KCFacilityInfoClass>();
-            KCFacilityTypeRegistry.RegisterType<KCFuelCellFacility>();
-            KCFacilityTypeRegistry.RegisterFacilityInfo<KCFuelCellFacility, KCFuelCellInfo>();
-            KCFacilityTypeRegistry.RegisterType<KCFissionReactor>();
-            KCFacilityTypeRegistry.RegisterFacilityInfo<KCFissionReactor, KCFissionInfo>();
-            KCFacilityTypeRegistry.RegisterType<KCFusionReactor>();
-            KCFacilityTypeRegistry.RegisterFacilityInfo<KCFusionReactor, KCFusionInfo>();
-            KCFacilityTypeRegistry.RegisterType<KCWindturbineFacility>();
             KCFacilityTypeRegistry.RegisterFacilityInfo<KCWindturbineFacility, KCWindturbineInfo>();
+            KCFacilityTypeRegistry.RegisterFacilityInfo<KCFuelCellFacility, KCFuelCellInfo>();
+            KCFacilityTypeRegistry.RegisterFacilityInfo<KCFissionReactor, KCFissionInfo>();
+            KCFacilityTypeRegistry.RegisterFacilityInfo<KCFusionReactor, KCFusionInfo>();
+
+#if DEBUG
+            KCFacilityTypeRegistry.RegisterType<KCECTestFacility>();
+            KCFacilityTypeRegistry.RegisterFacilityInfo<KCECTestFacility, KCFacilityInfoClass>();
+#endif
 
             try
             {

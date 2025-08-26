@@ -156,7 +156,7 @@ namespace KerbalColonies.colonyFacilities
         public int ECConsumptionPriority { get; set; } = 0;
         public bool outOfEC { get; set; } = false;
         public double ExpectedECConsumption(double lastTime, double deltaTime, double currentTime) =>
-            kerbals.Count > 0 ? facilityInfo.ECperSecond[level] * deltaTime * kerbals.Count : 0;
+            kerbals.Count > 0 ? facilityInfo.ECperSecond[level] * kerbals.Count * deltaTime : 0;
 
         public void ConsumeEC(double lastTime, double deltaTime, double currentTime) => outOfEC = false;
 

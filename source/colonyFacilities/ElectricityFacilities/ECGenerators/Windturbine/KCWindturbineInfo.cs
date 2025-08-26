@@ -22,7 +22,7 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Win
                     Maxproduction.Add(kvp.Key, double.Parse(n.GetValue("Maxproduction")));
                 else if (kvp.Key > 0)
                     Maxproduction.Add(kvp.Key, Maxproduction[kvp.Key - 1]);
-                else Maxproduction.Add(kvp.Key, 0.0);
+                else Maxproduction.Add(kvp.Key, double.MaxValue);
 
                 if (n.HasValue("Minproduction"))
                     Minproduction.Add(kvp.Key, double.Parse(n.GetValue("Minproduction")));

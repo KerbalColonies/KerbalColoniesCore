@@ -91,7 +91,7 @@ namespace KerbalColonies.colonyFacilities
 
                 if (vessel.vesselBuildTime == null)
                 {
-                    if (GUILayout.Button("Load"))
+                    if (GUILayout.Button("Load", GUILayout.Width(150)))
                     {
                         Vessel v = hangar.RollOutVessel(vessel).vesselRef;
                     }

@@ -39,6 +39,8 @@ namespace KerbalColonies
     [KSPAddon(KSPAddon.Startup.FlightAndEditor, false)]
     internal class KCPreFlightWorker : MonoBehaviour
     {
+        public static HashSet<string> blacklistedResources = new HashSet<string> { "Ablator", "SolidFuel" };
+
         internal static string launchPadName { get; set; } = null;
         internal static double funds { get; set; } = 0; // funds needed to launch
         internal static double vesselMass { get; set; } = 0; // mass of the vessel to be launched
@@ -82,7 +84,7 @@ namespace KerbalColonies
                     // Doesn't account for leaving the editor
                     foreach (PartResourceDefinition item in PartResourceLibrary.Instance.resourceDefinitions)
                     {
-                        if (KCStorageFacility.blackListedResources.Contains(item.name)) continue;
+                        if (KCStorageFacility.blackListedResources.Contains(item.name) || blacklistedResources.Contains(item.name)) continue;
 
                         FlightGlobals.ActiveVessel.GetConnectedResourceTotals(item.id, out double amount, out double max, true);
                         FlightGlobals.ActiveVessel.RequestResource(FlightGlobals.ActiveVessel.rootPart, item.id, amount, false);

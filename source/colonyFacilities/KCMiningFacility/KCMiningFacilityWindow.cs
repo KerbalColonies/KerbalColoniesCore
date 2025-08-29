@@ -81,7 +81,7 @@ namespace KerbalColonies.colonyFacilities.KCMiningFacility
                         {
                             GUILayout.BeginVertical();
                             {
-                                GUILayout.Label($"Daily rate: {(miningFacility.groupDensities.Sum(kvp => kvp.Value[res.Key]) * miningFacility.getKerbals().Count):f2}/day");
+                                GUILayout.Label($"Daily rate: {(miningFacility.groupDensities.Sum(kvp => kvp.Value.ContainsKey(res.Key) ? kvp.Value[res.Key] : 0) * miningFacility.getKerbals().Count):f2}/day");
                                 GUILayout.Label($"Stored: {res.Value:f2}");
                                 GUILayout.Label($"Max: {maxPerResource[res.Key]:f2}");
                             }

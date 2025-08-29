@@ -23,7 +23,7 @@ namespace KerbalColonies.colonyFacilities.StorageFacility
 {
     public class KCStorageFacility : KCFacilityBase, KCECConsumer
     {
-        public static HashSet<string> blackListedResources = new HashSet<string> { "ElectricCharge", "IntakeAir", "Ablator" };
+        public static HashSet<string> blackListedResources = new HashSet<string> { "ElectricCharge", "IntakeAir" };
 
 
         // TODO: add shared colony storage

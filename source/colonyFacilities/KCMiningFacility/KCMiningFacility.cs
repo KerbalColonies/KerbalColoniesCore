@@ -218,8 +218,11 @@ namespace KerbalColonies.colonyFacilities.KCMiningFacility
                 }
             }
 
+            List<PartResourceDefinition> allResources = new List<PartResourceDefinition> { };
+
             miningFacilityInfo.rates.Where(kvp => kvp.Key <= level).ToList().ForEach(kvp => kvp.Value.ForEach(rate =>
             {
+                if (!allResources.Contains(rate.resource)) allResources.Add(rate.resource);
                 storedResoures.TryAdd(rate.resource, 0);
                 autoTransferResources.TryAdd(rate.resource, false);
             }));
@@ -234,13 +237,26 @@ namespace KerbalColonies.colonyFacilities.KCMiningFacility
                     foreach (ConfigNode resNode in groupNode.GetNodes("resource"))
                     {
                         PartResourceDefinition resDef = PartResourceLibrary.Instance.GetDefinition(resNode.GetValue("resource"));
-                        if (resDef == null) throw new NullReferenceException($"The resource {resNode.GetValue("resource")} is not defined in the PartResourceLibrary. Please check your configuration for the facility {facilityInfo.name} (type: {facilityInfo.type}).");
-                        double rate = double.Parse(resNode.GetValue("rate"));
-                        groupRates.Add(resDef, rate);
+                        if (resDef == null) Configuration.writeLog((new NullReferenceException($"The resource {resNode.GetValue("resource")} is not defined in the PartResourceLibrary. Please check your configuration for the facility {facilityInfo.name} (type: {facilityInfo.type}).").ToString()));
+                        else if (!allResources.Contains(resDef)) Configuration.writeLog((new Exception($"Miningfacility: configuration has changed, the resource {resDef.name} is no longer a valid resource for this facility.")).ToString());
+                        else
+                        {
+                            double rate = double.Parse(resNode.GetValue("rate"));
+                            groupRates.Add(resDef, rate);
+                        }
                     }
                     groupDensities.Add(groupName, groupRates);
                 }
             }
+
+            storedResoures.ToList().ForEach(kvp =>
+            {
+                if (!allResources.Contains(kvp.Key))
+                {
+                    storedResoures.Remove(kvp.Key);
+                    autoTransferResources.Remove(kvp.Key);
+                }
+            });
 
             if (KKgroups.Count > 0)
             {

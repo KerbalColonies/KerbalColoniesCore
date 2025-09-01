@@ -51,6 +51,11 @@ namespace KerbalColonies
             }
 
 
+            KCProductionFacility.ConstructedFacilities.Clear();
+            KCProductionFacility.ConstructingFacilities.Clear();
+            KCProductionFacility.UpgradingFacilities.Clear();
+            KCProductionFacility.UpgradedFacilities.Clear();
+
             KCgroups.Clear();
             colonyDictionary.Clear();
             GroupFacilities.Clear();

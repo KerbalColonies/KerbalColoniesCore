@@ -1,3 +1,7 @@
+# v1.1.1 hotfix
+- Fixed a bug where the CAB upgrade would be stopped when the scene was reloaded, see issue [#41](https://github.com/KerbalColonies/KerbalColoniesCore/issues/41)
+- Set the isInSavegame flag for all new statics when upgrading a facility with group change mode, this would delete these statics upon reload
+
 # v1.1.0
 - Added an electricity system with an ec storage, wind turbines, fuel cells and fission and fusion reactors
 - Reworked the commnet facility to now be either an unmanned commnet node or an (optionally) manned commnet node

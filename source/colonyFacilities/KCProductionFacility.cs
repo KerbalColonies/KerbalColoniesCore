@@ -384,7 +384,7 @@ namespace KerbalColonies.colonyFacilities
             UpgradedFacilities[facility.Colony].Add(facility);
         }
 
-        public bool FacilityQueue => ConstructingFacilities[Colony].Count > 0 || UpgradingFacilities[Colony].Count > 0;
+        public bool FacilityQueue => ConstructingFacilities.ContainsKey(Colony) ? ConstructingFacilities[Colony].Count > 0 || UpgradingFacilities[Colony].Count > 0 : false;
         public bool VesselQueue => KCHangarFacility.GetConstructingVessels(Colony).Count > 0;
 
         private static double getDeltaTime(colonyClass colony)
@@ -405,6 +405,39 @@ namespace KerbalColonies.colonyFacilities
 
         public static void ExecuteProduction(colonyClass colony)
         {
+            if (ConstructingFacilities.TryAdd(colony, new Dictionary<KCFacilityBase, double>()))
+            {
+                ConstructedFacilities.Add(colony, new List<KCFacilityBase>());
+                UpgradingFacilities.Add(colony, new Dictionary<KCFacilityBase, double>());
+                UpgradedFacilities.Add(colony, new List<KCFacilityBase>());
+
+                ConfigNode production = colony.sharedColonyNodes.FirstOrDefault(n => n.name == "production");
+                if (production != null)
+                {
+                    foreach (ConfigNode facilityNode in production.GetNode("constructingFacilities").GetNodes("facilityNode"))
+                    {
+                        KCFacilityBase facility = KCFacilityBase.GetFacilityByID(int.Parse(facilityNode.GetValue("facilityID")));
+                        if (facility != null) AddConstructingFacility(facility, double.Parse(facilityNode.GetValue("remainingTime")));
+                    }
+                    foreach (ConfigNode facilityNode in production.GetNode("constructedFacilities").GetNodes("facilityNode"))
+                    {
+                        KCFacilityBase facility = KCFacilityBase.GetFacilityByID(int.Parse(facilityNode.GetValue("facilityID")));
+                        if (facility != null) AddConstructedFacility(facility);
+                    }
+                    foreach (ConfigNode facilityNode in production.GetNode("upgradingFacilities").GetNodes("facilityNode"))
+                    {
+                        KCFacilityBase facility = KCFacilityBase.GetFacilityByID(int.Parse(facilityNode.GetValue("facilityID")));
+                        if (facility != null) AddUpgradingFacility(facility, double.Parse(facilityNode.GetValue("remainingTime")));
+                    }
+                    foreach (ConfigNode facilityNode in production.GetNode("upgradedFacilities").GetNodes("facilityNode"))
+                    {
+                        KCFacilityBase facility = KCFacilityBase.GetFacilityByID(int.Parse(facilityNode.GetValue("facilityID")));
+                        if (facility != null) AddUpgradedFacility(facility);
+                    }
+                }
+            }
+
+
             double dt = getDeltaTime(colony);
             if (dt == 0) return;
 
@@ -687,39 +720,6 @@ namespace KerbalColonies.colonyFacilities
                     Colony.sharedColonyNodes.Add(vesselBuildInfo);
                 }
             }
-
-            if (ConstructingFacilities.TryAdd(Colony, new Dictionary<KCFacilityBase, double>()))
-            {
-                ConstructedFacilities.Add(Colony, new List<KCFacilityBase>());
-                UpgradingFacilities.Add(Colony, new Dictionary<KCFacilityBase, double>());
-                UpgradedFacilities.Add(Colony, new List<KCFacilityBase>());
-
-                ConfigNode production = Colony.sharedColonyNodes.FirstOrDefault(n => n.name == "production");
-                if (production != null)
-                {
-                    foreach (ConfigNode facilityNode in production.GetNode("constructingFacilities").GetNodes("facilityNode"))
-                    {
-                        KCFacilityBase facility = KCFacilityBase.GetFacilityByID(int.Parse(facilityNode.GetValue("facilityID")));
-                        if (facility != null) AddConstructingFacility(facility, double.Parse(facilityNode.GetValue("remainingTime")));
-                    }
-                    foreach (ConfigNode facilityNode in production.GetNode("constructedFacilities").GetNodes("facilityNode"))
-                    {
-                        KCFacilityBase facility = KCFacilityBase.GetFacilityByID(int.Parse(facilityNode.GetValue("facilityID")));
-                        if (facility != null) AddConstructedFacility(facility);
-                    }
-                    foreach (ConfigNode facilityNode in production.GetNode("upgradingFacilities").GetNodes("facilityNode"))
-                    {
-                        KCFacilityBase facility = KCFacilityBase.GetFacilityByID(int.Parse(facilityNode.GetValue("facilityID")));
-                        if (facility != null) AddUpgradingFacility(facility, double.Parse(facilityNode.GetValue("remainingTime")));
-                    }
-                    foreach (ConfigNode facilityNode in production.GetNode("upgradedFacilities").GetNodes("facilityNode"))
-                    {
-                        KCFacilityBase facility = KCFacilityBase.GetFacilityByID(int.Parse(facilityNode.GetValue("facilityID")));
-                        if (facility != null) AddUpgradedFacility(facility);
-                    }
-                }
-            }
-
         }
 
         public KCProductionFacility(colonyClass colony, KCFacilityInfoClass facilityInfo, ConfigNode node) : base(colony, facilityInfo, node)

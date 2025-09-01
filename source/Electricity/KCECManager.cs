@@ -57,7 +57,7 @@ namespace KerbalColonies.Electricity
                     GUILayout.EndVertical();
                     GUILayout.BeginVertical(GUILayout.Width(KC_CAB_Window.CABInfoWidth / 2 - 10));
                     {
-                        GUILayout.Label($"Stored: {(colonyData.lastECStored / colonyData.deltaTime):F2} EC/s");
+                        GUILayout.Label($"Stored: {(colonyData.lastECStored / colonyData.deltaTime):F2} EC");
                         GUILayout.Label($"Delta: {(colonyData.lastECDelta / colonyData.deltaTime):F2} EC/s");
                     }
                     GUILayout.EndVertical();

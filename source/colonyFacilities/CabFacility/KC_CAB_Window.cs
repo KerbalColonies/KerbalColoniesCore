@@ -144,14 +144,17 @@ namespace KerbalColonies.colonyFacilities.CabFacility
                                             CABFacility.facilityInfo.removeResources(CABFacility.level + 1, CABFacility.Colony);
                                             CABFacility.AddUpgradeableFacility(CABFacility);
                                         }
-                                        GUI.enabled = true;
-                                        GUILayout.Label("Upgrade cost:");
-                                        CABFacility.facilityInfo.resourceCost[CABFacility.level + 1].ToList().ForEach(pair =>
+                                        else
                                         {
-                                            GUILayout.Label($"- {pair.Key.displayName}: {pair.Value * Configuration.FacilityCostMultiplier:f3}");
-                                        });
-                                        if (CABFacility.facilityInfo.Funds[CABFacility.level + 1] != 0) GUILayout.Label($"Funds: {CABFacility.facilityInfo.Funds[CABFacility.level + 1] * Configuration.FacilityCostMultiplier:f3}");
-                                        GUILayout.Label($"Time: {CABFacility.facilityInfo.UpgradeTimes[CABFacility.level + 1] * Configuration.FacilityTimeMultiplier:f3}");
+                                            GUI.enabled = true;
+                                            GUILayout.Label("Upgrade cost:");
+                                            CABFacility.facilityInfo.resourceCost[CABFacility.level + 1].ToList().ForEach(pair =>
+                                            {
+                                                GUILayout.Label($"- {pair.Key.displayName}: {pair.Value * Configuration.FacilityCostMultiplier:f3}");
+                                            });
+                                            if (CABFacility.facilityInfo.Funds[CABFacility.level + 1] != 0) GUILayout.Label($"Funds: {CABFacility.facilityInfo.Funds[CABFacility.level + 1] * Configuration.FacilityCostMultiplier:f3}");
+                                            GUILayout.Label($"Time: {CABFacility.facilityInfo.UpgradeTimes[CABFacility.level + 1] * Configuration.FacilityTimeMultiplier:f3}");
+                                        }
                                     }
                                     else
                                     {

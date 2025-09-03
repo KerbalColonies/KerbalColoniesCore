@@ -69,7 +69,7 @@ namespace KerbalColonies.colonyFacilities.KCMiningFacility
 
             AbundanceRequest request = new AbundanceRequest();
             request.BodyId = Colony.BodyID;
-            request.ResourceType = HarvestTypes.Planetary;
+            request.ResourceType = miningFacilityInfo.HarvestType[level];
             request.Longitude = staticInstance.RefLongitude;
             request.Latitude = staticInstance.RefLatitude;
             request.Altitude = kkgroup.RadiusOffset;

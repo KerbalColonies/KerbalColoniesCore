@@ -120,10 +120,12 @@ namespace KerbalColonies.colonyFacilities
         {
             if (facility.facilityInfo.UpgradeTypes[facility.level + 1] != UpgradeType.withGroupChange || !facility.upgradeable) { return false; }
 
+            string bodyName = facility.Colony.BodyName;
+
             facility.UpgradeFacility(facility.level + 1);
-            KerbalKonstructs.API.GetGroupStatics(facility.KKgroups.Last()).ToList().ForEach(x => KerbalKonstructs.API.RemoveStatic(x.UUID));
-            KerbalKonstructs.API.CopyGroup(facility.KKgroups.Last(), facility.GetBaseGroupName(facility.level), fromBodyName: Configuration.baseBody);
-            KerbalKonstructs.API.GetGroupStatics(facility.KKgroups.Last()).ToList().ForEach(x => x.isInSavegame = true);
+            KerbalKonstructs.API.GetGroupStatics(facility.KKgroups.Last(), bodyName).ToList().ForEach(x => KerbalKonstructs.API.RemoveStatic(x.UUID));
+            KerbalKonstructs.API.CopyGroup(facility.KKgroups.Last(), facility.GetBaseGroupName(facility.level), toBodyName: bodyName, fromBodyName: Configuration.baseBody);
+            KerbalKonstructs.API.GetGroupStatics(facility.KKgroups.Last(), bodyName).ToList().ForEach(x => x.isInSavegame = true);
             KerbalKonstructs.API.Save();
 
             return true;

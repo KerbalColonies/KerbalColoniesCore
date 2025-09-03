@@ -1,3 +1,8 @@
+v1.1.2 hotfix
+- Fixed the group change upgrades where they are not on the current body, see issue [#42](https://github.com/KerbalColonies/KerbalColoniesCore/issues/42)
+- Fixed the harvest type only being changed for the placement preview, see issue [#43](https://github.com/KerbalColonies/KerbalColoniesCore/issues/43)
+- Fixed the unit for the stored EC in the CAB overview
+
 # v1.1.1 hotfix
 - Fixed a bug where the CAB upgrade would be stopped when the scene was reloaded, see issue [#41](https://github.com/KerbalColonies/KerbalColoniesCore/issues/41)
 - Set the isInSavegame flag for all new statics when upgrading a facility with group change mode, this would delete these statics upon reload

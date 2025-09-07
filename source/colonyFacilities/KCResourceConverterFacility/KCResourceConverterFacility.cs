@@ -148,126 +148,67 @@ namespace KerbalColonies.colonyFacilities.KCResourceConverterFacility
         public bool outOfECDisable = true; // if true, the facility will disable itself if it cannot execute the recipe due to missing EC
 
         public bool outOfEC { get; protected set; } = false;
-        public bool canExecutePassed { get; protected set; } = true;
 
         private void executeRecipe(double dTime)
         {
             if (activeRecipe == null) return;
             if (!canExecuteRecipe(dTime)) return;
+
+            double ISRUdTime = this.ISRUcount() * dTime;
+
             foreach (KeyValuePair<PartResourceDefinition, double> kvp in activeRecipe.InputResources)
             {
-                double remainingResource = kvp.Value * dTime * ISRUcount();
+                double remainingResource = kvp.Value * ISRUdTime;
 
-                List<KCStorageFacility> facilitiesWithResource = KCStorageFacility.findFacilityWithResourceType(kvp.Key, Colony);
-
-                foreach (KCStorageFacility facility in facilitiesWithResource)
-                {
-                    double facilityAmount = facility.GetResourceAmount(kvp.Key);
-
-                    if (remainingResource <= facilityAmount)
-                    {
-                        facility.changeAmount(kvp.Key, -remainingResource);
-                        break;
-                    }
-                    else
-                    {
-                        remainingResource -= facilityAmount;
-                        facility.changeAmount(kvp.Key, -facilityAmount);
-                    }
-                }
+                KCStorageFacility.addResourceToColony(kvp.Key, -remainingResource, Colony);
             }
 
             foreach (KeyValuePair<PartResourceDefinition, double> kvp in activeRecipe.OutputResources)
             {
-                double remainingResource = kvp.Value * dTime * ISRUcount();
+                double remainingResource = kvp.Value * ISRUdTime;
 
-                List<KCStorageFacility> facilitiesWithResource = KCStorageFacility.findFacilityWithResourceType(kvp.Key, Colony);
-
-                foreach (KCStorageFacility facility in facilitiesWithResource)
-                {
-                    if (remainingResource < facility.getEmptyAmount(kvp.Key))
-                    {
-                        facility.changeAmount(kvp.Key, (float)remainingResource);
-                        break;
-                    }
-                    else
-                    {
-                        remainingResource -= facility.getEmptyAmount(kvp.Key);
-                        facility.changeAmount(kvp.Key, facility.getEmptyAmount(kvp.Key));
-                    }
-                }
+                KCStorageFacility.addResourceToColony(kvp.Key, remainingResource, Colony);
             }
         }
 
         public bool canExecuteRecipe(double dTime)
         {
-            bool pass = true;
-            if (!enabled) pass = false;
-            else if (activeRecipe == null) pass = false;
-            else if (outOfEC) { enabled = enabled && !outOfECDisable; pass = false; }
-            int ISRUcount = this.ISRUcount();
+            if (!enabled) return false;
+            else if (activeRecipe == null) return false;
+            else if (outOfEC) { enabled = enabled && !outOfECDisable; return false; }
+            double ISRUdTime = this.ISRUcount() * dTime;
 
-            if (pass) foreach (KeyValuePair<PartResourceDefinition, double> kvp in activeRecipe.InputResources)
+            double availableVolume = KCStorageFacility.GetStoragesInColony(Colony).Sum(f => f.maxVolume - f.currentVolume);
+
+            foreach (KeyValuePair<PartResourceDefinition, double> kvp in activeRecipe.InputResources)
+            {
+                double remainingResource = kvp.Value * ISRUdTime;
+
+                List<KCStorageFacility> facilitiesWithResource = KCStorageFacility.findFacilityWithResourceType(kvp.Key, Colony);
+
+                if (remainingResource > KCStorageFacility.colonyResources(kvp.Key, Colony))
                 {
-                    double remainingResource = kvp.Value * dTime * ISRUcount;
-
-                    List<KCStorageFacility> facilitiesWithResource = KCStorageFacility.findFacilityWithResourceType(kvp.Key, Colony);
-
-                    if (facilitiesWithResource.Count == 0)
-                    {
-                        enabled = enabled && !outOfResourceDisable;
-                        pass = false;
-                        break;
-                    }
-
-                    foreach (KCStorageFacility facility in facilitiesWithResource)
-                    {
-                        Dictionary<PartResourceDefinition, double> facilityResources = facility.getRessources();
-                        remainingResource -= facilityResources[kvp.Key];
-                        if (remainingResource < 0) { break; }
-                    }
-
-                    if (remainingResource > 0)
-                    {
-                        enabled = enabled && !outOfResourceDisable;
-                        pass = false;
-                        break;
-                    }
+                    enabled = enabled && !outOfResourceDisable;
+                    return false;
                 }
 
-            if (pass)
-                foreach (KeyValuePair<PartResourceDefinition, double> kvp in activeRecipe.OutputResources)
+                availableVolume += remainingResource * kvp.Key.volume;
+            }
+
+            foreach (KeyValuePair<PartResourceDefinition, double> kvp in activeRecipe.OutputResources)
+            {
+                double remainingResource = kvp.Value * ISRUdTime;
+
+                availableVolume -= remainingResource * kvp.Key.volume;
+
+                if (availableVolume < 0)
                 {
-                    double remainingResource = kvp.Value * dTime * ISRUcount;
-
-                    List<KCStorageFacility> facilitiesWithResource = KCStorageFacility.findFacilityWithResourceType(kvp.Key, Colony);
-                    bool addResource = false;
-
-                    if (facilitiesWithResource.Count == 0)
-                    {
-                        facilitiesWithResource = KCStorageFacility.findEmptyStorageFacilities(Colony);
-                        addResource = true;
-                    }
-
-                    foreach (KCStorageFacility facility in facilitiesWithResource)
-                    {
-                        if (addResource) { facility.addRessource(kvp.Key); }
-
-                        remainingResource -= facility.getEmptyAmount(kvp.Key);
-
-                        if (remainingResource < 0) { break; }
-                    }
-
-                    if (remainingResource > 0)
-                    {
-                        enabled = enabled && !outOfResourceDisable;
-                        pass = false;
-                        break;
-                    }
+                    enabled = enabled && !outOfResourceDisable;
+                    return false;
                 }
+            }
 
-            canExecutePassed = pass;
-            return pass;
+            return true;
         }
 
         public override void Update()

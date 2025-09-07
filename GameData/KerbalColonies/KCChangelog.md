@@ -1,4 +1,7 @@
-v1.1.2 hotfix
+# v1.1.3 hotfix
+- Fixed the resource converter facility storage logic
+
+# v1.1.2 hotfix
 - Fixed the group change upgrades where they are not on the current body, see issue [#42](https://github.com/KerbalColonies/KerbalColoniesCore/issues/42)
 - Fixed the harvest type only being changed for the placement preview, see issue [#43](https://github.com/KerbalColonies/KerbalColoniesCore/issues/43)
 - Fixed the unit for the stored EC in the CAB overview

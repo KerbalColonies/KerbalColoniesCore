@@ -41,8 +41,6 @@ namespace KerbalColonies.colonyFacilities.StorageFacility
         {
             List<KCStorageFacility> storages = KCStorageFacility.findFacilityWithResourceType(resource, colony);
 
-            KCStorageFacility.findEmptyStorageFacilities(colony).ForEach(s => storages.Add(s));
-
             foreach (KCStorageFacility storage in storages)
             {
                 if (amount < 0)
@@ -74,20 +72,39 @@ namespace KerbalColonies.colonyFacilities.StorageFacility
                     }
                 }
             }
+
+            if (amount > 0)
+            {
+                storages.Clear();
+                storages = KCStorageFacility.findEmptyStorageFacilities(colony);
+
+                foreach (KCStorageFacility storage in storages)
+                {
+                    double tempAmount = storage.getEmptyAmount(resource);
+                    if (amount <= tempAmount)
+                    {
+                        storage.changeAmount(resource, amount);
+                        return 0;
+                    }
+                    else
+                    {
+                        storage.changeAmount(resource, tempAmount);
+                        amount -= tempAmount;
+                    }
+                }
+            }
+
             return amount;
         }
 
-        public static List<KCStorageFacility> GetStoragesInColony(colonyClass colony)
-        {
-            return colony.Facilities.Where(f => f is KCStorageFacility).Select(f => (KCStorageFacility)f).ToList();
-        }
+        public static List<KCStorageFacility> GetStoragesInColony(colonyClass colony) => KCFacilityBase.GetAllTInColony<KCStorageFacility>(colony);
 
         public static List<KCStorageFacility> findFacilityWithResourceType(PartResourceDefinition resource, colonyClass colony) => GetStoragesInColony(colony).Where(f => f.enabled && f.getRessources().ContainsKey(resource)).ToList();
 
         /// <summary>
         /// returns a list of all storage facilities that are not full
         /// </summary>
-        public static List<KCStorageFacility> findEmptyStorageFacilities(colonyClass colony) => GetStoragesInColony(colony).Where(f => f.currentVolume < f.storageInfo.maxVolume[f.level]).ToList();
+        public static List<KCStorageFacility> findEmptyStorageFacilities(colonyClass colony) => GetStoragesInColony(colony).Where(f => f.currentVolume < f.maxVolume).ToList();
 
         public KCStorageFacilityInfo storageInfo { get { return (KCStorageFacilityInfo)facilityInfo; } }
         public Dictionary<PartResourceDefinition, double> resources;

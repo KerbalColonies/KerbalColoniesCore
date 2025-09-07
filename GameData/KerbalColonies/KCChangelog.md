@@ -1,5 +1,5 @@
 # v1.1.3 hotfix
-- Fixed the resource converter facility storage logic
+- Fixed the resource converter facility storage logic, see issue [#44](https://github.com/KerbalColonies/KerbalColoniesCore/issues/44)
 
 # v1.1.2 hotfix
 - Fixed the group change upgrades where they are not on the current body, see issue [#42](https://github.com/KerbalColonies/KerbalColoniesCore/issues/42)

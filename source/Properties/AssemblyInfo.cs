@@ -53,3 +53,5 @@ using System.Runtime.InteropServices;
 [assembly: KSPAssembly("KerbalColonies", 1, 1, 3)]
 [assembly: KSPAssemblyDependency("KerbalKonstructs", 1, 11, 0)]
 [assembly: KSPAssemblyDependency("ToolbarController", 1, 0)]
+[assembly: KSPAssemblyDependency("CustomPreLaunchChecks", 1, 0)]
+[assembly: KSPAssemblyDependency("ClickThroughBlocker", 1, 0)]

@@ -135,7 +135,7 @@ namespace KerbalColonies.colonyFacilities.CabFacility
                                 }
                                 else
                                 {
-                                    if (CABFacility.upgradeable && CABFacility.level < CABFacility.maxLevel)
+                                    if (CABFacility.upgradeable && CABFacility.level < CABFacility.maxLevel && KCTechTreeHandler.CanBuild(CABFacility.facilityInfo, CABFacility.level + 1))
                                     {
                                         if (!CABFacility.facilityInfo.checkResources(CABFacility.level + 1, CABFacility.Colony)) GUI.enabled = false;
                                         if (GUILayout.Button("Upgrade"))
@@ -239,7 +239,7 @@ namespace KerbalColonies.colonyFacilities.CabFacility
                                     }
                                     else
                                     {
-                                        if (facility.upgradeable && facility.level < facility.maxLevel)
+                                        if (facility.upgradeable && facility.level < facility.maxLevel && KCTechTreeHandler.CanBuild(facility.facilityInfo, facility.level + 1))
                                         {
                                             bool higherCABLevelNeeded = facility.facilityInfo.MinCABLevel[facility.level] > CABFacility.level;
 

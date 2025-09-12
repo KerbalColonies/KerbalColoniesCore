@@ -2,6 +2,7 @@
 using KerbalColonies.colonyFacilities.StorageFacility;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 
 // KC: Kerbal Colonies
@@ -86,6 +87,14 @@ namespace KerbalColonies
         public SortedDictionary<int, double> UpgradeTimes { get; protected set; } = new SortedDictionary<int, double> { };
 
         public SortedDictionary<int, int> MinCABLevel { get; protected set; } = new SortedDictionary<int, int> { };
+
+        #region TechTree
+        public SortedDictionary<int, List<string>> TechNodesRequired { get; protected set; } = new SortedDictionary<int, List<string>> { };
+        public SortedDictionary<int, string> PartName { get; protected set; } = new SortedDictionary<int, string> { };
+        public SortedDictionary<int, string> Description { get; protected set; } = new SortedDictionary<int, string> { };
+        public SortedDictionary<int, string> Manufacturer { get; protected set; } = new SortedDictionary<int, string> { };
+        public SortedDictionary<int, string> IconPath { get; protected set; } = new SortedDictionary<int, string> { }; // relative to GameData
+        #endregion
 
         /// <summary>
         /// Used for custom checks (e.g. if a specific facility already exists in the colony), returns true if the facility can be built or upgraded.
@@ -257,6 +266,37 @@ namespace KerbalColonies
                 if (n.HasValue("minCABLevel")) MinCABLevel.Add(level, int.Parse(n.GetValue("minCABLevel")));
                 else if (level > 0) MinCABLevel.Add(level, MinCABLevel[level - 1]);
                 else MinCABLevel.Add(level, 0);
+
+
+                if (n.HasValue("techNodes"))
+                {
+                    List<string> techNodeList = n.GetValue("techNodes").Split(',').Select(s => s.Trim()).ToList();
+                    TechNodesRequired.Add(level, techNodeList);
+
+                    PartName.Add(level, $"{displayName}{(level > 0 ? $" level {level}" : "")}");
+
+                    if (n.HasValue("description")) Description.Add(level, n.GetValue("description"));
+                    else Description.Add(level, "Kerbal Colonies facility");
+
+                    if (n.HasValue("manufacturer")) Manufacturer.Add(level, n.GetValue("manufacturer"));
+                    else Manufacturer.Add(level, "MPW");
+
+                    if (n.HasValue("iconPath")) 
+                        IconPath.Add(level, 
+                            n.GetValue("iconPath")
+                            .Replace('\\', Path.DirectorySeparatorChar)
+                            .Replace("//", Path.DirectorySeparatorChar.ToString())
+                            .Replace('/', Path.DirectorySeparatorChar)
+                            );
+                    else IconPath.Add(level, $"KerbalColonies{Path.DirectorySeparatorChar}KC.jpg");
+
+                    if (!System.IO.File.Exists(Path.Combine(KSPUtil.ApplicationRootPath, "GameData", IconPath[level])))
+                    {
+                        IconPath[level] = $"KerbalColonies{Path.DirectorySeparatorChar}KC.jpg";
+                    }
+
+                    KCTechTreeHandler.AddFacility(this, level);
+                }
             });
         }
     }

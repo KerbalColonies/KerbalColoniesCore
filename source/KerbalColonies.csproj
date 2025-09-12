@@ -93,6 +93,7 @@
     <Compile Include="colonyFacilities\KCResearchFacility.cs" />
     <Compile Include="colonyFacilities\KCResourceConverterFacility\KCResourceConverterFacility.cs" />
     <Compile Include="ConfigFacilityLoader.cs" />
+    <Compile Include="KCTechTreeHandler.cs" />
     <Compile Include="Settings\Configuration.cs" />
     <Compile Include="KCPartModule.cs" />
     <Compile Include="KCPreflightChecks.cs" />

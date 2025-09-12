@@ -265,6 +265,12 @@ namespace KerbalColonies
                 CABSelectorWindow.removeVesselResources(info);
                 BuildColony(info);
             }
+            else if (Configuration.CabTypes.Count == 0)
+            {
+                ScreenMessages.PostScreenMessage($"KC: no CABs are unlocked yet.", 10f, ScreenMessageStyle.UPPER_RIGHT);
+                Configuration.writeLog("Unable to create colony: no CABs are unlocked yet.");
+                return 1;
+            }
             else CABSelectorWindow.Instance.Open();
 
             return 0;

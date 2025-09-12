@@ -96,6 +96,7 @@ namespace KerbalColonies.colonyFacilities
         public void addType(KCFacilityInfoClass info)
         {
             if (info.hidden) return;
+            if (!KCTechTreeHandler.CanBuild(info, 0)) return;
 
             if (sortedTypes == null) sortedTypes = new SortedDictionary<string, List<KCFacilityInfoClass>>() { { info.category, new List<KCFacilityInfoClass> { info } } };
             else if (!sortedTypes.ContainsKey(info.category)) sortedTypes.Add(info.category, new List<KCFacilityInfoClass> { info });

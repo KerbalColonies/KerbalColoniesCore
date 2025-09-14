@@ -33,6 +33,7 @@ namespace KerbalColonies.colonyFacilities.KCMiningFacility
 
         public Dictionary<PartResourceDefinition, double> storedResoures { get; protected set; } = new Dictionary<PartResourceDefinition, double> { };
         public Dictionary<PartResourceDefinition, bool> autoTransferResources { get; set; } = new Dictionary<PartResourceDefinition, bool> { };
+        public Dictionary<PartResourceDefinition, double> autoTransferLimits { get; set; } = new Dictionary<PartResourceDefinition, double> { };
         public Dictionary<string, Dictionary<PartResourceDefinition, double>> groupDensities { get; protected set; } = new Dictionary<string, Dictionary<PartResourceDefinition, double>> { };
 
         public override void WhileBuildingPlaced(GroupCenter kkGroupname)
@@ -112,8 +113,20 @@ namespace KerbalColonies.colonyFacilities.KCMiningFacility
 
             storedResoures.ToList().ForEach(res =>
             {
-                if (autoTransferResources.ContainsKey(res.Key) && autoTransferResources[res.Key] && res.Value > 0) storedResoures[res.Key] = Math.Min(maxPerResource[res.Key], KCStorageFacility.addResourceToColony(res.Key, res.Value, Colony));
-                else if (maxPerResource.ContainsKey(res.Key)) storedResoures[res.Key] = Math.Min(maxPerResource[res.Key], res.Value);
+                if (autoTransferResources[res.Key] && res.Value > 0)
+                {
+                    if (autoTransferLimits[res.Key] > 0)
+                    {
+                        double colonyAmount = KCStorageFacility.colonyResources(res.Key, Colony);
+                        double transferAmount = autoTransferLimits[res.Key] - colonyAmount;
+
+                        if (transferAmount <= 0) storedResoures[res.Key] = Math.Min(maxPerResource[res.Key], res.Value);
+                        else if (res.Value < transferAmount) storedResoures[res.Key] = Math.Min(maxPerResource[res.Key], KCStorageFacility.addResourceToColony(res.Key, res.Value, Colony));
+                        else storedResoures[res.Key] = Math.Min(maxPerResource[res.Key], res.Value - transferAmount + KCStorageFacility.addResourceToColony(res.Key, transferAmount, Colony));
+                    }
+                    else storedResoures[res.Key] = Math.Min(maxPerResource[res.Key], KCStorageFacility.addResourceToColony(res.Key, res.Value, Colony));
+                }
+                else storedResoures[res.Key] = Math.Min(maxPerResource[res.Key], res.Value);
             });
         }
 
@@ -177,8 +190,8 @@ namespace KerbalColonies.colonyFacilities.KCMiningFacility
                 ConfigNode resNode = new ConfigNode("resource");
                 resNode.AddValue("name", res.Key.name);
                 resNode.AddValue("amount", res.Value);
-                if (autoTransferResources.ContainsKey(res.Key)) resNode.AddValue("autoTransfer", autoTransferResources[res.Key]);
-                else resNode.AddValue("autoTransfer", false);
+                resNode.AddValue("autoTransfer", autoTransferResources[res.Key]);
+                resNode.AddValue("autoTransferLimit", autoTransferLimits[res.Key]);
                 resourceNode.AddNode(resNode);
             });
 
@@ -212,9 +225,9 @@ namespace KerbalColonies.colonyFacilities.KCMiningFacility
                 {
                     PartResourceDefinition resDef = PartResourceLibrary.Instance.GetDefinition(resNode.GetValue("name"));
                     if (resDef == null) throw new NullReferenceException($"The resource {resNode.GetValue("name")} is not defined in the PartResourceLibrary. Please check your configuration for the facility {facilityInfo.name} (type: {facilityInfo.type}).");
-                    double amount = double.Parse(resNode.GetValue("amount"));
-                    storedResoures.Add(resDef, amount);
-                    if (bool.TryParse(resNode.GetValue("autoTransfer"), out bool autoTransfer)) autoTransferResources.TryAdd(resDef, autoTransfer);
+                    storedResoures.Add(resDef, double.Parse(resNode.GetValue("amount")));
+                    autoTransferResources.Add(resDef, bool.Parse(resNode.GetValue("autoTransfer")));
+                    autoTransferLimits.Add(resDef, double.Parse(resNode.GetValue("autoTransferLimit")));
                 }
             }
 
@@ -225,6 +238,7 @@ namespace KerbalColonies.colonyFacilities.KCMiningFacility
                 if (!allResources.Contains(rate.resource)) allResources.Add(rate.resource);
                 storedResoures.TryAdd(rate.resource, 0);
                 autoTransferResources.TryAdd(rate.resource, false);
+                autoTransferLimits.TryAdd(rate.resource, 0);
             }));
 
             if (node.HasNode("rates"))
@@ -302,8 +316,9 @@ namespace KerbalColonies.colonyFacilities.KCMiningFacility
 
             miningFacilityInfo.rates[0].ForEach(rate =>
             {
-                storedResoures.TryAdd(rate.resource, 0);
-                autoTransferResources.TryAdd(rate.resource, false);
+                storedResoures.Add(rate.resource, 0);
+                autoTransferResources.Add(rate.resource, false);
+                autoTransferLimits.Add(rate.resource, 0);
             });
         }
     }

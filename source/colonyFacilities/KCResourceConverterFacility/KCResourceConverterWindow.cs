@@ -1,4 +1,5 @@
-﻿using KerbalColonies.UI;
+﻿using KerbalColonies.colonyFacilities.KCMiningFacility;
+using KerbalColonies.UI;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -30,7 +31,7 @@ namespace KerbalColonies.colonyFacilities.KCResourceConverterFacility
         public KerbalGUI kerbalGUI;
 
         Vector2 scrollPosISRUCount = Vector2.zero;
-
+        Vector2 resourceScrollPos = new Vector2();
         protected override void CustomWindow()
         {
             resourceConverter.Colony.UpdateColony();
@@ -53,7 +54,7 @@ namespace KerbalColonies.colonyFacilities.KCResourceConverterFacility
 
             GUILayout.BeginHorizontal();
             {
-                GUILayout.BeginVertical(GUILayout.Width(toolRect.width / 2 - 10));
+                GUILayout.BeginVertical(GUILayout.Width(toolRect.width * 3.5f / 10 - 10));
                 {
                     GUILayout.Label($"Current recipe: {recipe.DisplayName}");
 
@@ -124,9 +125,8 @@ namespace KerbalColonies.colonyFacilities.KCResourceConverterFacility
                     GUILayout.EndScrollView();
                 }
                 GUILayout.EndVertical();
-                GUILayout.BeginVertical(GUILayout.Width(toolRect.width / 2 - 10));
+                GUILayout.BeginVertical(GUILayout.Width(toolRect.width * 3f / 10 - 10));
                 {
-                    kerbalGUI.StaffingInterface();
                     if (facility.facilityInfo.ECperSecond[facility.level] > 0)
                     {
                         GUILayout.Space(10);
@@ -142,6 +142,39 @@ namespace KerbalColonies.colonyFacilities.KCResourceConverterFacility
                         GUILayout.EndHorizontal();
                     }
 
+                    GUILayout.Space(20);
+
+                    resourceScrollPos = GUILayout.BeginScrollView(resourceScrollPos);
+                    {
+                        resourceConverter.resourceLimitsEnabled.ToList().ForEach(res =>
+                        {
+                            GUILayout.BeginHorizontal();
+                            {
+                                GUILayout.Label($"<size=20><b>{res.Key.displayName}</b></size>");
+
+                                GUILayout.FlexibleSpace();
+
+                                GUILayout.BeginVertical(GUILayout.Width(150));
+                                {
+                                    resourceConverter.resourceLimitsEnabled[res.Key] = GUILayout.Toggle(res.Value, "Resource limits");
+                                    if (double.TryParse(GUILayout.TextField(resourceConverter.resourceLimits[res.Key].ToString("F3")), out double autoLimit)) resourceConverter.resourceLimits[res.Key] = autoLimit;
+                                }
+                                GUILayout.EndVertical();
+                            }
+                            GUILayout.EndHorizontal();
+
+                            GUILayout.Space(10);
+                            GUILayout.Box("", GUILayout.ExpandWidth(true), GUILayout.Height(1));
+                            GUILayout.Space(10);
+                        });
+                    }
+                    GUILayout.EndScrollView();
+
+                }
+                GUILayout.EndVertical();
+                GUILayout.BeginVertical(GUILayout.Width(toolRect.width * 3.5f / 10 - 10));
+                {
+                    kerbalGUI.StaffingInterface();
                 }
                 GUILayout.EndVertical();
             }
@@ -165,7 +198,7 @@ namespace KerbalColonies.colonyFacilities.KCResourceConverterFacility
             this.resourceConverter = resourceConverter;
             this.recipeSelector = new RecipeSelectorWindow(resourceConverter);
             this.kerbalGUI = null;
-            toolRect = new Rect(100, 100, 700, 500);
+            toolRect = new Rect(100, 100, 1050, 500);
 
         }
     }

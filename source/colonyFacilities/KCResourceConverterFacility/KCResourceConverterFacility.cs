@@ -130,7 +130,10 @@ namespace KerbalColonies.colonyFacilities.KCResourceConverterFacility
         }
 
         public ResourceConversionList availableRecipes() => ((KCResourceConverterInfo)facilityInfo).availableRecipes[level];
-        public ResourceConversionRate activeRecipe;
+        public ResourceConversionRate activeRecipe { get; protected set; }
+        public Dictionary<PartResourceDefinition, bool> resourceLimitsEnabled = new Dictionary<PartResourceDefinition, bool> { };
+        public Dictionary<PartResourceDefinition, double> resourceLimits = new Dictionary<PartResourceDefinition, double> { };
+
         public KCResourceConverterInfo info => (KCResourceConverterInfo)facilityInfo;
         public int ISRUcount()
         {
@@ -148,6 +151,27 @@ namespace KerbalColonies.colonyFacilities.KCResourceConverterFacility
         public bool outOfECDisable = true; // if true, the facility will disable itself if it cannot execute the recipe due to missing EC
 
         public bool outOfEC { get; protected set; } = false;
+
+        public void ChangeRecipe(ResourceConversionRate newRecipe)
+        {
+            if (newRecipe == null) throw new ArgumentNullException("newRecipe");
+            if (!availableRecipes().GetRecipes().Contains(newRecipe)) throw new ArgumentException($"The recipe {newRecipe.RecipeName} is not available for this facility at this level.");
+            activeRecipe = newRecipe;
+
+            resourceLimitsEnabled.Clear();
+            resourceLimits.Clear();
+
+            activeRecipe.InputResources.Keys.ToList().ForEach(r =>
+            {
+                resourceLimitsEnabled.TryAdd(r, false);
+                resourceLimits.TryAdd(r, 0);
+            });
+            activeRecipe.OutputResources.Keys.ToList().ForEach(r =>
+            {
+                resourceLimitsEnabled.TryAdd(r, false);
+                resourceLimits.TryAdd(r, 0);
+            });
+        }
 
         private void executeRecipe(double dTime)
         {
@@ -184,9 +208,7 @@ namespace KerbalColonies.colonyFacilities.KCResourceConverterFacility
             {
                 double remainingResource = kvp.Value * ISRUdTime;
 
-                List<KCStorageFacility> facilitiesWithResource = KCStorageFacility.findFacilityWithResourceType(kvp.Key, Colony);
-
-                if (remainingResource > KCStorageFacility.colonyResources(kvp.Key, Colony))
+                if (KCStorageFacility.colonyResources(kvp.Key, Colony) - (resourceLimitsEnabled[kvp.Key] ? resourceLimits[kvp.Key] : 0) - remainingResource < 0)
                 {
                     enabled = enabled && !outOfResourceDisable;
                     return false;
@@ -201,7 +223,7 @@ namespace KerbalColonies.colonyFacilities.KCResourceConverterFacility
 
                 availableVolume -= remainingResource * kvp.Key.volume;
 
-                if (availableVolume < 0)
+                if (availableVolume < 0 || resourceLimitsEnabled[kvp.Key] && KCStorageFacility.colonyResources(kvp.Key, Colony) + remainingResource > resourceLimits[kvp.Key])
                 {
                     enabled = enabled && !outOfResourceDisable;
                     return false;
@@ -244,6 +266,17 @@ namespace KerbalColonies.colonyFacilities.KCResourceConverterFacility
             node.AddValue("outOfResourceDisable", outOfResourceDisable);
             node.AddValue("outOfECDisable", outOfECDisable);
             node.AddValue("ECConsumptionPriority", ECConsumptionPriority);
+
+            ConfigNode limitsEnabledNode = new ConfigNode("resourceLimitsEnabled");
+            ConfigNode limitsNode = new ConfigNode("resourceLimits");
+            resourceLimits.ToList().ForEach(kvp =>
+            {
+                limitsEnabledNode.AddValue(kvp.Key.name, resourceLimitsEnabled[kvp.Key]);
+                limitsNode.AddValue(kvp.Key.name, kvp.Value.ToString());
+            });
+            node.AddNode(limitsEnabledNode);
+            node.AddNode(limitsNode);
+
             return node;
         }
 
@@ -258,6 +291,29 @@ namespace KerbalColonies.colonyFacilities.KCResourceConverterFacility
             if (bool.TryParse(node.GetValue("outOfECDisable"), out bool outOfECDisable)) this.outOfECDisable = outOfECDisable;
             if (int.TryParse(node.GetValue("ECConsumptionPriority"), out int ecConsumptionPriority)) this.ECConsumptionPriority = ecConsumptionPriority;
 
+            if (node.HasNode("resourceLimitsEnabled"))
+            {
+                ConfigNode limitsEnabledNode = node.GetNode("resourceLimitsEnabled");
+                ConfigNode limitsNode = node.GetNode("resourceLimits");
+
+                foreach (ConfigNode.Value v in limitsEnabledNode.values)
+                    resourceLimitsEnabled.TryAdd(PartResourceLibrary.Instance.GetDefinition(v.name), bool.Parse(v.value));
+                foreach (ConfigNode.Value v in limitsNode.values)
+                    resourceLimits.TryAdd(PartResourceLibrary.Instance.GetDefinition(v.name), double.Parse(v.value));
+            }
+
+
+            activeRecipe.InputResources.Keys.ToList().ForEach(r =>
+            {
+                resourceLimitsEnabled.TryAdd(r, false);
+                resourceLimits.TryAdd(r, 0);
+            });
+
+            activeRecipe.OutputResources.Keys.ToList().ForEach(r =>
+            {
+                resourceLimitsEnabled.TryAdd(r, false);
+                resourceLimits.TryAdd(r, 0);
+            });
         }
 
         public KCResourceConverterFacility(colonyClass colony, KCFacilityInfoClass facilityInfo, bool enabled) : base(colony, facilityInfo, enabled)
@@ -266,6 +322,18 @@ namespace KerbalColonies.colonyFacilities.KCResourceConverterFacility
 
             HashSet<ResourceConversionRate> rates = availableRecipes().GetRecipes();
             activeRecipe = rates.FirstOrDefault();
+
+            activeRecipe.InputResources.Keys.ToList().ForEach(r =>
+            {
+                resourceLimitsEnabled.TryAdd(r, false);
+                resourceLimits.TryAdd(r, 0);
+            });
+
+            activeRecipe.OutputResources.Keys.ToList().ForEach(r =>
+            {
+                resourceLimitsEnabled.TryAdd(r, false);
+                resourceLimits.TryAdd(r, 0);
+            });
         }
     }
 }

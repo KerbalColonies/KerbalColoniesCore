@@ -86,10 +86,11 @@ namespace KerbalColonies.colonyFacilities.KCMiningFacility
                                 GUILayout.Label($"Max: {maxPerResource[res.Key]:f2}");
                             }
                             GUILayout.EndVertical();
-                            GUILayout.BeginVertical(GUILayout.Width(100));
+                            GUILayout.BeginVertical(GUILayout.Width(200));
                             {
+                                miningFacility.autoTransferResources[res.Key] = GUILayout.Toggle(miningFacility.autoTransferResources[res.Key], "Auto-transfer");
+                                if (double.TryParse(GUILayout.TextField(miningFacility.autoTransferLimits[res.Key].ToString("F3")), out double autoLimit)) miningFacility.autoTransferLimits[res.Key] = autoLimit;
                                 if (GUILayout.Button($"Retrieve {res.Key.displayName}")) miningFacility.RetriveResource(res.Key);
-                                if (GUILayout.Button($"Autotransfer {(miningFacility.autoTransferResources[res.Key] ? "on" : "off")}")) miningFacility.autoTransferResources[res.Key] = !miningFacility.autoTransferResources[res.Key];
                             }
                             GUILayout.EndVertical();
                         }

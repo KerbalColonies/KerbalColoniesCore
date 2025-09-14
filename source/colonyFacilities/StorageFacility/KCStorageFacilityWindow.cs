@@ -162,7 +162,7 @@ namespace KerbalColonies.colonyFacilities.StorageFacility
 
 
             scrollPos = GUILayout.BeginScrollView(scrollPos);
-            Dictionary<PartResourceDefinition, double> resourceCopy = storageFacility.getRessources();
+            SortedDictionary<PartResourceDefinition, double> resourceCopy = storageFacility.getRessources();
             for (int r = 0; r < resourceCopy.Count; r++)
             {
                 KeyValuePair<PartResourceDefinition, double> kvp = resourceCopy.ElementAt(r);

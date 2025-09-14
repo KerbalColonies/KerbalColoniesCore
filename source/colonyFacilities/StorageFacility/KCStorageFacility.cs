@@ -107,7 +107,7 @@ namespace KerbalColonies.colonyFacilities.StorageFacility
         public static List<KCStorageFacility> findEmptyStorageFacilities(colonyClass colony) => GetStoragesInColony(colony).Where(f => f.currentVolume < f.maxVolume).ToList();
 
         public KCStorageFacilityInfo storageInfo { get { return (KCStorageFacilityInfo)facilityInfo; } }
-        public Dictionary<PartResourceDefinition, double> resources;
+        public SortedDictionary<PartResourceDefinition, double> resources;
         public bool outOfEC { get; protected set; } = false;
         public bool locked { get; set; } = false;
 
@@ -115,7 +115,7 @@ namespace KerbalColonies.colonyFacilities.StorageFacility
         public double maxVolume => storageInfo.maxVolume[level];
 
 
-        public Dictionary<PartResourceDefinition, double> getRessources() => resources;
+        public SortedDictionary<PartResourceDefinition, double> getRessources() => resources;
 
         public bool HasResourceAmount(PartResourceDefinition resource, double amount) => !locked && resources.ContainsKey(resource) && resources[resource] >= amount;
         public double GetResourceAmount(PartResourceDefinition resource) => !locked && resources.ContainsKey(resource) ? resources[resource] : 0;
@@ -280,7 +280,7 @@ namespace KerbalColonies.colonyFacilities.StorageFacility
 
         public KCStorageFacility(colonyClass colony, KCFacilityInfoClass facilityInfo, ConfigNode node) : base(colony, facilityInfo, node)
         {
-            resources = new Dictionary<PartResourceDefinition, double>();
+            resources = new SortedDictionary<PartResourceDefinition, double>(Comparer<PartResourceDefinition>.Create((x, y) => x.displayName.CompareTo(y.displayName)));
             StorageWindow = new KCStorageFacilityWindow(this);
 
             foreach (ConfigNode.Value value in node.GetNode("resources").values)
@@ -298,7 +298,7 @@ namespace KerbalColonies.colonyFacilities.StorageFacility
 
         public KCStorageFacility(colonyClass colony, KCFacilityInfoClass facilityInfo, bool enabled) : base(colony, facilityInfo, enabled)
         {
-            resources = new Dictionary<PartResourceDefinition, double>();
+            resources = new SortedDictionary<PartResourceDefinition, double>();
             StorageWindow = new KCStorageFacilityWindow(this);
         }
     }

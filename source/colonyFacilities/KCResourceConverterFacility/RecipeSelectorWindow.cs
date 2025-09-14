@@ -71,7 +71,7 @@ namespace KerbalColonies.colonyFacilities.KCResourceConverterFacility
 
                 if (GUILayout.Button("Use this recipe"))
                 {
-                    resourceConverter.activeRecipe = recipe;
+                    resourceConverter.ChangeRecipe(recipe);
                     this.Close();
                 }
                 GUILayout.Space(10);

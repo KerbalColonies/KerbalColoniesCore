@@ -1,3 +1,8 @@
+# v1.1.4
+- Added a tech tree integration
+- Added resource (transfer) limits to the mining and ISRU facilities
+- Sorted the storage facility resources
+
 # v1.1.3 hotfix
 - Fixed the resource converter facility storage logic, see issue [#44](https://github.com/KerbalColonies/KerbalColoniesCore/issues/44)
 

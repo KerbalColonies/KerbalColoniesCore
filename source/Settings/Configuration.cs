@@ -31,7 +31,7 @@ namespace KerbalColonies
     /// Reads and holds configuration parameters
     /// </summary> 
     [KSPScenario(ScenarioCreationOptions.AddToAllGames, GameScenes.SPACECENTER, GameScenes.FLIGHT, GameScenes.EDITOR, GameScenes.TRACKSTATION)]
-    internal class Configuration : ScenarioModule
+    public class Configuration : ScenarioModule
     {
         ConfigNode loadedNode;
 

@@ -1,3 +1,6 @@
+# v1.1.5 hotfix
+- Fixed the storage facility exception when being newly spawned, see issue [#46](https://github.com/KerbalColonies/KerbalColoniesCore/issues/46)
+
 # v1.1.4
 - Added a tech tree integration
 - Added resource (transfer) limits to the mining and ISRU facilities

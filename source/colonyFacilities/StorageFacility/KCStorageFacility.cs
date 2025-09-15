@@ -298,7 +298,7 @@ namespace KerbalColonies.colonyFacilities.StorageFacility
 
         public KCStorageFacility(colonyClass colony, KCFacilityInfoClass facilityInfo, bool enabled) : base(colony, facilityInfo, enabled)
         {
-            resources = new SortedDictionary<PartResourceDefinition, double>();
+            resources = new SortedDictionary<PartResourceDefinition, double>(Comparer<PartResourceDefinition>.Create((x, y) => x.displayName.CompareTo(y.displayName)));
             StorageWindow = new KCStorageFacilityWindow(this);
         }
     }

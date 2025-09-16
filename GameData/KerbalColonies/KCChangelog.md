@@ -1,3 +1,6 @@
+# v1.1.6 hotfix
+- Fixed the performance issues at the spacecenter
+
 # v1.1.5 hotfix
 - Fixed the storage facility exception when being newly spawned, see issue [#46](https://github.com/KerbalColonies/KerbalColoniesCore/issues/46)
 

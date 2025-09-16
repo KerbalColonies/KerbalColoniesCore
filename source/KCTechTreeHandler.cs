@@ -1,4 +1,5 @@
-﻿using KSP.UI.Screens;
+﻿using KSP.UI;
+using KSP.UI.Screens;
 using KSP.UI.Screens.Editor;
 using System;
 using System.Collections.Generic;
@@ -102,6 +103,8 @@ namespace KerbalColonies
 
         public static bool CanBuild(KCFacilityInfoClass facility, int level)
         {
+            if (HighLogic.CurrentGame.Mode == Game.Modes.SANDBOX) return true;
+
             foreach (KCTechPartInfo tp in TechParts)
             {
                 if (tp.facility == facility && tp.level <= level)
@@ -120,100 +123,33 @@ namespace KerbalColonies
         public void Start()
         {
             RDTechTree.OnTechTreeSpawn.Add(TechTreeSpawn);
+            RDNode.OnNodeSelected.Add(TechNodeChange);
         }
 
         public void onDestroy()
         {
             RDTechTree.OnTechTreeSpawn.Remove(TechTreeSpawn);
+            RDNode.OnNodeSelected.Remove(TechNodeChange);
         }
 
 
-        private static bool techTreeModified = false;
+        private static bool techTreeModified = true;
+        private static bool techTreeModifiedLateUpdate = true;
+        private static string currentToolTipPart = string.Empty;
         private static Sprite defaultBackground = null;
+        private static GameObject toolTip = null;
 
         public void TechTreeSpawn(RDTechTree tree) => techTreeModified = false;
-
+        public void TechNodeChange(RDNode node) => techTreeModifiedLateUpdate = false;
 
         public void Update()
         {
-            List<RDPartListItem> partList = Resources.FindObjectsOfTypeAll<RDPartListItem>().ToList();
+            if (HighLogic.CurrentGame.Mode == Game.Modes.SANDBOX) return;
 
-            foreach (RDPartListItem item in partList)
+            if (!techTreeModified)
             {
-                if (item == null) continue;
-                if (item.gameObject == null) continue;
-
-                if (item.AvailPart == null) continue;
-                if (string.IsNullOrEmpty(item.AvailPart.name)) continue;
-
-                KCTechPartInfo techPart = ContainsFacilityName(item.AvailPart.title);
-
-                if (techPart == null) continue;
-
-                foreach (Transform child in item.gameObject.transform)
-                {
-                    if (child.name.Contains("Image"))
-                    {
-                        child.gameObject.SetActive(true);
-
-                        Image img = child.gameObject.GetComponent<Image>();
-
-                        if (img == null) continue;
-                        else
-                        {
-                            img.sprite = techPart.icon;
-                        }
-                    }
-                    else if (child.name.Contains("icon"))
-                    {
-                        child.gameObject.SetActive(false);
-                    }
-                }
-            }
-
-            List<PartListTooltip> toolTipList = Resources.FindObjectsOfTypeAll<PartListTooltip>().ToList();
-
-            foreach (PartListTooltip item in toolTipList)
-            {
-                if (item == null) continue;
-                if (item.gameObject == null) continue;
-
-                GameObject standard = item.gameObject.GetChild("StandardInfo");
-
-                GameObject partName = standard.GetChild("PartName").GetChild("PartNameField");
-                TextMeshProUGUI partNameMesh = partName.GetComponent<TextMeshProUGUI>();
-
-                GameObject ThumbPrimary = standard.GetChild("ThumbAndPrimaryInfo");
-                GameObject container = ThumbPrimary.GetChild("ThumbContainer");
-
-                Image img = container.GetComponent<Image>();
-
-                KCTechPartInfo techPart = ContainsFacilityName(partNameMesh.text);
-
-                if (techPart != null)
-                {
-                    if (defaultBackground == null) defaultBackground = img.sprite;
-
-                    img.sprite = techPart.icon;
-
-                    container.GetChild("ThumbMask").SetActive(false);
-                }
-                else
-                {
-                    container.GetChild("ThumbMask").SetActive(true);
-
-                    if (img == null || defaultBackground == null) continue;
-
-                    img.sprite = defaultBackground;
-                }
-
-            }
-
-
-            RDTech[] RDTechs = UnityEngine.Object.FindObjectsOfType<RDTech>();
-            if (RDTechs.Length > 0)
-            {
-                if (!techTreeModified)
+                RDTech[] RDTechs = FindObjectsOfType<RDTech>();
+                if (RDTechs.Length > 0)
                 {
                     techTreeModified = true;
                     Configuration.writeDebug($"Modifing RDTech");
@@ -242,28 +178,106 @@ namespace KerbalColonies
 
                             tech.partsAssigned.Add(tp.part);
                         });
-
-
-                        //if (tech.techID == "flightControl")
-                        //{
-                        //    AvailablePart fakePart = new AvailablePart();
-                        //    fakePart.name = "kerbalColoniesFakePart";
-                        //    fakePart.title = "Kerbal Colonies Fake Part";
-                        //    fakePart.manufacturer = "Kerbal Colonies";
-                        //    fakePart.author = "AMPW";
-                        //    AvailablePart baseIcon = tech.partsAssigned[1];
-                        //    fakePart.iconPrefab = baseIcon.iconPrefab;
-                        //    fakePart.iconScale = baseIcon.iconScale;
-                        //    fakePart.partPrefab = baseIcon.partPrefab;
-
-                        //    tech.partsAssigned.Add(fakePart);
-
-                        //    //tech.partsAssigned.RemoveRange(1, tech.partsAssigned.Count - 1);
-                        //    //tech.partsPurchased.RemoveRange(1, tech.partsPurchased.Count - 1);
-                        //}
                     }
                 }
+            }
 
+            if (!techTreeModifiedLateUpdate)
+            {
+                List<RDPartListItem> partList = FindObjectsOfType<RDPartListItem>().ToList();
+
+                if (partList.Count > 0)
+                {
+                    techTreeModifiedLateUpdate = true;
+
+                    foreach (RDPartListItem item in partList)
+                    {
+                        if (item == null) continue;
+                        if (item.gameObject == null) continue;
+
+                        if (item.AvailPart == null) continue;
+                        if (string.IsNullOrEmpty(item.AvailPart.name)) continue;
+
+                        KCTechPartInfo techPart = ContainsFacilityName(item.AvailPart.title);
+
+                        if (techPart == null) continue;
+
+                        foreach (Transform child in item.gameObject.transform)
+                        {
+                            if (child.name.Contains("Image"))
+                            {
+                                child.gameObject.SetActive(true);
+
+                                Image img = child.gameObject.GetComponent<Image>();
+
+                                if (img == null) continue;
+                                else
+                                {
+                                    img.sprite = techPart.icon;
+                                }
+                            }
+                            else if (child.name.Contains("icon"))
+                            {
+                                child.gameObject.SetActive(false);
+                            }
+                        }
+                    }
+                }
+            }
+
+
+            if (toolTip == null )
+            {
+                foreach (Transform item in UIMasterController.Instance.gameObject.transform)
+                {
+                    if (item.name.Contains("TooltipCanvas"))
+                    {
+                        foreach (Transform child in item.gameObject.transform)
+                            if (child.name.Contains("PartListTooltip"))
+                            {
+                                toolTip = child.gameObject;
+                                break;
+                            }
+                        break;
+                    }
+                }
+            }
+            else
+            {
+                GameObject standard = toolTip.GetChild("StandardInfo");
+
+                GameObject partName = standard.GetChild("PartName").GetChild("PartNameField");
+                TextMeshProUGUI partNameMesh = partName.GetComponent<TextMeshProUGUI>();
+
+                if (currentToolTipPart != partNameMesh.text)
+                {
+                    currentToolTipPart = partNameMesh.text;
+
+                    GameObject ThumbPrimary = standard.GetChild("ThumbAndPrimaryInfo");
+                    GameObject container = ThumbPrimary.GetChild("ThumbContainer");
+                    GameObject info = ThumbPrimary.GetChild("Scroll View");
+
+                    Image img = container.GetComponent<Image>();
+
+                    KCTechPartInfo techPart = ContainsFacilityName(partNameMesh.text);
+
+                    if (techPart != null)
+                    {
+                        if (defaultBackground == null) defaultBackground = img.sprite;
+
+                        img.sprite = techPart.icon;
+
+                        container.GetChild("ThumbMask").SetActive(false);
+                        info.SetActive(false);
+                    }
+                    else
+                    {
+                        container.GetChild("ThumbMask").SetActive(true);
+                        info.SetActive(true);
+
+                        if (img != null && defaultBackground != null) img.sprite = defaultBackground;
+                    }
+                }
             }
         }
     }

@@ -1,4 +1,5 @@
 ﻿using KerbalColonies.colonyFacilities.CabFacility;
+using KerbalColonies.UI;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -114,6 +115,36 @@ namespace KerbalColonies.colonyFacilities
                 Configuration.GroupFacilities[instance.Group].Update();
                 Configuration.GroupFacilities[instance.Group].OnBuildingClicked();
             }
+        }
+
+        internal static void OnBuildingHoverHandler(KerbalKonstructs.Core.StaticInstance instance)
+        {
+            if (Configuration.ClickToOpen && Configuration.GroupFacilities.ContainsKey(instance.Group))
+            {
+                Configuration.GroupFacilities[instance.Group].KKgroups
+                    .ForEach(g => KerbalKonstructs.API.GetGroupStatics(g, instance.CelestialBody.bodyName)
+                    .ForEach(s => KerbalKonstructs.API.HighLightStatic(s.UUID, new Color(0.7f, 0.7f, 1f))));
+
+                if (!FacilityToolTip.Instance.IsOpen()) FacilityToolTip.Instance.Open();
+
+                KCFacilityBase facility = Configuration.GroupFacilities[instance.Group];
+                FacilityToolTip.FacilityTitle = facility.DisplayName;
+                FacilityToolTip.FacilityText = facility.GetFacilityProductionDisplay();
+            }
+
+        }
+
+        internal static void OnBuildingHoverExitHandler(KerbalKonstructs.Core.StaticInstance instance)
+        {
+            if (Configuration.GroupFacilities.ContainsKey(instance.Group))
+            {
+                Configuration.GroupFacilities[instance.Group].KKgroups
+                    .ForEach(g => KerbalKonstructs.API.GetGroupStatics(g, instance.CelestialBody.bodyName)
+                    .ForEach(s => KerbalKonstructs.API.HighLightStatic(s.UUID, Color.clear)));
+
+                FacilityToolTip.Instance.Close();
+            }
+
         }
 
         public static bool UpgradeFacilityWithGroupChange(KCFacilityBase facility)

@@ -77,6 +77,8 @@ namespace KerbalColonies
             KSPLog.print("KC awake");
 
             KerbalKonstructs.API.RegisterOnStaticClicked(KCFacilityBase.OnBuildingClickedHandler);
+            KerbalKonstructs.API.RegisterOnStaticMouseEnter(KCFacilityBase.OnBuildingHoverHandler);
+            KerbalKonstructs.API.RegisterOnStaticMouseExit(KCFacilityBase.OnBuildingHoverExitHandler);
 
             //GameEvents.OnRevertToLaunchFlightState.Add(saveGroupDataFromRevert);
             //GameEvents.OnRevertToPrelaunchFlightState.Add(saveGroupDataFromRevert);
@@ -221,6 +223,8 @@ namespace KerbalColonies
                 .ForEach(x => KerbalKonstructs.API.GetGroupStatics(x).ForEach(uuid => KerbalKonstructs.API.ActivateStatic(uuid.UUID)));
 
             KerbalKonstructs.API.UnRegisterOnStaticClicked(KCFacilityBase.OnBuildingClickedHandler);
+            KerbalKonstructs.API.UnRegisterOnStaticMouseEnter(KCFacilityBase.OnBuildingHoverHandler);
+            KerbalKonstructs.API.UnRegisterOnStaticMouseExit(KCFacilityBase.OnBuildingHoverExitHandler);
 
             //GameEvents.OnRevertToLaunchFlightState.Remove(saveGroupDataFromRevert);
             //GameEvents.OnRevertToPrelaunchFlightState.Remove(saveGroupDataFromRevert);

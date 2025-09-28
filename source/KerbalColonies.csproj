@@ -99,6 +99,7 @@
     <Compile Include="KCPreflightChecks.cs" />
     <Compile Include="Settings\KCGameParameters.cs" />
     <Compile Include="UI\Changelogwindow.cs" />
+    <Compile Include="UI\FacilityToolTip.cs" />
     <Compile Include="UI\KCFacilityWindowBase.cs" />
     <Compile Include="UI\KCLegacySaveWarning.cs" />
     <Compile Include="UI\KCWindow.cs" />

@@ -76,6 +76,12 @@ namespace KerbalColonies.colonyFacilities
             return center != null && Vector3.Distance(FlightGlobals.ship_position, center.gameObject.transform.position) < distance;
         });
 
+        public bool vesselNearFacility(Vessel v, float distance = 2500f) => v != null && KKgroups.Any(groupName =>
+        {
+            KerbalKonstructs.Core.GroupCenter center = KerbalKonstructs.API.GetGroupCenter(groupName, Colony.BodyName);
+            return center != null && Vector3.Distance(FlightGlobals.ship_position, center.gameObject.transform.position) < distance;
+        });
+
         public virtual void OnColonyNameChange(string name) { }
 
         public virtual void OnDisplayNameChange(string displayName) { }
@@ -92,17 +98,17 @@ namespace KerbalColonies.colonyFacilities
         public virtual void OnBuildingClicked() { }
 
         /// <summary>
-        /// Used to check if the facility can be clicked in the CAB window, if false then the open button won't be shown in the CAB window.
+        /// Used to check if the facility can be clicked in the CAB ColonyChangeWindow, if false then the open button won't be shown in the CAB ColonyChangeWindow.
         /// </summary>
         public bool AllowClick { get; protected set; } = true;
 
         /// <summary>
-        /// This function gets called when the facility is clicked in the CAB window (if the CAB window was opened through the overview)
+        /// This function gets called when the facility is clicked in the CAB ColonyChangeWindow (if the CAB ColonyChangeWindow was opened through the overview)
         /// </summary>
         public virtual void OnRemoteClicked() { }
 
         /// <summary>
-        /// Used to check if the facility can be used remotely, if false then the open button won't be shown in the CAB window.
+        /// Used to check if the facility can be used remotely, if false then the open button won't be shown in the CAB ColonyChangeWindow.
         /// </summary>
         public bool AllowRemote { get; protected set; } = true;
 
@@ -303,7 +309,7 @@ namespace KerbalColonies.colonyFacilities
         }
 
         /// <summary>
-        /// This method is called in the CAB facility overview window to display custom data about the facility.
+        /// This method is called in the CAB facility overview ColonyChangeWindow to display custom data about the facility.
         /// </summary>
         public virtual string GetFacilityProductionDisplay()
         {

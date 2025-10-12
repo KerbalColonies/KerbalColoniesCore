@@ -39,42 +39,15 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECStorage
             facility.Colony.UpdateColony();
 
             GUILayout.Label($"Stored electric charge in this colony:\n{KCECStorageFacility.ColonyEC(ecStorage.Colony):f2} / {KCECStorageFacility.ColonyECCapacity(ecStorage.Colony):f2} EC");
-            GUILayout.Label($"Stored electric charge:\n{ecStorage.ECStored} / {ecStorage.ECCapacity} EC");
+            GUILayout.Label($"Stored electric charge:\n{ecStorage.ECStored:f2} / {ecStorage.ECCapacity:f2} EC");
 
             GUILayout.Label("Colony: ");
 
-            KCECStorageInfo info = ecStorage.StorageInfo;
-
-            CelestialBody body = FlightGlobals.Bodies.First(b => FlightGlobals.GetBodyIndex(b) == ecStorage.Colony.BodyID);
-
-            double radius = facility.KKgroups.Average(g => KerbalKonstructs.API.GetGroupCenter(g, body.bodyName).RadiusOffset) + body.Radius;
-            double squareRadius = radius * radius;
-            double unMultiplier = body.gMagnitudeAtCenter / squareRadius;
-
-            float multiplier = info.UseGravityMultiplier[facility.level] ? Math.Max(info.MinGravity[facility.level], Math.Min(info.MaxGravity[facility.level], (float)unMultiplier / 9.80665f)) : 1;
-            if (info.UseGravityMultiplier[facility.level] && !Configuration.Paused) Configuration.writeDebug($"KCECStorageWindow: radius: {radius}, radius²: {squareRadius}, unMultiplier: {unMultiplier}");
-
-
-            List<Type> types = info.RangeTypes[facility.level];
-            List<string> names = info.RangeFacilities[facility.level];
-
-            float range = info.TransferRange[facility.level] * multiplier * Configuration.FacilityRangeMultiplier;
-            bool canTranfer = facility.Colony.Facilities.Where(f => types.Contains(f.GetType()) ^ names.Contains(f.facilityInfo.name)).Any(f => f.playerNearFacility((float)range)) || facility.playerNearFacility((float)range);
-            canTranfer &= !ecStorage.locked;
-            canTranfer &= FlightGlobals.ActiveVessel != null && FlightGlobals.ActiveVessel.LandedOrSplashed && FlightGlobals.ship_srfSpeed <= 0.5; // only allow transfer if the vessel is landed or splashed
-
-
-            // types | names
-            // 0 | 0 -> false
-            // 0 | 1 -> true
-            // 1 | 0 -> true
-            // 1 | 1 -> false
-            // xor
-
+            bool canTransfer = ecStorage.CanTransferToVessel(FlightGlobals.ActiveVessel);
 
             GUILayout.BeginHorizontal();
             {
-                GUI.enabled = canTranfer;
+                GUI.enabled = canTransfer;
                 foreach (double i in valueList)
                 {
                     if (GUILayout.Button(i.ToString(), GUILayout.Height(18), GUILayout.MinWidth(24)))
@@ -119,7 +92,7 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECStorage
 
             GUI.enabled = true;
             GUILayout.Label("Facility: ");
-            GUI.enabled = canTranfer;
+            GUI.enabled = canTransfer;
             GUILayout.BeginHorizontal();
             {
                 if (FlightGlobals.ActiveVessel == null) GUI.enabled = false;

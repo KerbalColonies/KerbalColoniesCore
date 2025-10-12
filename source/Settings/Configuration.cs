@@ -90,7 +90,7 @@ namespace KerbalColonies
         }
 
 
-        internal static List<int> windowIDs { get; private set; } = new List<int> { }; // list of all window IDs
+        internal static List<int> windowIDs { get; private set; } = new List<int> { }; // list of all ColonyChangeWindow IDs
 
         internal static int createWindowID()
         {
@@ -188,12 +188,13 @@ namespace KerbalColonies
         public static float FacilityTimeMultiplier = 1.0f; // Multiplier for the time of the facilities
         public static float FacilityRangeMultiplier = 1.0f; // Multiplier for the range of the facilities
         public static float EditorRangeMultiplier = 1.0f; // Multiplier for the KC/KK group editor
+        public static float ECConsumptionMultiplier = 1.0f;
         public static float VesselCostMultiplier = 1.0f; // Multiplier for the cost of the vessels
         public static float VesselTimeMultiplier = 1.0f; // Multiplier for the time of the vessels
 
         public static string baseBody = "Kerbin"; // The name of the celestial body where the KK base groups are located
         public static bool ConfigBaseBody = false; // If false, the base body will be set to the homeworld of the current game, if true, it will be read from the configuration file
-        public static bool ClickToOpen = true; // If true, the user can click on the KK statics to open the colony window
+        public static bool ClickToOpen = true; // If true, the user can click on the KK statics to open the colony ColonyChangeWindow
 
 #if DEBUG
         public static bool enableLogging = true;            // Enable this only in debug purposes as it floods the logs very much
@@ -247,6 +248,8 @@ namespace KerbalColonies
         {
             return colonyDictionary.FirstOrDefault(c => c.Value.Contains(colony)).Key;
         }
+
+        public static colonyClass GetColonyByID(int colonyID) => colonyDictionary.SelectMany(c => c.Value).FirstOrDefault(colony => colony.uniqueID == colonyID);
 
         /// <summary>
         /// This dictionary contains the facility attached to a specific KK group. Used for the on click event of the KK statics
@@ -451,7 +454,7 @@ namespace KerbalColonies
             // config params
             nodes[0].SetValue("enableLogging", enableLogging, "Enable this only in debug purposes as it floods the logs very much", createIfNotFound: true);
             if (ConfigBaseBody) nodes[0].SetValue("baseBody", baseBody, "The name of the celestial body where the KK base groups are located", createIfNotFound: true);
-            nodes[0].SetValue("ClickToOpen", ClickToOpen, "If true, the user can click on the KK statics to open the colony window", createIfNotFound: true);
+            nodes[0].SetValue("ClickToOpen", ClickToOpen, "If true, the user can click on the KK statics to open the colony ColonyChangeWindow", createIfNotFound: true);
 
             string path = $"{Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)}{Path.DirectorySeparatorChar}..{Path.DirectorySeparatorChar}Configs{Path.DirectorySeparatorChar}KC.cfg";
 

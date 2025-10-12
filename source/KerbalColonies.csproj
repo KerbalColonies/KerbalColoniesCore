@@ -1,170 +1,99 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="packages\KSPBuildTools.0.0.3\build\KSPBuildTools.props" Condition="Exists('packages\KSPBuildTools.0.0.3\build\KSPBuildTools.props')" />
-  <Import Project="packages\JsonPoke.1.2.0\build\JsonPoke.props" Condition="Exists('packages\JsonPoke.1.2.0\build\JsonPoke.props')" />
-  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{B1419033-9F83-4054-B471-997F60C77912}</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>KerbalColonies</RootNamespace>
-    <AssemblyName>KerbalColonies</AssemblyName>
-    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
-    <FileAlignment>512</FileAlignment>
-    <Deterministic>true</Deterministic>
-    <NuGetPackageImportStamp>
-    </NuGetPackageImportStamp>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>portable</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>TRACE;DEBUG;ENABLE_PROFILER</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <PlatformTarget>x64</PlatformTarget>
-    <BinariesOutputRelativePath>..\GameData\KerbalColonies\Plugins\</BinariesOutputRelativePath>
-    <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>none</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>
-    </DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <PlatformTarget>x64</PlatformTarget>
+    <Description>Kerbal Colonies mod for KSP</Description>
+
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <EnableNETAnalyzers>true</EnableNETAnalyzers>
+
+    <GenerateKSPAssemblyAttribute>true</GenerateKSPAssemblyAttribute>
+    <GenerateKSPAssemblyDependencyAttributes>true</GenerateKSPAssemblyDependencyAttributes>
+    
+    <KSPBinaryType>binary</KSPBinaryType>
+
     <BinariesOutputRelativePath>..\GameData\KerbalColonies\Plugins\</BinariesOutputRelativePath>
   </PropertyGroup>
+
   <ItemGroup>
-    <Compile Include="ColonyBuilding.cs" />
-    <Compile Include="colonyClass.cs" />
-    <Compile Include="colonyFacilities\CabFacility\KC_CAB_Facility.cs" />
-    <Compile Include="colonyFacilities\CabFacility\KC_CAB_Info.cs" />
-    <Compile Include="colonyFacilities\CabFacility\KC_CAB_Window.cs" />
-    <Compile Include="colonyFacilities\Commnet\KCCommnetInfo.cs" />
-    <Compile Include="colonyFacilities\Commnet\KCCommNetNodeInfo.cs" />
-    <Compile Include="colonyFacilities\Commnet\KCGroundstationFacility.cs" />
-    <Compile Include="colonyFacilities\ElectricityFacilities\ECGenerators\Fission\KCFissionWindow.cs" />
-    <Compile Include="colonyFacilities\ElectricityFacilities\ECGenerators\FuelCell\KCFuelCellFacility.cs" />
-    <Compile Include="colonyFacilities\ElectricityFacilities\ECGenerators\FuelCell\KCFuelCellInfo.cs" />
-    <Compile Include="colonyFacilities\ElectricityFacilities\ECGenerators\FuelCell\KCFuelCellWindow.cs" />
-    <Compile Include="colonyFacilities\ElectricityFacilities\ECGenerators\Fission\KCFissionInfo.cs" />
-    <Compile Include="colonyFacilities\ElectricityFacilities\ECGenerators\Fission\KCFissionReactor.cs" />
-    <Compile Include="colonyFacilities\ElectricityFacilities\ECGenerators\Fusion\KCFusionInfo.cs" />
-    <Compile Include="colonyFacilities\ElectricityFacilities\ECGenerators\Fusion\KCFusionReactor.cs" />
-    <Compile Include="colonyFacilities\ElectricityFacilities\ECGenerators\Fusion\KCFusionWindow.cs" />
-    <Compile Include="colonyFacilities\ElectricityFacilities\ECGenerators\Windturbine\KCWindturbineFacility.cs" />
-    <Compile Include="colonyFacilities\ElectricityFacilities\ECGenerators\Windturbine\KCWindturbineInfo.cs" />
-    <Compile Include="colonyFacilities\ElectricityFacilities\ECGenerators\Windturbine\KCWindturbinePlacementWindow.cs" />
-    <Compile Include="colonyFacilities\ElectricityFacilities\ECStorage\KCECStorageFacility.cs" />
-    <Compile Include="colonyFacilities\ElectricityFacilities\ECStorage\KCECStorageInfo.cs" />
-    <Compile Include="colonyFacilities\ElectricityFacilities\ECStorage\KCECStorageWindow.cs" />
-    <Compile Include="colonyFacilities\ElectricityFacilities\KCECTestFacility.cs" />
-    <Compile Include="colonyFacilities\Commnet\KCCommNetFacility.cs" />
-    <Compile Include="colonyFacilities\KCLaunchpadFacility.cs" />
-    <Compile Include="colonyFacilities\KCMiningFacility\KCMiningFacilityInfo.cs" />
-    <Compile Include="colonyFacilities\KCMiningFacility\KCMiningFacilityPlacementWindow.cs" />
-    <Compile Include="colonyFacilities\KCMiningFacility\KCMiningFacilityRate.cs" />
-    <Compile Include="colonyFacilities\KCMiningFacility\KCMiningFacilityWindow.cs" />
-    <Compile Include="colonyFacilities\KCProductionFacility.cs" />
-    <Compile Include="colonyFacilities\KCFacilityBase.cs" />
-    <Compile Include="colonyFacilities\KCResourceConverterFacility\KCResourceConverterInfo.cs" />
-    <Compile Include="colonyFacilities\KCResourceConverterFacility\KCResourceConverterWindow.cs" />
-    <Compile Include="colonyFacilities\KCResourceConverterFacility\RecipeSelectorWindow.cs" />
-    <Compile Include="colonyFacilities\KCResourceConverterFacility\ResourceConversionList.cs" />
-    <Compile Include="colonyFacilities\KCResourceConverterFacility\ResourceConversionRate.cs" />
-    <Compile Include="colonyFacilities\StorageFacility\KCStorageFacility.cs" />
-    <Compile Include="colonyFacilities\StorageFacility\KCStorageFacilityInfo.cs" />
-    <Compile Include="colonyFacilities\StorageFacility\KCStorageFacilityWindow.cs" />
-    <Compile Include="Electricity\KCECConsumer.cs" />
-    <Compile Include="Electricity\KCECManager.cs" />
-    <Compile Include="Electricity\KCECProducer.cs" />
-    <Compile Include="Electricity\KCECStorage.cs" />
-    <Compile Include="KCFacilityInfoClass.cs" />
-    <Compile Include="colonyFacilities\KCHangarFacility.cs" />
-    <Compile Include="colonyFacilities\KCKerbalFacilityBase.cs" />
-    <Compile Include="colonyFacilities\KCCrewQuarters.cs" />
-    <Compile Include="colonyFacilities\KCMiningFacility\KCMiningFacility.cs" />
-    <Compile Include="colonyFacilities\KCResearchFacility.cs" />
-    <Compile Include="colonyFacilities\KCResourceConverterFacility\KCResourceConverterFacility.cs" />
-    <Compile Include="ConfigFacilityLoader.cs" />
-    <Compile Include="KCTechTreeHandler.cs" />
-    <Compile Include="Settings\Configuration.cs" />
-    <Compile Include="KCPartModule.cs" />
-    <Compile Include="KCPreflightChecks.cs" />
-    <Compile Include="Settings\KCGameParameters.cs" />
-    <Compile Include="UI\Changelogwindow.cs" />
-    <Compile Include="UI\FacilityToolTip.cs" />
-    <Compile Include="UI\KCFacilityWindowBase.cs" />
-    <Compile Include="UI\KCLegacySaveWarning.cs" />
-    <Compile Include="UI\KCWindow.cs" />
-    <Compile Include="UI\KCWindowManager.cs" />
-    <Compile Include="UI\KerbalGUI.cs" />
-    <Compile Include="UI\KCGroupEditor.cs" />
-    <Compile Include="KerbalColonies.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="UI\KCWindowBase.cs" />
-    <Compile Include="FacilityTypeRegistry.cs" />
-    <Compile Include="UI\SingleTimeWindow\KCSingleTimeWindowBase.cs" />
-    <Compile Include="UI\SingleTimeWindow\SingleTimeWindowManager.cs" />
-    <Compile Include="UI\UIConfig.cs" />
-    <Compile Include="UI\OverviewWindow.cs" />
-    <Compile Include="UI\ToolbarRegistration.cs" />
+    <Compile Remove="C:\Users\AMPW\.nuget\packages\kspbuildtools\0.0.4\build\include\Log.cs" />
   </ItemGroup>
+
+
+
+  <ItemGroup>
+    <!-- <PackageReference Include="System.Memory" Version="4.6.3" /> -->
+    <PackageReference Include="JsonPoke" Version="1.2.0" />
+    <PackageReference Include="KSPBuildTools" Version="0.0.4" />
+
+    <!-- <KSPVersionFile Include=".">
+      <Destination>$(GameDataOutDir)/BackgroundResourceProcessing.version</Destination>
+      <URL>
+        https://github.com/Phantomical/BackgroundResourceProcessing/releases/latest/download/BackgroundResourceProcessing.version</URL>
+      <Download>https://github.com/Phantomical/BackgroundResourceProcessing/releases/latest</Download>
+    </KSPVersionFile> -->
+  </ItemGroup>
+
   <ItemGroup>
     <Reference Include="ClickThroughBlocker">
       <HintPath>$(KSPRoot)\GameData\000_ClickThroughBlocker\Plugins\ClickThroughBlocker.dll</HintPath>
-      <Private>False</Private>
+      <Private>false</Private>
+      <CKANIdentifier>ClickThroughBlocker</CKANIdentifier>
+      <KSPAssemblyName>ClickThroughBlocker</KSPAssemblyName>
+      <KSPAssemblyVersion>1.0.0</KSPAssemblyVersion>
     </Reference>
     <Reference Include="CustomPreLaunchChecks">
       <HintPath>$(KSPRoot)\GameData\CustomPreLaunchChecks\CustomPreLaunchChecks.dll</HintPath>
-      <Private>False</Private>
+      <Private>false</Private>
+      <CKANIdentifier>CustomPreLaunchChecks</CKANIdentifier>
+      <KSPAssemblyName>CustomPreLaunchChecks</KSPAssemblyName>
+      <KSPAssemblyVersion>1.0.0</KSPAssemblyVersion>
     </Reference>
     <Reference Include="KerbalKonstructs">
       <HintPath>$(KSPRoot)\GameData\KerbalKonstructs\KerbalKonstructs.dll</HintPath>
-      <Private>False</Private>
+      <Private>false</Private>
+      <CKANIdentifier>KerbalKonstructs</CKANIdentifier>
+      <KSPAssemblyName>KerbalKonstructs</KSPAssemblyName>
+      <KSPAssemblyVersion>1.11.0</KSPAssemblyVersion>
     </Reference>
-    <Reference Include="System" />
     <Reference Include="ToolbarControl">
       <HintPath>$(KSPRoot)\GameData\001_ToolbarControl\Plugins\ToolbarControl.dll</HintPath>
-      <Private>False</Private>
+      <Private>false</Private>
+      <CKANIdentifier>ToolbarController</CKANIdentifier>
+      <KSPAssemblyName>ToolbarController</KSPAssemblyName>
+      <KSPAssemblyVersion>1.0.0</KSPAssemblyVersion>
+    </Reference>
+    <Reference Include="BackgroundResourceProcessing">
+      <HintPath>$(KSPRoot)\GameData\BackgroundResourceProcessing\Plugins\BackgroundResourceProcessing.dll</HintPath>
+      <Private>false</Private>
+      <CKANIdentifier>BackgroundResourceProcessing</CKANIdentifier>
+      <KSPAssemblyName>BackgroundResourceProcessing</KSPAssemblyName>
+      <KSPAssemblyVersion>0.1.18</KSPAssemblyVersion>
     </Reference>
   </ItemGroup>
-  <ItemGroup>
-    <None Include="packages.config" />
-  </ItemGroup>
-  <ItemGroup>
-    <Analyzer Include="D:\KSP-Test\GameData\CustomPreLaunchChecks\CustomPreLaunchChecks.dll" />
-  </ItemGroup>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
-    <PropertyGroup>
-      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
-    </PropertyGroup>
-    <Error Condition="!Exists('packages\JsonPoke.1.2.0\build\JsonPoke.props')" Text="$([System.String]::Format('$(ErrorText)', 'packages\JsonPoke.1.2.0\build\JsonPoke.props'))" />
-    <Error Condition="!Exists('packages\JsonPoke.1.2.0\build\JsonPoke.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\JsonPoke.1.2.0\build\JsonPoke.targets'))" />
-  </Target>
-  <Import Project="packages\JsonPoke.1.2.0\build\JsonPoke.targets" Condition="Exists('packages\JsonPoke.1.2.0\build\JsonPoke.targets')" />
-  <ItemGroup>
-    <PackageReference Include="KSPBuildTools">
-      <Version>0.0.3</Version>
-    </PackageReference>
-  </ItemGroup>
-  <!-- Version Files -->
+
+  <PropertyGroup>
+    <TargetFramework>net481</TargetFramework>
+    <LangVersion>preview</LangVersion>
+  </PropertyGroup>
+
   <ItemGroup>
     <KSPVersionFile Include=".">
       <Destination>$(RepoRootPath)../GameData/KerbalColonies/KerbalColonies.version</Destination>
       <URL>https://raw.githubusercontent.com/KerbalColonies/KerbalColoniesCore/refs/heads/master/GameData/KerbalColonies/KerbalColonies.version</URL>
       <Download>https://github.com/KerbalColonies/KerbalColoniesCore/releases/latest</Download>
-      <Version>1.1.6</Version>
       <KSP_VERSION>1.12.5</KSP_VERSION>
       <KSP_VERSION_MAX>1.12.5</KSP_VERSION_MAX>
     </KSPVersionFile>
   </ItemGroup>
-  <ItemGroup />
+  
+  <PropertyGroup>
+    <FileVersion>1.1.7.0</FileVersion>
+    <AssemblyVersion>1.1.0.0</AssemblyVersion>
+  </PropertyGroup>
+
 </Project>
+
+
+
+
+

@@ -62,7 +62,7 @@ namespace KerbalColonies.UI
         }
 
         /// <summary>
-        /// Switches the state of the window
+        /// Switches the state of the ColonyChangeWindow
         /// </summary>
         public virtual void Toggle()
         {
@@ -77,9 +77,9 @@ namespace KerbalColonies.UI
         }
 
         /// <summary>
-        /// return if a window is open
+        /// return if a ColonyChangeWindow is open
         /// </summary>
-        /// <returns>true if window is open</returns>
+        /// <returns>true if ColonyChangeWindow is open</returns>
         public virtual bool IsOpen()
         {
             return KCWindowManager.IsOpen(this);

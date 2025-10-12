@@ -102,22 +102,7 @@ namespace KerbalColonies.colonyFacilities.CabFacility
 
                             GUILayout.BeginVertical(GUILayout.Width(250));
                             {
-                                if (KCProductionFacility.ConstructedFacilities[CABFacility.Colony].Contains(CABFacility))
-                                {
-                                    if (!playerInColony) GUI.enabled = false;
-                                    if (GUILayout.Button("Place"))
-                                    {
-                                        CABFacility.enabled = true;
-
-                                        KCProductionFacility.ConstructedFacilities[CABFacility.Colony].Remove(CABFacility);
-
-                                        string newGroupName = $"{CABFacility.Colony.Name}_{CABFacility.name}_0_{CABFacility.facilityTypeNumber}";
-
-                                        ColonyBuilding.PlaceNewGroup(CABFacility, newGroupName);
-                                    }
-                                    GUI.enabled = true;
-                                }
-                                else if (KCProductionFacility.UpgradedFacilities[CABFacility.Colony].Contains(CABFacility))
+                                if (KCProductionFacility.UpgradedFacilities[CABFacility.Colony].Contains(CABFacility))
                                 {
                                     if (!playerInColony) GUI.enabled = false;
                                     if (GUILayout.Button("Place upgrade"))

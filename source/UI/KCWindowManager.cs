@@ -124,7 +124,7 @@ namespace KerbalColonies.UI
         }
 
         /// <summary>
-        /// Opens a closed window or closes an open one.
+        /// Opens a closed ColonyChangeWindow or closes an open one.
         /// </summary>
         /// <param name="drawfunct"></param>
         public static void ToggleWindow(KCWindow drawfunct)
@@ -141,7 +141,7 @@ namespace KerbalColonies.UI
         }
 
         /// <summary>
-        /// checks if a window is openend
+        /// checks if a ColonyChangeWindow is openend
         /// </summary>
         /// <param name="drawfunct"></param>
         /// <returns></returns>

@@ -41,37 +41,6 @@ namespace KerbalColonies
 
         internal static ToolbarControl toolbarControl;
 
-        public void saveGroupDataFromRevert(FlightState state)
-        {
-            string root = "KCgroups";
-
-            ConfigNode[] nodes = new ConfigNode[1] { new ConfigNode() };
-
-            foreach (KeyValuePair<string, Dictionary<int, Dictionary<string, ConfigNode>>> gameKVP in Configuration.KCgroups)
-            {
-                ConfigNode saveGameNode = new ConfigNode(gameKVP.Key, "The savegame name");
-                foreach (KeyValuePair<int, Dictionary<string, ConfigNode>> bodyKVP in gameKVP.Value)
-                {
-                    ConfigNode bodyNode = new ConfigNode(bodyKVP.Key.ToString(), "The celestial body id");
-                    foreach (KeyValuePair<string, ConfigNode> groupName in bodyKVP.Value)
-                    {
-                        ConfigNode groupNode = new ConfigNode(groupName.Key, "The KK group name");
-                        if (groupName.Value != null) groupNode.AddNode(groupName.Value);
-                        bodyNode.AddNode(groupNode);
-                    }
-                    saveGameNode.AddNode(bodyNode);
-                }
-                nodes[0].AddNode(saveGameNode);
-            }
-
-            string path = $"{Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)}{Path.DirectorySeparatorChar}..{Path.DirectorySeparatorChar}Configs{Path.DirectorySeparatorChar}ColonyDataV3.cfg";
-
-            ConfigNode node = new ConfigNode();
-            nodes[0].name = root;
-            node.AddNode(nodes[0]);
-            node.Save(path);
-        }
-
         protected void Awake()
         {
             KSPLog.print("KC awake");

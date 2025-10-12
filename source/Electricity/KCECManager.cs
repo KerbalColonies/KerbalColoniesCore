@@ -1,4 +1,5 @@
 ﻿using KerbalColonies.colonyFacilities.CabFacility;
+using Smooth.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -36,6 +37,9 @@ namespace KerbalColonies.Electricity
     public class KCECManager
     {
         public static Dictionary<colonyClass, KCColonyECData> colonyEC = new Dictionary<colonyClass, KCColonyECData>();
+        public static Dictionary<colonyClass, List<KCECProducer>> otherProducers { get; set; } = new Dictionary<colonyClass, List<KCECProducer>>();
+        public static Dictionary<colonyClass, SortedDictionary<int, List<KCECConsumer>>> otherConsumers { get; set; } = new Dictionary<colonyClass, SortedDictionary<int, List<KCECConsumer>>>();
+        public static Dictionary<colonyClass, SortedDictionary<int, List<KCECStorage>>> otherStorages { get; set; } = new Dictionary<colonyClass, SortedDictionary<int, List<KCECStorage>>>();
 
         public static void CABDisplay(colonyClass colony)
         {
@@ -57,7 +61,7 @@ namespace KerbalColonies.Electricity
                     GUILayout.EndVertical();
                     GUILayout.BeginVertical(GUILayout.Width(KC_CAB_Window.CABInfoWidth / 2 - 10));
                     {
-                        GUILayout.Label($"Stored: {(colonyData.lastECStored / colonyData.deltaTime):F2} EC");
+                        GUILayout.Label($"Stored: {colonyData.lastECStored:F2} EC");
                         GUILayout.Label($"Delta: {(colonyData.lastECDelta / colonyData.deltaTime):F2} EC/s");
                     }
                     GUILayout.EndVertical();
@@ -99,9 +103,15 @@ namespace KerbalColonies.Electricity
             colonyData.currentTime = currentTime;
 
             double ECProduced = colony.Facilities.OfType<KCECProducer>().Sum(facility => facility.ECProduction(lastTime, deltaTime, currentTime));
+            if (otherProducers.ContainsKey(colony)) ECProduced += otherProducers[colony].Sum(source => source.ECProduction(lastTime, deltaTime, currentTime));
             colonyData.lastECProduced = ECProduced;
 
             SortedDictionary<int, List<KCECConsumer>> ECConsumers = new SortedDictionary<int, List<KCECConsumer>>();
+            if (otherConsumers.ContainsKey(colony)) otherConsumers[colony].ToList().ForEach(kvp =>
+            {
+                ECConsumers.TryAdd(kvp.Key, new List<KCECConsumer>());
+                kvp.Value.ForEach(consumer => ECConsumers[kvp.Key].Add(consumer));
+            });
             colony.Facilities.OfType<KCECConsumer>().ToList().ForEach(facility =>
             {
                 if (!ECConsumers.ContainsKey(facility.ECConsumptionPriority))
@@ -112,6 +122,7 @@ namespace KerbalColonies.Electricity
             ECConsumers.Reverse();
 
             SortedDictionary<int, List<KCECStorage>> ECStored = new SortedDictionary<int, List<KCECStorage>>();
+            if (otherStorages.ContainsKey(colony)) ECStored.AddAll(otherStorages[colony]);
             colony.Facilities.OfType<KCECStorage>().ToList().ForEach(facility =>
             {
                 if (!ECStored.ContainsKey(facility.ECStoragePriority))

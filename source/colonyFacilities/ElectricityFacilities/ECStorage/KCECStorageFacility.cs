@@ -1,7 +1,9 @@
 ﻿using KerbalColonies.Electricity;
+using KerbalKonstructs.Modules;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using static Targeting.Sample;
 
 // KC: Kerbal Colonies
 // This mod aimes to create a Colony system with Kerbal Konstructs statics
@@ -85,6 +87,38 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECStorage
         }
 
         public void SetStoredEC(double storedEC) => ECStored = locked ? ECStored : Math.Max(0, Math.Min(ECCapacity, storedEC));
+
+        public bool CanTransferToVessel(Vessel v)
+        {
+            KCECStorageInfo info = StorageInfo;
+
+            CelestialBody body = FlightGlobals.Bodies.First(b => FlightGlobals.GetBodyIndex(b) == Colony.BodyID);
+
+            double radius = KKgroups.Average(g => KerbalKonstructs.API.GetGroupCenter(g, body.bodyName).RadiusOffset) + body.Radius;
+            double squareRadius = radius * radius;
+            double unMultiplier = body.gMagnitudeAtCenter / squareRadius;
+
+            float multiplier = info.UseGravityMultiplier[level] ? Math.Max(info.MinGravity[level], Math.Min(info.MaxGravity[level], (float)unMultiplier / 9.80665f)) : 1;
+            if (info.UseGravityMultiplier[level] && !Configuration.Paused) Configuration.writeDebug($"KCECStorageWindow: radius: {radius}, radius²: {squareRadius}, unMultiplier: {unMultiplier}");
+
+            List<Type> types = info.RangeTypes[level];
+            List<string> names = info.RangeFacilities[level];
+
+            float range = info.TransferRange[level] * multiplier * Configuration.FacilityRangeMultiplier;
+            bool canTranfer = Colony.Facilities.Where(f => types.Contains(f.GetType()) ^ names.Contains(f.facilityInfo.name)).Any(f => f.vesselNearFacility(v, (float)range)) || vesselNearFacility(v, (float)range);
+
+            // types | names
+            // 0 | 0 -> false
+            // 0 | 1 -> true
+            // 1 | 0 -> true
+            // 1 | 1 -> false
+            // xor
+
+            canTranfer &= !locked;
+            canTranfer &= v != null && v.LandedOrSplashed && v.srfSpeed <= 0.5; // only allow transfer if the vessel is landed or splashed
+        
+            return canTranfer;
+        }
 
         public override void OnBuildingClicked() => window.Toggle();
 

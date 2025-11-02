@@ -36,7 +36,7 @@ namespace KerbalColonies.VesselAutoTransfer
                 {
                     if (GUILayout.Button(c.DisplayName))
                     {
-                        TransferModule.transferInfo = new KCColonyTransferBehaviour.KCTransferInfo(c, TransferModule.PersistentId, TransferModule.vessel.persistentId);
+                        TransferModule.transferInfo = new KCTransferInfo(c, TransferModule.PersistentId, TransferModule.vessel.persistentId);
                         Configuration.writeLog($"Changed target colony of vessel {vessel.vesselName} to colony {c.Name}.");
                         this.Close();
                     }

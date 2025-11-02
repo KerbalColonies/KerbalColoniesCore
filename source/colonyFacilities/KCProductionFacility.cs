@@ -191,9 +191,8 @@ namespace KerbalColonies.colonyFacilities
                             KCProductionFacility.UpgradingFacilities[facility.Colony].ToList().ForEach(pair =>
                             {
                                 GUILayout.BeginHorizontal();
-                                GUILayout.Label(pair.Key.DisplayName);
                                 double max = pair.Key.facilityInfo.UpgradeTimes[pair.Key.level + 1] * Configuration.FacilityTimeMultiplier;
-                                GUILayout.Label($"{max - pair.Value:f2}/{max:f2}");
+                                GUILayout.Label($"{pair.Key.DisplayName}: {max - pair.Value:f2}/{max:f2}");
                                 GUILayout.EndHorizontal();
                                 GUILayout.Box("", GUILayout.ExpandWidth(true), GUILayout.Height(1));
                             });
@@ -203,9 +202,8 @@ namespace KerbalColonies.colonyFacilities
                             KCProductionFacility.ConstructingFacilities[facility.Colony].ToList().ForEach(pair =>
                             {
                                 GUILayout.BeginHorizontal();
-                                GUILayout.Label(pair.Key.DisplayName);
                                 double max = pair.Key.facilityInfo.UpgradeTimes[0] * Configuration.FacilityTimeMultiplier;
-                                GUILayout.Label($"{(max - pair.Value):f2}/{max:f2}");
+                                GUILayout.Label($"{pair.Key.DisplayName}: {(max - pair.Value):f2}/{max:f2}");
                                 GUILayout.EndHorizontal();
                                 GUILayout.Space(10);
                                 GUILayout.Box("", GUILayout.ExpandWidth(true), GUILayout.Height(1));

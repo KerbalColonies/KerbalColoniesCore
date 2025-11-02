@@ -1,7 +1,10 @@
-﻿using KerbalColonies.colonyFacilities;
+﻿using BackgroundResourceProcessing;
+using KerbalColonies.colonyFacilities;
 using KerbalColonies.UI;
+using KerbalColonies.VesselAutoTransfer;
 using KSP.UI.Screens;
 using KSP.UI.Screens.Editor;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -54,6 +57,7 @@ namespace KerbalColonies
 
             GameEvents.onGamePause.Add(Pause);
             GameEvents.onGameUnpause.Add(UnPause);
+
         }
 
         protected void Start()
@@ -93,11 +97,23 @@ namespace KerbalColonies
 
             realTime = Time.time;
             Configuration.Paused = false;
+
+            BackgroundResourceProcessing.BackgroundResourceProcessor.onAfterVesselChangepoint.Add(onVesselChangepoint);
         }
 
         public void Pause() => Configuration.Paused = true;
         public void UnPause() => Configuration.Paused = false;
 
+        public void onVesselChangepoint(BackgroundResourceProcessor proc)
+        {
+            double changeTime = Math.Min(Planetarium.GetUniversalTime() + 3600, proc.NextChangepoint);
+
+            proc.Converters.Where(c => c.Behaviour is KCTransferBehaviour).ToList().ForEach(converter =>
+            {
+                converter.NextChangepoint = changeTime;
+                Configuration.writeDebug($"KCTransferBehaviour onVesselChangepoint called for vessel {proc.Vessel.vesselName}. Setting NextChangepoint to {changeTime}. Current EC rate: {converter.Inputs.FirstOrDefault(kvp => kvp.Value.ResourceName == "ElectricCharge").Value.Ratio * converter.Rate}");
+            });
+        }
 
         private float realTime;
         public void Update()
@@ -200,6 +216,8 @@ namespace KerbalColonies
 
             GameEvents.onGamePause.Remove(Pause);
             GameEvents.onGameUnpause.Remove(UnPause);
+
+            BackgroundResourceProcessing.BackgroundResourceProcessor.onAfterVesselChangepoint.Remove(onVesselChangepoint);
         }
     }
 }

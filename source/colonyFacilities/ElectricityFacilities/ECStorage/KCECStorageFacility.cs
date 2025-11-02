@@ -99,7 +99,6 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECStorage
             double unMultiplier = body.gMagnitudeAtCenter / squareRadius;
 
             float multiplier = info.UseGravityMultiplier[level] ? Math.Max(info.MinGravity[level], Math.Min(info.MaxGravity[level], (float)unMultiplier / 9.80665f)) : 1;
-            if (info.UseGravityMultiplier[level] && !Configuration.Paused) Configuration.writeDebug($"KCECStorageWindow: radius: {radius}, radius²: {squareRadius}, unMultiplier: {unMultiplier}");
 
             List<Type> types = info.RangeTypes[level];
             List<string> names = info.RangeFacilities[level];

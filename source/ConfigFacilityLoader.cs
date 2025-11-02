@@ -167,6 +167,8 @@ namespace KerbalColonies
             SingleTimeWindowManager.windows.Add(new Changelogwindow());
 #endif
 
+            colonyClass.ColonyLoad.Add(new ColonyLoadAction(KCColonyTransferBehaviour.ColonyLoadAction));
+
             colonyClass.ColonyUpdate.Add(new ColonyUpdateAction(colonyClass.ColonyUpdateHandler, 0));
             colonyClass.ColonyUpdate.Add(new ColonyUpdateAction(KCProductionFacility.ExecuteProduction, 10));
             colonyClass.ColonyUpdate.Add(new ColonyUpdateAction(KCECManager.ElectricityUpdate, 5));

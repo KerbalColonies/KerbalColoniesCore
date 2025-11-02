@@ -1,6 +1,4 @@
-﻿using KerbalColonies.colonyFacilities;
-using KerbalColonies.colonyFacilities.ElectricityFacilities.ECStorage;
-using KerbalColonies.Electricity;
+﻿using KerbalColonies.Electricity;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,157 +7,21 @@ namespace KerbalColonies.VesselAutoTransfer
 {
     public class KCColonyTransferBehaviour
     {
-        public class KCTransferInfo
-        {
-            private colonyClass colony;
-
-            public colonyClass Colony => colony;
-
-            public List<PartResourceDefinition> resources = new List<PartResourceDefinition>();
-
-            public Dictionary<PartResourceDefinition, double> ToColonyResourcesTarget = new Dictionary<PartResourceDefinition, double>();
-            public Dictionary<PartResourceDefinition, double> ToVesselResourcesTarget = new Dictionary<PartResourceDefinition, double>();
-
-            public Dictionary<PartResourceDefinition, double> ToColonyResourcesActual = new Dictionary<PartResourceDefinition, double>();
-            public Dictionary<PartResourceDefinition, double> ToVesselResourcesActual = new Dictionary<PartResourceDefinition, double>();
-
-            public Dictionary<PartResourceDefinition, double> ColonyTransferLimits = new Dictionary<PartResourceDefinition, double>();
-            public Dictionary<PartResourceDefinition, double> VesselTransferLimits = new Dictionary<PartResourceDefinition, double>();
-
-            public Dictionary<PartResourceDefinition, bool> DisableIfVesselConstrains = new Dictionary<PartResourceDefinition, bool>();
-            public Dictionary<PartResourceDefinition, bool> DisableIfColonyConstrains = new Dictionary<PartResourceDefinition, bool>();
-
-            public Dictionary<PartResourceDefinition, bool> VesselConstrained = new Dictionary<PartResourceDefinition, bool>();
-            public Dictionary<PartResourceDefinition, bool> ColonyConstrained = new Dictionary<PartResourceDefinition, bool>();
-
-            public KCColonyTransferECHandler ECTransferProducer = null;
-
-            public uint partModuleID;
-            public uint vesselID;
-
-            public void AddResource(PartResourceDefinition resource)
-            {
-                if (!resources.Contains(resource))
-                {
-                    resources.Add(resource);
-
-                    ToColonyResourcesTarget[resource] = 0;
-                    ToVesselResourcesTarget[resource] = 0;
-                    ToColonyResourcesActual[resource] = 0;
-                    ToVesselResourcesActual[resource] = 0;
-                    ColonyTransferLimits[resource] = 1;
-                    VesselTransferLimits[resource] = 1;
-                    DisableIfVesselConstrains[resource] = false;
-                    DisableIfColonyConstrains[resource] = false;
-                    VesselConstrained[resource] = false;
-                    ColonyConstrained[resource] = false;
-                }
-            }
-
-            public void CleanResources()
-            {
-                PartResourceDefinition EC = PartResourceLibrary.Instance.GetDefinition("ElectricCharge");
-
-                resources.ToList().ForEach(r =>
-                {
-                    if (ToColonyResourcesTarget[r] == 0 && ToVesselResourcesTarget[r] == 0)
-                    {
-                        if (r == EC) ECTransferProducer.EC = 0;
-
-                        resources.Remove(r);
-                        ToColonyResourcesTarget.Remove(r);
-                        ToVesselResourcesTarget.Remove(r);
-                        ToColonyResourcesActual.Remove(r);
-                        ToVesselResourcesActual.Remove(r);
-                        ColonyTransferLimits.Remove(r);
-                        VesselTransferLimits.Remove(r);
-                        DisableIfVesselConstrains.Remove(r);
-                        DisableIfColonyConstrains.Remove(r);
-                        VesselConstrained.Remove(r);
-                        ColonyConstrained.Remove(r);
-                    }
-                });
-            }
-
-            public void Delete()
-            {
-                ActiveTransfers.Remove(this);
-                if (ECTransferProducer != null)
-                {
-                    KCECManager.otherProducers[colony].Remove(ECTransferProducer);
-                }
-            }
-
-            public ConfigNode Save()
-            {
-                CleanResources();
-
-                ConfigNode node = new ConfigNode("KCTransferInfo");
-
-                node.AddValue("colonyID", colony.uniqueID);
-                node.AddValue("partModuleID", partModuleID);
-                node.AddValue("vesselID", vesselID);
-
-                ConfigNode resourceNode = new ConfigNode("TransferResources");
-
-                resources.ForEach(r =>
-                {
-                    string value = $"{ToColonyResourcesTarget[r]},{ToVesselResourcesTarget[r]},{ColonyTransferLimits[r]},{VesselTransferLimits[r]},{DisableIfVesselConstrains[r]},{DisableIfColonyConstrains[r]}";
-                    resourceNode.AddValue(r.name, value);
-                });
-
-                node.AddNode(resourceNode);
-
-                return node;
-            }
-
-            public static KCTransferInfo Load(ConfigNode node)
-            {
-                node = node.GetNode("KCTransferInfo");
-
-                if (node == null) return null;
-
-                colonyClass colony = Configuration.GetColonyByID(int.Parse(node.GetValue("colonyID")));
-                uint partModuleID = uint.Parse(node.GetValue("partModuleID"));
-                uint vesselID = uint.Parse(node.GetValue("vesselID"));
-
-                KCTransferInfo info = new KCTransferInfo(colony, partModuleID, vesselID);
-
-                ConfigNode resourceNode = node.GetNode("TransferResources");
-                foreach (ConfigNode.Value v in resourceNode.values)
-                {
-                    PartResourceDefinition resource = PartResourceLibrary.Instance.GetDefinition(v.name);
-                    info.AddResource(resource);
-                    string[] values = v.value.Split(',');
-                    info.ToColonyResourcesTarget[resource] = double.Parse(values[0]);
-                    info.ToVesselResourcesTarget[resource] = double.Parse(values[1]);
-                    info.ColonyTransferLimits[resource] = double.Parse(values[2]);
-                    info.VesselTransferLimits[resource] = double.Parse(values[3]);
-                    info.DisableIfVesselConstrains[resource] = bool.Parse(values[4]);
-                    info.DisableIfColonyConstrains[resource] = bool.Parse(values[5]);
-                }
-
-                return info;
-            }
-
-            public KCTransferInfo(colonyClass colony, uint partModuleID, uint vesselID)
-            {
-                this.colony = colony;
-                this.partModuleID = partModuleID;
-                this.vesselID = vesselID;
-
-                ECTransferProducer = new KCColonyTransferECHandler(colony);
-                ActiveTransfers.Add(this);
-            }
-        }
-
-        public static List<KCTransferInfo> ActiveTransfers { get; protected set; } = new List<KCTransferInfo>();
+        public static Dictionary<uint, KCTransferInfo> ActiveTransfers { get; protected set; } = new Dictionary<uint, KCTransferInfo> { };
 
         public class KCColonyTransferECHandler : KCECProducer, KCECConsumer
         {
-            public double EC = 0;
-
+            private double ec;
+            public double EC
+            {
+                get => ec; set
+                {
+                    Configuration.writeDebug($"Setting EC transfer handler EC to {value}");
+                    ec = value;
+                }
+            }
             public int ECConsumptionPriority => 0;
+            public uint partModuleID = 0;
 
             public double ECProduction(double lastTime, double deltaTime, double currentTime) => EC > 0 ? EC * deltaTime : 0;
 
@@ -178,109 +40,216 @@ namespace KerbalColonies.VesselAutoTransfer
 
             public double DailyECConsumption() => EC < 0 ? -EC * 60 * 60 * 6 : 0;
 
-            public KCColonyTransferECHandler(colonyClass colony)
+            public KCColonyTransferECHandler(colonyClass colony, uint partModuleID)
             {
-                if (!KCECManager.otherProducers.ContainsKey(colony)) KCECManager.otherProducers[colony] = new List<KCECProducer>();
-                if (!KCECManager.otherConsumers.ContainsKey(colony)) KCECManager.otherConsumers[colony] = new SortedDictionary<int, List<KCECConsumer>>();
+                Configuration.writeDebug($"Creating EC transfer handler with partModuleID {partModuleID}");
+
+                if (!KCECManager.otherProducers.ContainsKey(colony)) KCECManager.otherProducers.Add(colony, new List<KCECProducer>());
+                if (!KCECManager.otherConsumers.ContainsKey(colony)) KCECManager.otherConsumers.Add(colony, new SortedDictionary<int, List<KCECConsumer>>());
                 if (!KCECManager.otherConsumers[colony].ContainsKey(0)) KCECManager.otherConsumers[colony][0] = new List<KCECConsumer>();
+
+                Configuration.writeDebug($"Existing EC transfer handlers count: {KCECManager.otherProducers[colony].OfType<KCColonyTransferECHandler>().Count()}");
+                //foreach (KCColonyTransferECHandler item in KCECManager.otherProducers[colony].ToList().OfType<KCColonyTransferECHandler>())
+                //{
+                //    Configuration.writeDebug($"Found EC transfer handler with partModuleID {item.partModuleID}");
+                //    if (item.partModuleID == partModuleID)
+                //    {
+                //        Configuration.writeDebug($"EC transfer handler for partModuleID {partModuleID} already exists in otherProducers, removing it first");
+                //        KCECManager.otherProducers[colony].Remove(item);
+                //    }
+                //}
+                //Configuration.writeDebug($"New EC transfer handlers count: {KCECManager.otherProducers[colony].OfType<KCColonyTransferECHandler>().Count()}");
+
+
+                KCECManager.otherProducers[colony].OfType<KCColonyTransferECHandler>().Where(prod => prod.partModuleID == partModuleID).ToList().ForEach(prod => KCECManager.otherProducers[colony].Remove(prod));
 
                 KCECManager.otherProducers[colony].Add(this);
                 KCECManager.otherConsumers[colony][0].Add(this);
+
+                this.partModuleID = partModuleID;
             }
         }
+
+        public static void ColonyLoadAction(colonyClass colony)
+        {
+            ActiveTransfers.Values.ToList().ForEach(t =>
+            {
+                if (t.Colony.uniqueID == colony.uniqueID)
+                {
+                    t.Delete();
+                }
+            });
+
+            if (KCECManager.otherProducers.ContainsKey(colony))
+            {
+                KCECManager.otherProducers[colony] = new List<KCECProducer>();
+            }
+            else
+            {
+                KCECManager.otherProducers.Add(colony, new List<KCECProducer>());
+            }
+        }
+
 
         public static void ColonyUpdateTransferAction(colonyClass colony)
         {
             PartResourceDefinition EC = PartResourceLibrary.Instance.GetDefinition("ElectricCharge");
 
-            ActiveTransfers.Where(t => t.Colony == colony).ToList().ForEach(t =>
+            ActiveTransfers.Values.Where(t => t.Colony == colony).ToList().ForEach(t =>
             {
-                if (t.ToColonyResourcesTarget.ContainsKey(EC))
+                t.resources.ForEach(res =>
                 {
-                    List<KCECStorageFacility> colonyECStorages = KCFacilityBase.GetAllTInColony<KCECStorageFacility>(colony);
-                    double maxColonyEC = colonyECStorages.Sum(f => f.ECCapacity);
-                    double currentColonyEC = colonyECStorages.Sum(f => f.ECStored);
-                    double colonyECRatio = currentColonyEC / maxColonyEC;
-
-                    KCColonyECData colonyECData = KCECManager.colonyEC[colony];
-
-                    double transferAmount = 0;
-
-                    if (t.ToColonyResourcesTarget[EC] > 0)
+                    if (res == EC)
                     {
-                        if (colonyECRatio <= t.ColonyTransferLimits[EC])
+                        List<KCECStorage> colonyresStorages = colony.Facilities.OfType<KCECStorage>().ToList();
+                        double maxColonyRes = colonyresStorages.Sum(f => f.ECCapacity);
+                        double currentColonyRes = colonyresStorages.Sum(f => f.ECStored);
+                        double colonyResRatio = currentColonyRes / maxColonyRes;
+
+                        KCColonyECData colonyresData = KCECManager.colonyEC[colony];
+
+                        double transferAmount = 0;
+
+                        if (t.ResourcesTarget[res] > 0)
                         {
-                            transferAmount = t.ToColonyResourcesTarget[EC];
-
-                            double newRatio = (currentColonyEC + transferAmount + colonyECData.lastECDelta) / maxColonyEC;
-
-                            if (newRatio > t.ColonyTransferLimits[EC])
+                            if (colonyResRatio < t.ColonyTransferLimits[res])
                             {
-                                transferAmount = (t.ColonyTransferLimits[EC] - colonyECRatio) * maxColonyEC + (colonyECData.lastECDelta < 0 ? colonyECData.lastECDelta : 0);
-                            }
-                        }
+                                transferAmount = t.ResourcesTarget[res] * t.Efficiency / t.EfficiencyBalancer[res];
 
-                        t.ECTransferProducer.EC = transferAmount;
+                                double newRatio = (currentColonyRes + transferAmount + colonyresData.lastECDelta) / maxColonyRes;
 
-                        if (transferAmount != t.ToColonyResourcesActual[EC])
-                        {
-                            t.ToColonyResourcesActual[EC] = transferAmount;
-
-                            if (transferAmount != t.ToColonyResourcesTarget[EC])
-                            {
-                                t.ColonyConstrained[EC] = true;
-
-                                if (t.DisableIfColonyConstrains[EC])
+                                if (newRatio > t.ColonyTransferLimits[res])
                                 {
-                                    transferAmount = 0;
+                                    double limitPercent = Math.Abs(t.ColonyTransferLimits[res] - colonyResRatio);
+                                    transferAmount = Math.Min(Math.Max((t.ColonyTransferLimits[res] - colonyResRatio) * maxColonyRes, 0) + (colonyresData.lastECDelta > 0 && limitPercent < 0.01 ? colonyresData.lastECDelta : 0), t.ResourcesTarget[res]);
                                 }
+                            }
+
+                            if (t.VesselConstrained[res])
+                            {
+                                if (t.ResourcesActual[res] > transferAmount)
+                                {
+                                    t.VesselConstrained[res] = false;
+                                    t.ColonyConstrained[res] = true;
+
+                                    if (t.DisableIfColonyConstrains[res])
+                                    {
+                                        transferAmount = 0;
+                                        t.CleanResources();
+                                    }
+
+                                    t.ResourcesActual[res] = transferAmount;
+                                    t.ECTransferProducer.EC = transferAmount;
+                                }
+                                else
+                                {
+                                    t.ECTransferProducer.EC = t.ResourcesActual[res];
+                                }
+                            }
+                            else if (transferAmount != t.ResourcesActual[res])
+                            {
+                                if (transferAmount != t.ResourcesTarget[res])
+                                {
+                                    t.VesselConstrained[res] = false;
+                                    t.ColonyConstrained[res] = true;
+
+                                    if (t.DisableIfColonyConstrains[res])
+                                    {
+                                        transferAmount = 0;
+                                        t.CleanResources();
+                                    }
+                                }
+                                else
+                                {
+                                    t.ColonyConstrained[res] = false;
+                                }
+
+                                t.ResourcesActual[res] = transferAmount;
+                                t.ECTransferProducer.EC = transferAmount;
                             }
                             else
                             {
-                                t.ColonyConstrained[EC] = false;
+                                t.ResourcesActual[res] = transferAmount;
+                                t.ECTransferProducer.EC = transferAmount;
                             }
                         }
-                    }
-                    else if (t.ToVesselResourcesTarget[EC] > 0)
-                    {
-                        if (colonyECRatio > t.ColonyTransferLimits[EC])
+                        else if (t.ResourcesTarget[res] < 0)
                         {
-                            transferAmount = t.ToVesselResourcesTarget[EC];
-
-                            double newRatio = (currentColonyEC - transferAmount + colonyECData.lastECDelta) / maxColonyEC;
-
-                            if (newRatio < t.ColonyTransferLimits[EC])
+                            if (colonyResRatio > t.ColonyTransferLimits[res])
                             {
-                                transferAmount = (t.ColonyTransferLimits[EC] - colonyECRatio) * maxColonyEC + (colonyECData.lastECDelta > 0 ? colonyECData.lastECDelta : 0);
-                            }
-                        }
+                                transferAmount = t.ResourcesTarget[res] * t.Efficiency / t.EfficiencyBalancer[res];
 
-                        t.ECTransferProducer.EC = -transferAmount;
+                                double newRatio = (currentColonyRes + transferAmount + colonyresData.lastECDelta) / maxColonyRes;
 
-                        if (transferAmount != t.ToVesselResourcesActual[EC])
-                        {
-                            t.ToVesselResourcesActual[EC] = transferAmount;
-
-                            if (transferAmount != t.ToVesselResourcesTarget[EC])
-                            {
-                                t.ColonyConstrained[EC] = true;
-
-                                if (t.DisableIfColonyConstrains[EC])
+                                if (newRatio < t.ColonyTransferLimits[res])
                                 {
-                                    transferAmount = 0;
+                                    double limitPercent = Math.Abs(t.ColonyTransferLimits[res] - colonyResRatio);
+                                    transferAmount = Math.Max(Math.Min((t.ColonyTransferLimits[res] - colonyResRatio) * maxColonyRes, 0) + (colonyresData.lastECDelta < 0 && limitPercent < 0.01 ? colonyresData.lastECDelta : 0), t.ResourcesTarget[res]);
                                 }
+                            }
+
+                            if (t.VesselConstrained[res])
+                            {
+                                if (t.ResourcesActual[res] < transferAmount)
+                                {
+                                    t.VesselConstrained[res] = false;
+                                    t.ColonyConstrained[res] = true;
+
+                                    if (t.DisableIfColonyConstrains[res])
+                                    {
+                                        transferAmount = 0;
+                                        t.CleanResources();
+                                    }
+
+                                    t.ResourcesActual[res] = transferAmount;
+                                    t.ECTransferProducer.EC = transferAmount;
+                                }
+                                else
+                                {
+                                    t.ECTransferProducer.EC = t.ResourcesActual[res];
+                                }
+                            }
+                            else if (transferAmount != t.ResourcesActual[res])
+                            {
+                                if (transferAmount != t.ResourcesTarget[res])
+                                {
+                                    t.VesselConstrained[res] = false;
+                                    t.ColonyConstrained[res] = true;
+
+                                    if (t.DisableIfColonyConstrains[res])
+                                    {
+                                        transferAmount = 0;
+                                        t.CleanResources();
+                                    }
+                                }
+                                else
+                                {
+                                    t.ColonyConstrained[res] = false;
+                                }
+
+                                t.ResourcesActual[res] = transferAmount;
+                                t.ECTransferProducer.EC = transferAmount;
+                            }
+                            else if (transferAmount == t.ResourcesTarget[res])
+                            {
+                                t.ColonyConstrained[res] = false;
+
+                                t.ResourcesActual[res] = transferAmount;
+                                t.ECTransferProducer.EC = transferAmount;
                             }
                             else
                             {
-                                t.ColonyConstrained[EC] = false;
+                                t.ResourcesActual[res] = transferAmount;
+                                t.ECTransferProducer.EC = transferAmount;
                             }
                         }
+                        else
+                        {
+                            t.ResourcesActual[res] = 0;
+                            t.ECTransferProducer.EC = 0;
+                        }
                     }
-                    else
-                    {
-                        t.ECTransferProducer.EC = 0;
-                    }
-                }
+                });
             });
         }
     }

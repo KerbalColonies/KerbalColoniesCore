@@ -2,8 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using UnityEngine;
 
 namespace KerbalColonies.VesselAutoTransfer
@@ -15,7 +13,7 @@ namespace KerbalColonies.VesselAutoTransfer
         protected Dictionary<PartResourceDefinition, string> rateStrings = new Dictionary<PartResourceDefinition, string>();
         protected Dictionary<PartResourceDefinition, string> colonyLimitStrings = new Dictionary<PartResourceDefinition, string>();
         protected Dictionary<PartResourceDefinition, string> vesselLimitStrings = new Dictionary<PartResourceDefinition, string>();
-        public KCColonyTransferBehaviour.KCTransferInfo transfer => transferModule.transferInfo;
+        public KCTransferInfo transfer => transferModule.transferInfo;
         Vector2 scrollPos = Vector2.zero;
 
         protected override void OnOpen()
@@ -34,10 +32,20 @@ namespace KerbalColonies.VesselAutoTransfer
                 if (max > 0)
                 {
                     allResources.Add(item);
-                    transfer.AddResource(item);
-                    rateStrings.TryAdd(item, "0");
-                    colonyLimitStrings.TryAdd(item, "0.5");
-                    vesselLimitStrings.TryAdd(item, "0.5");
+                    if (transfer.resources.Contains(item))
+                    {
+                        rateStrings.Add(item, transfer.ResourcesTarget[item].ToString());
+
+                        colonyLimitStrings.Add(item, transfer.ColonyTransferLimits[item].ToString());
+                        vesselLimitStrings.Add(item, transfer.VesselTransferLimits[item].ToString());
+                    }
+                    else
+                    {
+                        transfer.AddResource(item);
+                        rateStrings.TryAdd(item, "0");
+                        colonyLimitStrings.TryAdd(item, "0.5");
+                        vesselLimitStrings.TryAdd(item, "0.5");
+                    }
                 }
             }
         }
@@ -75,38 +83,7 @@ namespace KerbalColonies.VesselAutoTransfer
                                 Configuration.writeLog($"Changed transfer rate of {kvp.Key.name} to {rate} units/second.");
                                 rateStrings[kvp.Key] = rate.ToString();
 
-                                if (rate >= 0)
-                                {
-                                    transfer.ToColonyResourcesTarget[kvp.Key] = rate;
-                                    transfer.ToVesselResourcesTarget[kvp.Key] = 0;
-
-                                    if (transfer.ColonyTransferLimits[kvp.Key] == 0.5)
-                                    {
-                                        transfer.ColonyTransferLimits[kvp.Key] = 0.8;
-                                        colonyLimitStrings[kvp.Key] = "0.8";
-                                    }
-                                    if (transfer.VesselTransferLimits[kvp.Key] == 0.5)
-                                    {
-                                        transfer.VesselTransferLimits[kvp.Key] = 0.2;
-                                        vesselLimitStrings[kvp.Key] = "0.2";
-                                    }
-                                }
-                                else
-                                {
-                                    transfer.ToColonyResourcesTarget[kvp.Key] = 0;
-                                    transfer.ToVesselResourcesTarget[kvp.Key] = -rate;
-
-                                    if (transfer.ColonyTransferLimits[kvp.Key] == 0.5)
-                                    {
-                                        transfer.ColonyTransferLimits[kvp.Key] = 0.2;
-                                        colonyLimitStrings[kvp.Key] = "0.2";
-                                    }
-                                    if (transfer.VesselTransferLimits[kvp.Key] == 0.5)
-                                    {
-                                        transfer.VesselTransferLimits[kvp.Key] = 0.8;
-                                        vesselLimitStrings[kvp.Key] = "0.8";
-                                    }
-                                }
+                                transfer.ResourcesTarget[kvp.Key] = rate;
                             }
                             else
                             {

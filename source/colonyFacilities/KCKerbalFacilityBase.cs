@@ -120,7 +120,6 @@ namespace KerbalColonies.colonyFacilities
             {
                 kerbals.Remove(key);
             }
-            ;
         }
 
         public virtual void AddKerbal(ProtoCrewMember member) { if (!kerbals.TryAdd(member, 0)) kerbals[member] = 0; }

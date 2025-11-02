@@ -124,7 +124,7 @@ namespace KerbalColonies.UI
                 }
                 else if (mode == SwitchModes.Colony)
                 {
-                    KCCrewQuarters.FindKerbalInCrewQuarters(colony, member).modifyKerbal(member, 1);
+                    KCCrewQuarters.FindKerbalInCrewQuarters(colony, member)?.modifyKerbal(member, 1);
                 }
 
             }
@@ -169,7 +169,7 @@ namespace KerbalColonies.UI
                 }
                 else if (mode == SwitchModes.Colony)
                 {
-                    KCCrewQuarters.FindKerbalInCrewQuarters(colony, member).modifyKerbal(member, 0);
+                    KCCrewQuarters.FindKerbalInCrewQuarters(colony, member)?.modifyKerbal(member, 0);
                 }
             }
             toListModifierList.Clear();

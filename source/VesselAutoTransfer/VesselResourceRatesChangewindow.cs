@@ -99,7 +99,7 @@ namespace KerbalColonies.VesselAutoTransfer
 
         protected override void OnClose()
         {
-            transfer.CleanResources();
+            transfer?.CleanResources();
         }
 
         public VesselResourceRatesChangewindow(ModuleKCTransfer transferModule) : base(Configuration.createWindowID(), "Change resource rates", false)

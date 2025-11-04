@@ -114,7 +114,7 @@ namespace KerbalColonies.VesselAutoTransfer
                         {
                             if (colonyResRatio < t.ColonyTransferLimits[res])
                             {
-                                transferAmount = t.ResourcesTarget[res] * t.Efficiency / t.EfficiencyBalancer[res];
+                                transferAmount = t.ResourcesTarget[res] * t.Efficiency;
 
                                 double newRatio = (currentColonyRes + transferAmount + colonyresData.lastECDelta) / maxColonyRes;
 
@@ -177,7 +177,7 @@ namespace KerbalColonies.VesselAutoTransfer
                         {
                             if (colonyResRatio > t.ColonyTransferLimits[res])
                             {
-                                transferAmount = t.ResourcesTarget[res] * t.Efficiency / t.EfficiencyBalancer[res];
+                                transferAmount = t.ResourcesTarget[res] * t.Efficiency;
 
                                 double newRatio = (currentColonyRes + transferAmount + colonyresData.lastECDelta) / maxColonyRes;
 

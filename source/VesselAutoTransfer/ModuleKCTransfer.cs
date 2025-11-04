@@ -83,30 +83,6 @@ namespace KerbalColonies.VesselAutoTransfer
                 lastResourceValue.TryAdd(res, 0);
                 double lastAmount = lastResourceValue[res];
 
-                /*
-                if (res != EC) continue;
-
-                double transferAmount = 0;
-
-                if (transferInfo.ColonyConstrained[res])
-                {
-                    if (transferInfo.ToColonyResourcesTarget[res] > 0) transferAmount = transferInfo.ToColonyResourcesActual[res];
-                    if (transferInfo.ToVesselResourcesTarget[res] > 0) transferAmount = -transferInfo.ToVesselResourcesActual[res];
-                }
-                else
-                {
-                    if (transferInfo.ToColonyResourcesTarget[res] > 0) transferAmount = transferInfo.ToColonyResourcesTarget[res];
-                    if (transferInfo.ToVesselResourcesTarget[res] > 0) transferAmount = -transferInfo.ToVesselResourcesTarget[res];
-                }
-
-                transferAmount *= deltaTime;
-
-
-                double amount = part.RequestResource(res.id, transferAmount, transferMode);
-
-                Configuration.writeDebug($"KC Transfer: {amount} of {transferAmount} requested to colony {colony.Name}");
-                */
-
                 if (res == EC)
                 {
                     part.GetConnectedResourceTotals(EC.id, transferMode, out double currentEC, out double maxEC);
@@ -120,7 +96,7 @@ namespace KerbalColonies.VesselAutoTransfer
                     {
                         if (ECRatio > transferInfo.VesselTransferLimits[res])
                         {
-                            transferAmount = transferInfo.ResourcesTarget[res] * transferInfo.Efficiency / transferInfo.EfficiencyBalancer[res];
+                            transferAmount = transferInfo.ResourcesTarget[res] * transferInfo.Efficiency;
 
                             double newRatio = (currentEC - transferAmount - ECDelta) / maxEC;
 
@@ -176,7 +152,7 @@ namespace KerbalColonies.VesselAutoTransfer
                     {
                         if (ECRatio < transferInfo.VesselTransferLimits[res])
                         {
-                            transferAmount = transferInfo.ResourcesTarget[res] * transferInfo.Efficiency / transferInfo.EfficiencyBalancer[res];
+                            transferAmount = transferInfo.ResourcesTarget[res] * transferInfo.Efficiency;
 
                             double newRatio = (currentEC - transferAmount - ECDelta) / maxEC;
 
@@ -242,85 +218,6 @@ namespace KerbalColonies.VesselAutoTransfer
                     Configuration.writeDebug($"ModuleKCTransfer: Requesting {transferAmount} (dt: {deltaTime}) from {part.name.ToString()} in vessel {part.vessel.name}");
                     part.RequestResource(res.id, transferAmount * deltaTime, transferMode);
                 }
-
-
-                /*
-                if (res == EC)
-                {
-                    part.GetConnectedResourceTotals(EC.id, transferMode, out double currentEC, out double maxEC);
-                    double ECRatio = currentEC / maxEC;
-
-                    double transferAmount = 0;
-
-                    if (transferInfo.ResourcesTarget[EC] > 0)
-                    {
-                        if (ECRatio > transferInfo.VesselTransferLimits[EC])
-                        {
-                            transferAmount = transferInfo.ResourcesTarget[EC] * transferInfo.Efficiency / transferInfo.EfficiencyBalancer[EC];
-
-                            double newRatio = (currentEC + transferAmount) / maxEC;
-
-                            if (newRatio < transferInfo.VesselTransferLimits[EC])
-                            {
-                                transferAmount = (transferInfo.VesselTransferLimits[EC] - ECRatio) * maxEC;
-                            }
-                        }
-
-                        if (transferAmount != transferInfo.ResourcesActual[EC])
-                        {
-                            if (transferAmount != transferInfo.ResourcesTarget[EC])
-                            {
-                                transferInfo.VesselConstrained[EC] = true;
-
-                                if (transferInfo.DisableIfVesselConstrains[EC])
-                                {
-                                    transferAmount = 0;
-                                }
-                            }
-                            else
-                            {
-                                transferInfo.VesselConstrained[EC] = false;
-                            }
-
-                            transferInfo.ResourcesActual[EC] = transferAmount;
-                        }
-                        part.RequestResource(res.id, transferAmount, transferMode);
-                    }
-                    else
-                    {
-                        if (ECRatio > transferInfo.VesselTransferLimits[EC])
-                        {
-                            transferAmount = (-transferInfo.ResourcesTarget[EC]) * transferInfo.Efficiency / transferInfo.EfficiencyBalancer[EC];
-
-                            double newRatio = (currentEC - transferAmount) / maxEC;
-
-                            if (newRatio < transferInfo.VesselTransferLimits[EC])
-                            {
-                                transferAmount = (transferInfo.ColonyTransferLimits[EC] - ECRatio) * maxEC;
-                            }
-                        }
-
-                        if (transferAmount != transferInfo.ResourcesActual[EC])
-                        {
-                            if (transferAmount != transferInfo.ToVesselResourcesTarget[EC])
-                            {
-                                transferInfo.VesselConstrained[EC] = true;
-
-                                if (transferInfo.DisableIfVesselConstrains[EC])
-                                {
-                                    transferAmount = 0;
-                                }
-                            }
-                            else
-                            {
-                                transferInfo.ColonyConstrained[EC] = false;
-                            }
-
-                            transferInfo.ToVesselResourcesActual[EC] = transferAmount;
-                        }
-                        part.RequestResource(res.id, -transferAmount, transferMode);
-                    }
-                }*/
             }
         }
 

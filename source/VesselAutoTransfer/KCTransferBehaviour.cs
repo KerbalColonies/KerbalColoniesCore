@@ -28,27 +28,18 @@ namespace KerbalColonies.VesselAutoTransfer
             resources.Requirements = new List<ResourceConstraint>();
 
 
-            //ResourceRatio ecr = new ResourceRatio("ElectricCharge", 10, false, transferMode);
-            //resources.Inputs.Add(ecr);
-
-            //ResourceConstraint req = new ResourceConstraint(ecr);
-            //req.Amount = 5000;
-            //req.Constraint = Constraint.AT_LEAST;
-
-            //resources.Requirements.Add(req);
+            PartResourceDefinition EC = PartResourceLibrary.Instance.GetDefinition("ElectricCharge");
 
             transferInfo?.resources.ForEach(res =>
             {
-                double amount;
+                ResourceRatio ratio = new ResourceRatio(res.name, transferInfo.ResourcesTarget[res], false);
+
+                ResourceConstraint constraint = new ResourceConstraint(ratio);
                 double requirement = transferInfo.VesselTransferLimits[res] * state.Processor.GetResourceState(res.name).maxAmount;
+                constraint.Amount = requirement;
 
                 if (transferInfo.ResourcesTarget[res] > 0)
                 {
-                    amount = transferInfo.ResourcesTarget[res];
-                    ResourceRatio ratio = new ResourceRatio(res.name, amount, false);
-
-                    ResourceConstraint constraint = new ResourceConstraint(ratio);
-                    constraint.Amount = requirement;
                     constraint.Constraint = Constraint.AT_LEAST;
 
                     resources.Inputs.Add(ratio);
@@ -56,11 +47,6 @@ namespace KerbalColonies.VesselAutoTransfer
                 }
                 else
                 {
-                    amount = transferInfo.ResourcesTarget[res];
-                    ResourceRatio ratio = new ResourceRatio(res.name, amount, false);
-
-                    ResourceConstraint constraint = new ResourceConstraint(ratio);
-                    constraint.Amount = requirement;
                     constraint.Constraint = Constraint.AT_MOST;
 
                     resources.Outputs.Add(ratio);
@@ -78,9 +64,6 @@ namespace KerbalColonies.VesselAutoTransfer
             // rates will be updated through the OnRatesComputed event
             // although it's also necessary to update the rates on every change point as e.g. solar panels will change the possible rates
 
-            BackgroundResourceProcessing.Core.InventoryState state = processor.GetResourceState("ElectricCharge");
-            Configuration.writeDebug($"KCTransferBehaviour OnRatesComputed called for vessel {processor.Vessel.vesselName}. EC remaining: {state.amount}/{state.maxAmount}, {state.rate}/s");
-            
             if (converter.Inputs.Count > 0)
             {
                 double ecRate = converter.Inputs.FirstOrDefault(kvp => kvp.Value.ResourceName == "ElectricCharge").Value.Ratio * converter.Rate;
@@ -93,6 +76,57 @@ namespace KerbalColonies.VesselAutoTransfer
             if (FlightGlobals.ActiveVessel != processor.Vessel)
             {
                 transferInfo.Efficiency = converter.Rate;
+
+                if (transferInfo.Efficiency < 1)
+                {
+                    if (transferInfo.Efficiency <= 0.00001)
+                    {
+                        transferInfo.Efficiency = 0;
+                        transferInfo.resources.ForEach(res =>
+                        {
+                            transferInfo.ResourcesActual[res] = 0;
+                            transferInfo.VesselConstrained[res] = true;
+                            transferInfo.ColonyConstrained[res] = false;
+
+                            if (transferInfo.DisableIfVesselConstrains[res])
+                            {
+                                Configuration.writeDebug($"Disabling transfer of {res.name} due to vessel constraint.");
+                                KeyValuePair<int, ResourceRatio> resKVP = converter.Inputs.First(kvp => kvp.Value.ResourceName == res.name);
+                                converter.Inputs[resKVP.Key].Ratio = 0;
+                            }
+                        });
+                        transferInfo.resources.Clear();
+                        return;
+                    }
+
+                    transferInfo.resources.ForEach(res =>
+                    {
+                        KeyValuePair<int, ResourceRatio> resKVP = converter.Inputs.First(kvp => kvp.Value.ResourceName == res.name);
+                        ResourceRatio resRatio = resKVP.Value;
+
+                        if (transferInfo.ColonyConstrained[res])
+                        {
+                            if (resRatio.Ratio > transferInfo.ResourcesActual[res])
+                            {
+                                resRatio.Ratio = transferInfo.ResourcesActual[res] / converter.Rate;
+                            }
+                        }
+                        else
+                        {
+                            transferInfo.VesselConstrained[res] = true;
+                            if (transferInfo.DisableIfVesselConstrains[res])
+                            {
+                                Configuration.writeDebug($"Disabling transfer of {res.name} due to vessel constraint.");
+                                resRatio.Ratio = 0;
+                                transferInfo.resources.Clear();
+                            }
+                            else
+                            {
+                                transferInfo.ResourcesActual[res] = resRatio.Ratio * converter.Rate;
+                            }
+                        }
+                    });
+                }
             }
         }
 

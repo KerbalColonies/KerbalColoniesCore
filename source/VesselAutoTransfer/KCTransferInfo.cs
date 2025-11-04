@@ -35,7 +35,6 @@ namespace KerbalColonies.VesselAutoTransfer
         public uint vesselID;
 
         public double Efficiency { get; set; } = 1.0;
-        public Dictionary<PartResourceDefinition, double> EfficiencyBalancer = new Dictionary<PartResourceDefinition, double>();
 
         public void ColonyResources(PartResourceDefinition res, out double currentAmount, out double maxAmount, out double delta)
         {
@@ -69,7 +68,6 @@ namespace KerbalColonies.VesselAutoTransfer
                 DisableIfColonyConstrains[resource] = false;
                 VesselConstrained[resource] = false;
                 ColonyConstrained[resource] = false;
-                EfficiencyBalancer[resource] = 1.0;
             }
         }
 
@@ -92,9 +90,10 @@ namespace KerbalColonies.VesselAutoTransfer
                     DisableIfColonyConstrains.Remove(r);
                     VesselConstrained.Remove(r);
                     ColonyConstrained.Remove(r);
-                    EfficiencyBalancer.Remove(r);
                 }
             });
+
+            Efficiency = 1;
         }
 
         public void Delete()

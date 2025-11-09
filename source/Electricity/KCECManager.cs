@@ -34,7 +34,7 @@ namespace KerbalColonies.Electricity
         public double lastECDelta => lastECProduced - lastECConsumed;
     }
 
-    public class KCECManager
+    public static class KCECManager
     {
         public static Dictionary<colonyClass, KCColonyECData> colonyEC = new Dictionary<colonyClass, KCColonyECData>();
         public static Dictionary<colonyClass, List<KCECProducer>> otherProducers { get; set; } = new Dictionary<colonyClass, List<KCECProducer>>();

@@ -1,0 +1,261 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+
+namespace KerbalColonies.ResourceManagment
+{
+    public class KCColonyResourceData
+    {
+        public double lastTime { get; set; }
+        public double deltaTime { get; set; }
+        public double currentTime { get; set; }
+
+        public HashSet<PartResourceDefinition> resources { get; set; } = new HashSet<PartResourceDefinition>();
+        public Dictionary<PartResourceDefinition, double> ResourcesProduced { get; set; } = new Dictionary<PartResourceDefinition, double>();
+        public Dictionary<PartResourceDefinition, double> ResourcesConsumed { get; set; } = new Dictionary<PartResourceDefinition, double>();
+        public Dictionary<PartResourceDefinition, double> ResourcesStored { get; set; } = new Dictionary<PartResourceDefinition, double>();
+
+        public double ResourceDelta(PartResourceDefinition resource)
+        {
+            double produced = ResourcesProduced.GetValueOrDefault(resource);
+            double consumed = ResourcesConsumed.GetValueOrDefault(resource);
+            return produced - consumed;
+        }
+    }
+
+    public static class KCResourceManager
+    {
+        public static Dictionary<colonyClass, List<IKCResourceProducer>> otherProducers { get; set; } = new Dictionary<colonyClass, List<IKCResourceProducer>>();
+        public static Dictionary<colonyClass, SortedDictionary<int, List<IKCResourceConsumer>>> otherConsumers { get; set; } = new Dictionary<colonyClass, SortedDictionary<int, List<IKCResourceConsumer>>>();
+        public static Dictionary<colonyClass, SortedDictionary<int, List<IKCResourceStorage>>> otherStorages { get; set; } = new Dictionary<colonyClass, SortedDictionary<int, List<IKCResourceStorage>>>();
+
+        public static Dictionary<colonyClass, KCColonyResourceData> colonyResources = new Dictionary<colonyClass, KCColonyResourceData>();
+
+        private static void GetDeltaTime(colonyClass colony, out double lastTime, out double deltaTime, out double currentTime)
+        {
+            currentTime = Planetarium.GetUniversalTime();
+            ConfigNode timeNode = colony.sharedColonyNodes.FirstOrDefault(node => node.name == "KCELTime");
+            if (timeNode == null)
+            {
+                ConfigNode node = new ConfigNode("KCELTime");
+                node.AddValue("lastTime", Planetarium.GetUniversalTime().ToString());
+                colony.sharedColonyNodes.Add(node);
+                lastTime = currentTime;
+                deltaTime = 0;
+                return;
+            }
+            lastTime = double.Parse(timeNode.GetValue("lastTime"));
+            deltaTime = currentTime - lastTime;
+            timeNode.SetValue("lastTime", currentTime);
+            return;
+        }
+
+        public static void ResourceUpdate(colonyClass colony)
+        {
+            KCColonyResourceData colonyData = new KCColonyResourceData();
+
+            GetDeltaTime(colony, out double lastTime, out double deltaTime, out double currentTime);
+            if (deltaTime == 0) return;
+
+            colonyData.lastTime = lastTime;
+            colonyData.deltaTime = deltaTime;
+            colonyData.currentTime = currentTime;
+
+
+
+            Dictionary<PartResourceDefinition, double> ResourcesProduced = new Dictionary<PartResourceDefinition, double>();
+            colony.Facilities.OfType<IKCResourceProducer>().ToList().ForEach(facility =>
+            {
+                Dictionary<PartResourceDefinition, double> produced = facility.ResourceProduction(lastTime, deltaTime, currentTime);
+                foreach (KeyValuePair<PartResourceDefinition, double> kvp in produced)
+                {
+                    colonyData.resources.Add(kvp.Key);
+                    colonyData.ResourcesProduced[kvp.Key] = colonyData.ResourcesProduced.GetValueOrDefault(kvp.Key) + kvp.Value;
+                }
+            });
+            if (otherProducers.ContainsKey(colony))
+            {
+                otherProducers[colony].ToList().ForEach(producer =>
+                {
+                    Dictionary<PartResourceDefinition, double> produced = producer.ResourceProduction(lastTime, deltaTime, currentTime);
+                    foreach (KeyValuePair<PartResourceDefinition, double> kvp in produced)
+                    {
+                        colonyData.resources.Add(kvp.Key);
+                        colonyData.ResourcesProduced[kvp.Key] = colonyData.ResourcesProduced.GetValueOrDefault(kvp.Key) + kvp.Value;
+                    }
+                });
+            }
+            colonyData.ResourcesProduced = ResourcesProduced;
+
+            SortedDictionary<int, List<IKCResourceConsumer>> ResourceConsumers = new SortedDictionary<int, List<IKCResourceConsumer>>();
+            Dictionary<PartResourceDefinition, double> ResourcesConsumed = new Dictionary<PartResourceDefinition, double>();
+            Dictionary<IKCResourceConsumer, Dictionary<PartResourceDefinition, double>> ResourcesConsumedPerConsumer = new Dictionary<IKCResourceConsumer, Dictionary<PartResourceDefinition, double>>();
+            colony.Facilities.OfType<IKCResourceConsumer>().ToList().ForEach(facility =>
+            {
+                if (!ResourceConsumers.ContainsKey(facility.ResourceConsumptionPriority))
+                    ResourceConsumers[facility.ResourceConsumptionPriority] = new List<IKCResourceConsumer>();
+                ResourceConsumers[facility.ResourceConsumptionPriority].Add(facility);
+
+                Dictionary<PartResourceDefinition, double> consumed = facility.ExpectedResourceConsumption(lastTime, deltaTime, currentTime);
+                ResourcesConsumedPerConsumer.Add(facility, consumed);
+                foreach (KeyValuePair<PartResourceDefinition, double> kvp in consumed)
+                {
+                    colonyData.resources.Add(kvp.Key);
+                    colonyData.ResourcesConsumed[kvp.Key] = colonyData.ResourcesConsumed.GetValueOrDefault(kvp.Key) + kvp.Value;
+                }
+            });
+            if (otherConsumers.ContainsKey(colony))
+            {
+                otherConsumers[colony].ToList().ForEach(kvp =>
+                {
+                    ResourceConsumers.TryAdd(kvp.Key, new List<IKCResourceConsumer>());
+                    kvp.Value.ForEach(consumer =>
+                    {
+                        ResourceConsumers[kvp.Key].Add(consumer);
+                        Dictionary<PartResourceDefinition, double> consumed = consumer.ExpectedResourceConsumption(lastTime, deltaTime, currentTime);
+                        ResourcesConsumedPerConsumer.Add(consumer, consumed);
+                        foreach (KeyValuePair<PartResourceDefinition, double> kvp2 in consumed)
+                        {
+                            colonyData.resources.Add(kvp2.Key);
+                            colonyData.ResourcesConsumed[kvp2.Key] = colonyData.ResourcesConsumed.GetValueOrDefault(kvp2.Key) + kvp2.Value;
+                        }
+                    });
+                });
+            }
+            ResourceConsumers.Reverse();
+
+            SortedDictionary<int, List<IKCResourceStorage>> ResourceStored = new SortedDictionary<int, List<IKCResourceStorage>>();
+            Dictionary<PartResourceDefinition, double> ResourcesStored = new Dictionary<PartResourceDefinition, double>();
+            colony.Facilities.OfType<IKCResourceStorage>().ToList().ForEach(facility =>
+            {
+                ResourceStored.TryAdd(facility.ResourceStoragePriority, new List<IKCResourceStorage>());
+
+                ResourceStored[facility.ResourceStoragePriority].Add(facility);
+                Dictionary<PartResourceDefinition, double> stored = facility.StoredResources(lastTime, deltaTime, currentTime);
+                foreach (KeyValuePair<PartResourceDefinition, double> kvp in stored)
+                {
+                    colonyData.resources.Add(kvp.Key);
+                    colonyData.ResourcesStored[kvp.Key] = colonyData.ResourcesStored.GetValueOrDefault(kvp.Key) + kvp.Value;
+                }
+            });
+            if (otherStorages.ContainsKey(colony))
+            {
+                otherStorages[colony].ToList().ForEach(kvp =>
+                {
+                    ResourceStored.TryAdd(kvp.Key, new List<IKCResourceStorage>());
+                    kvp.Value.ForEach(storage =>
+                    {
+                        ResourceStored[kvp.Key].Add(storage);
+                        Dictionary<PartResourceDefinition, double> stored = storage.StoredResources(lastTime, deltaTime, currentTime);
+                        foreach (KeyValuePair<PartResourceDefinition, double> kvp2 in stored)
+                        {
+                            colonyData.resources.Add(kvp2.Key);
+                            colonyData.ResourcesStored[kvp2.Key] = colonyData.ResourcesStored.GetValueOrDefault(kvp2.Key) + kvp2.Value;
+                        }
+                    });
+                });
+            }
+            ResourceStored.Reverse();
+
+            Dictionary<PartResourceDefinition, double> insufficientResources = new Dictionary<PartResourceDefinition, double>();
+            Dictionary<PartResourceDefinition, double> sufficientResources = new Dictionary<PartResourceDefinition, double>();
+            Dictionary<PartResourceDefinition, double> storedResourcesUsed = new Dictionary<PartResourceDefinition, double>();
+
+            foreach (PartResourceDefinition res in colonyData.resources)
+            {
+                double delta = colonyData.ResourceDelta(res);
+
+
+                if (delta >= 0)
+                {
+                    sufficientResources[res] = colonyData.ResourcesProduced.GetValueOrDefault(res);
+                }
+                else if (delta + colonyData.ResourcesStored.GetValueOrDefault(res) > 0)
+                {
+                    sufficientResources.Add(res, colonyData.ResourcesProduced.GetValueOrDefault(res) - delta);
+                    storedResourcesUsed[res] = delta;
+                }
+                else
+                {
+                    insufficientResources[res] = -delta + colonyData.ResourcesStored.GetValueOrDefault(res);
+                    storedResourcesUsed[res] = -colonyData.ResourcesStored.GetValueOrDefault(res);
+                }
+            }
+
+            if (insufficientResources.Count == 0)
+            {
+                ResourceConsumers.SelectMany(kvp => kvp.Value).ToList().ForEach(f => f.ConsumeResources(lastTime, deltaTime, currentTime));
+            }
+            else
+            {
+                foreach (KeyValuePair<int, List<IKCResourceConsumer>> kvp in ResourceConsumers)
+                {
+                    foreach (IKCResourceConsumer item in kvp.Value)
+                    {
+                        Dictionary<PartResourceDefinition, double> limitingItemResources = new Dictionary<PartResourceDefinition, double>();
+                        Dictionary<PartResourceDefinition, double> sufficientItemResources = new Dictionary<PartResourceDefinition, double>();
+
+                        foreach (KeyValuePair<PartResourceDefinition, double> resKvp in ResourcesConsumedPerConsumer[item])
+                        {
+                            if (insufficientResources.ContainsKey(resKvp.Key))
+                            {
+                                limitingItemResources[resKvp.Key] = Math.Min(resKvp.Value, insufficientResources[resKvp.Key]);
+                            }
+                            else if (sufficientResources.ContainsKey(resKvp.Key))
+                            {
+                                sufficientItemResources[resKvp.Key] = resKvp.Value;
+                            }
+                        }
+
+                        if (limitingItemResources.Count == 0)
+                        {
+                            item.ConsumeResources(lastTime, deltaTime, currentTime);
+                        }
+                        else
+                        {
+                            Dictionary<PartResourceDefinition, double> unusedResources = item.InsufficientResources(lastTime, deltaTime, currentTime, sufficientItemResources, limitingItemResources);
+
+                            foreach (KeyValuePair<PartResourceDefinition, double> unusedKvp in unusedResources)
+                            {
+                                if (limitingItemResources.ContainsKey(unusedKvp.Key))
+                                {
+                                    limitingItemResources[unusedKvp.Key] += unusedKvp.Value;
+                                }
+                            }
+                        }
+
+                        foreach (KeyValuePair<PartResourceDefinition, double> limitingKvp in limitingItemResources)
+                        {
+                            insufficientResources[limitingKvp.Key] -= limitingKvp.Value;
+                            if (insufficientResources[limitingKvp.Key] <= 0)
+                            {
+                                insufficientResources.Remove(limitingKvp.Key);
+                            }
+                        }
+                    }
+                }
+            }
+
+            foreach (KeyValuePair<PartResourceDefinition, double> kvp in storedResourcesUsed)
+            {
+                double amount = kvp.Value;
+
+                amount += insufficientResources.GetValueOrDefault(kvp.Key);
+
+                foreach (KeyValuePair<int, List<IKCResourceStorage>> storageKVP in ResourceStored)
+                {
+                    foreach (IKCResourceStorage storage in storageKVP.Value)
+                    {
+                        amount = storage.ChangeResourceStored(kvp.Key, amount);
+
+                        if (amount == 0) break;
+                    }
+                }
+            }
+
+
+            colonyResources.Remove(colony);
+            colonyResources.Add(colony, colonyData);
+        }
+    }
+}

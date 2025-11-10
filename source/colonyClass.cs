@@ -23,32 +23,32 @@ using System.Linq;
 
 namespace KerbalColonies
 {
-    public class ColonyUpdateAction : IComparable<ColonyUpdateAction>, IComparer<ColonyUpdateAction>
+    public class ColonyAction : IComparable<ColonyAction>, IComparer<ColonyAction>
     {
         public Action<colonyClass> action { get; private set; }
         public int priority { get; private set; }
 
-        public static bool operator ==(ColonyUpdateAction action0, ColonyUpdateAction action1)
+        public static bool operator ==(ColonyAction action0, ColonyAction action1)
         {
             if (ReferenceEquals(null, action0) && ReferenceEquals(null, action1)) return true;
             if (ReferenceEquals(null, action0) || ReferenceEquals(null, action1)) return false;
             else return action0.action == action1.action;
         }
 
-        public static bool operator !=(ColonyUpdateAction action0, ColonyUpdateAction action1)
+        public static bool operator !=(ColonyAction action0, ColonyAction action1)
         {
             if (ReferenceEquals(null, action0) && ReferenceEquals(null, action1)) return false;
             if (ReferenceEquals(null, action0) || ReferenceEquals(null, action1)) return true;
             else return action0.action != action1.action;
         }
 
-        public int CompareTo(ColonyUpdateAction other)
+        public int CompareTo(ColonyAction other)
         {
             if (other == null) return 1;
             return priority.CompareTo(other.priority);
         }
 
-        public int Compare(ColonyUpdateAction x, ColonyUpdateAction y)
+        public int Compare(ColonyAction x, ColonyAction y)
         {
             if (x == null && y == null) return 0;
             if (x == null) return -1;
@@ -56,99 +56,11 @@ namespace KerbalColonies
             return x.priority.CompareTo(y.priority);
         }
 
-        public override bool Equals(object obj) => obj is ColonyUpdateAction action && this.action == action.action;
+        public override bool Equals(object obj) => obj is ColonyAction action && this.action == action.action;
 
         public override int GetHashCode() => action.GetHashCode();
 
-        public ColonyUpdateAction(Action<colonyClass> action, int priority = 10)
-        {
-            this.action = action;
-            this.priority = priority;
-        }
-    }
-
-    public class ColonyLoadAction : IComparable<ColonyLoadAction>, IComparer<ColonyLoadAction>
-    {
-        public Action<colonyClass> action { get; private set; }
-        public int priority { get; private set; }
-
-        public static bool operator ==(ColonyLoadAction action0, ColonyLoadAction action1)
-        {
-            if (ReferenceEquals(null, action0) && ReferenceEquals(null, action1)) return true;
-            if (ReferenceEquals(null, action0) || ReferenceEquals(null, action1)) return false;
-            else return action0.action == action1.action;
-        }
-
-        public static bool operator !=(ColonyLoadAction action0, ColonyLoadAction action1)
-        {
-            if (ReferenceEquals(null, action0) && ReferenceEquals(null, action1)) return false;
-            if (ReferenceEquals(null, action0) || ReferenceEquals(null, action1)) return true;
-            else return action0.action != action1.action;
-        }
-
-        public int CompareTo(ColonyLoadAction other)
-        {
-            if (other == null) return 1;
-            return priority.CompareTo(other.priority);
-        }
-
-        public int Compare(ColonyLoadAction x, ColonyLoadAction y)
-        {
-            if (x == null && y == null) return 0;
-            if (x == null) return -1;
-            if (y == null) return 1;
-            return x.priority.CompareTo(y.priority);
-        }
-
-        public override bool Equals(object obj) => obj is ColonyLoadAction action && this.action == action.action;
-
-        public override int GetHashCode() => action.GetHashCode();
-
-        public ColonyLoadAction(Action<colonyClass> action, int priority = 10)
-        {
-            this.action = action;
-            this.priority = priority;
-        }
-    }
-
-    public class ColonySaveAction : IComparable<ColonySaveAction>, IComparer<ColonySaveAction>
-    {
-        public Action<colonyClass> action { get; private set; }
-        public int priority { get; private set; }
-
-        public static bool operator ==(ColonySaveAction action0, ColonySaveAction action1)
-        {
-            if (ReferenceEquals(null, action0) && ReferenceEquals(null, action1)) return true;
-            if (ReferenceEquals(null, action0) || ReferenceEquals(null, action1)) return false;
-            else return action0.action == action1.action;
-        }
-
-        public static bool operator !=(ColonySaveAction action0, ColonySaveAction action1)
-        {
-            if (ReferenceEquals(null, action0) && ReferenceEquals(null, action1)) return false;
-            if (ReferenceEquals(null, action0) || ReferenceEquals(null, action1)) return true;
-            else return action0.action != action1.action;
-        }
-
-        public int CompareTo(ColonySaveAction other)
-        {
-            if (other == null) return 1;
-            return priority.CompareTo(other.priority);
-        }
-
-        public int Compare(ColonySaveAction x, ColonySaveAction y)
-        {
-            if (x == null && y == null) return 0;
-            if (x == null) return -1;
-            if (y == null) return 1;
-            return x.priority.CompareTo(y.priority);
-        }
-
-        public override bool Equals(object obj) => obj is ColonySaveAction action && this.action == action.action;
-
-        public override int GetHashCode() => action.GetHashCode();
-
-        public ColonySaveAction(Action<colonyClass> action, int priority = 10)
+        public ColonyAction(Action<colonyClass> action, int priority = 10)
         {
             this.action = action;
             this.priority = priority;
@@ -191,9 +103,10 @@ namespace KerbalColonies
         /// <summary>
         /// Reversed priority, the lower the number, the higher the priority.
         /// </summary>
-        public static List<ColonyLoadAction> ColonyLoad = new List<ColonyLoadAction> { };
-        public static List<ColonyUpdateAction> ColonyUpdate = new List<ColonyUpdateAction> { };
-        public static List<ColonySaveAction> ColonySave = new List<ColonySaveAction> { };
+        public static SortedSet<ColonyAction> ColonyLoad = new SortedSet<ColonyAction> { };
+        public static SortedSet<ColonyAction> ColonyUpdate = new SortedSet<ColonyAction> { };
+        public static SortedSet<ColonyAction> ColonyPreSave = new SortedSet<ColonyAction> { };
+        public static SortedSet<ColonyAction> ColonySave = new SortedSet<ColonyAction> { };
 
         public static colonyClass GetColony(string name)
         {
@@ -220,6 +133,8 @@ namespace KerbalColonies
         public ConfigNode CreateConfigNode()
         {
             Configuration.writeLog($"Saving colony {Name} with {Facilities.Count} facilites and {sharedColonyNodes.Count} shared nodes");
+
+            ColonyPreSave.ToList().ForEach(actionClass => actionClass.action.Invoke(this));
 
             ConfigNode node = new ConfigNode("colonyClass");
             node.AddValue("name", Name);
@@ -262,7 +177,7 @@ namespace KerbalColonies
                 }
             }
 
-            ColonySave.ForEach(actionClass => actionClass.action.Invoke(this));
+            ColonySave.ToList().ForEach(actionClass => actionClass.action.Invoke(this));
 
             return node;
         }
@@ -270,7 +185,7 @@ namespace KerbalColonies
         public void UpdateColony()
         {
             if (currentFrameUpdated || Configuration.Paused) return; // Prevent multiple updates in the same frame
-            ColonyUpdate.ForEach(actionClass => actionClass.action.Invoke(this));
+            ColonyUpdate.ToList().ForEach(actionClass => actionClass.action.Invoke(this));
             currentFrameUpdated = true;
         }
 
@@ -290,7 +205,7 @@ namespace KerbalColonies
             Facilities = new List<KCFacilityBase>();
             sharedColonyNodes = new List<ConfigNode>();
 
-            ColonyLoad.ForEach(actionClass => actionClass.action.Invoke(this));
+            ColonyLoad.ToList().ForEach(actionClass => actionClass.action.Invoke(this));
         }
 
         public colonyClass(ConfigNode node)
@@ -330,7 +245,7 @@ namespace KerbalColonies
                 CAB = new KC_CAB_Facility(this, CABNode.GetNodes().First());
             }
 
-            ColonyLoad.ForEach(actionClass => actionClass.action.Invoke(this));
+            ColonyLoad.ToList().ForEach(actionClass => actionClass.action.Invoke(this));
         }
     }
 }

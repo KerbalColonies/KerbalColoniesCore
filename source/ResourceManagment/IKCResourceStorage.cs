@@ -8,14 +8,14 @@ namespace KerbalColonies.ResourceManagment
 {
     public interface IKCResourceStorage
     {
-        Dictionary<PartResourceDefinition, double> ResourcesStored { get; }
+        SortedDictionary<PartResourceDefinition, double> Resources { get; }
 
-        double MaxVolume { get; }
-        int ResourceStoragePriority { get; }
+        double Volume { get; }
+        double UsedVolume { get; }
+        int Priority { get; }
 
         double MaxStorable(PartResourceDefinition resource);
-        Dictionary<PartResourceDefinition, double> StoredResources(double lastTime, double deltaTime, double currentTime);
+        SortedDictionary<PartResourceDefinition, double> StoredResources(double lastTime, double deltaTime, double currentTime);
         double ChangeResourceStored(PartResourceDefinition resource, double Amount);
-        void SetStoredResources(Dictionary<PartResourceDefinition, double> storedResources);
     }
 }

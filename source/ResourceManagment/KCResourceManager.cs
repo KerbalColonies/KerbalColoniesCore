@@ -128,10 +128,10 @@ namespace KerbalColonies.ResourceManagment
             Dictionary<PartResourceDefinition, double> ResourcesStored = new Dictionary<PartResourceDefinition, double>();
             colony.Facilities.OfType<IKCResourceStorage>().ToList().ForEach(facility =>
             {
-                ResourceStored.TryAdd(facility.ResourceStoragePriority, new List<IKCResourceStorage>());
+                ResourceStored.TryAdd(facility.Priority, new List<IKCResourceStorage>());
 
-                ResourceStored[facility.ResourceStoragePriority].Add(facility);
-                Dictionary<PartResourceDefinition, double> stored = facility.StoredResources(lastTime, deltaTime, currentTime);
+                ResourceStored[facility.Priority].Add(facility);
+                SortedDictionary<PartResourceDefinition, double> stored = facility.StoredResources(lastTime, deltaTime, currentTime);
                 foreach (KeyValuePair<PartResourceDefinition, double> kvp in stored)
                 {
                     colonyData.resources.Add(kvp.Key);
@@ -146,7 +146,7 @@ namespace KerbalColonies.ResourceManagment
                     kvp.Value.ForEach(storage =>
                     {
                         ResourceStored[kvp.Key].Add(storage);
-                        Dictionary<PartResourceDefinition, double> stored = storage.StoredResources(lastTime, deltaTime, currentTime);
+                        SortedDictionary<PartResourceDefinition, double> stored = storage.StoredResources(lastTime, deltaTime, currentTime);
                         foreach (KeyValuePair<PartResourceDefinition, double> kvp2 in stored)
                         {
                             colonyData.resources.Add(kvp2.Key);

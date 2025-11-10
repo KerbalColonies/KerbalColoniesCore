@@ -11,6 +11,7 @@ using KerbalColonies.colonyFacilities.KCMiningFacility;
 using KerbalColonies.colonyFacilities.KCResourceConverterFacility;
 using KerbalColonies.colonyFacilities.StorageFacility;
 using KerbalColonies.Electricity;
+using KerbalColonies.ResourceManagment;
 using KerbalColonies.UI;
 using KerbalColonies.UI.SingleTimeWindow;
 using KerbalColonies.VesselAutoTransfer;
@@ -167,12 +168,16 @@ namespace KerbalColonies
             SingleTimeWindowManager.windows.Add(new Changelogwindow());
 #endif
 
-            colonyClass.ColonyLoad.Add(new ColonyLoadAction(KCColonyTransferBehaviour.ColonyLoadAction));
+            colonyClass.ColonyLoad.Add(new ColonyAction(KCColonyTransferBehaviour.ColonyLoadAction));
+            colonyClass.ColonyLoad.Add(new ColonyAction(KCUnifiedColonyStorage.LoadColony));
 
-            colonyClass.ColonyUpdate.Add(new ColonyUpdateAction(colonyClass.ColonyUpdateHandler, 0));
-            colonyClass.ColonyUpdate.Add(new ColonyUpdateAction(KCProductionFacility.ExecuteProduction, 10));
-            colonyClass.ColonyUpdate.Add(new ColonyUpdateAction(KCECManager.ElectricityUpdate, 5));
-            colonyClass.ColonyUpdate.Add(new ColonyUpdateAction(KCColonyTransferBehaviour.ColonyUpdateTransferAction, 16));
+            colonyClass.ColonyUpdate.Add(new ColonyAction(colonyClass.ColonyUpdateHandler, 0));
+            colonyClass.ColonyUpdate.Add(new ColonyAction(KCProductionFacility.ExecuteProduction, 10));
+            colonyClass.ColonyUpdate.Add(new ColonyAction(KCECManager.ElectricityUpdate, 5));
+            colonyClass.ColonyUpdate.Add(new ColonyAction(KCResourceManager.ResourceUpdate, 5));
+            colonyClass.ColonyUpdate.Add(new ColonyAction(KCColonyTransferBehaviour.ColonyUpdateTransferAction, 16));
+
+            colonyClass.ColonySave.Add(new ColonyAction(KCUnifiedColonyStorage.SaveColony));
 
             KC_CAB_Window.CABInfoWindow += KCECManager.CABDisplay;
             KC_CAB_Window.CABInfoWindow += KCCrewQuarters.CABDisplay;

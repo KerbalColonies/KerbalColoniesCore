@@ -25,6 +25,13 @@ namespace KerbalColonies.colonyFacilities.StorageFacility
 {
     public class KCStorageFacilityWindow : KCFacilityWindowBase
     {
+        public enum ResourceTransferAvailable
+        {
+            Possible,
+            Colony_only,
+            Vessel_only,
+        }
+
         KCStorageFacility storageFacility;
         public HashSet<PartResourceDefinition> allResources = new HashSet<PartResourceDefinition>();
         protected Vector2 scrollPos;
@@ -54,14 +61,7 @@ namespace KerbalColonies.colonyFacilities.StorageFacility
         public static bool vesselHasRessources(Vessel v, PartResourceDefinition resource, double amount)
         {
             v.GetConnectedResourceTotals(resource.id, false, out double vesselAmount, out double vesselMaxAmount);
-            if (vesselAmount >= amount)
-            {
-                return true;
-            }
-            else
-            {
-                return false;
-            }
+            return vesselAmount >= amount;
         }
 
         public static double getVesselRessources(Vessel v, PartResourceDefinition resource)
@@ -70,26 +70,16 @@ namespace KerbalColonies.colonyFacilities.StorageFacility
             return vesselAmount;
         }
 
-        public bool facilityHasRessources(PartResourceDefinition resouce, double amount)
-        {
-            if (storageFacility.getRessources()[resouce] >= amount)
-            {
-                return true;
-            }
-            else
-            {
-                return false;
-            }
-        }
+        public bool facilityHasRessources(PartResourceDefinition resouce, double amount) => storageFacility.unifiedColonyStorage.Resources[resouce] >= amount;
 
         public double getFacilityResource(PartResourceDefinition resource)
         {
-            return storageFacility.getRessources()[resource];
+            return storageFacility.unifiedColonyStorage.Resources[resource];
         }
 
         public double getFacilitySpace(PartResourceDefinition resource)
         {
-            return storageFacility.getEmptyAmount(resource);
+            return storageFacility.unifiedColonyStorage.MaxStorable(resource);
         }
 
         /// <summary>
@@ -98,174 +88,154 @@ namespace KerbalColonies.colonyFacilities.StorageFacility
         public static bool vesselHasSpace(Vessel v, PartResourceDefinition r, double amount)
         {
             v.GetConnectedResourceTotals(r.id, false, out double vesselAmount, out double vesselMaxAmount);
-            if (vesselMaxAmount - vesselAmount >= amount)
-            {
-                return true;
-            }
-            else
-            {
-                return false;
-            }
+            return vesselMaxAmount - vesselAmount >= amount;
         }
+
         public static double getVesselSpace(Vessel v, PartResourceDefinition r)
         {
             v.GetConnectedResourceTotals(r.id, false, out double vesselAmount, out double vesselMaxAmount);
             return vesselMaxAmount - vesselAmount;
         }
 
-        public bool facilityHasSpace(PartResourceDefinition resource, double amount)
-        {
-            if (storageFacility.maxVolume - storageFacility.currentVolume >= KCStorageFacility.getVolumeForAmount(resource, amount))
-            {
-                return true;
-            }
-            else
-            {
-                return false;
-            }
-        }
-
+        SortedDictionary<PartResourceDefinition, ResourceTransferAvailable> AvailableResources;
+        protected double transferAmount = 0;
+        protected string transferAmountString = "0";
         protected bool trashResources = false;
-
         protected override void CustomWindow()
         {
             storageFacility.Colony.UpdateColony();
+            GUILayout.Label($"MaxVolume (facility): {storageFacility.storageInfo.maxVolume[storageFacility.level]:f2}", LabelGreen, GUILayout.Height(18));
+            GUILayout.Space(2);
             GUILayout.BeginHorizontal();
-            GUILayout.Label($"MaxVolume: {storageFacility.storageInfo.maxVolume[storageFacility.level]:f2}", LabelGreen, GUILayout.Height(18));
+            GUILayout.Label($"MaxVolume (colony): {storageFacility.unifiedColonyStorage.Volume:f2}", LabelGreen, GUILayout.Height(18));
             GUILayout.FlexibleSpace();
-            GUILayout.Label($"UsedVolume: {storageFacility.currentVolume:f2}", LabelGreen, GUILayout.Height(18));
+            GUILayout.Label($"UsedVolume: {storageFacility.unifiedColonyStorage.UsedVolume:f2}", LabelGreen, GUILayout.Height(18));
             GUILayout.EndHorizontal();
             GUILayout.Space(2);
-            List<double> valueList = new List<double> { -10000, -1000, -100, -10, -1, 1, 10, 100, 1000, 10000 };
+            List<double> valueList = new List<double> { 0.01, 0.1, 1, 10, 100, 1000, 10000, 100000 };
 
 
             KCStorageFacilityInfo info = storageFacility.storageInfo;
 
-            CelestialBody body = FlightGlobals.Bodies.First(b => FlightGlobals.GetBodyIndex(b) == storageFacility.Colony.BodyID);
-
-            double radius = facility.KKgroups.Average(g => KerbalKonstructs.API.GetGroupCenter(g, body.bodyName).RadiusOffset) + body.Radius;
-            double squareRadius = radius * radius;
-            double unMultiplier = body.gMagnitudeAtCenter / squareRadius;
-
-            float multiplier = info.UseGravityMultiplier[facility.level] ? Math.Max(info.MinGravity[facility.level], Math.Min(info.MaxGravity[facility.level], (float)unMultiplier / 9.80665f)) : 1;
-            if (info.UseGravityMultiplier[facility.level] && !Configuration.Paused) Configuration.writeDebug($"KCECStorageWindow: radius: {radius}, radius²: {squareRadius}, unMultiplier: {unMultiplier}");
+            bool canTranfer = storageFacility.unifiedColonyStorage.PlayerInRange();
+            canTranfer |= trashResources;
 
 
-            List<Type> types = info.RangeTypes[facility.level];
-            List<string> names = info.RangeFacilities[facility.level];
-
-            float range = info.TransferRange[facility.level] * multiplier * Configuration.FacilityRangeMultiplier;
-            bool canTranfer = facility.Colony.Facilities.Where(f => types.Contains(f.GetType()) ^ names.Contains(f.facilityInfo.name)).Any(f => f.playerNearFacility((float)range)) || facility.playerNearFacility((float)range);
-            canTranfer &= storageFacility.enabled;
-            canTranfer |= trashResources; // allow transfer if trashing resources, so that the user can delete resources from the storage facility
-            canTranfer &= FlightGlobals.ActiveVessel != null && FlightGlobals.ActiveVessel.LandedOrSplashed && FlightGlobals.ship_srfSpeed <= 0.5; // only allow transfer if the vessel is landed or splashed
-
+            GUILayout.BeginHorizontal();
+            GUILayout.Label("Amount:");
+            transferAmountString = GUILayout.TextField(transferAmountString, GUILayout.Width(100));
+            if (GUILayout.Button("Set") && double.TryParse(transferAmountString, out double amountRes)) transferAmount = amountRes;
+            GUILayout.EndHorizontal();
+            GUILayout.BeginHorizontal();
+            foreach (double i in valueList)
+            {
+                if (GUILayout.Button(i.ToString(), GUILayout.Height(18), GUILayout.Width(32)))
+                {
+                    transferAmount = i;
+                    transferAmountString = i.ToString();
+                }
+            }
+            GUILayout.EndHorizontal();
 
             scrollPos = GUILayout.BeginScrollView(scrollPos);
-            SortedDictionary<PartResourceDefinition, double> resourceCopy = storageFacility.getRessources();
-            for (int r = 0; r < resourceCopy.Count; r++)
+
+            AvailableResources.ToList().ForEach(kvp =>
             {
-                KeyValuePair<PartResourceDefinition, double> kvp = resourceCopy.ElementAt(r);
-                GUILayout.BeginVertical();
-                GUILayout.Label($"{kvp.Key.displayName}: {kvp.Value:f2}", GUILayout.Height(18));
-
-                GUI.enabled = canTranfer;
                 GUILayout.BeginHorizontal();
-                foreach (double i in valueList)
+
+                double resourceAmount = storageFacility.unifiedColonyStorage.Resources.GetValueOrDefault(kvp.Key);
+                GUILayout.Label($"{kvp.Key.displayName}: {resourceAmount:f2}", GUILayout.Height(18));
+                GUILayout.FlexibleSpace();
+
+                if (kvp.Value == ResourceTransferAvailable.Possible)
                 {
-                    if (i < 0 && trashResources || !trashResources)
+                    GUI.enabled = canTranfer;
+                    if (GUILayout.RepeatButton("--", GUILayout.Width(30)) | GUILayout.Button("-", GUILayout.Width(30)))
                     {
-                        if (GUILayout.Button(i.ToString(), GUILayout.Height(18), GUILayout.Width(32)))
+                        if (trashResources)
                         {
-                            Configuration.writeLog($"Transfering {i} {kvp.Key.displayName} from storage facility {storageFacility.DisplayName} to vessel {FlightGlobals.ActiveVessel.vesselName}.");
-
-                            if (i < 0)
+                            storageFacility.unifiedColonyStorage.ChangeResourceStored(kvp.Key, transferAmount);
+                        }
+                        else
+                        {
+                            if (vesselHasSpace(FlightGlobals.ActiveVessel, kvp.Key, -transferAmount))
                             {
-                                if (!trashResources)
+                                if (facilityHasRessources(kvp.Key, -transferAmount))
                                 {
-                                    if (vesselHasSpace(FlightGlobals.ActiveVessel, kvp.Key, -i))
-                                    {
-                                        if (facilityHasRessources(kvp.Key, -i))
-                                        {
-                                            FlightGlobals.ActiveVessel.rootPart.RequestResource(kvp.Key.id, i, ResourceFlowMode.ALL_VESSEL_BALANCE, false);
-                                            storageFacility.changeAmount(kvp.Key, i);
-                                        }
-                                        else
-                                        {
-                                            double amount = getFacilityResource(kvp.Key);
-                                            storageFacility.changeAmount(kvp.Key, -amount);
-                                            FlightGlobals.ActiveVessel.rootPart.RequestResource(kvp.Key.id, -amount, ResourceFlowMode.ALL_VESSEL_BALANCE, false);
-                                        }
-                                    }
-                                    else
-                                    {
-                                        double amount = getVesselSpace(FlightGlobals.ActiveVessel, kvp.Key);
-
-                                        if (facilityHasRessources(kvp.Key, amount))
-                                        {
-                                            FlightGlobals.ActiveVessel.rootPart.RequestResource(kvp.Key.id, -amount, ResourceFlowMode.ALL_VESSEL_BALANCE, false);
-                                            storageFacility.changeAmount(kvp.Key, -amount);
-                                        }
-                                        else
-                                        {
-                                            amount = getFacilityResource(kvp.Key);
-                                            storageFacility.changeAmount(kvp.Key, -amount);
-                                            FlightGlobals.ActiveVessel.rootPart.RequestResource(kvp.Key.id, -amount, ResourceFlowMode.ALL_VESSEL_BALANCE, false);
-                                        }
-                                    }
+                                    FlightGlobals.ActiveVessel.rootPart.RequestResource(kvp.Key.id, transferAmount, ResourceFlowMode.ALL_VESSEL_BALANCE, false);
+                                    storageFacility.unifiedColonyStorage.ChangeResourceStored(kvp.Key, transferAmount);
                                 }
                                 else
                                 {
-                                    if (facilityHasRessources(kvp.Key, -i))
-                                    {
-                                        storageFacility.changeAmount(kvp.Key, i);
-                                    }
-                                    else
-                                    {
-                                        double amount = getFacilityResource(kvp.Key);
-                                        storageFacility.changeAmount(kvp.Key, -amount);
-                                    }
+                                    double amount = getFacilityResource(kvp.Key);
+                                    storageFacility.unifiedColonyStorage.ChangeResourceStored(kvp.Key, -amount);
+                                    FlightGlobals.ActiveVessel.rootPart.RequestResource(kvp.Key.id, -amount, ResourceFlowMode.ALL_VESSEL_BALANCE, false);
                                 }
                             }
                             else
                             {
-                                if (facilityHasSpace(kvp.Key, i))
+                                double amount = getVesselSpace(FlightGlobals.ActiveVessel, kvp.Key);
+
+                                if (facilityHasRessources(kvp.Key, amount))
                                 {
-                                    if (vesselHasRessources(FlightGlobals.ActiveVessel, kvp.Key, i))
-                                    {
-                                        FlightGlobals.ActiveVessel.rootPart.RequestResource(kvp.Key.id, i, ResourceFlowMode.ALL_VESSEL_BALANCE, false);
-                                        storageFacility.changeAmount(kvp.Key, i);
-                                    }
-                                    else
-                                    {
-                                        double amount = getVesselRessources(FlightGlobals.ActiveVessel, kvp.Key);
-                                        FlightGlobals.ActiveVessel.rootPart.RequestResource(kvp.Key.id, amount, ResourceFlowMode.ALL_VESSEL_BALANCE, false);
-                                        storageFacility.changeAmount(kvp.Key, amount);
-                                    }
+                                    FlightGlobals.ActiveVessel.rootPart.RequestResource(kvp.Key.id, -amount, ResourceFlowMode.ALL_VESSEL_BALANCE, false);
+                                    storageFacility.unifiedColonyStorage.ChangeResourceStored(kvp.Key, -amount);
                                 }
                                 else
                                 {
-                                    double amount = getFacilitySpace(kvp.Key);
-                                    if (vesselHasRessources(FlightGlobals.ActiveVessel, kvp.Key, amount))
-                                    {
-                                        FlightGlobals.ActiveVessel.rootPart.RequestResource(kvp.Key.id, amount, ResourceFlowMode.ALL_VESSEL_BALANCE, false);
-                                        storageFacility.changeAmount(kvp.Key, amount);
-                                    }
-                                    else
-                                    {
-                                        amount = getVesselRessources(FlightGlobals.ActiveVessel, kvp.Key);
-                                        FlightGlobals.ActiveVessel.rootPart.RequestResource(kvp.Key.id, amount, ResourceFlowMode.ALL_VESSEL_BALANCE, false);
-                                        storageFacility.changeAmount(kvp.Key, amount);
-                                    }
+                                    amount = getFacilityResource(kvp.Key);
+                                    storageFacility.unifiedColonyStorage.ChangeResourceStored(kvp.Key, -amount);
+                                    FlightGlobals.ActiveVessel.rootPart.RequestResource(kvp.Key.id, -amount, ResourceFlowMode.ALL_VESSEL_BALANCE, false);
                                 }
                             }
                         }
                     }
+                    GUI.enabled = canTranfer && !trashResources;
+                    if (GUILayout.Button("+", GUILayout.Width(30)) | GUILayout.RepeatButton("++", GUILayout.Width(30)))
+                    {
+                        if (storageFacility.unifiedColonyStorage.MaxStorable(kvp.Key) >= transferAmount)
+                        {
+                            if (vesselHasRessources(FlightGlobals.ActiveVessel, kvp.Key, transferAmount))
+                            {
+                                FlightGlobals.ActiveVessel.rootPart.RequestResource(kvp.Key.id, transferAmount, ResourceFlowMode.ALL_VESSEL_BALANCE, false);
+                                storageFacility.unifiedColonyStorage.ChangeResourceStored(kvp.Key, transferAmount);
+                            }
+                            else
+                            {
+                                double amount = getVesselRessources(FlightGlobals.ActiveVessel, kvp.Key);
+                                FlightGlobals.ActiveVessel.rootPart.RequestResource(kvp.Key.id, amount, ResourceFlowMode.ALL_VESSEL_BALANCE, false);
+                                storageFacility.unifiedColonyStorage.ChangeResourceStored(kvp.Key, amount);
+                            }
+                        }
+                        else
+                        {
+                            double amount = getFacilitySpace(kvp.Key);
+                            if (vesselHasRessources(FlightGlobals.ActiveVessel, kvp.Key, amount))
+                            {
+                                FlightGlobals.ActiveVessel.rootPart.RequestResource(kvp.Key.id, amount, ResourceFlowMode.ALL_VESSEL_BALANCE, false);
+                                storageFacility.unifiedColonyStorage.ChangeResourceStored(kvp.Key, amount);
+                            }
+                            else
+                            {
+                                amount = getVesselRessources(FlightGlobals.ActiveVessel, kvp.Key);
+                                FlightGlobals.ActiveVessel.rootPart.RequestResource(kvp.Key.id, amount, ResourceFlowMode.ALL_VESSEL_BALANCE, false);
+                                storageFacility.unifiedColonyStorage.ChangeResourceStored(kvp.Key, amount);
+                            }
+                        }
+                    }
+                    GUI.enabled = true;
                 }
-                GUI.enabled = true;
+                else if (kvp.Value == ResourceTransferAvailable.Colony_only)
+                {
+                    GUILayout.Label("No space on vessel", GUILayout.Height(18));
+                }
+                else if (kvp.Value == ResourceTransferAvailable.Vessel_only)
+                {
+                    GUILayout.Label("No space in colony", GUILayout.Height(18));
+                }
+
                 GUILayout.EndHorizontal();
-                GUILayout.EndVertical();
-            }
+            });
             GUILayout.EndScrollView();
 
             GUILayout.Space(2);
@@ -293,15 +263,36 @@ namespace KerbalColonies.colonyFacilities.StorageFacility
 
         protected override void OnOpen()
         {
-
             if (FlightGlobals.ActiveVessel == null) return;
-            storageFacility.addVesselResourceTypes(FlightGlobals.ActiveVessel);
+
+            AvailableResources = new SortedDictionary<PartResourceDefinition, ResourceTransferAvailable>(Comparer<PartResourceDefinition>.Create((x, y) => x.displayName.CompareTo(y.displayName)));
+
+            foreach (PartResourceDefinition resource in PartResourceLibrary.Instance.resourceDefinitions)
+            {
+                if (KCStorageFacility.blackListedResources.Contains(resource.name)) continue;
+
+                FlightGlobals.ActiveVessel.GetConnectedResourceTotals(resource.id, true, out double amount, out double max, true);
+                if (max > 0)
+                {
+                    if (storageFacility.unifiedColonyStorage.ResourceVolume(resource) <= 0 && storageFacility.unifiedColonyStorage.Resources.GetValueOrDefault(resource) <= 0)
+                    {
+                        AvailableResources.Add(resource, ResourceTransferAvailable.Vessel_only);
+                    }
+                    else
+                    {
+                        AvailableResources.Add(resource, ResourceTransferAvailable.Possible);
+                    }
+                }
+                else if (storageFacility.unifiedColonyStorage.Resources.GetValueOrDefault(resource) > 0)
+                {
+                    AvailableResources.Add(resource, ResourceTransferAvailable.Colony_only);
+                }
+            }
         }
 
-        protected override void OnClose()
-        {
-            storageFacility.cleanUpResources();
-        }
+        //protected override void OnClose()
+        //{
+        //}
 
         public KCStorageFacilityWindow(KCStorageFacility storageFacility) : base(storageFacility, Configuration.createWindowID())
         {

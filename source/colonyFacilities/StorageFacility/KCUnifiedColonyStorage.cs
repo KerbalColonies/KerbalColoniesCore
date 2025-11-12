@@ -18,7 +18,7 @@ namespace KerbalColonies.colonyFacilities.StorageFacility
         public int Priority { get; set; } = 0;
         public double Volume => storageFacilities.Sum(facility => facility.locked ? 0 : facility.maxVolume);
         public double ResourceVolume(PartResourceDefinition resource) => storageFacilities.Where(fac => fac.CanStoreResource(resource) && !fac.locked).Sum(fac => fac.maxVolume);
-        public double UsedVolume => Resources.Sum(kvp => kvp.Key.volume * kvp.Value);
+        public double UsedVolume => Resources.Sum(kvp => (kvp.Key.volume == 0 ? 1 : kvp.Key.volume) * kvp.Value);
         // Difference between total volume and resource volume is subtracted from used volume becaues the other resources can be stored in other facilities
         // Although this can give false results for some specific cases I think it's good enough for now
         public double UsedResourceVolume(PartResourceDefinition resource) => UsedVolume - Volume + ResourceVolume(resource);
@@ -47,10 +47,8 @@ namespace KerbalColonies.colonyFacilities.StorageFacility
             }
         }
 
-        public bool PlayerInRange()
+        public bool VesselInRange(Vessel v)
         {
-            if (FlightGlobals.ActiveVessel == null) return false;
-
             return storageFacilities.Any(fac =>
             {
                 KCStorageFacilityInfo info = fac.storageInfo;
@@ -69,23 +67,32 @@ namespace KerbalColonies.colonyFacilities.StorageFacility
                 List<string> names = info.RangeFacilities[fac.level];
 
                 float range = info.TransferRange[fac.level] * multiplier * Configuration.FacilityRangeMultiplier;
-                bool canTranfer = fac.Colony.Facilities.Where(f => types.Contains(f.GetType()) ^ names.Contains(f.facilityInfo.name)).Any(f => f.playerNearFacility((float)range)) || fac.playerNearFacility((float)range);
+                bool canTranfer = fac.Colony.Facilities.Where(f => types.Contains(f.GetType()) ^ names.Contains(f.facilityInfo.name)).Any(f => f.vesselNearFacility(v, (float)range)) || fac.vesselNearFacility(v, (float)range);
                 canTranfer &= fac.enabled;
-                canTranfer &= FlightGlobals.ActiveVessel != null && FlightGlobals.ActiveVessel.LandedOrSplashed && FlightGlobals.ship_srfSpeed <= 0.5; // only allow transfer if the vessel is landed or splashed
+                canTranfer &= v.LandedOrSplashed && v.srfSpeed <= 0.5; // only allow transfer if the vessel is landed or splashed
 
                 return canTranfer;
             });
         }
 
-
-        public static void LoadColony(colonyClass colony)
-        {
-            throw new NotImplementedException();
-        }
-
         public static void SaveColony(colonyClass colony)
         {
-            throw new NotImplementedException();
+            if (!colonyStorages.ContainsKey(colony)) return;
+
+            ConfigNode storageNode = new ConfigNode("KCUnifiedColonyStorage");
+            KCUnifiedColonyStorage colonyStorage = colonyStorages[colony];
+
+            storageNode.AddValue("Priority", colonyStorage.Priority);
+
+            ConfigNode resourceNode = new ConfigNode("Resources");
+            colonyStorage.Resources.ToList().ForEach(kvp =>
+            {
+                resourceNode.AddValue(kvp.Key.name, kvp.Value);
+            });
+            storageNode.AddNode(resourceNode);
+
+            colony.sharedColonyNodes.RemoveAll(n => n.name == "KCUnifiedColonyStorage");
+            colony.sharedColonyNodes.Add(storageNode);
         }
 
 
@@ -100,6 +107,21 @@ namespace KerbalColonies.colonyFacilities.StorageFacility
         protected KCUnifiedColonyStorage(colonyClass colony)
         {
             colonyStorages[colony] = this;
+
+            ConfigNode storageNode = colony.sharedColonyNodes.FirstOrDefault(n => n.name == "KCUnifiedColonyStorage");
+
+            if (storageNode != null)
+            {
+                Priority = int.Parse(storageNode.GetValue("Priority") ?? "0");
+                ConfigNode resourceNode = storageNode.GetNode("Resources");
+                if (resourceNode != null)
+                {
+                    foreach (ConfigNode.Value v in resourceNode.values)
+                    {
+                        Resources.Add(PartResourceLibrary.Instance.GetDefinition(v.name), double.Parse(v.value));
+                    }
+                }
+            }
         }
     }
 }

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using KerbalColonies.colonyFacilities.StorageFacility;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -21,21 +22,19 @@ using System.Linq;
 
 namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECStorage
 {
-    public class KCECStorageInfo : KCFacilityInfoClass
+    public class KCECStorageInfo : KCStorageFacilityInfo
     {
         public SortedDictionary<int, double> ECCapacity { get; protected set; } = new SortedDictionary<int, double>();
-        public SortedDictionary<int, float> TransferRange { get; protected set; } = new SortedDictionary<int, float>();
-        public SortedDictionary<int, List<Type>> RangeTypes { get; protected set; } = new SortedDictionary<int, List<Type>>(); // List of facility types that are used as nodes for the transfer range
-        public SortedDictionary<int, List<string>> RangeFacilities { get; protected set; } = new SortedDictionary<int, List<string>>(); // List of (additional) facility names that are used as nodes for the transfer range, if type in the facility type list then this name is not used
-        public SortedDictionary<int, bool> UseGravityMultiplier { get; protected set; } = new SortedDictionary<int, bool>();
-        public SortedDictionary<int, float> MinGravity { get; protected set; } = new SortedDictionary<int, float>();
-        public SortedDictionary<int, float> MaxGravity { get; protected set; } = new SortedDictionary<int, float>();
 
         public KCECStorageInfo(ConfigNode node) : base(node)
         {
+            PartResourceDefinition ec = PartResourceLibrary.Instance.GetDefinition("ElectricCharge");
+
             levelNodes.ToList().ForEach(kvp =>
             {
                 ConfigNode n = kvp.Value;
+
+                if (!resourceWhitelist[kvp.Key].Contains(ec)) resourceWhitelist[kvp.Key].Add(ec);
 
                 if (n.HasValue("capacity")) ECCapacity.Add(kvp.Key, double.Parse(n.GetValue("capacity")));
                 else if (kvp.Key > 0) ECCapacity.Add(kvp.Key, ECCapacity[kvp.Key - 1]);

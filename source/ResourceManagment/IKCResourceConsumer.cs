@@ -16,7 +16,7 @@ namespace KerbalColonies.ResourceManagment
         /// </summary>
         /// <returns>MUST return unused resources, otherwise they are lost</returns>
         Dictionary<PartResourceDefinition, double> InsufficientResources(double lastTime, double deltaTime, double currentTime, Dictionary<PartResourceDefinition, double> sufficientResources, Dictionary<PartResourceDefinition, double> limitingResources);
-        Dictionary<PartResourceDefinition, double> DailyResourceConsumption();
+        Dictionary<PartResourceDefinition, double> ResourceConsumptionPerSecond();
         int ResourceConsumptionPriority { get; }
     }
 }

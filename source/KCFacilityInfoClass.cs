@@ -72,10 +72,6 @@ namespace KerbalColonies
         /// Level, Resource, Amount
         /// </summary>
         public SortedDictionary<int, Dictionary<PartResourceDefinition, double>> resourceCost { get; protected set; }
-        /// <summary>
-        /// currently unused
-        /// </summary>
-        public SortedDictionary<int, double> ECperSecond { get; protected set; } = new SortedDictionary<int, double> { };
         public SortedDictionary<int, double> Funds { get; protected set; } = new SortedDictionary<int, double> { };
         public SortedDictionary<int, UpgradeType> UpgradeTypes { get; protected set; } = new SortedDictionary<int, UpgradeType> { };
         public SortedDictionary<int, string> BasegroupNames { get; protected set; } = new SortedDictionary<int, string> { };
@@ -95,6 +91,9 @@ namespace KerbalColonies
         public SortedDictionary<int, string> Manufacturer { get; protected set; } = new SortedDictionary<int, string> { };
         public SortedDictionary<int, string> IconPath { get; protected set; } = new SortedDictionary<int, string> { }; // relative to GameData
         #endregion
+
+        public SortedDictionary<int, double> ECperSecond { get; protected set; } = new SortedDictionary<int, double> { };
+        public SortedDictionary<int, Dictionary<PartResourceDefinition, double>> ResourceUsage { get; protected set; } = new SortedDictionary<int, Dictionary<PartResourceDefinition, double>> { };
 
         /// <summary>
         /// Used for custom checks (e.g. if a specific facility already exists in the colony), returns true if the facility can be built or upgraded.
@@ -119,10 +118,12 @@ namespace KerbalColonies
                 return false;
             }
 
+            KCUnifiedColonyStorage colonyStorage = KCUnifiedColonyStorage.colonyStorages.GetValueOrDefault(colony, null);
+
             foreach (KeyValuePair<PartResourceDefinition, double> resource in resourceCost[level])
             {
                 double vesselAmount = 0;
-                double colonyAmount = KCStorageFacility.colonyResources(resource.Key, colony);
+                double colonyAmount = colonyStorage?.Resources.GetValueOrDefault(resource.Key) ?? 0;
 
                 if (colony.CAB.PlayerInColony)
                 {
@@ -154,35 +155,40 @@ namespace KerbalColonies
             {
                 if (Configuration.FacilityCostMultiplier == 0) return true;
 
-                foreach (KeyValuePair<PartResourceDefinition, double> resource in resourceCost[level])
+                if (KCUnifiedColonyStorage.colonyStorages.TryGetValue(colony, out KCUnifiedColonyStorage colonyStorage))
                 {
-                    if (resource.Value == 0) continue;
-
-                    double remainingAmount = resource.Value * Configuration.FacilityCostMultiplier;
-
-                    double vesselAmount = 0;
-                    double colonyAmount = KCStorageFacility.colonyResources(resource.Key, colony);
-                    if (colony.CAB.PlayerInColony)
+                    foreach (KeyValuePair<PartResourceDefinition, double> resource in resourceCost[level])
                     {
-                        FlightGlobals.ActiveVessel.GetConnectedResourceTotals(resource.Key.id, out double amount, out double maxAmount);
-                        vesselAmount = amount;
+                        if (resource.Value == 0) continue;
 
-                        if (vesselAmount >= resource.Value * Configuration.FacilityCostMultiplier)
+                        double remainingAmount = resource.Value * Configuration.FacilityCostMultiplier;
+
+                        double vesselAmount = 0;
+                        double colonyAmount = colonyStorage.Resources[resource.Key];
+                        if (colony.CAB.PlayerInColony)
                         {
-                            FlightGlobals.ActiveVessel.RequestResource(FlightGlobals.ActiveVessel.rootPart, resource.Key.id, resource.Value * Configuration.FacilityCostMultiplier, true);
-                        }
-                        else
-                        {
-                            if (colony.CAB.PlayerInColony)
+                            FlightGlobals.ActiveVessel.GetConnectedResourceTotals(resource.Key.id, out double amount, out double maxAmount);
+                            vesselAmount = amount;
+
+                            if (vesselAmount >= resource.Value * Configuration.FacilityCostMultiplier)
                             {
-                                FlightGlobals.ActiveVessel.RequestResource(FlightGlobals.ActiveVessel.rootPart, resource.Key.id, vesselAmount, true);
+                                FlightGlobals.ActiveVessel.RequestResource(FlightGlobals.ActiveVessel.rootPart, resource.Key.id, resource.Value * Configuration.FacilityCostMultiplier, true);
                             }
-                            remainingAmount -= vesselAmount;
+                            else
+                            {
+                                if (colony.CAB.PlayerInColony)
+                                {
+                                    FlightGlobals.ActiveVessel.RequestResource(FlightGlobals.ActiveVessel.rootPart, resource.Key.id, vesselAmount, true);
+                                }
+                                remainingAmount -= vesselAmount;
 
-                            KCStorageFacility.addResourceToColony(resource.Key, -remainingAmount, colony);
+                                colonyStorage.ChangeResourceStored(resource.Key, -remainingAmount);
+                            }
                         }
                     }
                 }
+
+
                 if (Funding.Instance != null)
                 {
                     Funding.Instance.AddFunds(-Funds[level] * Configuration.FacilityCostMultiplier, TransactionReasons.None);
@@ -212,11 +218,15 @@ namespace KerbalColonies
 
 
             resourceCost = new SortedDictionary<int, Dictionary<PartResourceDefinition, double>>();
-            ECperSecond = new SortedDictionary<int, double>();
             Funds = new SortedDictionary<int, double>();
             UpgradeTypes = new SortedDictionary<int, UpgradeType>();
             UpgradeTimes = new SortedDictionary<int, double>();
             BasegroupNames = new SortedDictionary<int, string>();
+
+            ECperSecond = new SortedDictionary<int, double>();
+            ResourceUsage = new SortedDictionary<int, Dictionary<PartResourceDefinition, double>>();
+            PartResourceDefinition ec = PartResourceLibrary.Instance.GetDefinition("ElectricCharge");
+            bool useECValue = false;
 
             if (!node.HasNode("level")) throw new MissingFieldException($"The facility {name} has no level node.");
             ConfigNode levelNode = node.GetNode("level");
@@ -253,10 +263,6 @@ namespace KerbalColonies
                     resourceCost.Add(level, new Dictionary<PartResourceDefinition, double>());
                 }
 
-                if (n.HasValue("ECperSecond")) ECperSecond.Add(level, double.Parse(n.GetValue("ECperSecond")));
-                else if (level != 0) ECperSecond.Add(level, ECperSecond[level - 1]);
-                else ECperSecond.Add(0, 0);
-
                 if (n.HasValue("Funds")) Funds.Add(level, double.Parse(n.GetValue("Funds")));
                 else Funds.Add(level, 0);
 
@@ -267,6 +273,28 @@ namespace KerbalColonies
                 else if (level > 0) MinCABLevel.Add(level, MinCABLevel[level - 1]);
                 else MinCABLevel.Add(level, 0);
 
+                if (n.HasNode("resourceUsage"))
+                {
+                    ConfigNode resourceUsageNode = n.GetNode("resourceUsage");
+                    Dictionary<PartResourceDefinition, double> resourceList = new Dictionary<PartResourceDefinition, double>();
+                    foreach (ConfigNode.Value v in resourceUsageNode.values)
+                    {
+                        PartResourceDefinition resourceDef = PartResourceLibrary.Instance.GetDefinition(v.name);
+                        double amount = double.Parse(v.value);
+                        resourceList.Add(resourceDef, amount);
+                    }
+                    ResourceUsage.Add(level, resourceList);
+                }
+                else if (level != 0) ResourceUsage.Add(level, ResourceUsage[level - 1]);
+                else ResourceUsage.Add(0, new Dictionary<PartResourceDefinition, double>());
+
+
+                if (n.HasValue("ECperSecond"))
+                {
+                    ResourceUsage[level][ec] = double.Parse(n.GetValue("ECperSecond"));
+                    useECValue = true;
+                }
+                else if (level != 0 && useECValue) ResourceUsage[level][ec] = ResourceUsage[level - 1][ec];
 
                 if (n.HasValue("techNodes"))
                 {
@@ -281,8 +309,8 @@ namespace KerbalColonies
                     if (n.HasValue("manufacturer")) Manufacturer.Add(level, n.GetValue("manufacturer"));
                     else Manufacturer.Add(level, "MPW");
 
-                    if (n.HasValue("iconPath")) 
-                        IconPath.Add(level, 
+                    if (n.HasValue("iconPath"))
+                        IconPath.Add(level,
                             n.GetValue("iconPath")
                             .Replace('\\', Path.DirectorySeparatorChar)
                             .Replace("//", Path.DirectorySeparatorChar.ToString())

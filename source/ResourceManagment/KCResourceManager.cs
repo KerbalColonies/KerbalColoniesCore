@@ -221,6 +221,10 @@ namespace KerbalColonies.ResourceManagment
                                 {
                                     limitingItemResources[unusedKvp.Key] += unusedKvp.Value;
                                 }
+                                else
+                                {
+                                    storedResourcesUsed[unusedKvp.Key] += unusedKvp.Value;
+                                }
                             }
                         }
 

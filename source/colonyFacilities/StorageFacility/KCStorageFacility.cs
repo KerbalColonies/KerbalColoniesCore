@@ -1,4 +1,5 @@
 ﻿using KerbalColonies.Electricity;
+using KerbalColonies.ResourceManagment;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -21,9 +22,9 @@ using System.Linq;
 
 namespace KerbalColonies.colonyFacilities.StorageFacility
 {
-    public class KCStorageFacility : KCFacilityBase, KCECConsumer
+    public class KCStorageFacility : KCFacilityBase
     {
-        public static HashSet<string> blackListedResources = new HashSet<string> { "ElectricCharge", "IntakeAir" };
+        public static HashSet<string> blackListedResources = new HashSet<string> { "IntakeAir" };
 
         public KCStorageFacilityInfo storageInfo { get { return (KCStorageFacilityInfo)facilityInfo; } }
         public KCUnifiedColonyStorage unifiedColonyStorage;
@@ -46,7 +47,6 @@ namespace KerbalColonies.colonyFacilities.StorageFacility
         {
             ConfigNode node = base.getConfigNode();
 
-            node.AddValue("ECConsumptionPriority", ECConsumptionPriority);
             node.AddValue("locked", locked);
 
             return node;
@@ -54,7 +54,6 @@ namespace KerbalColonies.colonyFacilities.StorageFacility
 
         public override string GetFacilityProductionDisplay() => $"{unifiedColonyStorage.UsedVolume:f2}/{unifiedColonyStorage.Volume:f2}m³ used\n{unifiedColonyStorage.Resources.Count} resources stored {(facilityInfo.ECperSecond[level] > 0 ? $"\n{(locked ? 0 : facilityInfo.ECperSecond[level]):f2} EC/s" : "")}";
 
-        public int ECConsumptionPriority { get; set; } = 0;
         public double ExpectedECConsumption(double lastTime, double deltaTime, double currentTime) => locked ? 0 : facilityInfo.ECperSecond[level] * deltaTime;
 
         public void ConsumeEC(double lastTime, double deltaTime, double currentTime) => outOfEC = false;
@@ -90,7 +89,6 @@ namespace KerbalColonies.colonyFacilities.StorageFacility
                 }
             }
 
-            if (int.TryParse(node.GetValue("ECConsumptionPriority"), out int ecPriority)) ECConsumptionPriority = ecPriority;
             if (bool.TryParse(node.GetValue("locked"), out bool isLocked)) locked = isLocked;
         }
 

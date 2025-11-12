@@ -117,7 +117,7 @@ namespace KerbalColonies.colonyFacilities.StorageFacility
 
             KCStorageFacilityInfo info = storageFacility.storageInfo;
 
-            bool canTranfer = storageFacility.unifiedColonyStorage.PlayerInRange();
+            bool canTranfer = storageFacility.unifiedColonyStorage.VesselInRange();
             canTranfer |= trashResources;
 
 

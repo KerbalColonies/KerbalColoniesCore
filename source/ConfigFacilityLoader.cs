@@ -169,7 +169,6 @@ namespace KerbalColonies
 #endif
 
             colonyClass.ColonyLoad.Add(new ColonyAction(KCColonyTransferBehaviour.ColonyLoadAction));
-            colonyClass.ColonyLoad.Add(new ColonyAction(KCUnifiedColonyStorage.LoadColony));
 
             colonyClass.ColonyUpdate.Add(new ColonyAction(colonyClass.ColonyUpdateHandler, 0));
             colonyClass.ColonyUpdate.Add(new ColonyAction(KCProductionFacility.ExecuteProduction, 10));

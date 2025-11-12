@@ -1,6 +1,9 @@
 ﻿using KerbalColonies.colonyFacilities.StorageFacility;
 using KerbalColonies.Electricity;
+using KerbalColonies.ResourceManagment;
+using Smooth.Collections;
 using System.Collections.Generic;
+using System.Linq;
 
 // KC: Kerbal Colonies
 // This mod aimes to create a Colony system with Kerbal Konstructs statics
@@ -21,52 +24,20 @@ using System.Collections.Generic;
 
 namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.FuelCell
 {
-    public class KCFuelCellFacility : KCFacilityBase, KCECProducer
+    public class KCFuelCellFacility : KCFacilityBase, IKCResourceProducer, IKCResourceConsumer
     {
         public KCFuelCellInfo fuelCellInfo => (KCFuelCellInfo)facilityInfo;
+
+        public int ResourceConsumptionPriority => 0;
+
+        public bool CanProduce { get; protected set; }
+
         protected KCFuelCellWindow window;
 
         public override void Update()
         {
             lastUpdateTime = Planetarium.GetUniversalTime();
         }
-
-        public bool canProduceEC(double deltaTime)
-        {
-            if (!built || !enabled) return false;
-
-            foreach (KeyValuePair<PartResourceDefinition, double> item in fuelCellInfo.ResourceConsumption[level])
-            {
-                if (KCStorageFacility.colonyResources(item.Key, Colony) < item.Value * deltaTime)
-                {
-                    Configuration.writeDebug($"KCFuelCellFacility ({DisplayName}): Not enough {item.Key.name} to produce EC");
-                    return false;
-                }
-            }
-            return true;
-        }
-
-        public double ProduceEC(double deltaTime)
-        {
-            if (!canProduceEC(deltaTime))
-            {
-                Configuration.writeDebug($"KCFuelCellFacility ({DisplayName}): Cannot produce EC due to insufficient resources");
-                return 0.0;
-            }
-
-            double ecProduced = fuelCellInfo.ECProduction[level] * deltaTime;
-            Configuration.writeDebug($"KCFuelCellFacility ({DisplayName}): Produced {ecProduced} EC");
-            foreach (KeyValuePair<PartResourceDefinition, double> item in fuelCellInfo.ResourceConsumption[level])
-            {
-                KCStorageFacility.addResourceToColony(item.Key, -item.Value * deltaTime, Colony);
-            }
-            return ecProduced;
-        }
-
-        public double ECProduction(double lastTime, double deltaTime, double currentTime) => ProduceEC(deltaTime);
-
-        public double ECPerSecond() => built && enabled ? fuelCellInfo.ECProduction[level] : 0;
-
 
         public override void OnBuildingClicked()
         {
@@ -77,7 +48,38 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fue
             window.Toggle();
         }
 
-        public override string GetFacilityProductionDisplay() => $"Fuel cell production rate: {ECPerSecond():f2} EC/s";
+        public override string GetFacilityProductionDisplay() => $"Fuel cell production rate: {facilityInfo.ResourceUsage[level].GetValueOrDefault(PartResourceLibrary.Instance.GetDefinition("ElectricCharge"), 0):f2} EC/s";
+
+        public Dictionary<PartResourceDefinition, double> ResourceProduction(double lastTime, double deltaTime, double currentTime)
+        {
+            if (CanProduce) return facilityInfo.ResourceUsage[level].Where(kvp => kvp.Value > 0).ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+            else return new Dictionary<PartResourceDefinition, double>();
+        }
+
+        public Dictionary<PartResourceDefinition, double> ResourcesPerSecond()
+        {
+            if (CanProduce) return facilityInfo.ResourceUsage[level].Where(kvp => kvp.Value > 0).ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+            else return new Dictionary<PartResourceDefinition, double>();
+        }
+
+        public Dictionary<PartResourceDefinition, double> ExpectedResourceConsumption(double lastTime, double deltaTime, double currentTime)
+        {
+            return facilityInfo.ResourceUsage[level].Where(kvp => kvp.Value < 0).ToDictionary(kvp => kvp.Key, kvp => -kvp.Value * deltaTime);
+        }
+
+        public void ConsumeResources(double lastTime, double deltaTime, double currentTime) => CanProduce = true;
+
+        public Dictionary<PartResourceDefinition, double> InsufficientResources(double lastTime, double deltaTime, double currentTime, Dictionary<PartResourceDefinition, double> sufficientResources, Dictionary<PartResourceDefinition, double> limitingResources)
+        {
+            CanProduce = false;
+            limitingResources.AddAll(sufficientResources);
+            return limitingResources;
+        }
+
+        public Dictionary<PartResourceDefinition, double> ResourceConsumptionPerSecond()
+        {
+            return facilityInfo.ResourceUsage[level].Where(kvp => kvp.Value < 0).ToDictionary(kvp => kvp.Key, kvp => -kvp.Value);
+        }
 
         public KCFuelCellFacility(colonyClass colony, KCFacilityInfoClass facilityInfo, ConfigNode node) : base(colony, facilityInfo, node)
         {

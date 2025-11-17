@@ -144,7 +144,7 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fus
                                 GUILayout.Label("Input Resources:");
                                 inputScrollPos = GUILayout.BeginScrollView(inputScrollPos);
                                 {
-                                    fusionReactor.FusionInfo.InputResources[fusionReactor.lastPowerLevel.Key == -1 ? 0 : fusionReactor.lastPowerLevel.Key].ToList().ForEach(kvp => GUILayout.Label($"{kvp.Key.displayName}: {kvp.Value}/s * throttle"));
+                                    fusionReactor.facilityInfo.ResourceUsage[fusionReactor.lastPowerLevel.Key == -1 ? 0 : fusionReactor.lastPowerLevel.Key].Where(kvp => kvp.Value > 0).ToList().ForEach(kvp => GUILayout.Label($"{kvp.Key.displayName}: {kvp.Value}/s * throttle"));
                                 }
                                 GUILayout.EndScrollView();
                             }
@@ -156,7 +156,7 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fus
                             GUILayout.Label("Output Resources:");
                             outputScrollPos = GUILayout.BeginScrollView(outputScrollPos);
                             {
-                                fusionReactor.FusionInfo.OutputResources[fusionReactor.lastPowerLevel.Key == -1 ? 0 : fusionReactor.lastPowerLevel.Key].ToList().ForEach(kvp => GUILayout.Label($"{kvp.Key.displayName}: {kvp.Value}/s * throttle"));
+                                fusionReactor.facilityInfo.ResourceUsage[fusionReactor.lastPowerLevel.Key == -1 ? 0 : fusionReactor.lastPowerLevel.Key].Where(kvp => kvp.Value < 0).ToList().ForEach(kvp => GUILayout.Label($"{kvp.Key.displayName}: {kvp.Value}/s * throttle"));
                             }
                             GUILayout.EndScrollView();
                         }

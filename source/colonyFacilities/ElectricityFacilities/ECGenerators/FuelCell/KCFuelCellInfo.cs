@@ -23,22 +23,16 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fue
 {
     public class KCFuelCellInfo : KCFacilityInfoClass
     {
-        public Dictionary<int, double> ECProduction { get; protected set; } = new Dictionary<int, double> { };
-        public Dictionary<int, Dictionary<PartResourceDefinition, double>> ResourceConsumption { get; protected set; } = new Dictionary<int, Dictionary<PartResourceDefinition, double>> { };
-
-
         public KCFuelCellInfo(ConfigNode node) : base(node)
         {
-            ECProduction = new Dictionary<int, double> { };
-            ResourceConsumption = new Dictionary<int, Dictionary<PartResourceDefinition, double>> { };
+            PartResourceDefinition ec = PartResourceLibrary.Instance.GetDefinition("ElectricCharge");
 
             levelNodes.ToList().ForEach(kvp =>
             {
                 ConfigNode n = kvp.Value;
 
-                if (n.HasValue("ECProduction")) ECProduction.Add(kvp.Key, double.Parse(n.GetValue("ECProduction")));
-                else if (kvp.Key > 0) ECProduction.Add(kvp.Key, ECProduction[kvp.Key - 1]);
-                else throw new Exception($"KCFuelCellInfo ({name}): Level {kvp.Key} does not have any ECProduction (at least for level 0)");
+                if (n.HasValue("ECProduction")) ResourceUsage[kvp.Key].Add(ec, double.Parse(n.GetValue("ECProduction")));
+                else if (kvp.Key > 0) ResourceUsage[kvp.Key].Add(ec, ResourceUsage[kvp.Key - 1][ec]);
 
                 if (n.HasNode("ResourceConsumption"))
                 {
@@ -47,12 +41,10 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fue
                     foreach (ConfigNode.Value v in resourceNode.values)
                     {
                         PartResourceDefinition resourceDef = PartResourceLibrary.Instance.GetDefinition(v.name);
-                        double amount = double.Parse(v.value);
-                        resourceList.Add(resourceDef, amount);
+                        double amount = -double.Parse(v.value);
+                        ResourceUsage[kvp.Key].Add(resourceDef, amount);
                     }
-                    ResourceConsumption.Add(kvp.Key, resourceList);
                 }
-
             });
         }
     }

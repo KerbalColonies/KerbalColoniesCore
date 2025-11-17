@@ -30,9 +30,6 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fus
         public Dictionary<int, double> ECChangeThreshold { get; protected set; } = new Dictionary<int, double>();
         public Dictionary<int, double> PowerlevelChangeTime { get; protected set; } = new Dictionary<int, double>();
         public Dictionary<int, double> LevelOffTime { get; protected set; } = new Dictionary<int, double>();
-
-        public Dictionary<int, Dictionary<PartResourceDefinition, double>> InputResources { get; protected set; } = new Dictionary<int, Dictionary<PartResourceDefinition, double>>();
-        public Dictionary<int, Dictionary<PartResourceDefinition, double>> OutputResources { get; protected set; } = new Dictionary<int, Dictionary<PartResourceDefinition, double>>();
         public Dictionary<int, int> MinKerbals { get; protected set; } = new Dictionary<int, int>();
         public Dictionary<int, int> MinKerbalLevel { get; protected set; } = new Dictionary<int, int>();
         public Dictionary<int, Dictionary<string, int>> RequiredTraits { get; protected set; } = new Dictionary<int, Dictionary<string, int>>();
@@ -54,12 +51,9 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fus
                     {
                         PartResourceDefinition resourceDef = PartResourceLibrary.Instance.GetDefinition(v.name);
                         double amount = double.Parse(v.value);
-                        inputList.Add(resourceDef, amount);
+                        base.ResourceUsage[kvp.Key].Add(resourceDef, amount);
                     }
-                    InputResources.Add(kvp.Key, inputList);
                 }
-                else
-                    InputResources.Add(kvp.Key, new Dictionary<PartResourceDefinition, double>());
 
                 if (n.HasNode("OutputResources"))
                 {
@@ -68,13 +62,10 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fus
                     foreach (ConfigNode.Value v in outputNode.values)
                     {
                         PartResourceDefinition resourceDef = PartResourceLibrary.Instance.GetDefinition(v.name);
-                        double amount = double.Parse(v.value);
-                        outputList.Add(resourceDef, amount);
+                        double amount = -double.Parse(v.value);
+                        base.ResourceUsage[kvp.Key].Add(resourceDef, amount);
                     }
-                    OutputResources.Add(kvp.Key, outputList);
                 }
-                else
-                    OutputResources.Add(kvp.Key, new Dictionary<PartResourceDefinition, double>());
 
 
                 if (n.HasValue("minKerbals")) MinKerbals.Add(kvp.Key, int.Parse(n.GetValue("minKerbals")));

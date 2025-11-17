@@ -31,9 +31,7 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fis
         public SortedDictionary<int, double> PowerlevelChangeTime { get; protected set; } = new SortedDictionary<int, double>();
         public SortedDictionary<int, double> LevelOffTime { get; protected set; } = new SortedDictionary<int, double>();
 
-        public SortedDictionary<int, Dictionary<PartResourceDefinition, double>> InputResources { get; protected set; } = new SortedDictionary<int, Dictionary<PartResourceDefinition, double>>();
         public SortedDictionary<int, Dictionary<PartResourceDefinition, double>> InputStorage { get; protected set; } = new SortedDictionary<int, Dictionary<PartResourceDefinition, double>>();
-        public SortedDictionary<int, Dictionary<PartResourceDefinition, double>> OutputResources { get; protected set; } = new SortedDictionary<int, Dictionary<PartResourceDefinition, double>>();
         public SortedDictionary<int, Dictionary<PartResourceDefinition, double>> OutputStorage { get; protected set; } = new SortedDictionary<int, Dictionary<PartResourceDefinition, double>>();
         public SortedDictionary<int, int> MinKerbals { get; protected set; } = new SortedDictionary<int, int>();
         public SortedDictionary<int, int> MinKerbalLevel { get; protected set; } = new SortedDictionary<int, int>();
@@ -51,17 +49,14 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fis
                 if (n.HasNode("InputResources"))
                 {
                     ConfigNode inputNode = n.GetNode("InputResources");
-                    Dictionary<PartResourceDefinition, double> inputList = new Dictionary<PartResourceDefinition, double>();
                     foreach (ConfigNode.Value v in inputNode.values)
                     {
                         PartResourceDefinition resourceDef = PartResourceLibrary.Instance.GetDefinition(v.name);
                         double amount = double.Parse(v.value);
-                        inputList.Add(resourceDef, amount);
+                        ResourceUsage[kvp.Key].TryAdd(resourceDef, amount);
                     }
-                    InputResources.Add(kvp.Key, inputList);
                 }
-                else
-                    InputResources.Add(kvp.Key, new Dictionary<PartResourceDefinition, double>());
+
 
                 if (n.HasNode("InputStorage"))
                 {
@@ -81,17 +76,13 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fis
                 if (n.HasNode("OutputResources"))
                 {
                     ConfigNode outputNode = n.GetNode("OutputResources");
-                    Dictionary<PartResourceDefinition, double> outputList = new Dictionary<PartResourceDefinition, double>();
                     foreach (ConfigNode.Value v in outputNode.values)
                     {
                         PartResourceDefinition resourceDef = PartResourceLibrary.Instance.GetDefinition(v.name);
-                        double amount = double.Parse(v.value);
-                        outputList.Add(resourceDef, amount);
+                        double amount = -double.Parse(v.value);
+                        ResourceUsage[kvp.Key].TryAdd(resourceDef, amount);
                     }
-                    OutputResources.Add(kvp.Key, outputList);
                 }
-                else
-                    OutputResources.Add(kvp.Key, new Dictionary<PartResourceDefinition, double>());
 
                 if (n.HasNode("OutputStorage"))
                 {
@@ -136,6 +127,8 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fis
                 if (n.HasValue("levelOffTime")) LevelOffTime.Add(kvp.Key, double.Parse(n.GetValue("levelOffTime")));
                 else LevelOffTime.Add(kvp.Key, 0);
             });
+
+
         }
     }
 }

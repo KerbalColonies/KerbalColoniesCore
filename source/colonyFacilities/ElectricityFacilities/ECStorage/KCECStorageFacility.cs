@@ -38,12 +38,6 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECStorage
             return dict;
         }
 
-        public static double AddECToColony(colonyClass colony, double deltaEC)
-        {
-            StoragePriority(colony).ToList().ForEach(kvp => deltaEC = kvp.Value.ChangeECStored(deltaEC));
-            return deltaEC;
-        }
-
         public KCECStorageInfo StorageInfo => (KCECStorageInfo)facilityInfo;
         private double eCStored;
 

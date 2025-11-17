@@ -27,19 +27,26 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fue
     {
         KCFuelCellFacility fuelCellFacility => (KCFuelCellFacility)facility;
 
-        Vector2 resourceScrollPos = new Vector2();
+        Vector2 resourceProductionScrollPos = Vector2.zero;
+        Vector2 resourceUseageScrollPos = new Vector2();
         protected override void CustomWindow()
         {
             facility.Colony.UpdateColony();
-            GUILayout.Label($"Current EC Production: {(facility.enabled ? fuelCellFacility.ECPerSecond() : 0)} EC/s");
-            GUILayout.Space(10);
-            GUILayout.Label("Resource consumption:");
-            resourceScrollPos = GUILayout.BeginScrollView(resourceScrollPos);
+            GUILayout.Label("Resource Production:");
+            resourceProductionScrollPos = GUILayout.BeginScrollView(resourceProductionScrollPos);
             {
-                fuelCellFacility.fuelCellInfo.ResourceConsumption[facility.level].ToList().ForEach(kvp =>
-                {
-                    GUILayout.Label($"- {kvp.Key.name}: {kvp.Value:f2}/s, {KCStorageFacility.colonyResources(kvp.Key, facility.Colony):f2} stored");
-                });
+                fuelCellFacility.facilityInfo.ResourceUsage[facility.level].Where(x => x.Value > 0).ToList().ForEach(kvp =>
+                    GUILayout.Label($"- {kvp.Key.name}: {kvp.Value:f2}/s, {KCUnifiedColonyStorage.colonyStorages[facility.Colony].Resources[kvp.Key]:f2} stored")
+                );
+            }
+            GUILayout.EndScrollView();
+
+            GUILayout.Label("Resource consumption:");
+            resourceUseageScrollPos = GUILayout.BeginScrollView(resourceUseageScrollPos);
+            {
+                fuelCellFacility.facilityInfo.ResourceUsage[facility.level].Where(x => x.Value < 0).ToList().ForEach(kvp =>
+                    GUILayout.Label($"- {kvp.Key.name}: {kvp.Value:f2}/s, {KCUnifiedColonyStorage.colonyStorages[facility.Colony].Resources[kvp.Key]:f2} stored")
+                );
             }
             GUILayout.EndScrollView();
 

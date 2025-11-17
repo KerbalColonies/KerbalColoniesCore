@@ -186,7 +186,7 @@ namespace KerbalColonies.colonyFacilities
                 bool canBuild = true;
                 foreach (KeyValuePair<PartResourceDefinition, double> res in info.vesselResourceCost[level])
                 {
-                    double colonyAmount = KCStorageFacility.colonyResources(res.Key, colony);
+                    double colonyAmount = KCUnifiedColonyStorage.colonyStorages[colony].Resources.GetValueOrDefault(res.Key);
                     Configuration.writeDebug($"resource: {res.Key.name}, amount: {res.Value * Configuration.VesselCostMultiplier}, stored in colony: {colonyAmount}");
                     if (res.Value * Configuration.VesselCostMultiplier * vesselMass > colonyAmount)
                     {
@@ -210,7 +210,7 @@ namespace KerbalColonies.colonyFacilities
 
                 foreach (KeyValuePair<PartResourceDefinition, double> res in info.vesselResourceCost[level])
                 {
-                    KCStorageFacility.addResourceToColony(res.Key, -res.Value * Configuration.VesselCostMultiplier * vesselMass, colony);
+                    KCUnifiedColonyStorage.colonyStorages[colony].ChangeResourceStored(res.Key, -res.Value * Configuration.VesselCostMultiplier * vesselMass);
                 }
             }
         }

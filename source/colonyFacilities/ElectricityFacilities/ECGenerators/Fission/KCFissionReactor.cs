@@ -1,6 +1,7 @@
 ﻿using KerbalColonies.colonyFacilities.ElectricityFacilities.ECStorage;
 using KerbalColonies.colonyFacilities.StorageFacility;
 using KerbalColonies.Electricity;
+using KerbalColonies.ResourceManagment;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -24,7 +25,7 @@ using System.Linq;
 
 namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fission
 {
-    public class KCFissionReactor : KCKerbalFacilityBase, KCECProducer
+    public class KCFissionReactor : KCKerbalFacilityBase, IKCResourceProducer
     {
         public KCFissionInfo FissionInfo => (KCFissionInfo)facilityInfo;
 
@@ -362,25 +363,32 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fis
 
             if (powerLevel == -1) powerLevel = 0;
 
-            foreach (KeyValuePair<PartResourceDefinition, double> item in FissionInfo.InputResources[powerLevel])
+            foreach (KeyValuePair<PartResourceDefinition, double> item in facilityInfo.ResourceUsage[powerLevel])
             {
-                if (!StoredInput.ContainsKey(item.Key) || StoredInput[item.Key] < item.Value * deltaTime)
+                if (item.Value > 0)
                 {
-                    Configuration.writeDebug($"KCFissionReactor ({name}): Not enough {item.Key.name} to produce EC");
-                    return false;
+                    if (!StoredInput.ContainsKey(item.Key) || StoredInput[item.Key] < item.Value * deltaTime)
+                    {
+                        Configuration.writeDebug($"KCFissionReactor ({name}): Not enough {item.Key.name} to produce EC");
+                        return false;
+                    }
                 }
-            }
-            foreach (KeyValuePair<PartResourceDefinition, double> item in FissionInfo.OutputResources[powerLevel])
-            {
-                if (!StoredOutput.ContainsKey(item.Key) || StoredOutput[item.Key] + item.Value * deltaTime > FissionInfo.OutputStorage[level][item.Key])
+                else
                 {
-                    Configuration.writeDebug($"KCFissionReactor ({name}): Unable to store {item.Key.name}");
-                    return false;
+                    if (!StoredOutput.ContainsKey(item.Key) || StoredOutput[item.Key] - item.Value * deltaTime > FissionInfo.OutputStorage[level][item.Key])
+                    {
+                        Configuration.writeDebug($"KCFissionReactor ({name}): Unable to store {item.Key.name}");
+                        return false;
+                    }
                 }
             }
 
             return true;
         }
+
+        public Dictionary<PartResourceDefinition, double> ResourceProduction(double lastTime, double deltaTime, double currentTime) => new Dictionary<PartResourceDefinition, double> { { PartResourceLibrary.Instance.GetDefinition("ElectricCharge"), ProduceEC(lastTime, deltaTime, currentTime) } };
+
+        public Dictionary<PartResourceDefinition, double> ResourcesPerSecond() => new Dictionary<PartResourceDefinition, double> { { PartResourceLibrary.Instance.GetDefinition("ElectricCharge"), lastECPerSecond } };
 
         public double ProduceEC(double lastTime, double deltaTime, double currentTime)
         {
@@ -394,16 +402,16 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fis
                 if (RefillTime >= FissionInfo.RefillTime[level])
                 {
                     Refilling = false;
-                    StoredInput.ToList().ForEach(kvp =>
+                    facilityInfo.ResourceUsage[level].Where(kvp => kvp.Value > 0).ToList().ForEach(kvp =>
                     {
                         double requestedAmount = fissionInfo.InputStorage[level][kvp.Key] - kvp.Value;
-                        double missingAmount = KCStorageFacility.addResourceToColony(kvp.Key, -requestedAmount, Colony);
+                        double missingAmount = KCUnifiedColonyStorage.colonyStorages[Colony].ChangeResourceStored(kvp.Key, -requestedAmount);
                         StoredInput[kvp.Key] += requestedAmount + missingAmount;
                     });
-                    StoredOutput.ToList().ForEach(kvp =>
+                    facilityInfo.ResourceUsage[level].Where(kvp => kvp.Value < 0).ToList().ForEach(kvp =>
                     {
                         double requestedAmount = kvp.Value;
-                        double missingAmount = KCStorageFacility.addResourceToColony(kvp.Key, requestedAmount, Colony);
+                        double missingAmount = KCUnifiedColonyStorage.colonyStorages[Colony].ChangeResourceStored(kvp.Key, -requestedAmount);
                         StoredOutput[kvp.Key] = missingAmount;
                     });
                 }
@@ -557,19 +565,18 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fis
         {
             if (lastPowerLevel.Key == -1) return;
 
-            FissionInfo.InputResources[lastPowerLevel.Key].ToList().ForEach(item =>
+            foreach (KeyValuePair<PartResourceDefinition, double> kvp in facilityInfo.ResourceUsage[lastPowerLevel.Key])
             {
-                StoredInput[item.Key] = Math.Max(0, StoredInput[item.Key] - item.Value * currentThrottle * deltaTime);
-            });
-            FissionInfo.OutputResources[lastPowerLevel.Key].ToList().ForEach(item =>
-            {
-                StoredOutput[item.Key] = Math.Min(FissionInfo.OutputStorage[level][item.Key], StoredOutput[item.Key] + item.Value * currentThrottle * deltaTime);
-            });
+                if (kvp.Value > 0)
+                {
+                    StoredInput[kvp.Key] = Math.Max(0, StoredInput[kvp.Key] - kvp.Value * currentThrottle * deltaTime);
+                }
+                else
+                {
+                    StoredOutput[kvp.Key] = Math.Min(FissionInfo.OutputStorage[level][kvp.Key], StoredOutput[kvp.Key] - kvp.Value * currentThrottle * deltaTime);
+                }
+            }
         }
-
-        public double ECProduction(double lastTime, double deltaTime, double currentTime) => ProduceEC(lastTime, deltaTime, currentTime);
-
-        public double ECPerSecond() => lastECPerSecond;
 
         public override void OnBuildingClicked()
         {
@@ -580,7 +587,7 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fis
             window.Toggle();
         }
 
-        public override string GetFacilityProductionDisplay() => $"Fission reactor production rate: {ECPerSecond():f2} EC/s";
+        public override string GetFacilityProductionDisplay() => $"Fission reactor production rate: {lastECPerSecond:f2} EC/s";
 
 
         public override ConfigNode getConfigNode()

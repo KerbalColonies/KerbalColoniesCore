@@ -1,5 +1,6 @@
 ﻿using KerbalColonies.Electricity;
 using KerbalColonies.ResourceManagment;
+using Smooth.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -22,23 +23,25 @@ using System.Linq;
 
 namespace KerbalColonies.colonyFacilities.StorageFacility
 {
-    public class KCStorageFacility : KCFacilityBase
+    public class KCStorageFacility : KCFacilityBase, IKCResourceConsumer
     {
         public static HashSet<string> blackListedResources = new HashSet<string> { "IntakeAir" };
 
         public KCStorageFacilityInfo storageInfo { get { return (KCStorageFacilityInfo)facilityInfo; } }
         public KCUnifiedColonyStorage unifiedColonyStorage;
-        public bool outOfEC { get; protected set; } = false;
+        public bool outOfResources { get; protected set; } = false;
         public bool locked { get; set; } = false;
 
         public double maxVolume => storageInfo.maxVolume[level];
+
+        public int ResourceConsumptionPriority { get; set; } = 0;
 
         public bool CanStoreResource(PartResourceDefinition resource) => !blackListedResources.Contains(resource.name) && (!storageInfo.resourceBlacklist[level].Contains(resource) || storageInfo.resourceWhitelist[level].Contains(resource));
 
         public override void Update()
         {
             lastUpdateTime = Planetarium.GetUniversalTime();
-            enabled = !outOfEC && !locked && built;
+            enabled = !outOfResources && !locked && built;
         }
 
         private KCStorageFacilityWindow StorageWindow;
@@ -54,15 +57,6 @@ namespace KerbalColonies.colonyFacilities.StorageFacility
 
         public override string GetFacilityProductionDisplay() => $"{unifiedColonyStorage.UsedVolume:f2}/{unifiedColonyStorage.Volume:f2}m³ used\n{unifiedColonyStorage.Resources.Count} resources stored {(facilityInfo.ECperSecond[level] > 0 ? $"\n{(locked ? 0 : facilityInfo.ECperSecond[level]):f2} EC/s" : "")}";
 
-        public double ExpectedECConsumption(double lastTime, double deltaTime, double currentTime) => locked ? 0 : facilityInfo.ECperSecond[level] * deltaTime;
-
-        public void ConsumeEC(double lastTime, double deltaTime, double currentTime) => outOfEC = false;
-
-        public void ÍnsufficientEC(double lastTime, double deltaTime, double currentTime, double remainingEC) => outOfEC = true;
-
-        public double DailyECConsumption() => facilityInfo.ECperSecond[level] * 6 * 3600;
-
-
         public override void OnBuildingClicked()
         {
             StorageWindow.Toggle();
@@ -72,6 +66,19 @@ namespace KerbalColonies.colonyFacilities.StorageFacility
         {
             StorageWindow.Toggle();
         }
+
+        public Dictionary<PartResourceDefinition, double> ExpectedResourceConsumption(double lastTime, double deltaTime, double currentTime) => enabled ? facilityInfo.ResourceUsage[level].Where(kvp => kvp.Value < 0).ToDictionary(kvp => kvp.Key, kvp => -kvp.Value * deltaTime) : new Dictionary<PartResourceDefinition, double>();
+
+        public void ConsumeResources(double lastTime, double deltaTime, double currentTime) => outOfResources = false;
+
+        public Dictionary<PartResourceDefinition, double> InsufficientResources(double lastTime, double deltaTime, double currentTime, Dictionary<PartResourceDefinition, double> sufficientResources, Dictionary<PartResourceDefinition, double> limitingResources)
+        {
+            outOfResources = true;
+            limitingResources.AddAll(sufficientResources);
+            return limitingResources;
+        }
+
+        public Dictionary<PartResourceDefinition, double> ResourceConsumptionPerSecond() => enabled ? facilityInfo.ResourceUsage[level].Where(kvp => kvp.Value < 0).ToDictionary(kvp => kvp.Key, kvp => -kvp.Value) : new Dictionary<PartResourceDefinition, double>();
 
         public KCStorageFacility(colonyClass colony, KCFacilityInfoClass facilityInfo, ConfigNode node) : base(colony, facilityInfo, node)
         {

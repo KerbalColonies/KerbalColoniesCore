@@ -370,7 +370,7 @@ namespace KerbalColonies
                 bool canBuild = true;
                 foreach (KeyValuePair<PartResourceDefinition, double> res in info.vesselResourceCost[level])
                 {
-                    double colonyAmount = KCStorageFacility.colonyResources(res.Key, colony);
+                    double colonyAmount = KCUnifiedColonyStorage.colonyStorages[colony].Resources.GetValueOrDefault(res.Key, 0);
                     Configuration.writeLog($"resource: {res.Key.name}, amount: {res.Value * Configuration.VesselCostMultiplier}, stored in colony: {colonyAmount}");
                     if (res.Value * vesselMass * Configuration.VesselCostMultiplier > colonyAmount)
                     {

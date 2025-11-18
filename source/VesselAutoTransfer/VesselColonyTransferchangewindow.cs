@@ -1,5 +1,6 @@
 ﻿using KerbalColonies.colonyFacilities;
 using KerbalColonies.colonyFacilities.ElectricityFacilities.ECStorage;
+using KerbalColonies.colonyFacilities.StorageFacility;
 using KerbalColonies.UI;
 using System;
 using System.Collections.Generic;
@@ -22,7 +23,7 @@ namespace KerbalColonies.VesselAutoTransfer
         protected override void CustomWindow()
         {
             List<colonyClass> currentbodyColonies = Configuration.colonyDictionary[VesselPlanetID];
-            List<colonyClass> possibleTargets = currentbodyColonies.Where(c => KCFacilityBase.GetAllTInColony<KCECStorageFacility>(c).Any(f => f.CanTransferToVessel(vessel))).ToList();
+            List<colonyClass> possibleTargets = currentbodyColonies.Where(c => KCUnifiedColonyStorage.colonyStorages[c].VesselInRange(vessel)).ToList();
 
             if (possibleTargets.Count == 0)
             {

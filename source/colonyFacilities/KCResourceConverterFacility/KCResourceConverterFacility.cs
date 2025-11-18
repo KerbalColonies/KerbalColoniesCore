@@ -1,5 +1,7 @@
 ﻿using KerbalColonies.colonyFacilities.StorageFacility;
 using KerbalColonies.Electricity;
+using KerbalColonies.ResourceManagment;
+using Smooth.Collections;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -23,7 +25,7 @@ using System.Linq;
 
 namespace KerbalColonies.colonyFacilities.KCResourceConverterFacility
 {
-    public class KCResourceConverterFacility : KCKerbalFacilityBase, KCECConsumer
+    public class KCResourceConverterFacility : KCKerbalFacilityBase, IKCResourceProducer, IKCResourceConsumer
     {
         public static void LoadResourceConversionLists()
         {
@@ -145,6 +147,9 @@ namespace KerbalColonies.colonyFacilities.KCResourceConverterFacility
         public Dictionary<PartResourceDefinition, bool> resourceLimitsEnabled = new Dictionary<PartResourceDefinition, bool> { };
         public Dictionary<PartResourceDefinition, double> resourceLimits = new Dictionary<PartResourceDefinition, double> { };
 
+        protected Dictionary<PartResourceDefinition, double> lastResourceProduction = new Dictionary<PartResourceDefinition, double> { };
+        protected Dictionary<PartResourceDefinition, double> lastResourceConsumption = new Dictionary<PartResourceDefinition, double> { };
+
         public KCResourceConverterInfo info => (KCResourceConverterInfo)facilityInfo;
         public int ISRUcount()
         {
@@ -159,9 +164,9 @@ namespace KerbalColonies.colonyFacilities.KCResourceConverterFacility
         protected KCResourceConverterWindow kCResourceConverterWindow;
 
         public bool outOfResourceDisable = true; // if true, the facility will disable itself if it cannot execute the recipe due to missing resources
-        public bool outOfECDisable = true; // if true, the facility will disable itself if it cannot execute the recipe due to missing EC
 
-        public bool outOfEC { get; protected set; } = false;
+        public bool outOfResources { get; protected set; } = false;
+        public bool resourceLimited { get; protected set; } = false;
 
         public void ChangeRecipe(ResourceConversionRate newRecipe)
         {
@@ -195,14 +200,14 @@ namespace KerbalColonies.colonyFacilities.KCResourceConverterFacility
             {
                 double remainingResource = kvp.Value * ISRUdTime;
 
-                KCStorageFacility.addResourceToColony(kvp.Key, -remainingResource, Colony);
+                lastResourceConsumption[kvp.Key] = -remainingResource;
             }
 
             foreach (KeyValuePair<PartResourceDefinition, double> kvp in activeRecipe.OutputResources)
             {
                 double remainingResource = kvp.Value * ISRUdTime;
 
-                KCStorageFacility.addResourceToColony(kvp.Key, remainingResource, Colony);
+                lastResourceProduction[kvp.Key] = remainingResource;
             }
         }
 
@@ -210,18 +215,19 @@ namespace KerbalColonies.colonyFacilities.KCResourceConverterFacility
         {
             if (!enabled) return false;
             else if (activeRecipe == null) return false;
-            else if (outOfEC) { enabled = enabled && !outOfECDisable; return false; }
+            else if (outOfResources) { enabled = enabled && !outOfResourceDisable; return false; }
             double ISRUdTime = this.ISRUcount() * dTime;
 
-            double availableVolume = KCStorageFacility.GetStoragesInColony(Colony).Sum(f => f.maxVolume - f.currentVolume);
+            double availableVolume = KCUnifiedColonyStorage.colonyStorages[Colony].FreeVolume;
 
             foreach (KeyValuePair<PartResourceDefinition, double> kvp in activeRecipe.InputResources)
             {
                 double remainingResource = kvp.Value * ISRUdTime;
 
-                if (KCStorageFacility.colonyResources(kvp.Key, Colony) - (resourceLimitsEnabled[kvp.Key] ? resourceLimits[kvp.Key] : 0) - remainingResource < 0)
+                if (KCUnifiedColonyStorage.colonyStorages[Colony].Resources.GetValueOrDefault(kvp.Key) - (resourceLimitsEnabled[kvp.Key] ? resourceLimits[kvp.Key] : 0) - remainingResource < 0)
                 {
                     enabled = enabled && !outOfResourceDisable;
+                    resourceLimited = true;
                     return false;
                 }
 
@@ -234,33 +240,50 @@ namespace KerbalColonies.colonyFacilities.KCResourceConverterFacility
 
                 availableVolume -= remainingResource * kvp.Key.volume;
 
-                if (availableVolume < 0 || resourceLimitsEnabled[kvp.Key] && KCStorageFacility.colonyResources(kvp.Key, Colony) + remainingResource > resourceLimits[kvp.Key])
+                if (availableVolume < 0 || resourceLimitsEnabled[kvp.Key] && KCUnifiedColonyStorage.colonyStorages[Colony].Resources.GetValueOrDefault(kvp.Key) + remainingResource > resourceLimits[kvp.Key])
                 {
                     enabled = enabled && !outOfResourceDisable;
+                    resourceLimited = true;
                     return false;
                 }
             }
 
+            resourceLimited = false;
             return true;
         }
 
-        public override void Update()
+        public int ResourceConsumptionPriority { get; set; } = 0;
+
+        public Dictionary<PartResourceDefinition, double> ResourceProduction(double lastTime, double deltaTime, double currentTime)
         {
-            double dTime = Planetarium.GetUniversalTime() - lastUpdateTime;
+            executeRecipe(deltaTime);
 
-            executeRecipe(dTime);
-
-            base.Update();
+            Dictionary<PartResourceDefinition, double> producedResources = new Dictionary<PartResourceDefinition, double>(lastResourceProduction);
+            lastResourceProduction.Clear();
+            return producedResources;
         }
 
-        public int ECConsumptionPriority { get; set; } = 0;
-        public double ExpectedECConsumption(double lastTime, double deltaTime, double currentTime) => enabled ? facilityInfo.ECperSecond[level] * ISRUcount() * deltaTime : 0;
+        public Dictionary<PartResourceDefinition, double> ResourcesPerSecond() => enabled && !resourceLimited ? activeRecipe.OutputResources.ToDictionary(kvp => kvp.Key, kvp => kvp.Value * ISRUcount()) : new Dictionary<PartResourceDefinition, double> { };
 
-        public void ConsumeEC(double lastTime, double deltaTime, double currentTime) => outOfEC = false;
+        public Dictionary<PartResourceDefinition, double> ExpectedResourceConsumption(double lastTime, double deltaTime, double currentTime) => enabled && !resourceLimited ? activeRecipe.OutputResources.ToDictionary(kvp => kvp.Key, kvp => kvp.Value * ISRUcount() * deltaTime) : new Dictionary<PartResourceDefinition, double> { };
 
-        public void ÍnsufficientEC(double lastTime, double deltaTime, double currentTime, double remainingEC) => outOfEC = true;
+        public void ConsumeResources(double lastTime, double deltaTime, double currentTime)
+        {
+            outOfResources = false;
+        }
 
-        public double DailyECConsumption() => facilityInfo.ECperSecond[level] * 6 * 3600;
+        public Dictionary<PartResourceDefinition, double> InsufficientResources(double lastTime, double deltaTime, double currentTime, Dictionary<PartResourceDefinition, double> sufficientResources, Dictionary<PartResourceDefinition, double> limitingResources)
+        {
+            outOfResources = true;
+            limitingResources.AddAll(sufficientResources);
+            return limitingResources;
+        }
+
+        public Dictionary<PartResourceDefinition, double> ResourceConsumptionPerSecond()
+        {
+            throw new NotImplementedException();
+        }
+
 
 
         public override void OnBuildingClicked() => kCResourceConverterWindow.Toggle();
@@ -275,8 +298,7 @@ namespace KerbalColonies.colonyFacilities.KCResourceConverterFacility
             if (activeRecipe != null)
                 node.AddValue("recipe", activeRecipe.RecipeName);
             node.AddValue("outOfResourceDisable", outOfResourceDisable);
-            node.AddValue("outOfECDisable", outOfECDisable);
-            node.AddValue("ECConsumptionPriority", ECConsumptionPriority);
+            node.AddValue("ECConsumptionPriority", ResourceConsumptionPriority);
 
             ConfigNode limitsEnabledNode = new ConfigNode("resourceLimitsEnabled");
             ConfigNode limitsNode = new ConfigNode("resourceLimits");
@@ -299,8 +321,7 @@ namespace KerbalColonies.colonyFacilities.KCResourceConverterFacility
             else activeRecipe = ResourceConversionRate.GetConversionRate(node.GetValue("recipe"));
             if (activeRecipe == null) throw new MissingFieldException($"The facility {facilityInfo.name} (type: {facilityInfo.type}) has no recipe called {node.GetValue("recipe")}.");
             if (bool.TryParse(node.GetValue("outOfResourceDisable"), out bool outOfResourceDisable)) this.outOfResourceDisable = outOfResourceDisable;
-            if (bool.TryParse(node.GetValue("outOfECDisable"), out bool outOfECDisable)) this.outOfECDisable = outOfECDisable;
-            if (int.TryParse(node.GetValue("ECConsumptionPriority"), out int ecConsumptionPriority)) this.ECConsumptionPriority = ecConsumptionPriority;
+            if (int.TryParse(node.GetValue("ECConsumptionPriority"), out int ecConsumptionPriority)) this.ResourceConsumptionPriority = ecConsumptionPriority;
 
             if (node.HasNode("resourceLimitsEnabled"))
             {

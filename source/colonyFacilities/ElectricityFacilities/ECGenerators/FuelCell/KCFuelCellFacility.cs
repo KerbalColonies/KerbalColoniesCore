@@ -52,20 +52,17 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fue
 
         public Dictionary<PartResourceDefinition, double> ResourceProduction(double lastTime, double deltaTime, double currentTime)
         {
-            if (CanProduce) return facilityInfo.ResourceUsage[level].Where(kvp => kvp.Value > 0).ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+            if (CanProduce && enabled) return facilityInfo.ResourceUsage[level].Where(kvp => kvp.Value > 0).ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
             else return new Dictionary<PartResourceDefinition, double>();
         }
 
         public Dictionary<PartResourceDefinition, double> ResourcesPerSecond()
         {
-            if (CanProduce) return facilityInfo.ResourceUsage[level].Where(kvp => kvp.Value > 0).ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+            if (CanProduce && enabled) return facilityInfo.ResourceUsage[level].Where(kvp => kvp.Value > 0).ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
             else return new Dictionary<PartResourceDefinition, double>();
         }
 
-        public Dictionary<PartResourceDefinition, double> ExpectedResourceConsumption(double lastTime, double deltaTime, double currentTime)
-        {
-            return facilityInfo.ResourceUsage[level].Where(kvp => kvp.Value < 0).ToDictionary(kvp => kvp.Key, kvp => -kvp.Value * deltaTime);
-        }
+        public Dictionary<PartResourceDefinition, double> ExpectedResourceConsumption(double lastTime, double deltaTime, double currentTime) => enabled ? facilityInfo.ResourceUsage[level].Where(kvp => kvp.Value < 0).ToDictionary(kvp => kvp.Key, kvp => -kvp.Value * deltaTime) : new Dictionary<PartResourceDefinition, double>();
 
         public void ConsumeResources(double lastTime, double deltaTime, double currentTime) => CanProduce = true;
 

@@ -1,4 +1,6 @@
-﻿using System;
+﻿using KerbalColonies.colonyFacilities.ElectricityFacilities.ECStorage;
+using KerbalColonies.Electricity;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -43,6 +45,12 @@ namespace KerbalColonies.colonyFacilities.StorageFacility
                 ConfigNode n = kvp.Value;
 
                 if (n.HasValue("maxVolume")) maxVolume[level] = double.Parse(n.GetValue("maxVolume"));
+                else if (type == typeof(KCECStorageFacility))
+                {
+                    if (n.HasValue("capacity")) maxVolume[level] = double.Parse(n.GetValue("capacity"));
+                    else if (level > 0) maxVolume[level] = maxVolume[level - 1];
+                    else throw new MissingFieldException($"The facility {name} (type: {type}) has no maxVolume (at least for level 0).");
+                }
                 else if (level > 0) maxVolume[level] = maxVolume[level - 1];
                 else throw new MissingFieldException($"The facility {name} (type: {type}) has no maxVolume (at least for level 0).");
 

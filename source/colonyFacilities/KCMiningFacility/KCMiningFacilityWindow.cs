@@ -51,10 +51,10 @@ namespace KerbalColonies.colonyFacilities.KCMiningFacility
                         GUILayout.Label($"EC/s: {(facility.enabled ? facility.facilityInfo.ECperSecond[facility.level] * miningFacility.getKerbals().Count : 0):f2}");
                         GUILayout.BeginHorizontal();
                         {
-                            GUILayout.Label($"EC Consumption Priority: {miningFacility.ECConsumptionPriority}", GUILayout.Height(18));
+                            GUILayout.Label($"EC Consumption Priority: {miningFacility.ResourceConsumptionPriority}", GUILayout.Height(18));
                             GUILayout.FlexibleSpace();
-                            if (GUILayout.RepeatButton("--", GUILayout.Width(30), GUILayout.Height(23)) | GUILayout.Button("-", GUILayout.Width(30), GUILayout.Height(23))) miningFacility.ECConsumptionPriority--;
-                            if (GUILayout.Button("+", GUILayout.Width(30), GUILayout.Height(23)) | GUILayout.RepeatButton("++", GUILayout.Width(30), GUILayout.Height(23))) miningFacility.ECConsumptionPriority++;
+                            if (GUILayout.RepeatButton("--", GUILayout.Width(30), GUILayout.Height(23)) | GUILayout.Button("-", GUILayout.Width(30), GUILayout.Height(23))) miningFacility.ResourceConsumptionPriority--;
+                            if (GUILayout.Button("+", GUILayout.Width(30), GUILayout.Height(23)) | GUILayout.RepeatButton("++", GUILayout.Width(30), GUILayout.Height(23))) miningFacility.ResourceConsumptionPriority++;
                         }
                         GUILayout.EndHorizontal();
                     }

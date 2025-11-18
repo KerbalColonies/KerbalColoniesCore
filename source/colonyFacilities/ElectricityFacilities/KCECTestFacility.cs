@@ -1,4 +1,5 @@
 ﻿using KerbalColonies.Electricity;
+using KerbalColonies.ResourceManagment;
 using KerbalColonies.UI;
 using System;
 using System.Collections.Generic;
@@ -45,7 +46,7 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities
             }
             GUILayout.EndHorizontal();
 
-            GUILayout.Label($"Current priority: {ecFacility.ECConsumptionPriority}");
+            GUILayout.Label($"Current priority: {ecFacility.ResourceConsumptionPriority}");
 
             GUILayout.BeginHorizontal();
             foreach (int i in ints)
@@ -53,7 +54,7 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities
                 if (GUILayout.Button(i.ToString(), GUILayout.Height(18), GUILayout.Width(32)))
                 {
                     Configuration.writeDebug($"Change priority by {i} for {ecFacility.DisplayName} facility");
-                    ecFacility.ECConsumptionPriority += i;
+                    ecFacility.ResourceConsumptionPriority += i;
                 }
             }
             GUILayout.EndHorizontal();
@@ -65,33 +66,39 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities
         }
     }
 
-    public class KCECTestFacility : KCFacilityBase, KCECProducer, KCECConsumer
+    public class KCECTestFacility : KCFacilityBase, IKCResourceProducer, IKCResourceConsumer
     {
         KCECTestWindow window;
 
         public double ECProduced { get; set; } = 0.0;
 
-        public double ECProduction(double lastTime, double deltaTime, double currentTime) => Math.Max(0, ECProduced) * deltaTime;
-
-        public double ECPerSecond() => ECProduced;
-
-
-        public double ExpectedECConsumption(double lastTime, double deltaTime, double currentTime) => Math.Max(-ECProduced, 0) * deltaTime;
-
-        public void ConsumeEC(double lastTime, double deltaTime, double currentTime) { }
-
-        public void ÍnsufficientEC(double lastTime, double deltaTime, double currentTime, double remainingEC)
-        {
-            if (ECProduced >= 0) return;
-            Configuration.writeDebug($"Insufficient EC in {DisplayName} facility. Remaining EC: {remainingEC}");
-            ECProduced = 0;
-        }
-
         public double DailyECConsumption() => Math.Max(0, -ECProduced) * 60 * 60 * 6;
 
-        public int ECConsumptionPriority { get; set; } = 0;
+        public int ResourceConsumptionPriority { get; set; } = 0;
 
+        public Dictionary<PartResourceDefinition, double> ResourceProduction(double lastTime, double deltaTime, double currentTime) => new Dictionary<PartResourceDefinition, double> { { PartResourceLibrary.Instance.GetDefinition("ElectricCharge"), Math.Max(0, ECProduced) * deltaTime } };
 
+        public Dictionary<PartResourceDefinition, double> ResourcesPerSecond() => new Dictionary<PartResourceDefinition, double> { { PartResourceLibrary.Instance.GetDefinition("ElectricCharge"), Math.Max(0, ECProduced) } };
+
+        public Dictionary<PartResourceDefinition, double> ExpectedResourceConsumption(double lastTime, double deltaTime, double currentTime) => new Dictionary<PartResourceDefinition, double> { { PartResourceLibrary.Instance.GetDefinition("ElectricCharge"), Math.Max(0, -ECProduced) * deltaTime } };
+
+        public void ConsumeResources(double lastTime, double deltaTime, double currentTime)
+        {
+        }
+
+        public Dictionary<PartResourceDefinition, double> InsufficientResources(double lastTime, double deltaTime, double currentTime, Dictionary<PartResourceDefinition, double> sufficientResources, Dictionary<PartResourceDefinition, double> limitingResources)
+        {
+            if (ECProduced >= 0) return new Dictionary<PartResourceDefinition, double>();
+            Configuration.writeDebug($"Insufficient EC in {DisplayName} facility.");
+            ECProduced = 0;
+
+            return new Dictionary<PartResourceDefinition, double>();
+        }
+
+        public Dictionary<PartResourceDefinition, double> ResourceConsumptionPerSecond()
+        {
+            throw new NotImplementedException();
+        }
 
         public override void OnBuildingClicked() => window.Toggle();
 

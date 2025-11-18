@@ -1,6 +1,8 @@
 ﻿using KerbalColonies.colonyFacilities.StorageFacility;
 using KerbalColonies.Electricity;
+using KerbalColonies.ResourceManagment;
 using KerbalKonstructs.Core;
+using Smooth.Collections;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -25,7 +27,7 @@ using System.Text;
 
 namespace KerbalColonies.colonyFacilities.KCMiningFacility
 {
-    public class KCMiningFacility : KCKerbalFacilityBase, KCECConsumer
+    public class KCMiningFacility : KCKerbalFacilityBase, IKCResourceProducer, IKCResourceConsumer
     {
         protected KCMiningFacilityWindow miningFacilityWindow;
 
@@ -35,6 +37,8 @@ namespace KerbalColonies.colonyFacilities.KCMiningFacility
         public Dictionary<PartResourceDefinition, bool> autoTransferResources { get; set; } = new Dictionary<PartResourceDefinition, bool> { };
         public Dictionary<PartResourceDefinition, double> autoTransferLimits { get; set; } = new Dictionary<PartResourceDefinition, double> { };
         public Dictionary<string, Dictionary<PartResourceDefinition, double>> groupDensities { get; protected set; } = new Dictionary<string, Dictionary<PartResourceDefinition, double>> { };
+
+        protected Dictionary<PartResourceDefinition, double> autoTransferAmounts { get; set; } = new Dictionary<PartResourceDefinition, double> { };
 
         public override void WhileBuildingPlaced(GroupCenter kkGroupname)
         {
@@ -93,9 +97,6 @@ namespace KerbalColonies.colonyFacilities.KCMiningFacility
 
             lastUpdateTime = Planetarium.GetUniversalTime();
 
-            enabled = built && kerbals.Count > 0 && !outOfEC && enabled;
-            if (!enabled) return;
-
             KCMiningFacilityInfo facilityInfo = miningFacilityInfo;
 
             groupDensities.ToList().ForEach(kvp => kvp.Value.ToList().ForEach(prdRate =>
@@ -117,14 +118,22 @@ namespace KerbalColonies.colonyFacilities.KCMiningFacility
                 {
                     if (autoTransferLimits[res.Key] > 0)
                     {
-                        double colonyAmount = KCStorageFacility.colonyResources(res.Key, Colony);
+                        double colonyAmount = KCUnifiedColonyStorage.colonyStorages[Colony].Resources.GetValueOrDefault(res.Key);
                         double transferAmount = autoTransferLimits[res.Key] - colonyAmount;
 
                         if (transferAmount <= 0) storedResoures[res.Key] = Math.Min(maxPerResource[res.Key], res.Value);
-                        else if (res.Value < transferAmount) storedResoures[res.Key] = Math.Min(maxPerResource[res.Key], KCStorageFacility.addResourceToColony(res.Key, res.Value, Colony));
-                        else storedResoures[res.Key] = Math.Min(maxPerResource[res.Key], res.Value - transferAmount + KCStorageFacility.addResourceToColony(res.Key, transferAmount, Colony));
+                        else if (res.Value < transferAmount)
+                        {
+                            autoTransferAmounts[res.Key] = res.Value;
+                            storedResoures[res.Key] = 0;
+                        }
+                        else
+                        {
+                            autoTransferAmounts[res.Key] = transferAmount;
+                            storedResoures[res.Key] = Math.Min(maxPerResource[res.Key], res.Value - transferAmount);
+                        }
                     }
-                    else storedResoures[res.Key] = Math.Min(maxPerResource[res.Key], KCStorageFacility.addResourceToColony(res.Key, res.Value, Colony));
+                    else storedResoures[res.Key] = Math.Min(maxPerResource[res.Key], res.Value);
                 }
                 else storedResoures[res.Key] = Math.Min(maxPerResource[res.Key], res.Value);
             });
@@ -163,22 +172,44 @@ namespace KerbalColonies.colonyFacilities.KCMiningFacility
         {
             if (storedResoures.ContainsKey(resource) && storedResoures[resource] > 0)
             {
-                storedResoures[resource] = KCStorageFacility.addResourceToColony(resource, storedResoures[resource], Colony);
+                storedResoures[resource] = KCUnifiedColonyStorage.colonyStorages[Colony].ChangeResourceStored(resource, storedResoures[resource]);
                 return true;
             }
             return false;
         }
 
-        public int ECConsumptionPriority { get; set; } = 0;
-        public bool outOfEC { get; set; } = false;
-        public double ExpectedECConsumption(double lastTime, double deltaTime, double currentTime) => enabled ? facilityInfo.ECperSecond[level] * kerbals.Count * deltaTime : 0;
+        public bool OutOfResources { get; set; } = false;
 
-        public void ConsumeEC(double lastTime, double deltaTime, double currentTime) => outOfEC = false;
+        public int ResourceConsumptionPriority { get; set; } = 0;
 
-        public void ÍnsufficientEC(double lastTime, double deltaTime, double currentTime, double remainingEC) => outOfEC = true;
 
-        public double DailyECConsumption() => enabled ? facilityInfo.ECperSecond[level] * kerbals.Count * 6 * 3600 : 0;
+        public Dictionary<PartResourceDefinition, double> ResourceProduction(double lastTime, double deltaTime, double currentTime)
+        {
+            enabled = built && kerbals.Count > 0 && enabled;
+            if (!enabled || OutOfResources) return new Dictionary<PartResourceDefinition, double>();
 
+            Dictionary<PartResourceDefinition, double> resources = autoTransferAmounts.ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+            autoTransferAmounts.Clear();
+            return resources;
+        }
+
+        public Dictionary<PartResourceDefinition, double> ResourcesPerSecond() => enabled ? facilityInfo.ResourceUsage[level].Where(kvp => kvp.Value > 0).ToDictionary(kvp => kvp.Key, kvp => kvp.Value * kerbals.Count) : new Dictionary<PartResourceDefinition, double>();
+
+        public Dictionary<PartResourceDefinition, double> ExpectedResourceConsumption(double lastTime, double deltaTime, double currentTime) => enabled ? facilityInfo.ResourceUsage[level].Where(kvp => kvp.Value < 0).ToDictionary(kvp => kvp.Key, kvp => -kvp.Value * deltaTime * kerbals.Count) : new Dictionary<PartResourceDefinition, double>();
+
+        public void ConsumeResources(double lastTime, double deltaTime, double currentTime)
+        {
+            OutOfResources = false;
+        }
+
+        public Dictionary<PartResourceDefinition, double> InsufficientResources(double lastTime, double deltaTime, double currentTime, Dictionary<PartResourceDefinition, double> sufficientResources, Dictionary<PartResourceDefinition, double> limitingResources)
+        {
+            OutOfResources = true;
+            limitingResources.AddAll(sufficientResources);
+            return limitingResources;
+        }
+
+        public Dictionary<PartResourceDefinition, double> ResourceConsumptionPerSecond() => enabled ? facilityInfo.ResourceUsage[level] : new Dictionary<PartResourceDefinition, double>();
 
         public override ConfigNode getConfigNode()
         {

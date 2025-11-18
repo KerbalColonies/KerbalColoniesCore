@@ -31,7 +31,11 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fue
             {
                 ConfigNode n = kvp.Value;
 
-                if (n.HasValue("ECProduction")) ResourceUsage[kvp.Key].Add(ec, double.Parse(n.GetValue("ECProduction")));
+                if (n.HasValue("ECProduction"))
+                {
+                    if (ResourceUsage[kvp.Key].ContainsKey(ec)) ResourceUsage[kvp.Key][ec] += double.Parse(n.GetValue("ECProduction"));
+                    else ResourceUsage[kvp.Key].Add(ec, double.Parse(n.GetValue("ECProduction")));
+                }
                 else if (kvp.Key > 0) ResourceUsage[kvp.Key].Add(ec, ResourceUsage[kvp.Key - 1][ec]);
 
                 if (n.HasNode("ResourceConsumption"))
@@ -42,7 +46,8 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fue
                     {
                         PartResourceDefinition resourceDef = PartResourceLibrary.Instance.GetDefinition(v.name);
                         double amount = -double.Parse(v.value);
-                        ResourceUsage[kvp.Key].Add(resourceDef, amount);
+                        if (ResourceUsage[kvp.Key].ContainsKey(resourceDef)) ResourceUsage[kvp.Key][resourceDef] += amount;
+                        else ResourceUsage[kvp.Key].Add(resourceDef, amount);
                     }
                 }
             });

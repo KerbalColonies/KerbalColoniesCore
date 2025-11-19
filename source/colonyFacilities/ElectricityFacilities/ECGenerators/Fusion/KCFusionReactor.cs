@@ -520,8 +520,9 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fus
             }
             else
             {
-                producedEC = ProduceEC(lastTime, deltaTime, currentTime) - FusionInfo.ECperSecond[lastPowerLevel.Key == -1 ? 0 : lastPowerLevel.Key] * deltaTime;
-                ActualLastECPerSecond = lastECPerSecond - FusionInfo.ECperSecond[lastPowerLevel.Key == -1 ? 0 : lastPowerLevel.Key];
+                PartResourceDefinition ec = PartResourceLibrary.Instance.GetDefinition("ElectricCharge");
+                producedEC = ProduceEC(lastTime, deltaTime, currentTime) - FusionInfo.ResourceUsage[lastPowerLevel.Key == -1 ? 0 : lastPowerLevel.Key].GetValueOrDefault(ec) * deltaTime;
+                ActualLastECPerSecond = lastECPerSecond - FusionInfo.ResourceUsage[lastPowerLevel.Key == -1 ? 0 : lastPowerLevel.Key].GetValueOrDefault(ec);
             }
         }
 

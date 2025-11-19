@@ -69,20 +69,16 @@ namespace KerbalColonies.colonyFacilities
             if (GUILayout.Button("Retrieve Science Points"))
                 researchFacility.RetrieveSciencePoints();
 
-            if (facility.facilityInfo.ECperSecond[facility.level] > 0)
+
+            GUILayout.Space(10);
+            GUILayout.BeginHorizontal();
             {
-                GUILayout.Space(10);
-                GUILayout.Label($"EC/s: {(researchFacility.getKerbals().Count > 0 ? researchFacility.facilityInfo.ECperSecond[researchFacility.level] * researchFacility.getKerbals().Count : 0)}");
-                GUILayout.Space(10);
-                GUILayout.BeginHorizontal();
-                {
-                    GUILayout.Label($"EC Consumption Priority: {researchFacility.ECConsumptionPriority}", GUILayout.Height(18));
-                    GUILayout.FlexibleSpace();
-                    if (GUILayout.RepeatButton("--", GUILayout.Width(30), GUILayout.Height(23)) | GUILayout.Button("-", GUILayout.Width(30), GUILayout.Height(23))) researchFacility.ECConsumptionPriority--;
-                    if (GUILayout.Button("+", GUILayout.Width(30), GUILayout.Height(23)) | GUILayout.RepeatButton("++", GUILayout.Width(30), GUILayout.Height(23))) researchFacility.ECConsumptionPriority++;
-                }
-                GUILayout.EndHorizontal();
+                GUILayout.Label($"EC Consumption Priority: {researchFacility.ECConsumptionPriority}", GUILayout.Height(18));
+                GUILayout.FlexibleSpace();
+                if (GUILayout.RepeatButton("--", GUILayout.Width(30), GUILayout.Height(23)) | GUILayout.Button("-", GUILayout.Width(30), GUILayout.Height(23))) researchFacility.ECConsumptionPriority--;
+                if (GUILayout.Button("+", GUILayout.Width(30), GUILayout.Height(23)) | GUILayout.RepeatButton("++", GUILayout.Width(30), GUILayout.Height(23))) researchFacility.ECConsumptionPriority++;
             }
+            GUILayout.EndHorizontal();
         }
 
         protected override void OnClose()
@@ -103,7 +99,7 @@ namespace KerbalColonies.colonyFacilities
     }
 
 
-    public class KCResearchFacility : KCKerbalFacilityBase, KCECConsumer
+    public class KCResearchFacility : KCKerbalFacilityBase
     {
         protected KCResearchFacilityWindow researchFacilityWindow;
 
@@ -134,7 +130,7 @@ namespace KerbalColonies.colonyFacilities
             researchFacilityWindow.Toggle();
         }
 
-        public override string GetFacilityProductionDisplay() => $"Science Points: {sciencePoints:f2} / {MaxSciencePoints:f2}\nDaily rate: {(researchFacilityInfo.sciencePointsPerDayperResearcher[level] * kerbals.Count):f2}{(facilityInfo.ECperSecond[level] > 0 ? $"\n{facilityInfo.ECperSecond[level]:f2} EC/s" : "")}";
+        public override string GetFacilityProductionDisplay() => $"Science Points: {sciencePoints:f2} / {MaxSciencePoints:f2}\nDaily rate: {(researchFacilityInfo.sciencePointsPerDayperResearcher[level] * kerbals.Count):f2}";
 
         public bool RetrieveSciencePoints()
         {
@@ -154,14 +150,14 @@ namespace KerbalColonies.colonyFacilities
 
         public int ECConsumptionPriority { get; set; } = 0;
         public bool outOfEC { get; set; } = false;
-        public double ExpectedECConsumption(double lastTime, double deltaTime, double currentTime) =>
-            kerbals.Count > 0 ? facilityInfo.ECperSecond[level] * kerbals.Count * deltaTime : 0;
+        //public double ExpectedECConsumption(double lastTime, double deltaTime, double currentTime) =>
+        //    kerbals.Count > 0 ? facilityInfo.ECperSecond[level] * kerbals.Count * deltaTime : 0;
 
-        public void ConsumeEC(double lastTime, double deltaTime, double currentTime) => outOfEC = false;
+        //public void ConsumeEC(double lastTime, double deltaTime, double currentTime) => outOfEC = false;
 
-        public void ÍnsufficientEC(double lastTime, double deltaTime, double currentTime, double remainingEC) => outOfEC = true;
+        //public void ÍnsufficientEC(double lastTime, double deltaTime, double currentTime, double remainingEC) => outOfEC = true;
 
-        public double DailyECConsumption() => facilityInfo.ECperSecond[level] * 6 * 3600;
+        //public double DailyECConsumption() => facilityInfo.ECperSecond[level] * 6 * 3600;
 
         public override ConfigNode getConfigNode()
         {

@@ -92,7 +92,6 @@ namespace KerbalColonies
         public SortedDictionary<int, string> IconPath { get; protected set; } = new SortedDictionary<int, string> { }; // relative to GameData
         #endregion
 
-        public SortedDictionary<int, double> ECperSecond { get; protected set; } = new SortedDictionary<int, double> { };
         public SortedDictionary<int, Dictionary<PartResourceDefinition, double>> ResourceUsage { get; protected set; } = new SortedDictionary<int, Dictionary<PartResourceDefinition, double>> { };
 
         /// <summary>
@@ -223,7 +222,6 @@ namespace KerbalColonies
             UpgradeTimes = new SortedDictionary<int, double>();
             BasegroupNames = new SortedDictionary<int, string>();
 
-            ECperSecond = new SortedDictionary<int, double>();
             ResourceUsage = new SortedDictionary<int, Dictionary<PartResourceDefinition, double>>();
             PartResourceDefinition ec = PartResourceLibrary.Instance.GetDefinition("ElectricCharge");
             bool useECValue = false;
@@ -335,7 +333,6 @@ namespace KerbalColonies
         {
             if (levelNodes.Count > 0) levelNodes = new SortedDictionary<int, ConfigNode> { { 0, levelNodes[0] } };
             if (resourceCost.Count > 0) resourceCost = new SortedDictionary<int, Dictionary<PartResourceDefinition, double>> { { 0, resourceCost[0] } };
-            if (ECperSecond.Count > 0) ECperSecond = new SortedDictionary<int, double> { { 0, ECperSecond[0] } };
             if (Funds.Count > 0) Funds = new SortedDictionary<int, double> { { 0, Funds[0] } };
             if (UpgradeTypes.Count > 0) UpgradeTypes = new SortedDictionary<int, UpgradeType> { { 0, UpgradeTypes[0] } };
             if (BasegroupNames.Count > 0) BasegroupNames = new SortedDictionary<int, string> { { 0, BasegroupNames[0] } };

@@ -164,20 +164,16 @@ namespace KerbalColonies.colonyFacilities
                     }
                     GUILayout.EndHorizontal();
 
-                    if (facility.facilityInfo.ECperSecond[facility.level] > 0)
+
+                    GUILayout.Space(10);
+                    GUILayout.BeginHorizontal();
                     {
-                        GUILayout.Space(10);
-                        GUILayout.Label($"EC/s: {(productionFacility.lastProduction > 0 ? facility.facilityInfo.ECperSecond[facility.level] : 0):f2}");
-                        GUILayout.Space(10);
-                        GUILayout.BeginHorizontal();
-                        {
-                            GUILayout.Label($"EC Consumption Priority: {productionFacility.ECConsumptionPriority}", GUILayout.Height(18));
-                            GUILayout.FlexibleSpace();
-                            if (GUILayout.RepeatButton("--", GUILayout.Width(30), GUILayout.Height(23)) | GUILayout.Button("-", GUILayout.Width(30), GUILayout.Height(23))) productionFacility.ECConsumptionPriority--;
-                            if (GUILayout.Button("+", GUILayout.Width(30), GUILayout.Height(23)) | GUILayout.RepeatButton("++", GUILayout.Width(30), GUILayout.Height(23))) productionFacility.ECConsumptionPriority++;
-                        }
-                        GUILayout.EndHorizontal();
+                        GUILayout.Label($"Resource Consumption Priority: {productionFacility.ECConsumptionPriority}", GUILayout.Height(18));
+                        GUILayout.FlexibleSpace();
+                        if (GUILayout.RepeatButton("--", GUILayout.Width(30), GUILayout.Height(23)) | GUILayout.Button("-", GUILayout.Width(30), GUILayout.Height(23))) productionFacility.ECConsumptionPriority--;
+                        if (GUILayout.Button("+", GUILayout.Width(30), GUILayout.Height(23)) | GUILayout.RepeatButton("++", GUILayout.Width(30), GUILayout.Height(23))) productionFacility.ECConsumptionPriority++;
                     }
+                    GUILayout.EndHorizontal();
 
                     GUILayout.Space(10);
                     GUILayout.Label("Unfinished facilities");
@@ -354,7 +350,7 @@ namespace KerbalColonies.colonyFacilities
         }
     }
 
-    public class KCProductionFacility : KCKerbalFacilityBase, KCECConsumer
+    public class KCProductionFacility : KCKerbalFacilityBase
     {
         public static Dictionary<colonyClass, Dictionary<KCFacilityBase, double>> ConstructingFacilities { get; protected set; } = new Dictionary<colonyClass, Dictionary<KCFacilityBase, double>>();
         public static Dictionary<colonyClass, List<KCFacilityBase>> ConstructedFacilities { get; protected set; } = new Dictionary<colonyClass, List<KCFacilityBase>>();
@@ -634,13 +630,13 @@ namespace KerbalColonies.colonyFacilities
 
         public int ECConsumptionPriority { get; set; } = 0;
         // Check if facility has daily production
-        public double ExpectedECConsumption(double lastTime, double deltaTime, double currentTime) => lastProduction > 0 ? facilityInfo.ECperSecond[level] * deltaTime : 0;
+        //public double ExpectedECConsumption(double lastTime, double deltaTime, double currentTime) => lastProduction > 0 ? facilityInfo.ECperSecond[level] * deltaTime : 0;
 
-        public void ConsumeEC(double lastTime, double deltaTime, double currentTime) => outOfEC = false;
+        //public void ConsumeEC(double lastTime, double deltaTime, double currentTime) => outOfEC = false;
 
-        public void ÍnsufficientEC(double lastTime, double deltaTime, double currentTime, double remainingEC) => outOfEC = true;
+        //public void ÍnsufficientEC(double lastTime, double deltaTime, double currentTime, double remainingEC) => outOfEC = true;
 
-        public double DailyECConsumption() => facilityInfo.ECperSecond[level] * 6 * 3600;
+        //public double DailyECConsumption() => facilityInfo.ECperSecond[level] * 6 * 3600;
 
 
         public override string GetFacilityProductionDisplay() => $"{kerbals.Count} kerbals assigned\ndaily production: {dailyProduction():f2}\n{(KCProductionInfo.CanBuildVessels(level) ? "Can build vessels" : "Can't build vessels")}";

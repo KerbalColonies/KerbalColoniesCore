@@ -36,14 +36,12 @@ namespace KerbalColonies.colonyFacilities
 
             GUILayout.BeginVertical();
             kerbalGUI.StaffingInterface();
-            if (facility.facilityInfo.ECperSecond[facility.level] > 0)
             {
-                GUILayout.Space(10);
-                GUILayout.Label($"EC/s: {(CrewQuarterFacility.enabled && CrewQuarterFacility.getKerbals().Count > 0 || CrewQuarterFacility.OutOfEC ? facility.facilityInfo.ECperSecond[facility.level] : 0):f2}");
+
                 GUILayout.Space(10);
                 GUILayout.BeginHorizontal();
                 {
-                    GUILayout.Label($"EC Consumption Priority: {CrewQuarterFacility.ECConsumptionPriority}", GUILayout.Height(18));
+                    GUILayout.Label($"Resource Consumption Priority: {CrewQuarterFacility.ECConsumptionPriority}", GUILayout.Height(18));
                     GUILayout.FlexibleSpace();
                     if (GUILayout.RepeatButton("--", GUILayout.Width(30), GUILayout.Height(23)) | GUILayout.Button("-", GUILayout.Width(30), GUILayout.Height(23))) CrewQuarterFacility.ECConsumptionPriority--;
                     if (GUILayout.Button("+", GUILayout.Width(30), GUILayout.Height(23)) | GUILayout.RepeatButton("++", GUILayout.Width(30), GUILayout.Height(23))) CrewQuarterFacility.ECConsumptionPriority++;
@@ -70,7 +68,7 @@ namespace KerbalColonies.colonyFacilities
         }
     }
 
-    internal class KCCrewQuarters : KCKerbalFacilityBase, KCECConsumer
+    internal class KCCrewQuarters : KCKerbalFacilityBase
     {
         private static Dictionary<colonyClass, Vector2> CABInfoTraitScrollPos = new Dictionary<colonyClass, Vector2>();
         public static void CABDisplay(colonyClass colony)
@@ -216,15 +214,15 @@ namespace KerbalColonies.colonyFacilities
 
         public bool OutOfEC { get; set; }
         public int ECConsumptionPriority { get; set; } = 0;
-        public double ExpectedECConsumption(double lastTime, double deltaTime, double currentTime) => enabled && kerbals.Count > 0 || OutOfEC ? facilityInfo.ECperSecond[level] * deltaTime : 0;
+        //public double ExpectedECConsumption(double lastTime, double deltaTime, double currentTime) => enabled && kerbals.Count > 0 || OutOfEC ? facilityInfo.ECperSecond[level] * deltaTime : 0;
 
-        public void ConsumeEC(double lastTime, double deltaTime, double currentTime) => OutOfEC = false;
+        //public void ConsumeEC(double lastTime, double deltaTime, double currentTime) => OutOfEC = false;
 
-        public void ÍnsufficientEC(double lastTime, double deltaTime, double currentTime, double remainingEC) => OutOfEC = true;
+        //public void ÍnsufficientEC(double lastTime, double deltaTime, double currentTime, double remainingEC) => OutOfEC = true;
 
-        public double DailyECConsumption() => facilityInfo.ECperSecond[level] * 6 * 3600;
+        //public double DailyECConsumption() => facilityInfo.ECperSecond[level] * 6 * 3600;
 
-        public override string GetFacilityProductionDisplay() => $"{kerbals.Count} / {MaxKerbals} kerbals assigned{(facilityInfo.ECperSecond[level] > 0 ? $"\nEC/s: {facilityInfo.ECperSecond[level]}" : "")}";
+        //public override string GetFacilityProductionDisplay() => $"{kerbals.Count} / {MaxKerbals} kerbals assigned{(facilityInfo.ECperSecond[level] > 0 ? $"\nEC/s: {facilityInfo.ECperSecond[level]}" : "")}";
 
         public override ConfigNode getConfigNode()
         {

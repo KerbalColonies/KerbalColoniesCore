@@ -45,19 +45,15 @@ namespace KerbalColonies.colonyFacilities.KCMiningFacility
 
                     facility.enabled = GUILayout.Toggle(facility.enabled, "Enabled", GUILayout.Width(100));
 
-                    if (facility.facilityInfo.ECperSecond[facility.level] > 0)
+
+                    GUILayout.BeginHorizontal();
                     {
-                        GUILayout.Space(10);
-                        GUILayout.Label($"EC/s: {(facility.enabled ? facility.facilityInfo.ECperSecond[facility.level] * miningFacility.getKerbals().Count : 0):f2}");
-                        GUILayout.BeginHorizontal();
-                        {
-                            GUILayout.Label($"EC Consumption Priority: {miningFacility.ResourceConsumptionPriority}", GUILayout.Height(18));
-                            GUILayout.FlexibleSpace();
-                            if (GUILayout.RepeatButton("--", GUILayout.Width(30), GUILayout.Height(23)) | GUILayout.Button("-", GUILayout.Width(30), GUILayout.Height(23))) miningFacility.ResourceConsumptionPriority--;
-                            if (GUILayout.Button("+", GUILayout.Width(30), GUILayout.Height(23)) | GUILayout.RepeatButton("++", GUILayout.Width(30), GUILayout.Height(23))) miningFacility.ResourceConsumptionPriority++;
-                        }
-                        GUILayout.EndHorizontal();
+                        GUILayout.Label($"Resource Consumption Priority: {miningFacility.ResourceConsumptionPriority}", GUILayout.Height(18));
+                        GUILayout.FlexibleSpace();
+                        if (GUILayout.RepeatButton("--", GUILayout.Width(30), GUILayout.Height(23)) | GUILayout.Button("-", GUILayout.Width(30), GUILayout.Height(23))) miningFacility.ResourceConsumptionPriority--;
+                        if (GUILayout.Button("+", GUILayout.Width(30), GUILayout.Height(23)) | GUILayout.RepeatButton("++", GUILayout.Width(30), GUILayout.Height(23))) miningFacility.ResourceConsumptionPriority++;
                     }
+                    GUILayout.EndHorizontal();
                 }
 
                 GUILayout.EndVertical();

@@ -72,18 +72,15 @@ namespace KerbalColonies.colonyFacilities
                 GUILayout.EndHorizontal();
             }
 
-            if (facility.facilityInfo.ECperSecond[facility.level] > 0)
+            //GUILayout.Label($"EC/s: {facility.facilityInfo.ECperSecond[facility.level]}");
+            GUILayout.BeginHorizontal();
             {
-                GUILayout.Label($"EC/s: {facility.facilityInfo.ECperSecond[facility.level]}");
-                GUILayout.BeginHorizontal();
-                {
-                    GUILayout.Label($"EC Consumption Priority: {commNetFacility.ECConsumptionPriority}", GUILayout.Height(18));
-                    GUILayout.FlexibleSpace();
-                    if (GUILayout.RepeatButton("--", GUILayout.Width(30), GUILayout.Height(23)) | GUILayout.Button("-", GUILayout.Width(30), GUILayout.Height(23))) commNetFacility.ECConsumptionPriority--;
-                    if (GUILayout.Button("+", GUILayout.Width(30), GUILayout.Height(23)) | GUILayout.RepeatButton("++", GUILayout.Width(30), GUILayout.Height(23))) commNetFacility.ECConsumptionPriority++;
-                }
-                GUILayout.EndHorizontal();
+                GUILayout.Label($"Resource Consumption Priority: {commNetFacility.ECConsumptionPriority}", GUILayout.Height(18));
+                GUILayout.FlexibleSpace();
+                if (GUILayout.RepeatButton("--", GUILayout.Width(30), GUILayout.Height(23)) | GUILayout.Button("-", GUILayout.Width(30), GUILayout.Height(23))) commNetFacility.ECConsumptionPriority--;
+                if (GUILayout.Button("+", GUILayout.Width(30), GUILayout.Height(23)) | GUILayout.RepeatButton("++", GUILayout.Width(30), GUILayout.Height(23))) commNetFacility.ECConsumptionPriority++;
             }
+            GUILayout.EndHorizontal();
         }
 
         public KCCommNetWindow(KCCommNetFacility commNetFacility) : base(commNetFacility, Configuration.createWindowID())
@@ -94,7 +91,7 @@ namespace KerbalColonies.colonyFacilities
         }
     }
 
-    public class KCCommNetFacility : KCFacilityBase, KCECConsumer
+    public class KCCommNetFacility : KCFacilityBase
     {
         public SortedSet<KCCommNetNodeInfo> commNetNodes { get; set; } = new SortedSet<KCCommNetNodeInfo>();
         protected KCCommNetWindow commNetWindow;
@@ -159,13 +156,13 @@ namespace KerbalColonies.colonyFacilities
 
         public bool outOfEC { get; protected set; } = false;
         public int ECConsumptionPriority { get; set; } = 0;
-        public double ExpectedECConsumption(double lastTime, double deltaTime, double currentTime) => enabled || outOfEC ? facilityInfo.ECperSecond[level] * deltaTime : 0;
+        //public double ExpectedECConsumption(double lastTime, double deltaTime, double currentTime) => enabled || outOfEC ? facilityInfo.ECperSecond[level] * deltaTime : 0;
 
-        public void ConsumeEC(double lastTime, double deltaTime, double currentTime) => outOfEC = false;
+        //public void ConsumeEC(double lastTime, double deltaTime, double currentTime) => outOfEC = false;
 
-        public void ÍnsufficientEC(double lastTime, double deltaTime, double currentTime, double remainingEC) => outOfEC = true;
+        //public void ÍnsufficientEC(double lastTime, double deltaTime, double currentTime, double remainingEC) => outOfEC = true;
 
-        public double DailyECConsumption() => facilityInfo.ECperSecond[level] * 6 * 3600;
+        //public double DailyECConsumption() => facilityInfo.ECperSecond[level] * 6 * 3600;
 
         public override ConfigNode getConfigNode()
         {

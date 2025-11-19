@@ -39,7 +39,8 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Win
             double pressure = FlightGlobals.getStaticPressure(kkGroupname.RadiusOffset, body);
             double density = FlightGlobals.getAtmDensity(pressure, FlightGlobals.getExternalTemperature(kkGroupname.RadiusOffset, body));
 
-            double ecPerSecond = density > 0 ? Math.Max(facilityInfo.Minproduction[level], Math.Min(facilityInfo.Maxproduction[level], facilityInfo.ECperSecond[level] * density)) : 0;
+            PartResourceDefinition ec = PartResourceLibrary.Instance.GetDefinition("ElectricCharge");
+            double ecPerSecond = density > 0 ? Math.Max(facilityInfo.Minproduction[level], Math.Min(facilityInfo.Maxproduction[level], facilityInfo.ResourceUsage[level].GetValueOrDefault(ec) * density)) : 0;
             Configuration.writeDebug($"KCWindTurbineFacility ({DisplayName}): EC per second: {ecPerSecond}, pressure: {pressure}, density: {density}");
 
             KCWindturbinePlacementWindow.Instance.ECProductionRate = ecPerSecond;
@@ -82,8 +83,9 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Win
                     continue;
                 }
 
+                PartResourceDefinition ec = PartResourceLibrary.Instance.GetDefinition("ElectricCharge");
                 if (KKgroups.Count >= i - offset + 1 && densityList.ContainsKey(KKgroups[i - offset]) && densityList[KKgroups[i - offset]] > 0)
-                    ECPerSecond += Math.Max(facilityInfo.Minproduction[i], Math.Min(facilityInfo.Maxproduction[i], facilityInfo.ECperSecond[i] * densityList[KKgroups[i - offset]]));
+                    ECPerSecond += Math.Max(facilityInfo.Minproduction[i], Math.Min(facilityInfo.Maxproduction[i], facilityInfo.ResourceUsage[i].GetValueOrDefault(ec) * densityList[KKgroups[i - offset]]));
             }
 
             Configuration.writeDebug($"KCWindTurbineFacility ({DisplayName}): EC per second: {ECPerSecond}");
@@ -107,8 +109,9 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Win
                     continue;
                 }
 
+                PartResourceDefinition ec = PartResourceLibrary.Instance.GetDefinition("ElectricCharge");
                 if (KKgroups.Count >= i - offset + 1 && densityList.ContainsKey(KKgroups[i - offset]) && densityList[KKgroups[i - offset]] > 0)
-                    ECPerSecond += facilityInfo.ECperSecond[i] * densityList[KKgroups[i - offset]];
+                    ECPerSecond += facilityInfo.ResourceUsage[i].GetValueOrDefault(ec) * densityList[KKgroups[i - offset]];
             }
 
             Configuration.writeDebug($"KCWindTurbineFacility ({DisplayName}): EC per second: {ECPerSecond}");

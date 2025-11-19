@@ -1,5 +1,4 @@
 ﻿using KerbalColonies.UI;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -122,15 +121,15 @@ namespace KerbalColonies.colonyFacilities.StorageFacility
             canTranfer |= trashResources;
 
 
+            GUILayout.Label($"Amount: {transferAmount}");
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Amount:");
             transferAmountString = GUILayout.TextField(transferAmountString, GUILayout.Width(100));
             if (GUILayout.Button("Set") && double.TryParse(transferAmountString, out double amountRes)) transferAmount = amountRes;
             GUILayout.EndHorizontal();
             GUILayout.BeginHorizontal();
             foreach (double i in valueList)
             {
-                if (GUILayout.Button(i.ToString(), GUILayout.Height(18), GUILayout.Width(32)))
+                if (GUILayout.Button(i.ToString(), GUILayout.Height(18)))
                 {
                     transferAmount = i;
                     transferAmountString = i.ToString();
@@ -148,10 +147,10 @@ namespace KerbalColonies.colonyFacilities.StorageFacility
                 GUILayout.Label($"{kvp.Key.displayName}: {resourceAmount:f2}", GUILayout.Height(18));
                 GUILayout.FlexibleSpace();
 
-                if (kvp.Value == ResourceTransferAvailable.Possible)
+                if (kvp.Value == ResourceTransferAvailable.Possible || trashResources)
                 {
                     GUI.enabled = canTranfer;
-                    if (GUILayout.RepeatButton("--", GUILayout.Width(30)) | GUILayout.Button("-", GUILayout.Width(30)))
+                    if (GUILayout.RepeatButton("--", GUILayout.Width(30), GUILayout.Height(18)) | GUILayout.Button("-", GUILayout.Width(30), GUILayout.Height(18)))
                     {
                         if (trashResources)
                         {
@@ -192,7 +191,7 @@ namespace KerbalColonies.colonyFacilities.StorageFacility
                         }
                     }
                     GUI.enabled = canTranfer && !trashResources;
-                    if (GUILayout.Button("+", GUILayout.Width(30)) | GUILayout.RepeatButton("++", GUILayout.Width(30)))
+                    if (GUILayout.Button("+", GUILayout.Width(30), GUILayout.Height(18)) | GUILayout.RepeatButton("++", GUILayout.Width(30), GUILayout.Height(18)))
                     {
                         if (storageFacility.unifiedColonyStorage.MaxStorable(kvp.Key) >= transferAmount)
                         {
@@ -228,7 +227,8 @@ namespace KerbalColonies.colonyFacilities.StorageFacility
                 }
                 else if (kvp.Value == ResourceTransferAvailable.Colony_only)
                 {
-                    GUILayout.Label("No space on vessel", GUILayout.Height(18));
+                    if (FlightGlobals.ActiveVessel == null) GUILayout.Label("No active vessel", GUILayout.Height(18));
+                    else GUILayout.Label("No space on vessel", GUILayout.Height(18));
                 }
                 else if (kvp.Value == ResourceTransferAvailable.Vessel_only)
                 {
@@ -244,7 +244,7 @@ namespace KerbalColonies.colonyFacilities.StorageFacility
             storageFacility.locked = GUILayout.Toggle(storageFacility.locked, "Lock storage", GUILayout.Height(18));
 
             GUILayout.Label("Resource consumption per second:");
-            resourceUsageScrollPos = GUILayout.BeginScrollView(resourceUsageScrollPos, GUILayout.Height(100));
+            resourceUsageScrollPos = GUILayout.BeginScrollView(resourceUsageScrollPos, GUILayout.Height(50));
             {
                 storageFacility.facilityInfo.ResourceUsage[storageFacility.level].Where(kvp => kvp.Value < 0).ToList().ForEach(kvp =>
                 {
@@ -268,30 +268,37 @@ namespace KerbalColonies.colonyFacilities.StorageFacility
 
         protected override void OnOpen()
         {
-            if (FlightGlobals.ActiveVessel == null) return;
-
-            AvailableResources = new SortedDictionary<PartResourceDefinition, ResourceTransferAvailable>(Comparer<PartResourceDefinition>.Create((x, y) => x.displayName.CompareTo(y.displayName)));
-
-            foreach (PartResourceDefinition resource in PartResourceLibrary.Instance.resourceDefinitions)
+            if (FlightGlobals.ActiveVessel != null)
             {
-                if (KCStorageFacility.blackListedResources.Contains(resource.name)) continue;
+                AvailableResources = new SortedDictionary<PartResourceDefinition, ResourceTransferAvailable>(Comparer<PartResourceDefinition>.Create((x, y) => x.displayName.CompareTo(y.displayName)));
 
-                FlightGlobals.ActiveVessel.GetConnectedResourceTotals(resource.id, true, out double amount, out double max, true);
-                if (max > 0)
+                foreach (PartResourceDefinition resource in PartResourceLibrary.Instance.resourceDefinitions)
                 {
-                    if (storageFacility.unifiedColonyStorage.ResourceVolume(resource) <= 0 && storageFacility.unifiedColonyStorage.Resources.GetValueOrDefault(resource) <= 0)
+                    if (KCStorageFacility.blackListedResources.Contains(resource.name)) continue;
+
+                    FlightGlobals.ActiveVessel.GetConnectedResourceTotals(resource.id, true, out double amount, out double max, true);
+                    if (max > 0)
                     {
-                        AvailableResources.Add(resource, ResourceTransferAvailable.Vessel_only);
+                        if (storageFacility.unifiedColonyStorage.ResourceVolume(resource) <= 0 && storageFacility.unifiedColonyStorage.Resources.GetValueOrDefault(resource) <= 0)
+                        {
+                            AvailableResources.Add(resource, ResourceTransferAvailable.Vessel_only);
+                        }
+                        else
+                        {
+                            AvailableResources.Add(resource, ResourceTransferAvailable.Possible);
+                        }
                     }
-                    else
+                    else if (storageFacility.unifiedColonyStorage.Resources.GetValueOrDefault(resource) > 0)
                     {
-                        AvailableResources.Add(resource, ResourceTransferAvailable.Possible);
+                        AvailableResources.Add(resource, ResourceTransferAvailable.Colony_only);
                     }
                 }
-                else if (storageFacility.unifiedColonyStorage.Resources.GetValueOrDefault(resource) > 0)
-                {
-                    AvailableResources.Add(resource, ResourceTransferAvailable.Colony_only);
-                }
+            }
+            else
+            {
+                AvailableResources = new SortedDictionary<PartResourceDefinition, ResourceTransferAvailable>(Comparer<PartResourceDefinition>.Create((x, y) => x.displayName.CompareTo(y.displayName)));
+
+                KCUnifiedColonyStorage.colonyStorages[facility.Colony].Resources.ToList().ForEach(kvp => AvailableResources.Add(kvp.Key, ResourceTransferAvailable.Colony_only));
             }
         }
 

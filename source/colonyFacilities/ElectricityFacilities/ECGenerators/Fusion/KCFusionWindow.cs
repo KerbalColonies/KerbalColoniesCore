@@ -56,9 +56,11 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fus
                     GUILayout.Label("Available Power Levels:");
                     scrollPosPowerLevels = GUILayout.BeginScrollView(scrollPosPowerLevels, GUILayout.Height(125));
                     {
+                        PartResourceDefinition ec = PartResourceLibrary.Instance.GetDefinition("ElectricCharge");
+
                         powerLevels.ToList().ForEach(kvp =>
                         {
-                            GUILayout.Label($"Power Level: {fusionReactor.FusionInfo.MinKerbals[kvp.Key]} Kerbals = {kvp.Value - fusionReactor.FusionInfo.ECperSecond[kvp.Key]} EC/s");
+                            GUILayout.Label($"Power Level: {fusionReactor.FusionInfo.MinKerbals[kvp.Key]} Kerbals = {kvp.Value - fusionReactor.facilityInfo.ResourceUsage[kvp.Key].GetValueOrDefault(ec)} EC/s");
                             Dictionary<string, int> requiredTraits = fusionReactor.FusionInfo.RequiredTraits[kvp.Key];
                             if (requiredTraits.Count > 0)
                             {

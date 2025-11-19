@@ -160,11 +160,6 @@ namespace KerbalColonies.colonyFacilities.KCMiningFacility
                     sb.AppendLine($"{(groupDensities.Sum(kvp => kvp.Value.ContainsKey(rate.resource) ? kvp.Value[rate.resource] : 0) * kerbals.Count):f2} {rate.resource.displayName}/day\n0/{rate.max:f2} stored");
             });
 
-            if (facilityInfo.ECperSecond[level] > 0)
-            {
-                sb.AppendLine($"EC Consumption: {(enabled ? facilityInfo.ECperSecond[level] * kerbals.Count : 0):f2} EC/s");
-            }
-
             return sb.ToString();
         }
 

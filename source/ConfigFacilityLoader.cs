@@ -169,6 +169,7 @@ namespace KerbalColonies
 #endif
 
             colonyClass.ColonyLoad.Add(new ColonyAction(KCColonyTransferBehaviour.ColonyLoadAction));
+            colonyClass.ColonyPreLoad.Add(new ColonyAction(KCUnifiedColonyStorage.KCColonyLoad));
 
             colonyClass.ColonyUpdate.Add(new ColonyAction(colonyClass.ColonyUpdateHandler, 0));
             colonyClass.ColonyUpdate.Add(new ColonyAction(KCProductionFacility.ExecuteProduction, 10));
@@ -176,7 +177,7 @@ namespace KerbalColonies
             colonyClass.ColonyUpdate.Add(new ColonyAction(KCResourceManager.ResourceUpdate, 5));
             colonyClass.ColonyUpdate.Add(new ColonyAction(KCColonyTransferBehaviour.ColonyUpdateTransferAction, 16));
 
-            colonyClass.ColonySave.Add(new ColonyAction(KCUnifiedColonyStorage.SaveColony));
+            colonyClass.ColonyPreSave.Add(new ColonyAction(KCUnifiedColonyStorage.SaveColony));
 
             KC_CAB_Window.CABInfoWindow += KCECManager.CABDisplay;
             KC_CAB_Window.CABInfoWindow += KCCrewQuarters.CABDisplay;

@@ -88,6 +88,12 @@ namespace KerbalColonies.colonyFacilities.StorageFacility
                 else if (level > 0) resourceBlacklist[level] = resourceBlacklist[level - 1].ToList();
                 else resourceBlacklist[level] = new List<PartResourceDefinition>();
 
+                if (type != typeof(KCECStorageFacility))
+                {
+                    PartResourceDefinition ec = PartResourceLibrary.Instance.GetDefinition("ElectricCharge");
+                    if (!n.HasValue("AllowEC") || resourceWhitelist[level].Contains(ec)) resourceBlacklist[level].Add(ec);
+                }
+
                 if (n.HasValue("range")) TransferRange.Add(kvp.Key, float.Parse(n.GetValue("range")));
                 else if (kvp.Key > 0) TransferRange.Add(kvp.Key, TransferRange[kvp.Key - 1]);
                 else TransferRange.Add(0, 150);

@@ -154,16 +154,16 @@ namespace KerbalColonies.colonyFacilities.StorageFacility
                     {
                         if (trashResources)
                         {
-                            storageFacility.unifiedColonyStorage.ChangeResourceStored(kvp.Key, transferAmount);
+                            storageFacility.unifiedColonyStorage.ChangeResourceStored(kvp.Key, -transferAmount);
                         }
                         else
                         {
-                            if (vesselHasSpace(FlightGlobals.ActiveVessel, kvp.Key, -transferAmount))
+                            if (vesselHasSpace(FlightGlobals.ActiveVessel, kvp.Key, transferAmount))
                             {
-                                if (facilityHasRessources(kvp.Key, -transferAmount))
+                                if (facilityHasRessources(kvp.Key, transferAmount))
                                 {
-                                    FlightGlobals.ActiveVessel.rootPart.RequestResource(kvp.Key.id, transferAmount, ResourceFlowMode.ALL_VESSEL_BALANCE, false);
-                                    storageFacility.unifiedColonyStorage.ChangeResourceStored(kvp.Key, transferAmount);
+                                    FlightGlobals.ActiveVessel.rootPart.RequestResource(kvp.Key.id, -transferAmount, ResourceFlowMode.ALL_VESSEL_BALANCE, false);
+                                    storageFacility.unifiedColonyStorage.ChangeResourceStored(kvp.Key, -transferAmount);
                                 }
                                 else
                                 {

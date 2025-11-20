@@ -103,9 +103,21 @@ namespace KerbalColonies
         /// <summary>
         /// Reversed priority, the lower the number, the higher the priority.
         /// </summary>
+
+        /// <summary>
+        /// ColonyPreLoad is called BEFORE the facilities are loaded but AFTER the shared nodes are loaded.
+        /// </summary>
+        public static SortedSet<ColonyAction> ColonyPreLoad = new SortedSet<ColonyAction> { };
+        /// <summary>
+        /// ColonyLoad is called AFTER the facilities are loaded.
+        /// </summary>
         public static SortedSet<ColonyAction> ColonyLoad = new SortedSet<ColonyAction> { };
         public static SortedSet<ColonyAction> ColonyUpdate = new SortedSet<ColonyAction> { };
+        /// <summary>
+        /// ColonyPresave is called BEFORE anything is saved.
         public static SortedSet<ColonyAction> ColonyPreSave = new SortedSet<ColonyAction> { };
+        /// <summary>
+        /// ColonySave is called AFTER the config node is created but BEFORE it is saved to the disk
         public static SortedSet<ColonyAction> ColonySave = new SortedSet<ColonyAction> { };
 
         public static colonyClass GetColony(string name)
@@ -205,6 +217,7 @@ namespace KerbalColonies
             Facilities = new List<KCFacilityBase>();
             sharedColonyNodes = new List<ConfigNode>();
 
+            ColonyPreLoad.ToList().ForEach(actionClass => actionClass.action.Invoke(this));
             ColonyLoad.ToList().ForEach(actionClass => actionClass.action.Invoke(this));
         }
 
@@ -221,6 +234,8 @@ namespace KerbalColonies
             sharedColonyNodes = node.GetNode("sharedColonyNodes").GetNodes().ToList();
             Configuration.writeLog($"Loading colony {Name} with {sharedColonyNodes.Count} shared nodes");
             sharedColonyNodes.ForEach(x => Configuration.writeDebug($"Shared node: {x.name}\n{x.ToString()}"));
+
+            ColonyPreLoad.ToList().ForEach(actionClass => actionClass.action.Invoke(this));
 
             foreach (ConfigNode facilityNode in node.GetNodes("facility"))
             {

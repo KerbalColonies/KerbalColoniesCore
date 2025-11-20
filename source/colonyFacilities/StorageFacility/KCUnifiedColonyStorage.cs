@@ -18,13 +18,34 @@ namespace KerbalColonies.colonyFacilities.StorageFacility
         public int Priority { get; set; } = 0;
         public double Volume => storageFacilities.Sum(facility => facility.locked ? 0 : facility.maxVolume);
         public double ResourceVolume(PartResourceDefinition resource) => storageFacilities.Where(fac => fac.CanStoreResource(resource) && !fac.locked).Sum(fac => fac.maxVolume);
+        public double UsedResourceVolume(PartResourceDefinition resource) => Resources.GetValueOrDefault(resource, 0) * (resource.volume == 0 ? 1 : resource.volume);
         public double UsedVolume => Resources.Sum(kvp => (kvp.Key.volume == 0 ? 1 : kvp.Key.volume) * kvp.Value);
         // Difference between total volume and resource volume is subtracted from used volume becaues the other resources can be stored in other facilities
         // Although this can give false results for some specific cases I think it's good enough for now
-        public double UsedResourceVolume(PartResourceDefinition resource) => UsedVolume - Volume + ResourceVolume(resource);
+        public double FreeResourceVolume(PartResourceDefinition resource)
+        {
+            // Free Volume for a particular resource
+            // Volume - ResourceVolume -> Volume useable by other resources
+            // - UsedVolume -> Volume already used by all resources
+            // -> Math.Min(0, Volume - ResourceVolume - UsedVolume) + ResourceVolume
+            // 
+            // Total: 1000, Used: 0, ResourceVolume: 400 -> (1000 - 400 - 0) + 400 = 400
+            // Total: 1000, Used: 800, ResourceVolume: 400 -> (1000 - 400 - 800) + 400 = 200
+
+
+            // Total: 3205, Used: 163, ResourceVolume: 25 -> (3205 - 25 - 163) + 25 = 25
+
+            double ResourceVol = ResourceVolume(resource);
+            double UsedResourceVol = UsedResourceVolume(resource);
+            double UsedVol = UsedVolume;
+            double TotalVol = Volume;
+
+            return Math.Min(0, TotalVol - ResourceVol - UsedVol) + ResourceVol - UsedResourceVol;
+        }
+
         public double FreeVolume => Volume - UsedVolume;
         public SortedDictionary<PartResourceDefinition, double> Resources { get; protected set; } = new SortedDictionary<PartResourceDefinition, double>(Comparer<PartResourceDefinition>.Create((x, y) => x.displayName.CompareTo(y.displayName)));
-        public double MaxStorable(PartResourceDefinition resource) => UsedResourceVolume(resource) * resource.volume;
+        public double MaxStorable(PartResourceDefinition resource) => FreeResourceVolume(resource) / resource.volume;
 
         public SortedDictionary<PartResourceDefinition, double> StoredResources(double lastTime, double deltaTime, double currentTime) => Resources;
 
@@ -96,9 +117,17 @@ namespace KerbalColonies.colonyFacilities.StorageFacility
         }
 
 
+        public static void KCColonyLoad(colonyClass colony)
+        {
+            colonyStorages.Remove(colony);
+            colonyStorages[colony] = new KCUnifiedColonyStorage(colony);
+        }
+
         public static KCUnifiedColonyStorage GetOrCreateColonyStorage(colonyClass colony, KCStorageFacility facility)
         {
-            KCUnifiedColonyStorage storage = colonyStorages.GetValueOrDefault(colony, new KCUnifiedColonyStorage(colony));
+            KCUnifiedColonyStorage storage;
+            if (colonyStorages.ContainsKey(colony)) storage = colonyStorages[colony];
+            else storage = new KCUnifiedColonyStorage(colony);
             storage.storageFacilities.Add(facility);
             return storage;
         }

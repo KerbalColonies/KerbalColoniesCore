@@ -68,157 +68,147 @@ namespace KerbalColonies.VesselAutoTransfer
                 return;
             }
 
-            Dictionary<PartResourceDefinition, double> VesselResources = new Dictionary<PartResourceDefinition, double>();
-
-            PartResourceDefinition EC = PartResourceLibrary.Instance.GetDefinition("ElectricCharge");
-
             colonyClass colony = transferInfo.Colony;
-            List<KCECStorageFacility> ecStorages = KCFacilityBase.GetAllTInColony<KCECStorageFacility>(colony);
 
-            this.part.GetConnectedResourceTotals(EC.id, transferMode, out double vesselAmount, out double vesselMaxAmount);
-            VesselResources.Add(EC, vesselAmount);
-
-            foreach (PartResourceDefinition res in transferInfo.resources.ToList())
+            transferInfo.resources.ForEach(res =>
             {
                 lastResourceValue.TryAdd(res, 0);
                 double lastAmount = lastResourceValue[res];
 
-                if (res == EC)
+                part.GetConnectedResourceTotals(res.id, transferMode, out double vesselAmount, out double vesselMaxAmount);
+                lastResourceValue[res] = vesselAmount;
+                double ResRatio = vesselAmount / vesselMaxAmount;
+                double ResDelta = (lastAmount - vesselAmount) / deltaTime - transferInfo.ResourcesActual[res];
+
+                double transferAmount = 0;
+
+                if (transferInfo.ResourcesTarget[res] > 0)
                 {
-                    part.GetConnectedResourceTotals(EC.id, transferMode, out double currentEC, out double maxEC);
-                    lastResourceValue[res] = currentEC;
-                    double ECRatio = currentEC / maxEC;
-                    double ECDelta = (lastAmount - currentEC) / deltaTime - transferInfo.ResourcesActual[res];
-
-                    double transferAmount = 0;
-
-                    if (transferInfo.ResourcesTarget[res] > 0)
+                    if (ResRatio > transferInfo.VesselTransferLimits[res])
                     {
-                        if (ECRatio > transferInfo.VesselTransferLimits[res])
+                        transferAmount = transferInfo.ResourcesTarget[res] * transferInfo.Efficiency;
+
+                        double newRatio = (vesselAmount - transferAmount - ResDelta) / vesselMaxAmount;
+
+                        if (newRatio < transferInfo.VesselTransferLimits[res])
                         {
-                            transferAmount = transferInfo.ResourcesTarget[res] * transferInfo.Efficiency;
-
-                            double newRatio = (currentEC - transferAmount - ECDelta) / maxEC;
-
-                            if (newRatio < transferInfo.VesselTransferLimits[res])
-                            {
-                                double limitPercent = Math.Abs(transferInfo.VesselTransferLimits[res] - ECRatio);
-                                transferAmount = Math.Min(Math.Max((transferInfo.VesselTransferLimits[res] - ECRatio) * maxEC, 0) + (ECDelta < 0 && limitPercent < 0.01 ? -ECDelta : 0), transferInfo.ResourcesTarget[res]);
-                            }
-                        }
-
-                        if (transferInfo.ColonyConstrained[res])
-                        {
-                            if (transferInfo.ResourcesActual[res] > transferAmount)
-                            {
-                                transferInfo.VesselConstrained[res] = true;
-                                transferInfo.ColonyConstrained[res] = false;
-
-                                if (transferInfo.DisableIfVesselConstrains[res])
-                                {
-                                    transferAmount = 0;
-                                    transferInfo.CleanResources();
-                                }
-
-                                transferInfo.ResourcesActual[res] = transferAmount;
-                            }
-                            else
-                            {
-                                transferAmount = transferInfo.ResourcesActual[res];
-                            }
-                        }
-                        else if (transferAmount != -transferInfo.ResourcesActual[res])
-                        {
-                            if (transferAmount != transferInfo.ResourcesTarget[res])
-                            {
-                                transferInfo.ColonyConstrained[res] = false;
-                                transferInfo.VesselConstrained[res] = true;
-
-                                if (transferInfo.DisableIfVesselConstrains[res])
-                                {
-                                    transferAmount = 0;
-                                    transferInfo.CleanResources();
-                                }
-                            }
-                            else
-                            {
-                                transferInfo.VesselConstrained[res] = false;
-                            }
-
-                            transferInfo.ResourcesActual[res] = transferAmount;
+                            double limitPercent = Math.Abs(transferInfo.VesselTransferLimits[res] - ResRatio);
+                            transferAmount = Math.Min(Math.Max((transferInfo.VesselTransferLimits[res] - ResRatio) * vesselMaxAmount, 0) + (ResDelta < 0 && limitPercent < 0.01 ? -ResDelta : 0), transferInfo.ResourcesTarget[res]);
                         }
                     }
-                    else if (transferInfo.ResourcesTarget[res] < 0)
+
+                    if (transferInfo.ColonyConstrained[res])
                     {
-                        if (ECRatio < transferInfo.VesselTransferLimits[res])
+                        if (transferInfo.ResourcesActual[res] > transferAmount)
                         {
-                            transferAmount = transferInfo.ResourcesTarget[res] * transferInfo.Efficiency;
+                            transferInfo.VesselConstrained[res] = true;
+                            transferInfo.ColonyConstrained[res] = false;
 
-                            double newRatio = (currentEC - transferAmount - ECDelta) / maxEC;
-
-                            if (newRatio > transferInfo.VesselTransferLimits[res])
+                            if (transferInfo.DisableIfVesselConstrains[res])
                             {
-                                double limitPercent = Math.Abs(transferInfo.VesselTransferLimits[res] - ECRatio);
-                                transferAmount = Math.Max(Math.Min((transferInfo.VesselTransferLimits[res] - ECRatio) * maxEC, 0) + (ECDelta < 0 && limitPercent < 0.01 ? -ECDelta : 0), transferInfo.ResourcesTarget[res]);
-                            }
-                        }
-
-                        if (transferInfo.ColonyConstrained[res])
-                        {
-                            if (transferInfo.ResourcesActual[res] < transferAmount)
-                            {
-                                transferInfo.VesselConstrained[res] = true;
-                                transferInfo.ColonyConstrained[res] = false;
-
-                                if (transferInfo.DisableIfVesselConstrains[res])
-                                {
-                                    transferAmount = 0;
-                                }
-
-                                transferInfo.ResourcesActual[res] = transferAmount;
-                            }
-                            else
-                            {
-                                transferAmount = transferInfo.ResourcesActual[res];
-                            }
-                        }
-                        else if (transferAmount != transferInfo.ResourcesActual[res])
-                        {
-                            if (transferAmount != transferInfo.ResourcesTarget[res])
-                            {
-                                transferInfo.VesselConstrained[res] = true;
-                                transferInfo.ColonyConstrained[res] = false;
-
-                                if (transferInfo.DisableIfVesselConstrains[res])
-                                {
-                                    transferAmount = 0;
-                                    transferInfo.CleanResources();
-                                }
-                            }
-                            else
-                            {
-                                transferInfo.VesselConstrained[res] = false;
+                                transferAmount = 0;
+                                transferInfo.CleanResources();
                             }
 
                             transferInfo.ResourcesActual[res] = transferAmount;
                         }
-                        else if (transferAmount == transferInfo.ResourcesTarget[res])
+                        else
+                        {
+                            transferAmount = transferInfo.ResourcesActual[res];
+                        }
+                    }
+                    else if (transferAmount != -transferInfo.ResourcesActual[res])
+                    {
+                        if (transferAmount != transferInfo.ResourcesTarget[res])
+                        {
+                            transferInfo.ColonyConstrained[res] = false;
+                            transferInfo.VesselConstrained[res] = true;
+
+                            if (transferInfo.DisableIfVesselConstrains[res])
+                            {
+                                transferAmount = 0;
+                                transferInfo.CleanResources();
+                            }
+                        }
+                        else
                         {
                             transferInfo.VesselConstrained[res] = false;
+                        }
+
+                        transferInfo.ResourcesActual[res] = transferAmount;
+                    }
+                }
+                else if (transferInfo.ResourcesTarget[res] < 0)
+                {
+                    if (ResRatio < transferInfo.VesselTransferLimits[res])
+                    {
+                        transferAmount = transferInfo.ResourcesTarget[res] * transferInfo.Efficiency;
+
+                        double newRatio = (vesselAmount - transferAmount - ResDelta) / vesselMaxAmount;
+
+                        if (newRatio > transferInfo.VesselTransferLimits[res])
+                        {
+                            double limitPercent = Math.Abs(transferInfo.VesselTransferLimits[res] - ResRatio);
+                            transferAmount = Math.Max(Math.Min((transferInfo.VesselTransferLimits[res] - ResRatio) * vesselMaxAmount, 0) + (ResDelta < 0 && limitPercent < 0.01 ? -ResDelta : 0), transferInfo.ResourcesTarget[res]);
+                        }
+                    }
+
+                    if (transferInfo.ColonyConstrained[res])
+                    {
+                        if (transferInfo.ResourcesActual[res] < transferAmount)
+                        {
+                            transferInfo.VesselConstrained[res] = true;
+                            transferInfo.ColonyConstrained[res] = false;
+
+                            if (transferInfo.DisableIfVesselConstrains[res])
+                            {
+                                transferAmount = 0;
+                            }
 
                             transferInfo.ResourcesActual[res] = transferAmount;
                         }
+                        else
+                        {
+                            transferAmount = transferInfo.ResourcesActual[res];
+                        }
                     }
-                    else
+                    else if (transferAmount != transferInfo.ResourcesActual[res])
                     {
-                        transferInfo.ResourcesActual[res] = transferAmount;
-                        transferInfo.ECTransferProducer.EC = 0;
-                    }
+                        if (transferAmount != transferInfo.ResourcesTarget[res])
+                        {
+                            transferInfo.VesselConstrained[res] = true;
+                            transferInfo.ColonyConstrained[res] = false;
 
-                    Configuration.writeDebug($"ModuleKCTransfer: Requesting {transferAmount} (dt: {deltaTime}) from {part.name.ToString()} in vessel {part.vessel.name}");
-                    part.RequestResource(res.id, transferAmount * deltaTime, transferMode);
+                            if (transferInfo.DisableIfVesselConstrains[res])
+                            {
+                                transferAmount = 0;
+                                transferInfo.CleanResources();
+                            }
+                        }
+                        else
+                        {
+                            transferInfo.VesselConstrained[res] = false;
+                        }
+
+                        transferInfo.ResourcesActual[res] = transferAmount;
+                    }
+                    else if (transferAmount == transferInfo.ResourcesTarget[res])
+                    {
+                        transferInfo.VesselConstrained[res] = false;
+
+                        transferInfo.ResourcesActual[res] = transferAmount;
+                    }
                 }
-            }
+                else
+                {
+                    transferInfo.ResourcesActual[res] = transferAmount;
+                    transferInfo.ResourceTransferHandler.ResourceRates[res] = 0;
+                }
+
+                Configuration.writeDebug($"ModuleKCTransfer: Requesting {transferAmount} (dt: {deltaTime}) from {part.name.ToString()} in vessel {part.vessel.name}");
+                part.RequestResource(res.id, transferAmount * deltaTime, transferMode);
+
+            });
         }
 
         public override void OnSave(ConfigNode node)

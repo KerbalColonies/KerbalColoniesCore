@@ -23,6 +23,12 @@ using System.Linq;
 
 namespace KerbalColonies
 {
+    /// <summary>
+    /// A container class for colony actions with priorities.
+    /// <para>
+    /// WARNING: Priorities must be unique!
+    /// </para>
+    /// </summary>
     public class ColonyAction : IComparable<ColonyAction>, IComparer<ColonyAction>
     {
         public Action<colonyClass> action { get; private set; }

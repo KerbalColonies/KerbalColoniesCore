@@ -1,4 +1,5 @@
 ﻿using KerbalColonies.Electricity;
+using KerbalColonies.ResourceManagment;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -28,7 +29,7 @@ namespace KerbalColonies.VesselAutoTransfer
         public Dictionary<PartResourceDefinition, bool> VesselConstrained = new Dictionary<PartResourceDefinition, bool>();
         public Dictionary<PartResourceDefinition, bool> ColonyConstrained = new Dictionary<PartResourceDefinition, bool>();
 
-        public KCColonyTransferECHandler ECTransferProducer = null;
+        public KCColonyResourceTransferHandler ResourceTransferHandler = null;
 
         public bool backgroundVessel;
         public uint partModuleID;
@@ -79,8 +80,6 @@ namespace KerbalColonies.VesselAutoTransfer
             {
                 if (ResourcesTarget[r] == 0)
                 {
-                    if (r == EC) ECTransferProducer.EC = 0;
-
                     resources.Remove(r);
                     ResourcesTarget.Remove(r);
                     ResourcesActual.Remove(r);
@@ -99,11 +98,11 @@ namespace KerbalColonies.VesselAutoTransfer
         public void Delete()
         {
             ActiveTransfers.Remove(this.partModuleID);
-            if (ECTransferProducer != null)
+            if (ResourceTransferHandler != null)
             {
-                KCECManager.otherProducers[colony].Remove(ECTransferProducer);
-                ECTransferProducer.EC = 0;
-                ECTransferProducer = null;
+                KCResourceManager.otherProducers[colony].Remove(ResourceTransferHandler);
+                KCResourceManager.otherConsumers[colony][0].Remove(ResourceTransferHandler);
+                ResourceTransferHandler = null;
             }
         }
 
@@ -179,14 +178,14 @@ namespace KerbalColonies.VesselAutoTransfer
             this.partModuleID = partModuleID;
             this.vesselID = vesselID;
 
-            if (ActiveTransfers.ContainsKey(partModuleID)) ECTransferProducer = ActiveTransfers[partModuleID].ECTransferProducer;
+            if (ActiveTransfers.ContainsKey(partModuleID)) ResourceTransferHandler = ActiveTransfers[partModuleID].ResourceTransferHandler;
             else
             {
-                ECTransferProducer = new KCColonyTransferECHandler(colony, partModuleID);
+                ResourceTransferHandler = new KCColonyResourceTransferHandler(colony, partModuleID);
                 ActiveTransfers.Add(partModuleID, this);
             }
 
-            Configuration.writeDebug($"Created a new Transfer producer. Current count: {KCECManager.otherProducers[colony].Count}");
+            Configuration.writeDebug($"Created a new Transfer producer. Current count: {KCResourceManager.otherProducers[colony].Count}");
         }
     }
 

@@ -173,7 +173,7 @@ namespace KerbalColonies
 
             colonyClass.ColonyUpdate.Add(new ColonyAction(colonyClass.ColonyUpdateHandler, 0));
             colonyClass.ColonyUpdate.Add(new ColonyAction(KCProductionFacility.ExecuteProduction, 10));
-            colonyClass.ColonyUpdate.Add(new ColonyAction(KCECManager.ElectricityUpdate, 5));
+            //colonyClass.ColonyUpdate.Add(new ColonyAction(KCECManager.ElectricityUpdate, 5));
             colonyClass.ColonyUpdate.Add(new ColonyAction(KCResourceManager.ResourceUpdate, 5));
             colonyClass.ColonyUpdate.Add(new ColonyAction(KCColonyTransferBehaviour.ColonyUpdateTransferAction, 16));
 

@@ -93,6 +93,8 @@ namespace KerbalColonies.VesselAutoTransfer
 
         public static void ColonyUpdateTransferAction(colonyClass colony)
         {
+            return; 
+
             PartResourceDefinition EC = PartResourceLibrary.Instance.GetDefinition("ElectricCharge");
 
             ActiveTransfers.Values.Where(t => t.Colony == colony).ToList().ForEach(t =>

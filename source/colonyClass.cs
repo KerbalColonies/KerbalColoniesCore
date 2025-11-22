@@ -106,18 +106,24 @@ namespace KerbalColonies
 
         /// <summary>
         /// ColonyPreLoad is called BEFORE the facilities are loaded but AFTER the shared nodes are loaded.
+        /// Warning: Priorities must be unique!
         /// </summary>
         public static SortedSet<ColonyAction> ColonyPreLoad = new SortedSet<ColonyAction> { };
         /// <summary>
         /// ColonyLoad is called AFTER the facilities are loaded.
+        /// Warning: Priorities must be unique!
         /// </summary>
         public static SortedSet<ColonyAction> ColonyLoad = new SortedSet<ColonyAction> { };
         public static SortedSet<ColonyAction> ColonyUpdate = new SortedSet<ColonyAction> { };
         /// <summary>
         /// ColonyPresave is called BEFORE anything is saved.
+        /// Warning: Priorities must be unique!
+        /// </summary>
         public static SortedSet<ColonyAction> ColonyPreSave = new SortedSet<ColonyAction> { };
         /// <summary>
         /// ColonySave is called AFTER the config node is created but BEFORE it is saved to the disk
+        /// Warning: Priorities must be unique!
+        /// </summary>
         public static SortedSet<ColonyAction> ColonySave = new SortedSet<ColonyAction> { };
 
         public static colonyClass GetColony(string name)

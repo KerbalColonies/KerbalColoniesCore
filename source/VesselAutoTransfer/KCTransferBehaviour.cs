@@ -64,14 +64,12 @@ namespace KerbalColonies.VesselAutoTransfer
             // rates will be updated through the OnRatesComputed event
             // although it's also necessary to update the rates on every change point as e.g. solar panels will change the possible rates
 
-            if (converter.Inputs.Count > 0)
+            converter.Inputs.ToList().ForEach(kvp =>
             {
-                double ecRate = converter.Inputs.FirstOrDefault(kvp => kvp.Value.ResourceName == "ElectricCharge").Value.Ratio * converter.Rate;
-
-                Configuration.writeDebug(ecRate.ToString());
-
-                transferInfo.ECTransferProducer.EC = ecRate;
-            }
+                double resRate = kvp.Value.Ratio * converter.Rate;
+                PartResourceDefinition resDef = PartResourceLibrary.Instance.GetDefinition(kvp.Value.ResourceName);
+                transferInfo.ResourceTransferHandler.ResourceRates[resDef] = resRate;
+            });
 
             if (FlightGlobals.ActiveVessel != processor.Vessel)
             {

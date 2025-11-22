@@ -162,16 +162,17 @@ namespace KerbalColonies.ResourceManagment
 
                 if (delta >= 0)
                 {
-                    sufficientResources[res] = colonyData.ResourcesProduced.GetValueOrDefault(res);
+                    sufficientResources[res] = colonyData.ResourcesConsumed.GetValueOrDefault(res);
+                    storedResourcesUsed[res] = delta;
                 }
-                else if (delta + colonyData.ResourcesStored.GetValueOrDefault(res) > 0)
+                else if (delta + colonyData.ResourcesStored.GetValueOrDefault(res) >= 0)
                 {
-                    sufficientResources.Add(res, colonyData.ResourcesProduced.GetValueOrDefault(res) - delta);
+                    sufficientResources[res] = colonyData.ResourcesConsumed.GetValueOrDefault(res);
                     storedResourcesUsed[res] = delta;
                 }
                 else
                 {
-                    insufficientResources[res] = -delta + colonyData.ResourcesStored.GetValueOrDefault(res);
+                    insufficientResources[res] = colonyData.ResourcesProduced.GetValueOrDefault(res) + colonyData.ResourcesStored.GetValueOrDefault(res);
                     storedResourcesUsed[res] = -colonyData.ResourcesStored.GetValueOrDefault(res);
                 }
             }
@@ -179,6 +180,7 @@ namespace KerbalColonies.ResourceManagment
             if (insufficientResources.Count == 0)
             {
                 ResourceConsumers.SelectMany(kvp => kvp.Value).ToList().ForEach(f => f.ConsumeResources(lastTime, deltaTime, currentTime));
+                sufficientResources.Clear();
             }
             else
             {
@@ -194,10 +196,12 @@ namespace KerbalColonies.ResourceManagment
                             if (insufficientResources.ContainsKey(resKvp.Key))
                             {
                                 limitingItemResources[resKvp.Key] = Math.Min(resKvp.Value, insufficientResources[resKvp.Key]);
+                                insufficientResources[resKvp.Key] -= limitingItemResources[resKvp.Key];
                             }
                             else if (sufficientResources.ContainsKey(resKvp.Key))
                             {
                                 sufficientItemResources[resKvp.Key] = resKvp.Value;
+                                sufficientResources[resKvp.Key] -= resKvp.Value;
                             }
                         }
 
@@ -211,23 +215,14 @@ namespace KerbalColonies.ResourceManagment
 
                             foreach (KeyValuePair<PartResourceDefinition, double> unusedKvp in unusedResources)
                             {
-                                if (limitingItemResources.ContainsKey(unusedKvp.Key))
+                                if (insufficientResources.ContainsKey(unusedKvp.Key))
                                 {
-                                    limitingItemResources[unusedKvp.Key] += unusedKvp.Value;
+                                    insufficientResources[unusedKvp.Key] += unusedKvp.Value;
                                 }
                                 else
                                 {
-                                    storedResourcesUsed[unusedKvp.Key] += unusedKvp.Value;
+                                    sufficientResources[unusedKvp.Key] += unusedKvp.Value;
                                 }
-                            }
-                        }
-
-                        foreach (KeyValuePair<PartResourceDefinition, double> limitingKvp in limitingItemResources)
-                        {
-                            insufficientResources[limitingKvp.Key] -= limitingKvp.Value;
-                            if (insufficientResources[limitingKvp.Key] <= 0)
-                            {
-                                insufficientResources.Remove(limitingKvp.Key);
                             }
                         }
                     }
@@ -236,9 +231,9 @@ namespace KerbalColonies.ResourceManagment
 
             foreach (PartResourceDefinition res in colonyData.resources)
             {
-                double amount = 0;
-                if (storedResourcesUsed.ContainsKey(res)) amount = storedResourcesUsed[res];
-                else amount = colonyData.ResourceDelta(res);
+                double amount = storedResourcesUsed.GetValueOrDefault(res);
+                amount += insufficientResources.GetValueOrDefault(res);
+                amount += sufficientResources.GetValueOrDefault(res);
 
                 foreach (KeyValuePair<int, List<IKCResourceStorage>> storageKVP in ResourceStored)
                 {

@@ -137,6 +137,11 @@ namespace KerbalColonies.colonyFacilities.StorageFacility
         {
             colonyStorages[colony] = this;
 
+            KCResourceManager.otherStorages.TryAdd(colony, new SortedDictionary<int, List<IKCResourceStorage>>());
+            KCResourceManager.otherStorages[colony].TryAdd(Priority, new List<IKCResourceStorage>());
+            KCResourceManager.otherStorages[colony].ToList().ForEach(kvp => kvp.Value.RemoveAll(s => s is KCUnifiedColonyStorage));
+            KCResourceManager.otherStorages[colony][Priority].Add(this);
+
             ConfigNode storageNode = colony.sharedColonyNodes.FirstOrDefault(n => n.name == "KCUnifiedColonyStorage");
 
             if (storageNode != null)

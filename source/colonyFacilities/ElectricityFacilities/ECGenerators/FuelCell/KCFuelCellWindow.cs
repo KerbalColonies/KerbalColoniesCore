@@ -1,5 +1,5 @@
 ﻿using KerbalColonies.colonyFacilities.StorageFacility;
-using KerbalColonies.Electricity;
+using KerbalColonies.ResourceManagment;
 using KerbalColonies.UI;
 using System.Linq;
 using UnityEngine;
@@ -29,6 +29,7 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fue
 
         Vector2 resourceProductionScrollPos = Vector2.zero;
         Vector2 resourceUseageScrollPos = new Vector2();
+        Vector2 resourceDeltaScrollPos = new Vector2();
         protected override void CustomWindow()
         {
             facility.Colony.UpdateColony();
@@ -54,7 +55,22 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fue
             facility.enabled = GUILayout.Toggle(facility.enabled, "Enabled", GUILayout.Height(18));
             GUILayout.Space(10);
 
-            GUILayout.Label($"Current EC delta: {(KCECManager.colonyEC[facility.Colony].lastECDelta / KCECManager.colonyEC[facility.Colony].deltaTime):f2} EC/s");
+            GUILayout.BeginHorizontal();
+            {
+                GUILayout.Label($"Resource Consumption Priority: {fuelCellFacility.ResourceConsumptionPriority}", GUILayout.Height(18));
+                GUILayout.FlexibleSpace();
+                if (GUILayout.RepeatButton("--", GUILayout.Width(30), GUILayout.Height(23)) | GUILayout.Button("-", GUILayout.Width(30), GUILayout.Height(23))) fuelCellFacility.ResourceConsumptionPriority--;
+                if (GUILayout.Button("+", GUILayout.Width(30), GUILayout.Height(23)) | GUILayout.RepeatButton("++", GUILayout.Width(30), GUILayout.Height(23))) fuelCellFacility.ResourceConsumptionPriority++;
+            }
+            GUILayout.EndHorizontal();
+            GUILayout.Label("Resource Deltas:");
+            resourceDeltaScrollPos = GUILayout.BeginScrollView(resourceDeltaScrollPos, GUILayout.Height(120));
+            {
+                fuelCellFacility.facilityInfo.ResourceUsage[facility.level].ToList().ForEach(kvp =>
+                    GUILayout.Label($"- {kvp.Key.displayName}: {KCResourceManager.colonyResources[facility.Colony].ResourceDelta(kvp.Key) / KCResourceManager.colonyResources[facility.Colony].deltaTime}/s")
+                );
+            }
+            GUILayout.EndScrollView();
         }
 
         public KCFuelCellWindow(KCFuelCellFacility facility) : base(facility, Configuration.createWindowID())

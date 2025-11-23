@@ -1,6 +1,4 @@
 ﻿using KerbalColonies.colonyFacilities.ElectricityFacilities.ECStorage;
-using KerbalColonies.colonyFacilities.StorageFacility;
-using KerbalColonies.Electricity;
 using KerbalColonies.ResourceManagment;
 using Smooth.Collections;
 using System;
@@ -388,9 +386,9 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fus
                 KeyValuePair<int, double> powerLevel = new KeyValuePair<int, double>(-1, 0.0);
                 double throttle = 1;
 
-                if (!KCECManager.colonyEC.ContainsKey(Colony)) return 0;
+                if (!KCResourceManager.colonyResources.ContainsKey(Colony)) return 0;
 
-                double ecDelta = KCECManager.colonyEC[Colony].lastECDelta / KCECManager.colonyEC[Colony].deltaTime;
+                double ecDelta = KCResourceManager.colonyResources[Colony].ResourceDelta(PartResourceLibrary.Instance.GetDefinition("ElectricCharge")) / KCResourceManager.colonyResources[Colony].deltaTime;
 
                 bool canStoreEC = KCECStorageFacility.ColonyECCapacity(Colony) > KCECStorageFacility.ColonyEC(Colony);
 

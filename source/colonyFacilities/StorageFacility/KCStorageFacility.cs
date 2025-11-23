@@ -1,5 +1,4 @@
-﻿using KerbalColonies.Electricity;
-using KerbalColonies.ResourceManagment;
+﻿using KerbalColonies.ResourceManagment;
 using Smooth.Collections;
 using System.Collections.Generic;
 using System.Linq;

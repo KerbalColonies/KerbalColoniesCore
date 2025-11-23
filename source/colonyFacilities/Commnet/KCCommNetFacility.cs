@@ -1,6 +1,7 @@
 ﻿using KerbalColonies.colonyFacilities.Commnet;
-using KerbalColonies.Electricity;
+using KerbalColonies.ResourceManagment;
 using KerbalColonies.UI;
+using Smooth.Collections;
 using System.Collections.Generic;
 using UniLinq;
 using UnityEngine;
@@ -33,6 +34,7 @@ namespace KerbalColonies.colonyFacilities
         KCCommNetNodeInfo targetInstance;
         string newName;
         Vector2 scrollPos = Vector2.zero;
+        Vector2 resourceUsageScrollPos = Vector2.zero;
         protected override void CustomWindow()
         {
             facility.Colony.UpdateColony();
@@ -72,15 +74,26 @@ namespace KerbalColonies.colonyFacilities
                 GUILayout.EndHorizontal();
             }
 
-            //GUILayout.Label($"EC/s: {facility.facilityInfo.ECperSecond[facility.level]}");
-            GUILayout.BeginHorizontal();
+            if (facility.facilityInfo.ResourceUsage[facility.level].Count > 0)
             {
-                GUILayout.Label($"Resource Consumption Priority: {commNetFacility.ECConsumptionPriority}", GUILayout.Height(18));
-                GUILayout.FlexibleSpace();
-                if (GUILayout.RepeatButton("--", GUILayout.Width(30), GUILayout.Height(23)) | GUILayout.Button("-", GUILayout.Width(30), GUILayout.Height(23))) commNetFacility.ECConsumptionPriority--;
-                if (GUILayout.Button("+", GUILayout.Width(30), GUILayout.Height(23)) | GUILayout.RepeatButton("++", GUILayout.Width(30), GUILayout.Height(23))) commNetFacility.ECConsumptionPriority++;
+                GUILayout.Space(10);
+                GUILayout.BeginHorizontal();
+                {
+                    GUILayout.Label($"Resource Consumption Priority: {commNetFacility.ResourceConsumptionPriority}", GUILayout.Height(18));
+                    GUILayout.FlexibleSpace();
+                    if (GUILayout.RepeatButton("--", GUILayout.Width(30), GUILayout.Height(23)) | GUILayout.Button("-", GUILayout.Width(30), GUILayout.Height(23))) commNetFacility.ResourceConsumptionPriority--;
+                    if (GUILayout.Button("+", GUILayout.Width(30), GUILayout.Height(23)) | GUILayout.RepeatButton("++", GUILayout.Width(30), GUILayout.Height(23))) commNetFacility.ResourceConsumptionPriority++;
+                }
+                GUILayout.EndHorizontal();
+                GUILayout.Label("Resource usage:");
+                resourceUsageScrollPos = GUILayout.BeginScrollView(resourceUsageScrollPos, GUILayout.Height(120));
+                {
+                    commNetFacility.facilityInfo.ResourceUsage[facility.level].ToList().ForEach(kvp =>
+                        GUILayout.Label($"- {kvp.Key.displayName}: {kvp.Value}/s")
+                    );
+                }
+                GUILayout.EndScrollView();
             }
-            GUILayout.EndHorizontal();
         }
 
         public KCCommNetWindow(KCCommNetFacility commNetFacility) : base(commNetFacility, Configuration.createWindowID())
@@ -91,7 +104,7 @@ namespace KerbalColonies.colonyFacilities
         }
     }
 
-    public class KCCommNetFacility : KCFacilityBase
+    public class KCCommNetFacility : KCFacilityBase, IKCResourceConsumer
     {
         public SortedSet<KCCommNetNodeInfo> commNetNodes { get; set; } = new SortedSet<KCCommNetNodeInfo>();
         protected KCCommNetWindow commNetWindow;
@@ -124,7 +137,7 @@ namespace KerbalColonies.colonyFacilities
         {
             lastUpdateTime = Planetarium.GetUniversalTime();
 
-            if (built && !outOfEC)
+            if (built && !OutOfResources)
             {
                 if (!enabled)
                 {
@@ -154,15 +167,21 @@ namespace KerbalColonies.colonyFacilities
             commNetWindow.Toggle();
         }
 
-        public bool outOfEC { get; protected set; } = false;
-        public int ECConsumptionPriority { get; set; } = 0;
-        //public double ExpectedECConsumption(double lastTime, double deltaTime, double currentTime) => enabled || outOfEC ? facilityInfo.ECperSecond[level] * deltaTime : 0;
+        public bool OutOfResources { get; protected set; } = false;
+        public int ResourceConsumptionPriority { get; set; } = 0;
 
-        //public void ConsumeEC(double lastTime, double deltaTime, double currentTime) => outOfEC = false;
+        public Dictionary<PartResourceDefinition, double> ExpectedResourceConsumption(double lastTime, double deltaTime, double currentTime) => enabled || OutOfResources ? facilityInfo.ResourceUsage[level].Where(kvp => kvp.Value < 0).ToDictionary(kvp => kvp.Key, kvp => -kvp.Value * deltaTime) : new Dictionary<PartResourceDefinition, double> { };
 
-        //public void ÍnsufficientEC(double lastTime, double deltaTime, double currentTime, double remainingEC) => outOfEC = true;
+        public void ConsumeResources(double lastTime, double deltaTime, double currentTime) => OutOfResources = false;
 
-        //public double DailyECConsumption() => facilityInfo.ECperSecond[level] * 6 * 3600;
+        public Dictionary<PartResourceDefinition, double> InsufficientResources(double lastTime, double deltaTime, double currentTime, Dictionary<PartResourceDefinition, double> sufficientResources, Dictionary<PartResourceDefinition, double> limitingResources)
+        {
+            OutOfResources = true;
+            limitingResources.AddAll(sufficientResources);
+            return limitingResources;
+        }
+
+        public Dictionary<PartResourceDefinition, double> ResourceConsumptionPerSecond() => enabled || OutOfResources ? facilityInfo.ResourceUsage[level].Where(kvp => kvp.Value < 0).ToDictionary(kvp => kvp.Key, kvp => -kvp.Value) : new Dictionary<PartResourceDefinition, double> { };
 
         public override ConfigNode getConfigNode()
         {

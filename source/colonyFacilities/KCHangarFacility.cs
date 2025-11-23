@@ -1,4 +1,7 @@
-﻿using KerbalColonies.colonyFacilities.StorageFacility;
+﻿using KerbalColonies.colonyFacilities.CrewQuarters;
+using KerbalColonies.colonyFacilities.LaunchPadFacility;
+using KerbalColonies.colonyFacilities.ProductionFacility;
+using KerbalColonies.colonyFacilities.StorageFacility;
 using KerbalColonies.UI;
 using System;
 using System.Collections.Generic;
@@ -41,10 +44,10 @@ namespace KerbalColonies.colonyFacilities
 {
     public class KCHangarInfo : KCFacilityInfoClass
     {
-        public SortedDictionary<int, double> X { get; private set; } = new SortedDictionary<int, double> { };
-        public SortedDictionary<int, double> Y { get; private set; } = new SortedDictionary<int, double> { };
-        public SortedDictionary<int, double> Z { get; private set; } = new SortedDictionary<int, double> { };
-        public SortedDictionary<int, int> VesselCapacity { get; private set; } = new SortedDictionary<int, int> { };
+        public SortedDictionary<int, double> X { get; private set; } = [];
+        public SortedDictionary<int, double> Y { get; private set; } = [];
+        public SortedDictionary<int, double> Z { get; private set; } = [];
+        public SortedDictionary<int, int> VesselCapacity { get; private set; } = [];
         public double Volume(int level) => X[level] * Y[level] * Z[level];
 
 
@@ -53,27 +56,31 @@ namespace KerbalColonies.colonyFacilities
             levelNodes.ToList().ForEach(n =>
             {
                 if (n.Value.HasValue("x")) X[n.Key] = double.Parse(n.Value.GetValue("x"));
-                else if (n.Key > 0) X[n.Key] = X[n.Key - 1];
-                else throw new MissingFieldException($"The facility {name} (type: {type}) has no x value (at least for level 0).");
+                else X[n.Key] = n.Key > 0
+                    ? X[n.Key - 1]
+                    : throw new MissingFieldException($"The facility {name} (type: {type}) has no x value (at least for level 0).");
 
                 if (n.Value.HasValue("y")) Y[n.Key] = double.Parse(n.Value.GetValue("y"));
-                else if (n.Key > 0) Y[n.Key] = Y[n.Key - 1];
-                else throw new MissingFieldException($"The facility {name} (type: {type}) has no y value (at least for level 0).");
+                else Y[n.Key] = n.Key > 0
+                    ? Y[n.Key - 1]
+                    : throw new MissingFieldException($"The facility {name} (type: {type}) has no y value (at least for level 0).");
 
                 if (n.Value.HasValue("z")) Z[n.Key] = double.Parse(n.Value.GetValue("z"));
-                else if (n.Key > 0) Z[n.Key] = Z[n.Key - 1];
-                else throw new MissingFieldException($"The facility {name} (type: {type}) has no z value (at least for level 0).");
+                else Z[n.Key] = n.Key > 0
+                    ? Z[n.Key - 1]
+                    : throw new MissingFieldException($"The facility {name} (type: {type}) has no z value (at least for level 0).");
 
                 if (n.Value.HasValue("capacity")) VesselCapacity[n.Key] = int.Parse(n.Value.GetValue("capacity"));
-                else if (n.Key > 0) VesselCapacity[n.Key] = VesselCapacity[n.Key - 1];
-                else throw new MissingFieldException($"The facility {name} (type: {type}) has no capacity value (at least for level 0).");
+                else VesselCapacity[n.Key] = n.Key > 0
+                    ? VesselCapacity[n.Key - 1]
+                    : throw new MissingFieldException($"The facility {name} (type: {type}) has no capacity value (at least for level 0).");
             });
         }
     }
 
     public class KCHangarFacilityWindow : KCFacilityWindowBase
     {
-        KCHangarFacility hangar;
+        private KCHangarFacility hangar;
         private Vector2 scrollPos;
 
         protected override void CustomWindow()
@@ -98,7 +105,7 @@ namespace KerbalColonies.colonyFacilities
                 }
                 else
                 {
-                    GUILayout.Label($"Build time: {(vessel.entireVesselBuildTime - vessel.vesselBuildTime):f2}/{vessel.entireVesselBuildTime:f2}");
+                    GUILayout.Label($"Build time: {vessel.entireVesselBuildTime - vessel.vesselBuildTime:f2}/{vessel.entireVesselBuildTime:f2}");
                 }
 
                 if (GUILayout.Button("<b>x</b>", UIConfig.ButtonRed))
@@ -114,14 +121,7 @@ namespace KerbalColonies.colonyFacilities
             if (hangar.Colony.CAB.PlayerInColony)
             {
                 GUILayout.Space(10);
-                if (hangar.CanStoreVessel(FlightGlobals.ActiveVessel))
-                {
-                    GUI.enabled = true;
-                }
-                else
-                {
-                    GUI.enabled = false;
-                }
+                GUI.enabled = hangar.CanStoreVessel(FlightGlobals.ActiveVessel);
 
                 if (GUILayout.Button("Store vessel"))
                 {
@@ -216,10 +216,10 @@ namespace KerbalColonies.colonyFacilities
         }
 
 
-        KCHangarFacilityWindow hangarWindow;
+        private KCHangarFacilityWindow hangarWindow;
         public KCHangarInfo hangarInfo => (KCHangarInfo)facilityInfo;
 
-        internal List<StoredVessel> storedVessels = new List<StoredVessel>();
+        internal List<StoredVessel> storedVessels = [];
 
         public double getStoredVolume()
         {
@@ -236,7 +236,7 @@ namespace KerbalColonies.colonyFacilities
         // TODO: make it so the vessel oriantation doesn't matter, e.g. if the hangar has dimensions of 10, 5, 5 and a vessel with 4, 8, 4 (x, y, z in meters) it should work
         public bool CanStoreVessel(Vessel vessel)
         {
-            Configuration.writeLog($"CanStoreVessel: {this.name}");
+            Configuration.writeLog($"CanStoreVessel: {name}");
             if (hangarInfo.VesselCapacity[level] <= storedVessels.Count)
             {
                 return false;
@@ -252,7 +252,7 @@ namespace KerbalColonies.colonyFacilities
                 return false;
             }
 
-            double vesselVolume = (vesselSize.x * vesselSize.y * vesselSize.z) * 0.8;
+            double vesselVolume = vesselSize.x * vesselSize.y * vesselSize.z * 0.8;
             if (vesselVolume > info.Volume(level) - getStoredVolume())
             {
                 Configuration.writeLog($"Vessel volume: {vesselVolume} is too big for the hangar: {info.Volume(level) - getStoredVolume()}");
@@ -265,13 +265,13 @@ namespace KerbalColonies.colonyFacilities
                 return false;
             }
 
-            Configuration.writeLog($"CanStoreVessel: {this.name} is ok for the vessel: {vessel.GetDisplayName()}");
+            Configuration.writeLog($"CanStoreVessel: {name} is ok for the vessel: {vessel.GetDisplayName()}");
             return true;
         }
 
         public bool CanStoreShipConstruct(ShipConstruct ship)
         {
-            Configuration.writeLog($"CanStoreShipConstruct: {this.name}");
+            Configuration.writeLog($"CanStoreShipConstruct: {name}");
             if (ship == null) return false;
             if (ship.Parts.Count == 0) return false;
             KCHangarInfo info = hangarInfo;
@@ -285,14 +285,14 @@ namespace KerbalColonies.colonyFacilities
                 return false;
             }
 
-            double vesselVolume = (vesselSize.x * vesselSize.y * vesselSize.z) * 0.8;
+            double vesselVolume = vesselSize.x * vesselSize.y * vesselSize.z * 0.8;
             if (vesselVolume > info.Volume(level) - getStoredVolume())
             {
                 Configuration.writeLog($"Vessel volume: {vesselVolume} is too big for the hangar: {info.Volume(level) - getStoredVolume()}");
                 return false;
             }
 
-            Configuration.writeLog($"CanStoreShipConstruct: {this.name} is ok for the ship: {ship.shipName}");
+            Configuration.writeLog($"CanStoreShipConstruct: {name} is ok for the ship: {ship.shipName}");
             return true;
         }
 
@@ -300,11 +300,11 @@ namespace KerbalColonies.colonyFacilities
         {
             if (CanStoreVessel(vessel))
             {
-                Configuration.writeLog($"Storing vessel {vessel.GetDisplayName()} in {this.name}");
+                Configuration.writeLog($"Storing vessel {vessel.GetDisplayName()} in {name}");
 
                 Vector3 vesselSize = vessel.vesselSize;
 
-                StoredVessel storedVessel = new StoredVessel(vessel.GetDisplayName(), vessel.protoVessel.vesselID, (vesselSize.x * vesselSize.y * vesselSize.z) * 0.8);
+                StoredVessel storedVessel = new(vessel.GetDisplayName(), vessel.protoVessel.vesselID, vesselSize.x * vesselSize.y * vesselSize.z * 0.8);
 
                 if (vesselDryMass == null)
                 {
@@ -356,10 +356,7 @@ namespace KerbalColonies.colonyFacilities
                 vessel.Unload();
 
                 FlightGlobals.RemoveVessel(vessel);
-                if (vessel != null)
-                {
-                    vessel.protoVessel.Clean();
-                }
+                vessel?.protoVessel.Clean();
 
                 KerbalKonstructs.KerbalKonstructs.instance.UpdateCache();
 
@@ -377,12 +374,12 @@ namespace KerbalColonies.colonyFacilities
         /// </summary>
         public void StoreVesselOverride(Vessel vessel, Vector3? vesselsize, double? vesselDryMass)
         {
-            Configuration.writeLog($"Force storing vessel {vessel.GetDisplayName()} in {this.name}");
+            Configuration.writeLog($"Force storing vessel {vessel.GetDisplayName()} in {name}");
 
             if (vesselsize == null) vesselsize = vessel.vesselSize;
             Vector3 vesselSize = (Vector3)vesselsize;
 
-            StoredVessel storedVessel = new StoredVessel(vessel.GetDisplayName(), vessel.protoVessel.vesselID, (vesselSize.x * vesselSize.y * vesselSize.z) * 0.8);
+            StoredVessel storedVessel = new(vessel.GetDisplayName(), vessel.protoVessel.vesselID, vesselSize.x * vesselSize.y * vesselSize.z * 0.8);
 
             if (vesselDryMass == null)
             {
@@ -434,10 +431,7 @@ namespace KerbalColonies.colonyFacilities
             vessel.Unload();
 
             FlightGlobals.RemoveVessel(vessel);
-            if (vessel != null)
-            {
-                vessel.protoVessel.Clean();
-            }
+            vessel?.protoVessel.Clean();
 
             KerbalKonstructs.KerbalKonstructs.instance.UpdateCache();
 
@@ -453,8 +447,8 @@ namespace KerbalColonies.colonyFacilities
                 return null;
             }
 
-            Configuration.writeDebug($"Rolling out vessel {storedVessel.vesselName} from {this.name}");
-            ProtoVessel protoVessel = new ProtoVessel(storedVessel.vesselNode, HighLogic.CurrentGame);
+            Configuration.writeDebug($"Rolling out vessel {storedVessel.vesselName} from {name}");
+            ProtoVessel protoVessel = new(storedVessel.vesselNode, HighLogic.CurrentGame);
             protoVessel.Load(HighLogic.CurrentGame.flightState);
 
 
@@ -474,7 +468,7 @@ namespace KerbalColonies.colonyFacilities
 
             foreach (StoredVessel vessel in storedVessels)
             {
-                ConfigNode vesselNode = new ConfigNode("vessel");
+                ConfigNode vesselNode = new("vessel");
 
                 vesselNode.AddValue("VesselID", vessel.uuid.ToString());
                 vesselNode.AddValue("VesselName", vessel.vesselName);
@@ -507,11 +501,11 @@ namespace KerbalColonies.colonyFacilities
 
         public KCHangarFacility(colonyClass colony, KCFacilityInfoClass facilityInfo, ConfigNode node) : base(colony, facilityInfo, node)
         {
-            storedVessels = new List<StoredVessel> { };
+            storedVessels = [];
 
             foreach (ConfigNode vesselNode in node.GetNodes("vessel"))
             {
-                StoredVessel vessel = new StoredVessel(vesselNode.GetValue("VesselName"), Guid.Parse(vesselNode.GetValue("VesselID")), double.Parse(vesselNode.GetValue("VesselVolume")), vesselNode.GetNode("VESSEL"));
+                StoredVessel vessel = new(vesselNode.GetValue("VesselName"), Guid.Parse(vesselNode.GetValue("VesselID")), double.Parse(vesselNode.GetValue("VesselVolume")), vesselNode.GetNode("VESSEL"));
 
                 if (vesselNode.HasValue("VesselBuildTime"))
                 {

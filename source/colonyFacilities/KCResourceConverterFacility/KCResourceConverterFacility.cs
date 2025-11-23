@@ -1,5 +1,4 @@
 ﻿using KerbalColonies.colonyFacilities.StorageFacility;
-using KerbalColonies.Electricity;
 using KerbalColonies.ResourceManagment;
 using Smooth.Collections;
 using System;

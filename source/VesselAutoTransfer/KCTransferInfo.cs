@@ -1,11 +1,24 @@
-﻿using KerbalColonies.Electricity;
-using KerbalColonies.ResourceManagment;
-using System;
+﻿using KerbalColonies.ResourceManagment;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using static KerbalColonies.VesselAutoTransfer.KCColonyTransferBehaviour;
+
+// KC: Kerbal Colonies
+// This mod aimes to create a Colony system with Kerbal Konstructs statics
+// Copyright (c) 2024-2025 AMPW, Halengar and the KC Team
+
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+
+// You should have received a copy of the GNU General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/
 
 namespace KerbalColonies.VesselAutoTransfer
 {
@@ -36,24 +49,6 @@ namespace KerbalColonies.VesselAutoTransfer
         public uint vesselID;
 
         public double Efficiency { get; set; } = 1.0;
-
-        public void ColonyResources(PartResourceDefinition res, out double currentAmount, out double maxAmount, out double delta)
-        {
-            if (res.name == "ElectricCharge")
-            {
-                List<KCECStorage> colonyECStorages = colony.Facilities.OfType<KCECStorage>().ToList();
-                maxAmount = colonyECStorages.Sum(f => f.ECCapacity);
-                currentAmount = colonyECStorages.Sum(f => f.ECStored);
-
-                delta = KCECManager.colonyEC[colony].lastECDelta;
-            }
-            else
-            {
-                currentAmount = 0;
-                maxAmount = 0;
-                delta = 0;
-            }
-        }
 
         public void AddResource(PartResourceDefinition resource)
         {

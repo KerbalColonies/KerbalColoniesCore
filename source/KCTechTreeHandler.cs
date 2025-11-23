@@ -1,6 +1,5 @@
 ﻿using KSP.UI;
 using KSP.UI.Screens;
-using KSP.UI.Screens.Editor;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -226,7 +225,7 @@ namespace KerbalColonies
             }
 
 
-            if (toolTip == null )
+            if (toolTip == null)
             {
                 foreach (Transform item in UIMasterController.Instance.gameObject.transform)
                 {

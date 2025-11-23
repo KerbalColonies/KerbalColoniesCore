@@ -1,7 +1,7 @@
 ﻿using Experience;
 using KerbalColonies.colonyFacilities.CabFacility;
-using KerbalColonies.Electricity;
-using KerbalColonies.UI;
+using KerbalColonies.ResourceManagment;
+using Smooth.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -23,52 +23,9 @@ using UnityEngine;
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/
 
-namespace KerbalColonies.colonyFacilities
+namespace KerbalColonies.colonyFacilities.CrewQuarters
 {
-    internal class KCCrewQuartersWindow : KCFacilityWindowBase
-    {
-        KCCrewQuarters CrewQuarterFacility;
-        public KerbalGUI kerbalGUI;
-
-        protected override void CustomWindow()
-        {
-            facility.Colony.UpdateColony();
-
-            GUILayout.BeginVertical();
-            kerbalGUI.StaffingInterface();
-            {
-
-                GUILayout.Space(10);
-                GUILayout.BeginHorizontal();
-                {
-                    GUILayout.Label($"Resource Consumption Priority: {CrewQuarterFacility.ECConsumptionPriority}", GUILayout.Height(18));
-                    GUILayout.FlexibleSpace();
-                    if (GUILayout.RepeatButton("--", GUILayout.Width(30), GUILayout.Height(23)) | GUILayout.Button("-", GUILayout.Width(30), GUILayout.Height(23))) CrewQuarterFacility.ECConsumptionPriority--;
-                    if (GUILayout.Button("+", GUILayout.Width(30), GUILayout.Height(23)) | GUILayout.RepeatButton("++", GUILayout.Width(30), GUILayout.Height(23))) CrewQuarterFacility.ECConsumptionPriority++;
-                }
-                GUILayout.EndHorizontal();
-            }
-            GUILayout.EndVertical();
-        }
-
-        protected override void OnClose()
-        {
-            if (kerbalGUI != null && kerbalGUI.ksg != null)
-            {
-                kerbalGUI.ksg.Close();
-                kerbalGUI.transferWindow = false;
-            }
-        }
-
-        public KCCrewQuartersWindow(KCCrewQuarters CrewQuarterFacility) : base(CrewQuarterFacility, Configuration.createWindowID())
-        {
-            this.CrewQuarterFacility = CrewQuarterFacility;
-            this.kerbalGUI = new KerbalGUI(CrewQuarterFacility, false);
-            toolRect = new Rect(100, 100, 400, 600);
-        }
-    }
-
-    internal class KCCrewQuarters : KCKerbalFacilityBase
+    public class KCCrewQuarters : KCKerbalFacilityBase, IKCResourceConsumer
     {
         private static Dictionary<colonyClass, Vector2> CABInfoTraitScrollPos = new Dictionary<colonyClass, Vector2>();
         public static void CABDisplay(colonyClass colony)
@@ -195,7 +152,7 @@ namespace KerbalColonies.colonyFacilities
             lastUpdateTime = Planetarium.GetUniversalTime();
             if (!HighLogic.LoadedSceneIsFlight) kerbals.Keys.ToList().ForEach(kerbal => kerbal.rosterStatus = ProtoCrewMember.RosterStatus.Assigned);
 
-            enabled = built && !OutOfEC;
+            enabled = built && !OutOfResources;
             if (crewQuartersWindow == null) crewQuartersWindow = new KCCrewQuartersWindow(this);
             crewQuartersWindow.kerbalGUI.DisableTransferWindow = !enabled;
         }
@@ -212,22 +169,28 @@ namespace KerbalColonies.colonyFacilities
             crewQuartersWindow.Toggle();
         }
 
-        public bool OutOfEC { get; set; }
-        public int ECConsumptionPriority { get; set; } = 0;
-        //public double ExpectedECConsumption(double lastTime, double deltaTime, double currentTime) => enabled && kerbals.Count > 0 || OutOfEC ? facilityInfo.ECperSecond[level] * deltaTime : 0;
+        public bool OutOfResources { get; set; }
+        public int ResourceConsumptionPriority { get; set; } = 0;
 
-        //public void ConsumeEC(double lastTime, double deltaTime, double currentTime) => OutOfEC = false;
+        public override string GetFacilityProductionDisplay() => $"{kerbals.Count} / {MaxKerbals} kerbals assigned{(facilityInfo.ResourceUsage[level].Count > 0 ? string.Concat("\n", string.Join(", ", facilityInfo.ResourceUsage[level].Select(kvp => $"{kvp.Key.displayName}: {kvp.Value:f2}"))) : "")}";
 
-        //public void ÍnsufficientEC(double lastTime, double deltaTime, double currentTime, double remainingEC) => OutOfEC = true;
+        public Dictionary<PartResourceDefinition, double> ExpectedResourceConsumption(double lastTime, double deltaTime, double currentTime) => enabled && kerbals.Count > 0 || OutOfResources ? facilityInfo.ResourceUsage[level].Where(kvp => kvp.Value < 0).ToDictionary(kvp => kvp.Key, kvp => -kvp.Value * deltaTime) : new Dictionary<PartResourceDefinition, double>();
 
-        //public double DailyECConsumption() => facilityInfo.ECperSecond[level] * 6 * 3600;
+        public void ConsumeResources(double lastTime, double deltaTime, double currentTime) => OutOfResources = false;
 
-        //public override string GetFacilityProductionDisplay() => $"{kerbals.Count} / {MaxKerbals} kerbals assigned{(facilityInfo.ECperSecond[level] > 0 ? $"\nEC/s: {facilityInfo.ECperSecond[level]}" : "")}";
+        public Dictionary<PartResourceDefinition, double> InsufficientResources(double lastTime, double deltaTime, double currentTime, Dictionary<PartResourceDefinition, double> sufficientResources, Dictionary<PartResourceDefinition, double> limitingResources)
+        {
+            OutOfResources = true;
+            limitingResources.AddAll(sufficientResources);
+            return limitingResources;
+        }
+
+        public Dictionary<PartResourceDefinition, double> ResourceConsumptionPerSecond() => facilityInfo.ResourceUsage[level].Where(kvp => kvp.Value < 0).ToDictionary(kvp => kvp.Key, kvp => -kvp.Value);
 
         public override ConfigNode getConfigNode()
         {
             ConfigNode node = base.getConfigNode();
-            node.AddValue("ECConsumptionPriority", ECConsumptionPriority);
+            node.AddValue("ECConsumptionPriority", ResourceConsumptionPriority);
             return node;
         }
 
@@ -236,7 +199,7 @@ namespace KerbalColonies.colonyFacilities
             this.crewQuartersWindow = null;
             if (HighLogic.LoadedSceneIsFlight) kerbals.Keys.ToList().ForEach(kerbal => kerbal.rosterStatus = ProtoCrewMember.RosterStatus.Available);
             else kerbals.Keys.ToList().ForEach(kerbal => kerbal.rosterStatus = ProtoCrewMember.RosterStatus.Assigned);
-            if (int.TryParse(node.GetValue("ECConsumptionPriority"), out int ecPriority)) ECConsumptionPriority = ecPriority;
+            if (int.TryParse(node.GetValue("ECConsumptionPriority"), out int ecPriority)) ResourceConsumptionPriority = ecPriority;
         }
 
         public KCCrewQuarters(colonyClass colony, KCFacilityInfoClass facilityInfo, bool enabled) : base(colony, facilityInfo, true)

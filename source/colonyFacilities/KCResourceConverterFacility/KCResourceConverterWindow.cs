@@ -128,7 +128,7 @@ namespace KerbalColonies.colonyFacilities.KCResourceConverterFacility
                     GUILayout.Space(10);
                     GUILayout.BeginHorizontal();
                     {
-                        GUILayout.Label($"EC Consumption Priority: {resourceConverter.ResourceConsumptionPriority}", GUILayout.Height(18));
+                        GUILayout.Label($"Resource Consumption Priority: {resourceConverter.ResourceConsumptionPriority}", GUILayout.Height(18));
                         GUILayout.FlexibleSpace();
                         if (GUILayout.RepeatButton("--", GUILayout.Width(30), GUILayout.Height(23)) | GUILayout.Button("-", GUILayout.Width(30), GUILayout.Height(23))) resourceConverter.ResourceConsumptionPriority--;
                         if (GUILayout.Button("+", GUILayout.Width(30), GUILayout.Height(23)) | GUILayout.RepeatButton("++", GUILayout.Width(30), GUILayout.Height(23))) resourceConverter.ResourceConsumptionPriority++;

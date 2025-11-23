@@ -283,7 +283,7 @@ namespace KerbalColonies
                     }
                     ResourceUsage.Add(level, resourceList);
                 }
-                else if (level != 0) ResourceUsage.Add(level, ResourceUsage[level - 1]);
+                else if (level != 0) ResourceUsage.Add(level, new Dictionary<PartResourceDefinition, double>(ResourceUsage[level - 1]));
                 else ResourceUsage.Add(0, new Dictionary<PartResourceDefinition, double>());
 
 

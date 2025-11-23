@@ -1,11 +1,7 @@
 ﻿using KerbalColonies.colonyFacilities.StorageFacility;
-using KerbalColonies.Electricity;
-using KerbalColonies.ResourceManagment;
-using KerbalKonstructs.Modules;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using static Targeting.Sample;
 
 // KC: Kerbal Colonies
 // This mod aimes to create a Colony system with Kerbal Konstructs statics

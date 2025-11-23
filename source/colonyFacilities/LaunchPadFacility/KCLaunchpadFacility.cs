@@ -1,10 +1,9 @@
-﻿using KerbalColonies.Electricity;
-using KerbalColonies.UI;
+﻿using KerbalColonies.ResourceManagment;
 using KerbalKonstructs;
+using Smooth.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using UnityEngine;
 
 // KC: Kerbal Colonies
 // This mod aimes to create a Colony system with Kerbal Konstructs statics
@@ -23,7 +22,7 @@ using UnityEngine;
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/
 
-namespace KerbalColonies.colonyFacilities
+namespace KerbalColonies.colonyFacilities.LaunchPadFacility
 {
     //public class KCLaunchpadFacilityWindow : KCWindowBase
     //{
@@ -54,77 +53,7 @@ namespace KerbalColonies.colonyFacilities
     //    }
     //}
 
-    public class KCLaunchpadFacilityWindow : KCFacilityWindowBase
-    {
-        KCLaunchpadFacility launchpad;
-
-        bool changeLaunchpadName = false;
-        KerbalKonstructs.Core.StaticInstance targetInstance;
-        int launchSiteNum;
-        string newName;
-        Vector2 scrollPos = Vector2.zero;
-        protected override void CustomWindow()
-        {
-            facility.Colony.UpdateColony();
-
-            GUILayout.Label($"Launch sites from this facility:");
-            scrollPos = GUILayout.BeginScrollView(scrollPos);
-            {
-                launchpad.launchSiteName.ToList().ForEach(kvp =>
-                {
-                    if (GUILayout.Button($"{kvp.Key}: {kvp.Value}", UIConfig.ButtonNoBG))
-                    {
-                        changeLaunchpadName = true;
-                        targetInstance = launchpad.instance[kvp.Key];
-                        launchSiteNum = kvp.Key;
-                        newName = targetInstance.launchSite.LaunchSiteName;
-                    }
-                });
-            }
-            GUILayout.EndScrollView();
-
-            if (changeLaunchpadName)
-            {
-                GUILayout.Label($"Changing name of launchpad {targetInstance.launchSite.LaunchSiteName}:");
-                newName = GUILayout.TextField(newName);
-
-                GUILayout.BeginHorizontal();
-                {
-                    if (GUILayout.Button("OK", GUILayout.Height(23)))
-                    {
-                        KerbalKonstructs.Core.LaunchSiteManager.DeleteLaunchSite(targetInstance.launchSite);
-                        targetInstance.launchSite.LaunchSiteName = newName;
-                        launchpad.launchSiteName[launchSiteNum] = targetInstance.launchSite.LaunchSiteName;
-                        KerbalKonstructs.Core.LaunchSiteManager.RegisterLaunchSite(targetInstance.launchSite);
-                        changeLaunchpadName = false;
-                    }
-                    if (GUILayout.Button("Cancel", GUILayout.Height(23)))
-                    {
-                        changeLaunchpadName = false;
-                    }
-                }
-                GUILayout.EndHorizontal();
-            }
-
-
-            GUILayout.Space(10);
-            GUILayout.BeginHorizontal();
-            {
-                GUILayout.Label($"Resource Consumption Priority: {launchpad.ECConsumptionPriority}", GUILayout.Height(18));
-                GUILayout.FlexibleSpace();
-                if (GUILayout.RepeatButton("--", GUILayout.Width(30), GUILayout.Height(23)) | GUILayout.Button("-", GUILayout.Width(30), GUILayout.Height(23))) launchpad.ECConsumptionPriority--;
-                if (GUILayout.Button("+", GUILayout.Width(30), GUILayout.Height(23)) | GUILayout.RepeatButton("++", GUILayout.Width(30), GUILayout.Height(23))) launchpad.ECConsumptionPriority++;
-            }
-            GUILayout.EndHorizontal();
-        }
-        public KCLaunchpadFacilityWindow(KCLaunchpadFacility launchpad) : base(launchpad, Configuration.createWindowID())
-        {
-            this.launchpad = launchpad;
-            toolRect = new Rect(100, 100, 400, 300);
-        }
-    }
-
-    public class KCLaunchpadFacility : KCFacilityBase
+    public class KCLaunchpadFacility : KCFacilityBase, IKCResourceConsumer
     {
         KCLaunchpadFacilityWindow launchpadWindow;
 
@@ -383,7 +312,7 @@ namespace KerbalColonies.colonyFacilities
         public override void Update()
         {
             lastUpdateTime = Planetarium.GetUniversalTime();
-            if (built && !outOfEC)
+            if (built && !OutOfResources)
             {
                 if (!enabled)
                 {
@@ -403,21 +332,26 @@ namespace KerbalColonies.colonyFacilities
             }
         }
 
-        public bool outOfEC { get; protected set; } = false;
-        public int ECConsumptionPriority { get; set; } = 0;
-        //public double ExpectedECConsumption(double lastTime, double deltaTime, double currentTime) => enabled || outOfEC ? facilityInfo.ECperSecond[level] * deltaTime : 0;
+        public bool OutOfResources { get; protected set; } = false;
+        public int ResourceConsumptionPriority { get; set; } = 0;
 
-        //public void ConsumeEC(double lastTime, double deltaTime, double currentTime) => outOfEC = false;
+        public Dictionary<PartResourceDefinition, double> ExpectedResourceConsumption(double lastTime, double deltaTime, double currentTime) => enabled || OutOfResources ? facilityInfo.ResourceUsage[level].Where(kvp => kvp.Value < 0).ToDictionary(kvp => kvp.Key, kvp => -kvp.Value * deltaTime) : new Dictionary<PartResourceDefinition, double>();
 
-        //public void ÍnsufficientEC(double lastTime, double deltaTime, double currentTime, double remainingEC) => outOfEC = true;
+        public void ConsumeResources(double lastTime, double deltaTime, double currentTime) => OutOfResources = false;
 
-        //public double DailyECConsumption() => facilityInfo.ECperSecond[level] * 6 * 3600;
+        public Dictionary<PartResourceDefinition, double> InsufficientResources(double lastTime, double deltaTime, double currentTime, Dictionary<PartResourceDefinition, double> sufficientResources, Dictionary<PartResourceDefinition, double> limitingResources)
+        {
+            OutOfResources = true;
+            limitingResources.AddAll(sufficientResources);
+            return limitingResources;
+        }
 
+        public Dictionary<PartResourceDefinition, double> ResourceConsumptionPerSecond() => enabled ? facilityInfo.ResourceUsage[level].Where(kvp => kvp.Value < 0).ToDictionary(kvp => kvp.Key, kvp => -kvp.Value) : new Dictionary<PartResourceDefinition, double>();
 
         public override ConfigNode getConfigNode()
         {
             ConfigNode node = base.getConfigNode();
-            node.AddValue("ECConsumptionPriority", ECConsumptionPriority);
+            node.AddValue("ECConsumptionPriority", ResourceConsumptionPriority);
             ConfigNode levelNode = new ConfigNode("LaunchpadFacility");
             launchSiteUUID.ToList().ForEach(kvp =>
             {
@@ -480,7 +414,7 @@ namespace KerbalColonies.colonyFacilities
                 else KerbalKonstructs.Core.LaunchSiteManager.OpenLaunchSite(kvp.Value.launchSite);
             });
 
-            if (int.TryParse(node.GetValue("ECConsumptionPriority"), out int ecPriority)) ECConsumptionPriority = ecPriority;
+            if (int.TryParse(node.GetValue("ECConsumptionPriority"), out int ecPriority)) ResourceConsumptionPriority = ecPriority;
 
             //launchpadWindow = new KCLaunchpadFacilityWindow(this);
 

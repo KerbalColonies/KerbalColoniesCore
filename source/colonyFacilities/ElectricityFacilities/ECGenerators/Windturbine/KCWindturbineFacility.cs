@@ -1,8 +1,8 @@
-﻿using KerbalColonies.Electricity;
+﻿using KerbalColonies.ResourceManagment;
 using KerbalKonstructs.Core;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using System;
 
 // KC: Kerbal Colonies
 // This mod aimes to create a Colony system with Kerbal Konstructs statics
@@ -23,7 +23,7 @@ using System;
 
 namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Windturbine
 {
-    public class KCWindturbineFacility : KCFacilityBase, KCECProducer
+    public class KCWindturbineFacility : KCFacilityBase, IKCResourceProducer
     {
         public KCWindturbineInfo info => (KCWindturbineInfo)facilityInfo;
 
@@ -118,7 +118,65 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Win
             return ECPerSecond;
         }
 
-        public override string GetFacilityProductionDisplay() => $"Wind turbine production rate: {ECPerSecond():F2} EC/s";
+        public Dictionary<PartResourceDefinition, double> ResourceProduction(double lastTime, double deltaTime, double currentTime)
+        {
+            if (!built) return new Dictionary<PartResourceDefinition, double>();
+
+            Dictionary<PartResourceDefinition, double> resourcesProduced = new Dictionary<PartResourceDefinition, double>();
+
+            CelestialBody body = FlightGlobals.GetBodyByName(Colony.BodyName);
+
+            int offset = 0;
+            for (int i = 0; i <= level; i++)
+            {
+                if (facilityInfo.UpgradeTypes[i] != UpgradeType.withAdditionalGroup && i < level)
+                {
+                    offset++;
+                    continue;
+                }
+
+                if (KKgroups.Count >= i - offset + 1 && densityList.ContainsKey(KKgroups[i - offset]) && densityList[KKgroups[i - offset]] > 0)
+                {
+                    facilityInfo.ResourceUsage[i].ToList().ForEach(kvp =>
+                    {
+                        resourcesProduced[kvp.Key] += kvp.Value * densityList[KKgroups[i - offset]] * deltaTime;
+                    });
+                }
+            }
+
+            return resourcesProduced;
+        }
+
+        public Dictionary<PartResourceDefinition, double> ResourcesPerSecond()
+        {
+            if (!built) return new Dictionary<PartResourceDefinition, double>();
+
+            Dictionary<PartResourceDefinition, double> resourcesProduced = new Dictionary<PartResourceDefinition, double>();
+
+            CelestialBody body = FlightGlobals.GetBodyByName(Colony.BodyName);
+
+            int offset = 0;
+            for (int i = 0; i <= level; i++)
+            {
+                if (facilityInfo.UpgradeTypes[i] != UpgradeType.withAdditionalGroup && i < level)
+                {
+                    offset++;
+                    continue;
+                }
+
+                if (KKgroups.Count >= i - offset + 1 && densityList.ContainsKey(KKgroups[i - offset]) && densityList[KKgroups[i - offset]] > 0)
+                {
+                    facilityInfo.ResourceUsage[i].ToList().ForEach(kvp =>
+                    {
+                        resourcesProduced[kvp.Key] += kvp.Value * densityList[KKgroups[i - offset]];
+                    });
+                }
+            }
+
+            return resourcesProduced;
+        }
+
+        public override string GetFacilityProductionDisplay() => $"Wind turbine production rate: {string.Join(", ", ResourcesPerSecond().Select(kvp => $"{kvp.Key.displayName}: {kvp.Value:f2}"))}";
 
         public override ConfigNode getConfigNode()
         {

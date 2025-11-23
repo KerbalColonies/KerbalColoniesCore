@@ -1,5 +1,4 @@
 ﻿using KerbalColonies.colonyFacilities.StorageFacility;
-using KerbalColonies.Electricity;
 using KerbalColonies.ResourceManagment;
 using KerbalKonstructs.Core;
 using Smooth.Collections;
@@ -97,6 +96,9 @@ namespace KerbalColonies.colonyFacilities.KCMiningFacility
 
             lastUpdateTime = Planetarium.GetUniversalTime();
 
+            enabled = built && kerbals.Count > 0 && enabled;
+            if (!enabled) return;
+
             KCMiningFacilityInfo facilityInfo = miningFacilityInfo;
 
             groupDensities.ToList().ForEach(kvp => kvp.Value.ToList().ForEach(prdRate =>
@@ -119,17 +121,19 @@ namespace KerbalColonies.colonyFacilities.KCMiningFacility
                     if (autoTransferLimits[res.Key] > 0)
                     {
                         double colonyAmount = KCUnifiedColonyStorage.colonyStorages[Colony].Resources.GetValueOrDefault(res.Key);
-                        double transferAmount = autoTransferLimits[res.Key] - colonyAmount;
+                        double transferAmount = autoTransferLimits[res.Key] * KCUnifiedColonyStorage.colonyStorages[Colony].ResourceVolume(res.Key) - colonyAmount;
 
                         if (transferAmount <= 0) storedResoures[res.Key] = Math.Min(maxPerResource[res.Key], res.Value);
                         else if (res.Value < transferAmount)
                         {
-                            autoTransferAmounts[res.Key] = res.Value;
+                            if (!autoTransferAmounts.ContainsKey(res.Key)) autoTransferAmounts.Add(res.Key, res.Value);
+                            else autoTransferAmounts[res.Key] += res.Value;
                             storedResoures[res.Key] = 0;
                         }
                         else
                         {
-                            autoTransferAmounts[res.Key] = transferAmount;
+                            if (!autoTransferAmounts.ContainsKey(res.Key)) autoTransferAmounts.Add(res.Key, transferAmount);
+                            else autoTransferAmounts[res.Key] += transferAmount;
                             storedResoures[res.Key] = Math.Min(maxPerResource[res.Key], res.Value - transferAmount);
                         }
                     }
@@ -204,7 +208,7 @@ namespace KerbalColonies.colonyFacilities.KCMiningFacility
             return limitingResources;
         }
 
-        public Dictionary<PartResourceDefinition, double> ResourceConsumptionPerSecond() => enabled ? facilityInfo.ResourceUsage[level] : new Dictionary<PartResourceDefinition, double>();
+        public Dictionary<PartResourceDefinition, double> ResourceConsumptionPerSecond() => enabled ? facilityInfo.ResourceUsage[level].Where(kvp => kvp.Value < 0).ToDictionary(kvp => kvp.Key, kvp => -kvp.Value) : new Dictionary<PartResourceDefinition, double>();
 
         public override ConfigNode getConfigNode()
         {

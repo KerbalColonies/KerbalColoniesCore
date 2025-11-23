@@ -28,6 +28,7 @@ namespace KerbalColonies.colonyFacilities.KCMiningFacility
         public KerbalGUI kerbalGUI;
 
         private Vector2 resourceScrollPos = new Vector2();
+        private Vector2 resourceUsageScrollPos = new Vector2();
         protected override void CustomWindow()
         {
             miningFacility.Colony.UpdateColony();
@@ -46,14 +47,25 @@ namespace KerbalColonies.colonyFacilities.KCMiningFacility
                     facility.enabled = GUILayout.Toggle(facility.enabled, "Enabled", GUILayout.Width(100));
 
 
-                    GUILayout.BeginHorizontal();
+                    if (facility.facilityInfo.ResourceUsage[facility.level].Count > 0)
                     {
-                        GUILayout.Label($"Resource Consumption Priority: {miningFacility.ResourceConsumptionPriority}", GUILayout.Height(18));
-                        GUILayout.FlexibleSpace();
-                        if (GUILayout.RepeatButton("--", GUILayout.Width(30), GUILayout.Height(23)) | GUILayout.Button("-", GUILayout.Width(30), GUILayout.Height(23))) miningFacility.ResourceConsumptionPriority--;
-                        if (GUILayout.Button("+", GUILayout.Width(30), GUILayout.Height(23)) | GUILayout.RepeatButton("++", GUILayout.Width(30), GUILayout.Height(23))) miningFacility.ResourceConsumptionPriority++;
+                        GUILayout.BeginHorizontal();
+                        {
+                            GUILayout.Label($"Resource Consumption Priority: {miningFacility.ResourceConsumptionPriority}", GUILayout.Height(18));
+                            GUILayout.FlexibleSpace();
+                            if (GUILayout.RepeatButton("--", GUILayout.Width(30), GUILayout.Height(23)) | GUILayout.Button("-", GUILayout.Width(30), GUILayout.Height(23))) miningFacility.ResourceConsumptionPriority--;
+                            if (GUILayout.Button("+", GUILayout.Width(30), GUILayout.Height(23)) | GUILayout.RepeatButton("++", GUILayout.Width(30), GUILayout.Height(23))) miningFacility.ResourceConsumptionPriority++;
+                        }
+                        GUILayout.EndHorizontal();
+                        GUILayout.Label("Resource usage:");
+                        resourceUsageScrollPos = GUILayout.BeginScrollView(resourceUsageScrollPos, GUILayout.Height(120));
+                        {
+                            miningFacility.facilityInfo.ResourceUsage[facility.level].ToList().ForEach(kvp =>
+                                GUILayout.Label($"- {kvp.Key.displayName}: {kvp.Value}/s")
+                            );
+                        }
+                        GUILayout.EndScrollView();
                     }
-                    GUILayout.EndHorizontal();
                 }
 
                 GUILayout.EndVertical();

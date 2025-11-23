@@ -1,4 +1,6 @@
-﻿// KC: Kerbal Colonies
+﻿using KerbalColonies.UI;
+
+// KC: Kerbal Colonies
 // This mod aimes to create a Colony system with Kerbal Konstructs statics
 // Copyright (c) 2024-2025 AMPW, Halengar and the KC Team
 
@@ -14,10 +16,6 @@
 
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/
-
-using BackgroundResourceProcessing;
-using BackgroundResourceProcessing.Behaviour;
-using KerbalColonies.UI;
 
 namespace KerbalColonies
 {

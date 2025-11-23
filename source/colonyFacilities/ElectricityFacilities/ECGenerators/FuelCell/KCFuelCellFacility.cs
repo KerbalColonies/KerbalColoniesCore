@@ -1,6 +1,4 @@
-﻿using KerbalColonies.colonyFacilities.StorageFacility;
-using KerbalColonies.Electricity;
-using KerbalColonies.ResourceManagment;
+﻿using KerbalColonies.ResourceManagment;
 using Smooth.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -28,7 +26,7 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fue
     {
         public KCFuelCellInfo fuelCellInfo => (KCFuelCellInfo)facilityInfo;
 
-        public int ResourceConsumptionPriority => 0;
+        public int ResourceConsumptionPriority { get; set; } = 0;
 
         public bool CanProduce { get; protected set; }
 
@@ -48,7 +46,7 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fue
             window.Toggle();
         }
 
-        public override string GetFacilityProductionDisplay() => $"Fuel cell production rate: {facilityInfo.ResourceUsage[level].GetValueOrDefault(PartResourceLibrary.Instance.GetDefinition("ElectricCharge"), 0):f2} EC/s";
+        public override string GetFacilityProductionDisplay() => $"Fuel cell production rate: {string.Join(", ", ResourcesPerSecond().Select(kvp => $"{kvp.Key.displayName}: {kvp.Value:f2}"))}";
 
         public Dictionary<PartResourceDefinition, double> ResourceProduction(double lastTime, double deltaTime, double currentTime)
         {

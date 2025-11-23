@@ -1,5 +1,6 @@
 ﻿using KerbalColonies.colonyFacilities;
 using KerbalColonies.colonyFacilities.CabFacility;
+using KerbalColonies.colonyFacilities.ProductionFacility;
 using KerbalColonies.UI;
 using System;
 using System.Collections.Generic;

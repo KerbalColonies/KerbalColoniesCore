@@ -3,16 +3,10 @@ using KerbalColonies.colonyFacilities;
 using KerbalColonies.UI;
 using KerbalColonies.VesselAutoTransfer;
 using KSP.UI.Screens;
-using KSP.UI.Screens.Editor;
 using System;
-using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Reflection;
-using TMPro;
 using ToolbarControl_NS;
 using UnityEngine;
-using UnityEngine.UI;
 using static KerbalKonstructs.API;
 
 // KC: Kerbal Colonies

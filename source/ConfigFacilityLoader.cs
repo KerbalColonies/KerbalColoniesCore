@@ -1,6 +1,7 @@
 ﻿using KerbalColonies.colonyFacilities;
 using KerbalColonies.colonyFacilities.CabFacility;
 using KerbalColonies.colonyFacilities.Commnet;
+using KerbalColonies.colonyFacilities.CrewQuarters;
 using KerbalColonies.colonyFacilities.ElectricityFacilities;
 using KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fission;
 using KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.FuelCell;
@@ -9,11 +10,12 @@ using KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Windtur
 using KerbalColonies.colonyFacilities.ElectricityFacilities.ECStorage;
 using KerbalColonies.colonyFacilities.KCMiningFacility;
 using KerbalColonies.colonyFacilities.KCResourceConverterFacility;
+using KerbalColonies.colonyFacilities.LaunchPadFacility;
+using KerbalColonies.colonyFacilities.ProductionFacility;
+using KerbalColonies.colonyFacilities.ResearchFacility;
 using KerbalColonies.colonyFacilities.StorageFacility;
-using KerbalColonies.Electricity;
 using KerbalColonies.ResourceManagment;
 using KerbalColonies.UI;
-using KerbalColonies.UI.SingleTimeWindow;
 using KerbalColonies.VesselAutoTransfer;
 using System;
 using System.Collections.Generic;
@@ -139,7 +141,7 @@ namespace KerbalColonies
             KCFacilityTypeRegistry.RegisterFacilityInfo<KCLaunchpadFacility, KCFacilityInfoClass>();
             KCFacilityTypeRegistry.RegisterFacilityInfo<KCMiningFacility, KCMiningFacilityInfo>();
             KCFacilityTypeRegistry.RegisterFacilityInfo<KCProductionFacility, KCProductionInfo>();
-            KCFacilityTypeRegistry.RegisterFacilityInfo<KCResearchFacility, KCResearchFacilityInfoClass>();
+            KCFacilityTypeRegistry.RegisterFacilityInfo<KCResearchFacility, KCResearchFacilityInfo>();
             KCFacilityTypeRegistry.RegisterFacilityInfo<KCResourceConverterFacility, KCResourceConverterInfo>();
             KCFacilityTypeRegistry.RegisterFacilityInfo<KCStorageFacility, KCStorageFacilityInfo>();
             KCFacilityTypeRegistry.RegisterFacilityInfo<KCECStorageFacility, KCECStorageInfo>();
@@ -179,7 +181,6 @@ namespace KerbalColonies
 
             colonyClass.ColonyPreSave.Add(new ColonyAction(KCUnifiedColonyStorage.SaveColony));
 
-            KC_CAB_Window.CABInfoWindow += KCECManager.CABDisplay;
             KC_CAB_Window.CABInfoWindow += KCCrewQuarters.CABDisplay;
             KC_CAB_Window.CABInfoWindow += KCProductionFacility.CABDisplay;
         }

@@ -242,25 +242,27 @@ namespace KerbalColonies.colonyFacilities.StorageFacility
             GUILayout.Space(2);
 
             storageFacility.locked = GUILayout.Toggle(storageFacility.locked, "Lock storage", GUILayout.Height(18));
+            GUILayout.Space(10);
 
-            GUILayout.Label("Resource consumption per second:");
-            resourceUsageScrollPos = GUILayout.BeginScrollView(resourceUsageScrollPos, GUILayout.Height(50));
+            if (facility.facilityInfo.ResourceUsage[facility.level].Count > 0)
             {
-                storageFacility.facilityInfo.ResourceUsage[storageFacility.level].Where(kvp => kvp.Value < 0).ToList().ForEach(kvp =>
+                GUILayout.BeginHorizontal();
                 {
-                    GUILayout.Label($"{kvp.Key.displayName}: {kvp.Value}");
-                });
+                    GUILayout.Label($"Resource Consumption Priority: {storageFacility.ResourceConsumptionPriority}", GUILayout.Height(18));
+                    GUILayout.FlexibleSpace();
+                    if (GUILayout.RepeatButton("--", GUILayout.Width(30), GUILayout.Height(23)) | GUILayout.Button("-", GUILayout.Width(30), GUILayout.Height(23))) storageFacility.ResourceConsumptionPriority--;
+                    if (GUILayout.Button("+", GUILayout.Width(30), GUILayout.Height(23)) | GUILayout.RepeatButton("++", GUILayout.Width(30), GUILayout.Height(23))) storageFacility.ResourceConsumptionPriority++;
+                }
+                GUILayout.EndHorizontal();
+                GUILayout.Label("Resource usage:");
+                resourceUsageScrollPos = GUILayout.BeginScrollView(resourceUsageScrollPos, GUILayout.Height(120));
+                {
+                    storageFacility.facilityInfo.ResourceUsage[facility.level].ToList().ForEach(kvp =>
+                        GUILayout.Label($"- {kvp.Key.displayName}: {kvp.Value}/s")
+                    );
+                }
+                GUILayout.EndScrollView();
             }
-            GUILayout.EndScrollView();
-
-            GUILayout.BeginHorizontal();
-            {
-                GUILayout.Label($"Resource Consumption Priority: {storageFacility.ResourceConsumptionPriority}", GUILayout.Height(18));
-                GUILayout.FlexibleSpace();
-                if (GUILayout.RepeatButton("--", GUILayout.Width(30), GUILayout.Height(23)) | GUILayout.Button("-", GUILayout.Width(30), GUILayout.Height(23))) storageFacility.ResourceConsumptionPriority--;
-                if (GUILayout.Button("+", GUILayout.Width(30), GUILayout.Height(23)) | GUILayout.RepeatButton("++", GUILayout.Width(30), GUILayout.Height(23))) storageFacility.ResourceConsumptionPriority++;
-            }
-            GUILayout.EndHorizontal();
 
             trashResources = GUILayout.Toggle(trashResources, "Trash resources", GUILayout.Height(18));
             GUILayout.Label("Warning: enabling the trash resources option will delete the resource instead of transferring it to the vessel.");

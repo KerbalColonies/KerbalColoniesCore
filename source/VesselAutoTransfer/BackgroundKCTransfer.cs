@@ -21,6 +21,6 @@ namespace KerbalColonies.VesselAutoTransfer
 {
     public class BackgroundKCTransfer : BackgroundConverter<ModuleKCTransfer>
     {
-        public override ModuleBehaviour GetBehaviour(ModuleKCTransfer module) => new ModuleBehaviour(new KCTransferBehaviour(module));
+        public override ModuleBehaviour GetBehaviour(ModuleKCTransfer module) => new(new KCTransferBehaviour(module));
     }
 }

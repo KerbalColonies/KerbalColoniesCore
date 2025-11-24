@@ -24,7 +24,7 @@ namespace KerbalColonies
 {
     public static class KCFacilityTypeRegistry
     {
-        private static Dictionary<string, Type> _registeredTypes = new Dictionary<string, Type>();
+        private static Dictionary<string, Type> _registeredTypes = [];
         public static Dictionary<string, Type> RegisteredTypes => _registeredTypes;
 
         // Register a new type by a unique string key
@@ -53,7 +53,7 @@ namespace KerbalColonies
         }
 
 
-        private static Dictionary<Type, Type> _registeredInfoTypes = new Dictionary<Type, Type>();
+        private static Dictionary<Type, Type> _registeredInfoTypes = [];
         public static Dictionary<Type, Type> RegisteredInfoTypes => _registeredInfoTypes;
 
         // Register a facility with its info type

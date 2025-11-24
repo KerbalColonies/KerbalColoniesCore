@@ -55,12 +55,12 @@ namespace KerbalColonies.colonyFacilities.LaunchPadFacility
 
     public class KCLaunchpadFacility : KCFacilityBase, IKCResourceConsumer
     {
-        KCLaunchpadFacilityWindow launchpadWindow;
+        private KCLaunchpadFacilityWindow launchpadWindow;
 
-        public SortedDictionary<int, string> launchSiteUUID { get; protected set; } = new SortedDictionary<int, string> { };
-        public SortedDictionary<int, string> launchSiteName { get; protected set; } = new SortedDictionary<int, string> { };
-        public SortedDictionary<int, KerbalKonstructs.Core.StaticInstance> instance { get; protected set; } = new SortedDictionary<int, KerbalKonstructs.Core.StaticInstance> { };
-        public SortedDictionary<int, bool> customName { get; protected set; } = new SortedDictionary<int, bool> { };
+        public SortedDictionary<int, string> launchSiteUUID { get; protected set; } = [];
+        public SortedDictionary<int, string> launchSiteName { get; protected set; } = [];
+        public SortedDictionary<int, KerbalKonstructs.Core.StaticInstance> instance { get; protected set; } = [];
+        public SortedDictionary<int, bool> customName { get; protected set; } = [];
 
         public override void OnGroupPlaced(KerbalKonstructs.Core.GroupCenter kkgroup)
         {
@@ -121,7 +121,7 @@ namespace KerbalColonies.colonyFacilities.LaunchPadFacility
                 targetInstance.launchSite.LaunchSiteAuthor = baseInstance.launchSite.LaunchSiteAuthor;
                 targetInstance.launchSite.refLat = (float)targetInstance.RefLatitude;
                 targetInstance.launchSite.refLon = (float)targetInstance.RefLongitude;
-                targetInstance.launchSite.refAlt = (float)targetInstance.RadiusOffset;
+                targetInstance.launchSite.refAlt = targetInstance.RadiusOffset;
                 targetInstance.launchSite.sitecategory = baseInstance.launchSite.sitecategory;
                 targetInstance.launchSite.InitialCameraRotation = baseInstance.launchSite.InitialCameraRotation;
 
@@ -335,7 +335,7 @@ namespace KerbalColonies.colonyFacilities.LaunchPadFacility
         public bool OutOfResources { get; protected set; } = false;
         public int ResourceConsumptionPriority { get; set; } = 0;
 
-        public Dictionary<PartResourceDefinition, double> ExpectedResourceConsumption(double lastTime, double deltaTime, double currentTime) => enabled || OutOfResources ? facilityInfo.ResourceUsage[level].Where(kvp => kvp.Value < 0).ToDictionary(kvp => kvp.Key, kvp => -kvp.Value * deltaTime) : new Dictionary<PartResourceDefinition, double>();
+        public Dictionary<PartResourceDefinition, double> ExpectedResourceConsumption(double lastTime, double deltaTime, double currentTime) => enabled || OutOfResources ? facilityInfo.ResourceUsage[level].Where(kvp => kvp.Value < 0).ToDictionary(kvp => kvp.Key, kvp => -kvp.Value * deltaTime) : [];
 
         public void ConsumeResources(double lastTime, double deltaTime, double currentTime) => OutOfResources = false;
 
@@ -346,16 +346,16 @@ namespace KerbalColonies.colonyFacilities.LaunchPadFacility
             return limitingResources;
         }
 
-        public Dictionary<PartResourceDefinition, double> ResourceConsumptionPerSecond() => enabled ? facilityInfo.ResourceUsage[level].Where(kvp => kvp.Value < 0).ToDictionary(kvp => kvp.Key, kvp => -kvp.Value) : new Dictionary<PartResourceDefinition, double>();
+        public Dictionary<PartResourceDefinition, double> ResourceConsumptionPerSecond() => enabled ? facilityInfo.ResourceUsage[level].Where(kvp => kvp.Value < 0).ToDictionary(kvp => kvp.Key, kvp => -kvp.Value) : [];
 
         public override ConfigNode getConfigNode()
         {
             ConfigNode node = base.getConfigNode();
             node.AddValue("ECConsumptionPriority", ResourceConsumptionPriority);
-            ConfigNode levelNode = new ConfigNode("LaunchpadFacility");
+            ConfigNode levelNode = new("LaunchpadFacility");
             launchSiteUUID.ToList().ForEach(kvp =>
             {
-                ConfigNode levelSubNode = new ConfigNode(kvp.Key.ToString());
+                ConfigNode levelSubNode = new(kvp.Key.ToString());
                 levelSubNode.AddValue("launchSiteUUID", kvp.Value);
                 levelSubNode.AddValue("launchSiteName", launchSiteName[kvp.Key]);
                 levelSubNode.AddValue("customName", customName[kvp.Key]);
@@ -379,7 +379,7 @@ namespace KerbalColonies.colonyFacilities.LaunchPadFacility
 
         public override string GetFacilityProductionDisplay()
         {
-            StringBuilder sb = new StringBuilder();
+            StringBuilder sb = new();
             sb.AppendLine("Available Launch Sites:");
             instance.Values.ToList().ForEach(kkInstance => sb.AppendLine($"- {kkInstance.launchSite.LaunchSiteName} ({kkInstance.launchSite.LaunchSiteType})"));
 

@@ -26,9 +26,9 @@ namespace KerbalColonies.UI.SingleTimeWindow
     [KSPAddon(KSPAddon.Startup.EveryScene, false)]
     public class SingleTimeWindowManager : MonoBehaviour
     {
-        public static Dictionary<string, bool> shownWindows = new Dictionary<string, bool> { };
+        public static Dictionary<string, bool> shownWindows = [];
 
-        public static List<KCSingleTimeWindowBase> windows = new List<KCSingleTimeWindowBase> { };
+        public static List<KCSingleTimeWindowBase> windows = [];
 
         public static bool MainmenuShown { get; private set; } = false;
         public static bool SpaceCenterShown { get; private set; } = false;
@@ -60,11 +60,11 @@ namespace KerbalColonies.UI.SingleTimeWindow
 
         protected void Start()
         {
-            if (MainmenuShown && HighLogic.LoadedScene == GameScenes.MAINMENU
-                || SpaceCenterShown && HighLogic.LoadedScene == GameScenes.SPACECENTER
-                || EditorShown && HighLogic.LoadedScene == GameScenes.EDITOR
-                || FlightShown && HighLogic.LoadedScene == GameScenes.FLIGHT
-                || TrackingstationShown && HighLogic.LoadedScene == GameScenes.TRACKSTATION)
+            if ((MainmenuShown && HighLogic.LoadedScene == GameScenes.MAINMENU)
+                || (SpaceCenterShown && HighLogic.LoadedScene == GameScenes.SPACECENTER)
+                || (EditorShown && HighLogic.LoadedScene == GameScenes.EDITOR)
+                || (FlightShown && HighLogic.LoadedScene == GameScenes.FLIGHT)
+                || (TrackingstationShown && HighLogic.LoadedScene == GameScenes.TRACKSTATION))
                 return;
 
             foreach (KCSingleTimeWindowBase item in windows)
@@ -72,11 +72,11 @@ namespace KerbalColonies.UI.SingleTimeWindow
                 if (!item.showAgain) continue;
 
                 if (
-                    HighLogic.LoadedScene == GameScenes.MAINMENU && item.Mainmenu ||
-                    HighLogic.LoadedScene == GameScenes.SPACECENTER && item.KSC ||
-                    HighLogic.LoadedScene == GameScenes.EDITOR && item.Editor ||
-                    HighLogic.LoadedScene == GameScenes.FLIGHT && item.Flight ||
-                    HighLogic.LoadedScene == GameScenes.TRACKSTATION && item.Trackingstation
+                    (HighLogic.LoadedScene == GameScenes.MAINMENU && item.Mainmenu) ||
+                    (HighLogic.LoadedScene == GameScenes.SPACECENTER && item.KSC) ||
+                    (HighLogic.LoadedScene == GameScenes.EDITOR && item.Editor) ||
+                    (HighLogic.LoadedScene == GameScenes.FLIGHT && item.Flight) ||
+                    (HighLogic.LoadedScene == GameScenes.TRACKSTATION && item.Trackingstation)
                     )
                 {
                     item.Open();
@@ -91,12 +91,12 @@ namespace KerbalColonies.UI.SingleTimeWindow
 
         protected void OnDestroy()
         {
-            ConfigNode node = new ConfigNode("SingleTimeWindows");
+            ConfigNode node = new("SingleTimeWindows");
             windows.ForEach(w => node.AddValue(w.identifier, w.showAgain.ToString()));
 
             string path = $"{Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)}{Path.DirectorySeparatorChar}..{Path.DirectorySeparatorChar}Configs{Path.DirectorySeparatorChar}SingleTimeWindows.cfg";
 
-            ConfigNode n = new ConfigNode();
+            ConfigNode n = new();
             n.AddNode(node);
             n.Save(path);
         }

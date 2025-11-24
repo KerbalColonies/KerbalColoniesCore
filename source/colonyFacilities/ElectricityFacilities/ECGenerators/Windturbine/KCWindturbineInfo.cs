@@ -22,8 +22,8 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Win
 {
     public class KCWindturbineInfo : KCFacilityInfoClass
     {
-        public SortedDictionary<int, double> Maxproduction { get; private set; } = new SortedDictionary<int, double>();
-        public SortedDictionary<int, double> Minproduction { get; private set; } = new SortedDictionary<int, double>();
+        public SortedDictionary<int, double> Maxproduction { get; private set; } = [];
+        public SortedDictionary<int, double> Minproduction { get; private set; } = [];
 
 
         public KCWindturbineInfo(ConfigNode node) : base(node)

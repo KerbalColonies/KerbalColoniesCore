@@ -31,9 +31,9 @@ namespace KerbalColonies
     [KSPAddon(KSPAddon.Startup.AllGameScenes, false)]
     public class KerbalColonies : MonoBehaviour
     {
-        double lastTime = 0;
-        bool despawned = false;
-        int waitCounter = 0;
+        private double lastTime = 0;
+        private bool despawned = false;
+        private int waitCounter = 0;
         public static bool UpdateNextFrame = false;
 
         internal static ToolbarControl toolbarControl;
@@ -114,10 +114,7 @@ namespace KerbalColonies
         {
             Configuration.colonyDictionary.Values.SelectMany(x => x).ToList().ForEach(x => x.currentFrameUpdated = false);
 
-            if (KCGroupEditor.selectedFacility != null)
-            {
-                KCGroupEditor.selectedFacility.WhileBuildingPlaced(KCGroupEditor.selectedGroup);
-            }
+            KCGroupEditor.selectedFacility?.WhileBuildingPlaced(KCGroupEditor.selectedGroup);
 
             if (Planetarium.GetUniversalTime() - lastTime >= 10 || UpdateNextFrame || Time.time - realTime >= 10)
             {

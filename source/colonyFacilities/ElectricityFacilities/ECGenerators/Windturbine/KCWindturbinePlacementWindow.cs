@@ -28,10 +28,7 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Win
         {
             get
             {
-                if (instance == null)
-                {
-                    instance = new KCWindturbinePlacementWindow();
-                }
+                instance ??= new KCWindturbinePlacementWindow();
                 return instance;
             }
         }
@@ -50,7 +47,7 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Win
 
         public KCWindturbinePlacementWindow() : base(Configuration.createWindowID(), "Wind turbine placement info")
         {
-            this.toolRect = new Rect(100, 100, 300, 200);
+            toolRect = new Rect(100, 100, 300, 200);
         }
     }
 }

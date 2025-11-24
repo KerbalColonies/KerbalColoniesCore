@@ -22,25 +22,25 @@ namespace KerbalColonies.colonyFacilities.KCResourceConverterFacility
 {
     public class ResourceConversionList
     {
-        public static HashSet<ResourceConversionList> AllConversionLists = new HashSet<ResourceConversionList> { }; // all the lists of recipes
+        public static HashSet<ResourceConversionList> AllConversionLists = []; // all the lists of recipes
 
         public static ResourceConversionList GetConversionList(string name) => AllConversionLists.FirstOrDefault(rcl => rcl.Name == name);
 
         public static bool operator ==(ResourceConversionList a, ResourceConversionList b)
         {
-            if (ReferenceEquals(a, null) && ReferenceEquals(b, null)) return true;
-            else if (ReferenceEquals(a, null) || ReferenceEquals(b, null)) return false;
+            if (a is null && b is null) return true;
+            else if (a is null || b is null) return false;
             return a.Name == b.Name;
         }
         public static bool operator !=(ResourceConversionList a, ResourceConversionList b)
         {
-            if (ReferenceEquals(a, null) && ReferenceEquals(b, null)) return false;
-            else if (ReferenceEquals(a, null) || ReferenceEquals(b, null)) return true;
+            if (a is null && b is null) return false;
+            else if (a is null || b is null) return true;
             return a.Name != b.Name;
         }
         public override bool Equals(object obj)
         {
-            return obj is ResourceConversionList && ((ResourceConversionList)obj).Name == this.Name;
+            return obj is ResourceConversionList && ((ResourceConversionList)obj).Name == Name;
         }
 
         public override int GetHashCode()
@@ -49,12 +49,12 @@ namespace KerbalColonies.colonyFacilities.KCResourceConverterFacility
         }
 
         public string Name { get; set; } // the name of the list
-        public List<string> ConversionList { get; set; } = new List<string> { }; // the names of other lists
-        public List<string> RecipeNames { get; set; } = new List<string> { }; // the names of the recipes
+        public List<string> ConversionList { get; set; } = []; // the names of other lists
+        public List<string> RecipeNames { get; set; } = []; // the names of the recipes
 
         public HashSet<ResourceConversionRate> GetRecipes()
         {
-            HashSet<ResourceConversionRate> resourceConversionRates = new HashSet<ResourceConversionRate>();
+            HashSet<ResourceConversionRate> resourceConversionRates = [];
             RecipeNames.ForEach(r =>
             {
                 ResourceConversionRate rcr = ResourceConversionRate.GetConversionRate(r);

@@ -27,26 +27,26 @@ namespace KerbalColonies.ResourceManagment
         public double deltaTime { get; set; }
         public double currentTime { get; set; }
 
-        public HashSet<PartResourceDefinition> resources { get; set; } = new HashSet<PartResourceDefinition>();
-        public Dictionary<PartResourceDefinition, double> ResourcesProduced { get; set; } = new Dictionary<PartResourceDefinition, double>();
-        public Dictionary<PartResourceDefinition, double> ResourcesConsumed { get; set; } = new Dictionary<PartResourceDefinition, double>();
-        public Dictionary<PartResourceDefinition, double> ResourcesStored { get; set; } = new Dictionary<PartResourceDefinition, double>();
+        public HashSet<PartResourceDefinition> resources { get; set; } = [];
+        public Dictionary<PartResourceDefinition, double> ResourcesProduced { get; set; } = [];
+        public Dictionary<PartResourceDefinition, double> ResourcesConsumed { get; set; } = [];
+        public Dictionary<PartResourceDefinition, double> ResourcesStored { get; set; } = [];
 
         public double ResourceDelta(PartResourceDefinition resource)
         {
             double produced = ResourcesProduced.GetValueOrDefault(resource);
             double consumed = ResourcesConsumed.GetValueOrDefault(resource);
-            return (produced - consumed);
+            return produced - consumed;
         }
     }
 
     public static class KCResourceManager
     {
-        public static Dictionary<colonyClass, List<IKCResourceProducer>> otherProducers { get; set; } = new Dictionary<colonyClass, List<IKCResourceProducer>>();
-        public static Dictionary<colonyClass, SortedDictionary<int, List<IKCResourceConsumer>>> otherConsumers { get; set; } = new Dictionary<colonyClass, SortedDictionary<int, List<IKCResourceConsumer>>>();
-        public static Dictionary<colonyClass, SortedDictionary<int, List<IKCResourceStorage>>> otherStorages { get; set; } = new Dictionary<colonyClass, SortedDictionary<int, List<IKCResourceStorage>>>();
+        public static Dictionary<colonyClass, List<IKCResourceProducer>> otherProducers { get; set; } = [];
+        public static Dictionary<colonyClass, SortedDictionary<int, List<IKCResourceConsumer>>> otherConsumers { get; set; } = [];
+        public static Dictionary<colonyClass, SortedDictionary<int, List<IKCResourceStorage>>> otherStorages { get; set; } = [];
 
-        public static Dictionary<colonyClass, KCColonyResourceData> colonyResources = new Dictionary<colonyClass, KCColonyResourceData>();
+        public static Dictionary<colonyClass, KCColonyResourceData> colonyResources = [];
 
         private static void GetDeltaTime(colonyClass colony, out double lastTime, out double deltaTime, out double currentTime)
         {
@@ -54,7 +54,7 @@ namespace KerbalColonies.ResourceManagment
             ConfigNode timeNode = colony.sharedColonyNodes.FirstOrDefault(node => node.name == "KCELTime");
             if (timeNode == null)
             {
-                ConfigNode node = new ConfigNode("KCELTime");
+                ConfigNode node = new("KCELTime");
                 node.AddValue("lastTime", Planetarium.GetUniversalTime().ToString());
                 colony.sharedColonyNodes.Add(node);
                 lastTime = currentTime;
@@ -69,7 +69,7 @@ namespace KerbalColonies.ResourceManagment
 
         public static void ResourceUpdate(colonyClass colony)
         {
-            KCColonyResourceData colonyData = new KCColonyResourceData();
+            KCColonyResourceData colonyData = new();
 
             GetDeltaTime(colony, out double lastTime, out double deltaTime, out double currentTime);
             if (deltaTime == 0) return;
@@ -100,12 +100,12 @@ namespace KerbalColonies.ResourceManagment
                 });
             }
 
-            SortedDictionary<int, List<IKCResourceConsumer>> ResourceConsumers = new SortedDictionary<int, List<IKCResourceConsumer>>();
-            Dictionary<IKCResourceConsumer, Dictionary<PartResourceDefinition, double>> ResourcesConsumedPerConsumer = new Dictionary<IKCResourceConsumer, Dictionary<PartResourceDefinition, double>>();
+            SortedDictionary<int, List<IKCResourceConsumer>> ResourceConsumers = [];
+            Dictionary<IKCResourceConsumer, Dictionary<PartResourceDefinition, double>> ResourcesConsumedPerConsumer = [];
             colony.Facilities.OfType<IKCResourceConsumer>().ToList().ForEach(facility =>
             {
                 if (!ResourceConsumers.ContainsKey(facility.ResourceConsumptionPriority))
-                    ResourceConsumers[facility.ResourceConsumptionPriority] = new List<IKCResourceConsumer>();
+                    ResourceConsumers[facility.ResourceConsumptionPriority] = [];
                 ResourceConsumers[facility.ResourceConsumptionPriority].Add(facility);
 
                 Dictionary<PartResourceDefinition, double> consumed = facility.ExpectedResourceConsumption(lastTime, deltaTime, currentTime);
@@ -120,7 +120,7 @@ namespace KerbalColonies.ResourceManagment
             {
                 otherConsumers[colony].ToList().ForEach(kvp =>
                 {
-                    ResourceConsumers.TryAdd(kvp.Key, new List<IKCResourceConsumer>());
+                    ResourceConsumers.TryAdd(kvp.Key, []);
                     kvp.Value.ForEach(consumer =>
                     {
                         ResourceConsumers[kvp.Key].Add(consumer);
@@ -136,10 +136,10 @@ namespace KerbalColonies.ResourceManagment
             }
             ResourceConsumers.Reverse();
 
-            SortedDictionary<int, List<IKCResourceStorage>> ResourceStored = new SortedDictionary<int, List<IKCResourceStorage>>();
+            SortedDictionary<int, List<IKCResourceStorage>> ResourceStored = [];
             colony.Facilities.OfType<IKCResourceStorage>().ToList().ForEach(facility =>
             {
-                ResourceStored.TryAdd(facility.Priority, new List<IKCResourceStorage>());
+                ResourceStored.TryAdd(facility.Priority, []);
 
                 ResourceStored[facility.Priority].Add(facility);
                 SortedDictionary<PartResourceDefinition, double> stored = facility.StoredResources(lastTime, deltaTime, currentTime);
@@ -153,7 +153,7 @@ namespace KerbalColonies.ResourceManagment
             {
                 otherStorages[colony].ToList().ForEach(kvp =>
                 {
-                    ResourceStored.TryAdd(kvp.Key, new List<IKCResourceStorage>());
+                    ResourceStored.TryAdd(kvp.Key, []);
                     kvp.Value.ForEach(storage =>
                     {
                         ResourceStored[kvp.Key].Add(storage);
@@ -168,9 +168,9 @@ namespace KerbalColonies.ResourceManagment
             }
             ResourceStored.Reverse();
 
-            Dictionary<PartResourceDefinition, double> insufficientResources = new Dictionary<PartResourceDefinition, double>();
-            Dictionary<PartResourceDefinition, double> sufficientResources = new Dictionary<PartResourceDefinition, double>();
-            Dictionary<PartResourceDefinition, double> storedResourcesUsed = new Dictionary<PartResourceDefinition, double>();
+            Dictionary<PartResourceDefinition, double> insufficientResources = [];
+            Dictionary<PartResourceDefinition, double> sufficientResources = [];
+            Dictionary<PartResourceDefinition, double> storedResourcesUsed = [];
 
             foreach (PartResourceDefinition res in colonyData.resources)
             {
@@ -205,8 +205,8 @@ namespace KerbalColonies.ResourceManagment
                 {
                     foreach (IKCResourceConsumer item in kvp.Value)
                     {
-                        Dictionary<PartResourceDefinition, double> limitingItemResources = new Dictionary<PartResourceDefinition, double>();
-                        Dictionary<PartResourceDefinition, double> sufficientItemResources = new Dictionary<PartResourceDefinition, double>();
+                        Dictionary<PartResourceDefinition, double> limitingItemResources = [];
+                        Dictionary<PartResourceDefinition, double> sufficientItemResources = [];
 
                         foreach (KeyValuePair<PartResourceDefinition, double> resKvp in ResourcesConsumedPerConsumer[item])
                         {

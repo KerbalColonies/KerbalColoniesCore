@@ -24,9 +24,9 @@ namespace KerbalColonies.colonyFacilities
 {
     public class KCKerbalFacilityInfoClass : KCFacilityInfoClass
     {
-        public SortedDictionary<int, int> maxKerbalsPerLevel = new SortedDictionary<int, int> { };
-        public SortedDictionary<int, List<string>> allowedTraits = new SortedDictionary<int, List<string>> { };
-        public SortedDictionary<int, List<string>> forbiddenTraits = new SortedDictionary<int, List<string>> { };
+        public SortedDictionary<int, int> maxKerbalsPerLevel = [];
+        public SortedDictionary<int, List<string>> allowedTraits = [];
+        public SortedDictionary<int, List<string>> forbiddenTraits = [];
 
         public KCKerbalFacilityInfoClass(ConfigNode node) : base(node)
         {
@@ -36,13 +36,13 @@ namespace KerbalColonies.colonyFacilities
                 else if (n.Key > 0) maxKerbalsPerLevel.Add(n.Key, maxKerbalsPerLevel[n.Key - 1]);
                 else throw new MissingFieldException($"The facility {name} (type: {type}) has no maxKerbals (at least for level 0).");
 
-                if (n.Value.HasValue("allowedTraits")) allowedTraits[n.Key] = n.Value.GetValue("allowedTraits").Split(',').ToList().Select(s => s.Trim().ToLower()).ToList();
-                else if (n.Key > 0) allowedTraits[n.Key] = allowedTraits[n.Key - 1];
-                else allowedTraits[n.Key] = new List<string> { };
+                allowedTraits[n.Key] = n.Value.HasValue("allowedTraits")
+                    ? n.Value.GetValue("allowedTraits").Split(',').ToList().Select(s => s.Trim().ToLower()).ToList()
+                    : n.Key > 0 ? allowedTraits[n.Key - 1] : [];
 
-                if (n.Value.HasValue("forbiddenTraits")) forbiddenTraits[n.Key] = n.Value.GetValue("forbiddenTraits").Split(',').ToList().Select(s => s.Trim().ToLower()).ToList();
-                else if (n.Key > 0) forbiddenTraits[n.Key] = forbiddenTraits[n.Key - 1];
-                else forbiddenTraits[n.Key] = new List<string> { };
+                forbiddenTraits[n.Key] = n.Value.HasValue("forbiddenTraits")
+                    ? n.Value.GetValue("forbiddenTraits").Split(',').ToList().Select(s => s.Trim().ToLower()).ToList()
+                    : n.Key > 0 ? forbiddenTraits[n.Key - 1] : [];
             });
         }
     }
@@ -51,8 +51,8 @@ namespace KerbalColonies.colonyFacilities
     {
         public bool Equals(ProtoCrewMember x, ProtoCrewMember y)
         {
-            if (ReferenceEquals(x, null) && ReferenceEquals(y, null)) return true;
-            else if (ReferenceEquals(x, null) || ReferenceEquals(y, null)) return false;
+            if (x is null && y is null) return true;
+            else if (x is null || y is null) return false;
             return x.name == y.name;
         }
         public int GetHashCode(ProtoCrewMember obj)
@@ -70,7 +70,7 @@ namespace KerbalColonies.colonyFacilities
         /// <returns>An empty dictionary if any of the parameters are invalid, no KCCrewQuarter facilities exist or no KCCrewQuarter has any kerbals assigned</returns>
         public static Dictionary<ProtoCrewMember, int> GetAllKerbalsInColony(colonyClass colony)
         {
-            Dictionary<ProtoCrewMember, int> kerbals = new Dictionary<ProtoCrewMember, int> { };
+            Dictionary<ProtoCrewMember, int> kerbals = [];
             KCCrewQuarters.CrewQuartersInColony(colony).ForEach(crewQuarter =>
             {
                 foreach (KeyValuePair<ProtoCrewMember, int> item in crewQuarter.kerbals)
@@ -139,11 +139,11 @@ namespace KerbalColonies.colonyFacilities
 
         public ConfigNode createKerbalNode()
         {
-            ConfigNode kerbalsNode = new ConfigNode("KerbalNode");
+            ConfigNode kerbalsNode = new("KerbalNode");
 
             foreach (KeyValuePair<ProtoCrewMember, int> kerbal in kerbals)
             {
-                ConfigNode kerbalNode = new ConfigNode("Kerbal");
+                ConfigNode kerbalNode = new("Kerbal");
 
                 kerbalNode.AddValue("name", kerbal.Key.name);
                 kerbalNode.AddValue("status", kerbal.Value);
@@ -158,7 +158,7 @@ namespace KerbalColonies.colonyFacilities
         {
             if (kerbalNode != null)
             {
-                kerbals = new Dictionary<ProtoCrewMember, int> { };
+                kerbals = [];
 
                 foreach (ConfigNode kerbal in kerbalNode.GetNodes())
                 {
@@ -190,7 +190,7 @@ namespace KerbalColonies.colonyFacilities
 
         public KCKerbalFacilityBase(colonyClass colony, KCFacilityInfoClass facilityInfo, bool enabled) : base(colony, facilityInfo, enabled)
         {
-            kerbals = new Dictionary<ProtoCrewMember, int> { };
+            kerbals = [];
         }
     }
 }

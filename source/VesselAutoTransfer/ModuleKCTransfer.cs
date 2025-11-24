@@ -33,7 +33,7 @@ namespace KerbalColonies.VesselAutoTransfer
         private VesselColonyTransferchangewindow ColonyChangeWindow;
         private VesselResourceRatesChangewindow ResourceRatesChangeWindow;
 
-        private Dictionary<PartResourceDefinition, double> lastResourceValue = new Dictionary<PartResourceDefinition, double> { };
+        private Dictionary<PartResourceDefinition, double> lastResourceValue = [];
 
         [KSPEvent(guiName = "Change target colony", active = true, advancedTweakable = false, category = "Colonytransfer", externalToEVAOnly = false, groupDisplayName = null, groupName = null, groupStartCollapsed = false, guiActive = true, guiActiveEditor = false, guiActiveUnfocused = false)]
         public void ChangeColonyTarget()
@@ -91,7 +91,7 @@ namespace KerbalColonies.VesselAutoTransfer
                 part.GetConnectedResourceTotals(res.id, transferMode, out double vesselAmount, out double vesselMaxAmount);
                 lastResourceValue[res] = vesselAmount;
                 double ResRatio = vesselAmount / vesselMaxAmount;
-                double ResDelta = (lastAmount - vesselAmount) / deltaTime - transferInfo.ResourcesActual[res];
+                double ResDelta = ((lastAmount - vesselAmount) / deltaTime) - transferInfo.ResourcesActual[res];
 
                 double transferAmount = 0;
 
@@ -218,7 +218,7 @@ namespace KerbalColonies.VesselAutoTransfer
                     transferInfo.ResourceTransferHandler.ResourceRates[res] = 0;
                 }
 
-                Configuration.writeDebug($"ModuleKCTransfer: Requesting {transferAmount} (dt: {deltaTime}) from {part.name.ToString()} in vessel {part.vessel.name}");
+                Configuration.writeDebug($"ModuleKCTransfer: Requesting {transferAmount} (dt: {deltaTime}) from {part.name} in vessel {part.vessel.name}");
                 part.RequestResource(res.id, transferAmount * deltaTime, transferMode);
 
             });

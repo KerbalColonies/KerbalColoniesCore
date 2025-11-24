@@ -27,10 +27,7 @@ namespace KerbalColonies.UI
         {
             get
             {
-                if (instance == null)
-                {
-                    instance = new OverviewWindow();
-                }
+                instance ??= new OverviewWindow();
                 return instance;
             }
         }
@@ -42,10 +39,10 @@ namespace KerbalColonies.UI
         private colonyClass selectedColony;
         protected override void CustomWindow()
         {
-            GUIStyle borderOnlyStyle = new GUIStyle(GUI.skin.box);
+            GUIStyle borderOnlyStyle = new(GUI.skin.box);
 
             // Create a 1x1 transparent texture so background is invisible
-            Texture2D transparentTex = new Texture2D(1, 1);
+            Texture2D transparentTex = new(1, 1);
             transparentTex.SetPixel(0, 0, Color.clear);
             transparentTex.Apply();
 

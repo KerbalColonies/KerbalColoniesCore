@@ -89,14 +89,14 @@ namespace KerbalColonies.colonyFacilities.CabFacility
 
         public KC_CAB_Facility(colonyClass colony, ConfigNode node) : base(Configuration.GetCABInfoClass(node.GetValue("name")), node)
         {
-            this.Colony = colony;
+            Colony = colony;
 
             window = new KC_CAB_Window(this);
         }
 
         public KC_CAB_Facility(colonyClass colony, KC_CAB_Info CABInfo) : base(CABInfo)
         {
-            this.Colony = colony;
+            Colony = colony;
 
             window = new KC_CAB_Window(this);
 
@@ -106,7 +106,7 @@ namespace KerbalColonies.colonyFacilities.CabFacility
                     && CABInfo.Funds[i] == 0
                     && CABInfo.UpgradeTimes[i] == 0)
                 {
-                    this.level = i;
+                    level = i;
                 }
                 else
                 {

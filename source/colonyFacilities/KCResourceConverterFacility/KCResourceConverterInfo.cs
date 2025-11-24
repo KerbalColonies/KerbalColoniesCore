@@ -22,10 +22,10 @@ namespace KerbalColonies.colonyFacilities.KCResourceConverterFacility
 {
     public class KCResourceConverterInfo : KCKerbalFacilityInfoClass
     {
-        public Dictionary<int, ResourceConversionList> availableRecipes { get; private set; } = new Dictionary<int, ResourceConversionList> { };
-        public Dictionary<int, int> ISRUcount { get; private set; } = new Dictionary<int, int> { };
+        public Dictionary<int, ResourceConversionList> availableRecipes { get; private set; } = [];
+        public Dictionary<int, int> ISRUcount { get; private set; } = [];
 
-        public Dictionary<int, int> minKerbals { get; private set; } = new Dictionary<int, int> { };
+        public Dictionary<int, int> minKerbals { get; private set; } = [];
 
         public KCResourceConverterInfo(ConfigNode node) : base(node)
         {
@@ -47,12 +47,13 @@ namespace KerbalColonies.colonyFacilities.KCResourceConverterFacility
                 else if (levelNode.Key > 0) availableRecipes.Add(levelNode.Key, availableRecipes[levelNode.Key - 1]);
                 else throw new MissingFieldException($"The facility {name} (type: {type}) has no conversion list (at least for level 0).");
 
-                if (levelNode.Value.HasValue("ISRUcount")) ISRUcount[levelNode.Key] = int.Parse(levelNode.Value.GetValue("ISRUcount"));
-                else if (levelNode.Key > 0) ISRUcount[levelNode.Key] = ISRUcount[levelNode.Key - 1];
-                else throw new MissingFieldException($"The facility {name} has no ISRUcount (at least for level 0).");
+                ISRUcount[levelNode.Key] = levelNode.Value.HasValue("ISRUcount")
+                    ? int.Parse(levelNode.Value.GetValue("ISRUcount"))
+                    : levelNode.Key > 0
+                    ? ISRUcount[levelNode.Key - 1]
+                    : throw new MissingFieldException($"The facility {name} has no ISRUcount (at least for level 0).");
 
-                if (levelNode.Value.HasValue("minKerbals")) minKerbals[levelNode.Key] = int.Parse(levelNode.Value.GetValue("minKerbals"));
-                else minKerbals[levelNode.Key] = maxKerbalsPerLevel[levelNode.Key];
+                minKerbals[levelNode.Key] = levelNode.Value.HasValue("minKerbals") ? int.Parse(levelNode.Value.GetValue("minKerbals")) : maxKerbalsPerLevel[levelNode.Key];
             }
         }
     }

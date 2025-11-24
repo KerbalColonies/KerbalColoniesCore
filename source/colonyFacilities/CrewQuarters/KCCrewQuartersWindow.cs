@@ -22,7 +22,7 @@ namespace KerbalColonies.colonyFacilities.CrewQuarters
 {
     public class KCCrewQuartersWindow : KCFacilityWindowBase
     {
-        KCCrewQuarters CrewQuarterFacility;
+        private KCCrewQuarters CrewQuarterFacility;
         public KerbalGUI kerbalGUI;
 
         protected override void CustomWindow()
@@ -54,7 +54,7 @@ namespace KerbalColonies.colonyFacilities.CrewQuarters
         public KCCrewQuartersWindow(KCCrewQuarters CrewQuarterFacility) : base(CrewQuarterFacility, Configuration.createWindowID())
         {
             this.CrewQuarterFacility = CrewQuarterFacility;
-            this.kerbalGUI = new KerbalGUI(CrewQuarterFacility, false);
+            kerbalGUI = new KerbalGUI(CrewQuarterFacility, false);
             toolRect = new Rect(100, 100, 400, 600);
         }
     }

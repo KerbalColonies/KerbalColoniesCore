@@ -23,20 +23,24 @@ namespace KerbalColonies.colonyFacilities.ResearchFacility
 {
     public class KCResearchFacilityInfo : KCKerbalFacilityInfoClass
     {
-        public SortedDictionary<int, double> maxSciencePoints = new SortedDictionary<int, double>();
-        public SortedDictionary<int, double> sciencePointsPerDayperResearcher = new SortedDictionary<int, double>();
+        public SortedDictionary<int, double> maxSciencePoints = [];
+        public SortedDictionary<int, double> sciencePointsPerDayperResearcher = [];
 
         public KCResearchFacilityInfo(ConfigNode node) : base(node)
         {
             levelNodes.ToList().ForEach(n =>
             {
-                if (n.Value.HasValue("scienceRate")) sciencePointsPerDayperResearcher[n.Key] = double.Parse(n.Value.GetValue("scienceRate"));
-                else if (n.Key > 0) sciencePointsPerDayperResearcher[n.Key] = sciencePointsPerDayperResearcher[n.Key - 1];
-                else throw new MissingFieldException($"The facility {name} (type: {type}) has no scienceRate (at least for level 0).");
+                sciencePointsPerDayperResearcher[n.Key] = n.Value.HasValue("scienceRate")
+                    ? double.Parse(n.Value.GetValue("scienceRate"))
+                    : n.Key > 0
+                    ? sciencePointsPerDayperResearcher[n.Key - 1]
+                    : throw new MissingFieldException($"The facility {name} (type: {type}) has no scienceRate (at least for level 0).");
 
-                if (n.Value.HasValue("maxScience")) maxSciencePoints[n.Key] = double.Parse(n.Value.GetValue("maxScience"));
-                else if (n.Key > 0) maxSciencePoints[n.Key] = maxSciencePoints[n.Key - 1];
-                else throw new MissingFieldException($"The facility {name} (type: {type}) has no maxScience (at least for level 0).");
+                maxSciencePoints[n.Key] = n.Value.HasValue("maxScience")
+                    ? double.Parse(n.Value.GetValue("maxScience"))
+                    : n.Key > 0
+                    ? maxSciencePoints[n.Key - 1]
+                    : throw new MissingFieldException($"The facility {name} (type: {type}) has no maxScience (at least for level 0).");
             });
         }
     }

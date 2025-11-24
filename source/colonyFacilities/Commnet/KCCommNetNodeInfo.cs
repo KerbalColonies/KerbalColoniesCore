@@ -98,7 +98,7 @@ namespace KerbalColonies.colonyFacilities.Commnet
 
         public ConfigNode GetConfigNode()
         {
-            ConfigNode node = new ConfigNode("CommNetNode");
+            ConfigNode node = new("CommNetNode");
             node.AddValue("groupCenter", GroupCenter.Group);
             node.AddValue("name", Name);
             node.AddValue("range", Range);
@@ -110,7 +110,7 @@ namespace KerbalColonies.colonyFacilities.Commnet
 
         public int CompareTo(KCCommNetNodeInfo other)
         {
-            if (ReferenceEquals(null, other)) return 1; // null is less than any instance
+            if (other is null) return 1; // null is less than any instance
             else if (ReferenceEquals(this, other)) return 0; // same instance
             else return FacilityLevel.CompareTo(other.FacilityLevel);
         }
@@ -118,8 +118,8 @@ namespace KerbalColonies.colonyFacilities.Commnet
         public int Compare(KCCommNetNodeInfo x, KCCommNetNodeInfo y)
         {
             if (ReferenceEquals(x, y)) return 0; // same instance
-            if (ReferenceEquals(x, null)) return -1; // null is less than any instance
-            if (ReferenceEquals(y, null)) return 1; // any instance is greater than null
+            if (x is null) return -1; // null is less than any instance
+            if (y is null) return 1; // any instance is greater than null
             return x.FacilityLevel.CompareTo(y.FacilityLevel);
         }
 
@@ -130,8 +130,7 @@ namespace KerbalColonies.colonyFacilities.Commnet
             Name = node.GetValue("name");
             Range = double.Parse(node.GetValue("range"));
             Enabled = bool.Parse(node.GetValue("enabled"));
-            if (node.HasValue("customName")) CustomName = true;
-            else CustomName = false;
+            CustomName = node.HasValue("customName");
             FacilityLevel = int.Parse(node.GetValue("facilityLevel"));
 
             GroupCenter.gameObject.GetComponents<CommNetHome>().ToList().ForEach(c => UnityEngine.Object.Destroy(c));
@@ -148,8 +147,7 @@ namespace KerbalColonies.colonyFacilities.Commnet
         public KCCommNetNodeInfo(KerbalKonstructs.Core.GroupCenter groupCenter, string name = null, double range = 500000d, bool enabled = true, int facilityLevel = 0)
         {
             GroupCenter = groupCenter;
-            if (name != null) Name = name;
-            else Name = groupCenter.Group;
+            Name = name ?? groupCenter.Group;
             Range = range;
             Enabled = enabled;
             FacilityLevel = facilityLevel;

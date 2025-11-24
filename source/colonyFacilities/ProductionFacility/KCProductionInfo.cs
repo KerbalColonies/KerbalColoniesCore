@@ -23,11 +23,11 @@ namespace KerbalColonies.colonyFacilities.ProductionFacility
 {
     public class KCProductionInfo : KCKerbalFacilityInfoClass
     {
-        public SortedDictionary<int, Dictionary<PartResourceDefinition, double>> vesselResourceCost { get; private set; } = new SortedDictionary<int, Dictionary<PartResourceDefinition, double>> { };
+        public SortedDictionary<int, Dictionary<PartResourceDefinition, double>> vesselResourceCost { get; private set; } = [];
 
-        public SortedDictionary<int, double> baseProduction { get; private set; } = new SortedDictionary<int, double> { };
-        public SortedDictionary<int, double> experienceMultiplier { get; private set; } = new SortedDictionary<int, double> { };
-        public SortedDictionary<int, double> facilityLevelMultiplier { get; private set; } = new SortedDictionary<int, double> { };
+        public SortedDictionary<int, double> baseProduction { get; private set; } = [];
+        public SortedDictionary<int, double> experienceMultiplier { get; private set; } = [];
+        public SortedDictionary<int, double> facilityLevelMultiplier { get; private set; } = [];
 
         public bool CanBuildVessels(int level) => vesselResourceCost.ContainsKey(level);
 
@@ -36,8 +36,7 @@ namespace KerbalColonies.colonyFacilities.ProductionFacility
             if (!CanBuildVessels(level)) return false;
             Dictionary<PartResourceDefinition, double> vesselCost = vesselResourceCost[level];
             KCProductionInfo otherInfo = (KCProductionInfo)otherFacility.facilityInfo;
-            if (!otherInfo.CanBuildVessels(otherFacility.level)) return false;
-            return vesselCost.All(vc => otherInfo.vesselResourceCost[otherFacility.level].ContainsKey(vc.Key) ? otherInfo.vesselResourceCost[otherFacility.level][vc.Key] == vc.Value : false);
+            return otherInfo.CanBuildVessels(otherFacility.level) && vesselCost.All(vc => otherInfo.vesselResourceCost[otherFacility.level].ContainsKey(vc.Key) && otherInfo.vesselResourceCost[otherFacility.level][vc.Key] == vc.Value);
         }
 
         public KCProductionInfo(ConfigNode node) : base(node)
@@ -60,7 +59,7 @@ namespace KerbalColonies.colonyFacilities.ProductionFacility
                 if (n.Value.HasNode("vesselResourceCost"))
                 {
                     ConfigNode craftResourceNode = n.Value.GetNode("vesselResourceCost");
-                    Dictionary<PartResourceDefinition, double> resourceList = new Dictionary<PartResourceDefinition, double>();
+                    Dictionary<PartResourceDefinition, double> resourceList = [];
                     foreach (ConfigNode.Value v in craftResourceNode.values)
                     {
                         PartResourceDefinition resourceDef = PartResourceLibrary.Instance.GetDefinition(v.name);

@@ -22,9 +22,9 @@ namespace KerbalColonies.colonyFacilities.KCResourceConverterFacility
 {
     public class RecipeSelectorWindow : KCWindowBase
     {
-        KCResourceConverterFacility resourceConverter;
+        private KCResourceConverterFacility resourceConverter;
 
-        Vector2 scrollPos;
+        private Vector2 scrollPos;
 
         protected override void CustomWindow()
         {
@@ -72,7 +72,7 @@ namespace KerbalColonies.colonyFacilities.KCResourceConverterFacility
                 if (GUILayout.Button("Use this recipe"))
                 {
                     resourceConverter.ChangeRecipe(recipe);
-                    this.Close();
+                    Close();
                 }
                 GUILayout.Space(10);
                 GUILayout.Box("", GUILayout.ExpandWidth(true), GUILayout.Height(1));

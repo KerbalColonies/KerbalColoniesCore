@@ -27,7 +27,7 @@ namespace KerbalColonies.colonyFacilities.CrewQuarters
 {
     public class KCCrewQuarters : KCKerbalFacilityBase, IKCResourceConsumer
     {
-        private static Dictionary<colonyClass, Vector2> CABInfoTraitScrollPos = new Dictionary<colonyClass, Vector2>();
+        private static Dictionary<colonyClass, Vector2> CABInfoTraitScrollPos = [];
         public static void CABDisplay(colonyClass colony)
         {
             if (!CABInfoTraitScrollPos.ContainsKey(colony)) CABInfoTraitScrollPos.Add(colony, Vector2.zero);
@@ -35,7 +35,7 @@ namespace KerbalColonies.colonyFacilities.CrewQuarters
             GUILayout.Space(10);
 
             List<ProtoCrewMember> kerbals = GetAllKerbalsInColony(colony).Keys.ToList();
-            Dictionary<ExperienceTraitConfig, int> traitCounts = new Dictionary<ExperienceTraitConfig, int>();
+            Dictionary<ExperienceTraitConfig, int> traitCounts = [];
             kerbals.ForEach(k =>
             {
                 if (traitCounts.ContainsKey(k.experienceTrait.Config)) traitCounts[k.experienceTrait.Config]++;
@@ -50,13 +50,13 @@ namespace KerbalColonies.colonyFacilities.CrewQuarters
 
                 GUILayout.BeginHorizontal();
                 {
-                    GUILayout.BeginVertical(GUILayout.Width(KC_CAB_Window.CABInfoWidth / 2 - 10));
+                    GUILayout.BeginVertical(GUILayout.Width((KC_CAB_Window.CABInfoWidth / 2) - 10));
                     {
                         GUILayout.Label($"Kerbals: {ColonyKerbalCount(colony)}/{ColonyKerbalCapacity(colony)}");
                         GUILayout.Label($"Crew quarters: {CrewQuartersInColony(colony).Count}");
                     }
                     GUILayout.EndVertical();
-                    GUILayout.BeginVertical(GUILayout.Width(KC_CAB_Window.CABInfoWidth / 2 - 10));
+                    GUILayout.BeginVertical(GUILayout.Width((KC_CAB_Window.CABInfoWidth / 2) - 10));
                     {
 
                         if (traitCounts.Count > 0)
@@ -88,7 +88,7 @@ namespace KerbalColonies.colonyFacilities.CrewQuarters
         public static KCCrewQuarters FindKerbalInCrewQuarters(colonyClass colony, ProtoCrewMember kerbal)
         {
             List<KCKerbalFacilityBase> facilitiesWithKerbal = KCKerbalFacilityBase.findKerbal(colony, kerbal);
-            return (KCCrewQuarters)(facilitiesWithKerbal.Where(fac => fac is KCCrewQuarters).FirstOrDefault());
+            return (KCCrewQuarters)facilitiesWithKerbal.Where(fac => fac is KCCrewQuarters).FirstOrDefault();
         }
 
         public static bool AddKerbalToColony(colonyClass colony, ProtoCrewMember kerbal)
@@ -153,19 +153,19 @@ namespace KerbalColonies.colonyFacilities.CrewQuarters
             if (!HighLogic.LoadedSceneIsFlight) kerbals.Keys.ToList().ForEach(kerbal => kerbal.rosterStatus = ProtoCrewMember.RosterStatus.Assigned);
 
             enabled = built && !OutOfResources;
-            if (crewQuartersWindow == null) crewQuartersWindow = new KCCrewQuartersWindow(this);
+            crewQuartersWindow ??= new KCCrewQuartersWindow(this);
             crewQuartersWindow.kerbalGUI.DisableTransferWindow = !enabled;
         }
 
         public override void OnBuildingClicked()
         {
-            if (crewQuartersWindow == null) crewQuartersWindow = new KCCrewQuartersWindow(this);
+            crewQuartersWindow ??= new KCCrewQuartersWindow(this);
             crewQuartersWindow.Toggle();
         }
 
         public override void OnRemoteClicked()
         {
-            if (crewQuartersWindow == null) crewQuartersWindow = new KCCrewQuartersWindow(this);
+            crewQuartersWindow ??= new KCCrewQuartersWindow(this);
             crewQuartersWindow.Toggle();
         }
 
@@ -174,7 +174,7 @@ namespace KerbalColonies.colonyFacilities.CrewQuarters
 
         public override string GetFacilityProductionDisplay() => $"{kerbals.Count} / {MaxKerbals} kerbals assigned{(facilityInfo.ResourceUsage[level].Count > 0 ? string.Concat("\n", string.Join(", ", facilityInfo.ResourceUsage[level].Select(kvp => $"{kvp.Key.displayName}: {kvp.Value:f2}"))) : "")}";
 
-        public Dictionary<PartResourceDefinition, double> ExpectedResourceConsumption(double lastTime, double deltaTime, double currentTime) => enabled && kerbals.Count > 0 || OutOfResources ? facilityInfo.ResourceUsage[level].Where(kvp => kvp.Value < 0).ToDictionary(kvp => kvp.Key, kvp => -kvp.Value * deltaTime) : new Dictionary<PartResourceDefinition, double>();
+        public Dictionary<PartResourceDefinition, double> ExpectedResourceConsumption(double lastTime, double deltaTime, double currentTime) => (enabled && kerbals.Count > 0) || OutOfResources ? facilityInfo.ResourceUsage[level].Where(kvp => kvp.Value < 0).ToDictionary(kvp => kvp.Key, kvp => -kvp.Value * deltaTime) : [];
 
         public void ConsumeResources(double lastTime, double deltaTime, double currentTime) => OutOfResources = false;
 
@@ -196,7 +196,7 @@ namespace KerbalColonies.colonyFacilities.CrewQuarters
 
         public KCCrewQuarters(colonyClass colony, KCFacilityInfoClass facilityInfo, ConfigNode node) : base(colony, facilityInfo, node)
         {
-            this.crewQuartersWindow = null;
+            crewQuartersWindow = null;
             if (HighLogic.LoadedSceneIsFlight) kerbals.Keys.ToList().ForEach(kerbal => kerbal.rosterStatus = ProtoCrewMember.RosterStatus.Available);
             else kerbals.Keys.ToList().ForEach(kerbal => kerbal.rosterStatus = ProtoCrewMember.RosterStatus.Assigned);
             if (int.TryParse(node.GetValue("ECConsumptionPriority"), out int ecPriority)) ResourceConsumptionPriority = ecPriority;
@@ -204,7 +204,7 @@ namespace KerbalColonies.colonyFacilities.CrewQuarters
 
         public KCCrewQuarters(colonyClass colony, KCFacilityInfoClass facilityInfo, bool enabled) : base(colony, facilityInfo, true)
         {
-            this.crewQuartersWindow = null;
+            crewQuartersWindow = null;
         }
     }
 }

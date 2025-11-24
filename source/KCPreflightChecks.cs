@@ -43,7 +43,7 @@ namespace KerbalColonies
     [KSPAddon(KSPAddon.Startup.FlightAndEditor, false)]
     internal class KCPreFlightWorker : MonoBehaviour
     {
-        public static HashSet<string> blacklistedResources = new HashSet<string> { "Ablator", "SolidFuel" };
+        public static HashSet<string> blacklistedResources = ["Ablator", "SolidFuel"];
 
         internal static string launchPadName { get; set; } = null;
         internal static double funds { get; set; } = 0; // funds needed to launch
@@ -94,10 +94,7 @@ namespace KerbalColonies
                         FlightGlobals.ActiveVessel.RequestResource(FlightGlobals.ActiveVessel.rootPart, item.id, amount, false);
                     }
 
-                    if (Funding.Instance != null)
-                    {
-                        Funding.Instance.AddFunds(funds, TransactionReasons.None);
-                    }
+                    Funding.Instance?.AddFunds(funds, TransactionReasons.None);
 
                     KCHangarFacility destinationHangar = KCHangarFacility.GetHangarsInColony(kCLaunchpad.Colony).FirstOrDefault(h => h.CanStoreVessel(FlightGlobals.ActiveVessel));
                     if (destinationHangar != null) destinationHangar.StoreVessel(FlightGlobals.ActiveVessel, vesselMass);
@@ -214,7 +211,7 @@ namespace KerbalColonies
     public class KCHangarPreFlightCheck : PreFlightTests.IPreFlightTest
     {
         public static string launchSiteName { get; set; }
-        bool allowLaunch = false;
+        private bool allowLaunch = false;
         private colonyClass colony;
 
         public bool Test()
@@ -254,7 +251,7 @@ namespace KerbalColonies
 
         public string GetWarningTitle()
         {
-            return ("KC Hangar prelaunch check");
+            return "KC Hangar prelaunch check";
         }
 
         public string GetWarningDescription() => $"The colony {colony.DisplayName} has no suitable Hangar to build the craft.";
@@ -281,10 +278,10 @@ namespace KerbalColonies
 
     public class KCCrewPreFlightCheck : PreFlightTests.IPreFlightTest
     {
-        string launchSiteName;
-        bool allowLaunch = false;
-        List<ProtoCrewMember> invalidKerbals = new List<ProtoCrewMember> { };
-        KCLaunchpadFacility kCLaunchpad;
+        private string launchSiteName;
+        private bool allowLaunch = false;
+        private List<ProtoCrewMember> invalidKerbals = [];
+        private KCLaunchpadFacility kCLaunchpad;
 
         public bool Test()
         {
@@ -307,7 +304,7 @@ namespace KerbalColonies
 
         public string GetWarningTitle()
         {
-            return ("KC crew prelaunch check");
+            return "KC crew prelaunch check";
         }
 
         public string GetWarningDescription()
@@ -315,7 +312,7 @@ namespace KerbalColonies
             if (invalidKerbals.Count == 0) return "Due to current limitations of the vessel storage there must be no crew assigned to the vessel while launching.";
             else
             {
-                StringBuilder sb = new StringBuilder();
+                StringBuilder sb = new();
                 sb.AppendLine("The following kerbals are already in Colonies:");
                 foreach (ProtoCrewMember pcm in invalidKerbals)
                 {
@@ -350,9 +347,9 @@ namespace KerbalColonies
     public class KCResourcePreFlightCheck : PreFlightTests.IPreFlightTest
     {
         public static int funds { get; set; } = 0; // funds needed to launch
-        string launchSiteName;
-        bool allowLaunch = false;
-        private Dictionary<string, double> Insufficientresources = new Dictionary<string, double>();
+        private string launchSiteName;
+        private bool allowLaunch = false;
+        private Dictionary<string, double> Insufficientresources = [];
         private string message = string.Empty;
         private bool canProceed = false;
 
@@ -416,7 +413,7 @@ namespace KerbalColonies
                     Configuration.writeDebug($"[KCResourcePreFlightCheck] {message}");
                     return false;
                 case 3:
-                    StringBuilder messageBuilder = new StringBuilder();
+                    StringBuilder messageBuilder = new();
                     messageBuilder.AppendLine("The following resources are missing:");
                     foreach (KeyValuePair<string, double> res in Insufficientresources)
                     {
@@ -433,7 +430,7 @@ namespace KerbalColonies
 
         public string GetWarningTitle()
         {
-            return ("KC resources prelaunch check");
+            return "KC resources prelaunch check";
         }
 
         public string GetWarningDescription() => message;

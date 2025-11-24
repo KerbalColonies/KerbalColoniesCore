@@ -28,10 +28,10 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fus
         public KCFusionReactor fusionReactor;
         public KerbalGUI kerbalGUI;
 
-        float manualLevel = 0;
-        Vector2 scrollPosPowerLevels = Vector2.zero;
-        Vector2 inputScrollPos = Vector2.zero;
-        Vector2 outputScrollPos = Vector2.zero;
+        private float manualLevel = 0;
+        private Vector2 scrollPosPowerLevels = Vector2.zero;
+        private Vector2 inputScrollPos = Vector2.zero;
+        private Vector2 outputScrollPos = Vector2.zero;
         protected override void CustomWindow()
         {
             fusionReactor.Colony.UpdateColony();
@@ -174,8 +174,10 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fus
         public KCFusionWindow(KCFusionReactor reactor) : base(reactor, Configuration.createWindowID())
         {
             fusionReactor = reactor;
-            kerbalGUI = new KerbalGUI(reactor, true);
-            kerbalGUI.RequiredTraitCounts = new Dictionary<string, int>(fusionReactor.FusionInfo.RequiredTraits[fusionReactor.lastPowerLevel.Key == -1 ? 0 : fusionReactor.lastPowerLevel.Key]);
+            kerbalGUI = new KerbalGUI(reactor, true)
+            {
+                RequiredTraitCounts = new Dictionary<string, int>(fusionReactor.FusionInfo.RequiredTraits[fusionReactor.lastPowerLevel.Key == -1 ? 0 : fusionReactor.lastPowerLevel.Key])
+            };
             toolRect = new Rect(100, 100, 800, 600);
             manualLevel = fusionReactor.ManualPowerLevel;
         }

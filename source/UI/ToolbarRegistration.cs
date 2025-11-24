@@ -23,7 +23,7 @@ namespace KerbalColonies.UI
     [KSPAddon(KSPAddon.Startup.MainMenu, true)]
     internal class ToolbarRegistration : MonoBehaviour
     {
-        void Start()
+        private void Start()
         {
             ToolbarControl.RegisterMod("KerbalColonies_NS", "Kerbal Colonies");
         }

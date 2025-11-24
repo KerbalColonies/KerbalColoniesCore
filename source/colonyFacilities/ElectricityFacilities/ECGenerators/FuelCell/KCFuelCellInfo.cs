@@ -40,7 +40,7 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fue
                 if (n.HasNode("ResourceConsumption"))
                 {
                     ConfigNode resourceNode = n.GetNode("ResourceConsumption");
-                    Dictionary<PartResourceDefinition, double> resourceList = new Dictionary<PartResourceDefinition, double>();
+                    Dictionary<PartResourceDefinition, double> resourceList = [];
                     foreach (ConfigNode.Value v in resourceNode.values)
                     {
                         PartResourceDefinition resourceDef = PartResourceLibrary.Instance.GetDefinition(v.name);

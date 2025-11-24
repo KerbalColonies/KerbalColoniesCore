@@ -25,20 +25,17 @@ namespace KerbalColonies.colonyFacilities.KCResourceConverterFacility
 {
     public class KCResourceConverterWindow : KCFacilityWindowBase
     {
-        KCResourceConverterFacility resourceConverter;
+        private KCResourceConverterFacility resourceConverter;
         private RecipeSelectorWindow recipeSelector;
         public KerbalGUI kerbalGUI;
 
-        Vector2 scrollPosISRUCount = Vector2.zero;
-        Vector2 resourceScrollPos = new Vector2();
+        private Vector2 scrollPosISRUCount = Vector2.zero;
+        private Vector2 resourceScrollPos = new();
         protected override void CustomWindow()
         {
             resourceConverter.Colony.UpdateColony();
 
-            if (kerbalGUI == null)
-            {
-                kerbalGUI = new KerbalGUI(resourceConverter, true);
-            }
+            kerbalGUI ??= new KerbalGUI(resourceConverter, true);
 
             ResourceConversionRate recipe = resourceConverter.activeRecipe;
             if (recipe == null)
@@ -53,7 +50,7 @@ namespace KerbalColonies.colonyFacilities.KCResourceConverterFacility
 
             GUILayout.BeginHorizontal();
             {
-                GUILayout.BeginVertical(GUILayout.Width(toolRect.width * 3.5f / 10 - 10));
+                GUILayout.BeginVertical(GUILayout.Width((toolRect.width * 3.5f / 10) - 10));
                 {
                     GUILayout.Label($"Current recipe: {recipe.DisplayName}");
 
@@ -108,7 +105,7 @@ namespace KerbalColonies.colonyFacilities.KCResourceConverterFacility
                     scrollPosISRUCount = GUILayout.BeginScrollView(scrollPosISRUCount);
                     {
                         KCResourceConverterInfo info = resourceConverter.info;
-                        SortedDictionary<int, int> ISRUperKerbals = new SortedDictionary<int, int>();
+                        SortedDictionary<int, int> ISRUperKerbals = [];
                         resourceConverter.AvailableISRUCounts.ToList().ForEach(kvp =>
                         {
                             int kerbals = info.minKerbals[kvp.Key];
@@ -116,13 +113,13 @@ namespace KerbalColonies.colonyFacilities.KCResourceConverterFacility
                             else ISRUperKerbals[kerbals] = Math.Max(ISRUperKerbals[kerbals], kvp.Value);
                         });
 
-                        List<int> kerbalCounts = new List<int>();
+                        List<int> kerbalCounts = [];
                         ISRUperKerbals.ToList().ForEach(kvp => GUILayout.Label($"{kvp.Key} Kerbals = {kvp.Value} ISRUs"));
                     }
                     GUILayout.EndScrollView();
                 }
                 GUILayout.EndVertical();
-                GUILayout.BeginVertical(GUILayout.Width(toolRect.width * 3f / 10 - 10));
+                GUILayout.BeginVertical(GUILayout.Width((toolRect.width * 3f / 10) - 10));
                 {
 
                     GUILayout.Space(10);
@@ -165,7 +162,7 @@ namespace KerbalColonies.colonyFacilities.KCResourceConverterFacility
 
                 }
                 GUILayout.EndVertical();
-                GUILayout.BeginVertical(GUILayout.Width(toolRect.width * 3.5f / 10 - 10));
+                GUILayout.BeginVertical(GUILayout.Width((toolRect.width * 3.5f / 10) - 10));
                 {
                     kerbalGUI.StaffingInterface();
                 }
@@ -189,8 +186,8 @@ namespace KerbalColonies.colonyFacilities.KCResourceConverterFacility
         public KCResourceConverterWindow(KCResourceConverterFacility resourceConverter) : base(resourceConverter, Configuration.createWindowID())
         {
             this.resourceConverter = resourceConverter;
-            this.recipeSelector = new RecipeSelectorWindow(resourceConverter);
-            this.kerbalGUI = null;
+            recipeSelector = new RecipeSelectorWindow(resourceConverter);
+            kerbalGUI = null;
             toolRect = new Rect(100, 100, 1050, 500);
 
         }

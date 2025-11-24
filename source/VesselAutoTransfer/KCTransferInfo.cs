@@ -28,19 +28,19 @@ namespace KerbalColonies.VesselAutoTransfer
 
         public colonyClass Colony => colony;
 
-        public List<PartResourceDefinition> resources = new List<PartResourceDefinition>();
+        public List<PartResourceDefinition> resources = [];
 
-        public Dictionary<PartResourceDefinition, double> ResourcesTarget = new Dictionary<PartResourceDefinition, double>();
-        public Dictionary<PartResourceDefinition, double> ResourcesActual = new Dictionary<PartResourceDefinition, double>();
+        public Dictionary<PartResourceDefinition, double> ResourcesTarget = [];
+        public Dictionary<PartResourceDefinition, double> ResourcesActual = [];
 
-        public Dictionary<PartResourceDefinition, double> ColonyTransferLimits = new Dictionary<PartResourceDefinition, double>();
-        public Dictionary<PartResourceDefinition, double> VesselTransferLimits = new Dictionary<PartResourceDefinition, double>();
+        public Dictionary<PartResourceDefinition, double> ColonyTransferLimits = [];
+        public Dictionary<PartResourceDefinition, double> VesselTransferLimits = [];
 
-        public Dictionary<PartResourceDefinition, bool> DisableIfVesselConstrains = new Dictionary<PartResourceDefinition, bool>();
-        public Dictionary<PartResourceDefinition, bool> DisableIfColonyConstrains = new Dictionary<PartResourceDefinition, bool>();
+        public Dictionary<PartResourceDefinition, bool> DisableIfVesselConstrains = [];
+        public Dictionary<PartResourceDefinition, bool> DisableIfColonyConstrains = [];
 
-        public Dictionary<PartResourceDefinition, bool> VesselConstrained = new Dictionary<PartResourceDefinition, bool>();
-        public Dictionary<PartResourceDefinition, bool> ColonyConstrained = new Dictionary<PartResourceDefinition, bool>();
+        public Dictionary<PartResourceDefinition, bool> VesselConstrained = [];
+        public Dictionary<PartResourceDefinition, bool> ColonyConstrained = [];
 
         public KCColonyResourceTransferHandler ResourceTransferHandler = null;
 
@@ -92,7 +92,7 @@ namespace KerbalColonies.VesselAutoTransfer
 
         public void Delete()
         {
-            ActiveTransfers.Remove(this.partModuleID);
+            ActiveTransfers.Remove(partModuleID);
             if (ResourceTransferHandler != null)
             {
                 KCResourceManager.otherProducers[colony].Remove(ResourceTransferHandler);
@@ -105,7 +105,7 @@ namespace KerbalColonies.VesselAutoTransfer
         {
             CleanResources();
 
-            ConfigNode node = new ConfigNode("KCTransferInfo");
+            ConfigNode node = new("KCTransferInfo");
 
             node.AddValue("colonyID", colony.uniqueID);
             node.AddValue("partModuleID", partModuleID);
@@ -113,7 +113,7 @@ namespace KerbalColonies.VesselAutoTransfer
 
             node.AddValue("efficiency", Efficiency);
 
-            ConfigNode resourceNode = new ConfigNode("TransferResources");
+            ConfigNode resourceNode = new("TransferResources");
 
             resources.ForEach(r =>
             {
@@ -136,16 +136,7 @@ namespace KerbalColonies.VesselAutoTransfer
             uint partModuleID = uint.Parse(node.GetValue("partModuleID"));
             uint vesselID = uint.Parse(node.GetValue("vesselID"));
 
-            KCTransferInfo info = null;
-            if (ActiveTransfers.ContainsKey(partModuleID))
-            {
-                info = ActiveTransfers[partModuleID];
-            }
-            else
-            {
-                info = new KCTransferInfo(colony, partModuleID, vesselID);
-            }
-
+            KCTransferInfo info = ActiveTransfers.ContainsKey(partModuleID) ? ActiveTransfers[partModuleID] : new KCTransferInfo(colony, partModuleID, vesselID);
             info.Efficiency = double.Parse(node.GetValue("efficiency"));
 
             ConfigNode resourceNode = node.GetNode("TransferResources");

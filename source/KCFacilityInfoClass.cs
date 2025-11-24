@@ -37,16 +37,12 @@ namespace KerbalColonies
     {
         public static bool operator ==(KCFacilityInfoClass leftInfo, KCFacilityInfoClass rightInfo)
         {
-            if (ReferenceEquals(leftInfo, null) && ReferenceEquals(rightInfo, null)) return true;
-            else if (ReferenceEquals(leftInfo, null) || ReferenceEquals(rightInfo, null)) return false;
-            else return leftInfo.name == rightInfo.name;
+            return leftInfo is null && rightInfo is null || leftInfo is not null && rightInfo is not null && leftInfo.name == rightInfo.name;
         }
 
         public static bool operator !=(KCFacilityInfoClass leftInfo, KCFacilityInfoClass rightInfo)
         {
-            if (ReferenceEquals(leftInfo, null) && ReferenceEquals(rightInfo, null)) return false;
-            else if (ReferenceEquals(leftInfo, null) || ReferenceEquals(rightInfo, null)) return true;
-            else return leftInfo.name != rightInfo.name;
+            return (leftInfo is not null || rightInfo is not null) && (leftInfo is null || rightInfo is null || leftInfo.name != rightInfo.name);
         }
 
         public override bool Equals(object obj)
@@ -66,33 +62,33 @@ namespace KerbalColonies
         public string category { get; protected set; } = "none";
         public bool hidden { get; protected set; } = false; // used to hide this type in the production facility list, used for legacy facilities
 
-        public SortedDictionary<int, ConfigNode> levelNodes { get; protected set; } = new SortedDictionary<int, ConfigNode> { };
+        public SortedDictionary<int, ConfigNode> levelNodes { get; protected set; } = [];
 
         /// <summary>
         /// Level, Resource, Amount
         /// </summary>
         public SortedDictionary<int, Dictionary<PartResourceDefinition, double>> resourceCost { get; protected set; }
-        public SortedDictionary<int, double> Funds { get; protected set; } = new SortedDictionary<int, double> { };
-        public SortedDictionary<int, UpgradeType> UpgradeTypes { get; protected set; } = new SortedDictionary<int, UpgradeType> { };
-        public SortedDictionary<int, string> BasegroupNames { get; protected set; } = new SortedDictionary<int, string> { };
+        public SortedDictionary<int, double> Funds { get; protected set; } = [];
+        public SortedDictionary<int, UpgradeType> UpgradeTypes { get; protected set; } = [];
+        public SortedDictionary<int, string> BasegroupNames { get; protected set; } = [];
 
         // 1 Kerbin day = 0.25 days
         // 100 per day * 5 engineers = 500 per day
         // 500 per day * 4 kerbin days = 500
         // 500 per day * 2 kerbin days = 250
-        public SortedDictionary<int, double> UpgradeTimes { get; protected set; } = new SortedDictionary<int, double> { };
+        public SortedDictionary<int, double> UpgradeTimes { get; protected set; } = [];
 
-        public SortedDictionary<int, int> MinCABLevel { get; protected set; } = new SortedDictionary<int, int> { };
+        public SortedDictionary<int, int> MinCABLevel { get; protected set; } = [];
 
         #region TechTree
-        public SortedDictionary<int, List<string>> TechNodesRequired { get; protected set; } = new SortedDictionary<int, List<string>> { };
-        public SortedDictionary<int, string> PartName { get; protected set; } = new SortedDictionary<int, string> { };
-        public SortedDictionary<int, string> Description { get; protected set; } = new SortedDictionary<int, string> { };
-        public SortedDictionary<int, string> Manufacturer { get; protected set; } = new SortedDictionary<int, string> { };
-        public SortedDictionary<int, string> IconPath { get; protected set; } = new SortedDictionary<int, string> { }; // relative to GameData
+        public SortedDictionary<int, List<string>> TechNodesRequired { get; protected set; } = [];
+        public SortedDictionary<int, string> PartName { get; protected set; } = [];
+        public SortedDictionary<int, string> Description { get; protected set; } = [];
+        public SortedDictionary<int, string> Manufacturer { get; protected set; } = [];
+        public SortedDictionary<int, string> IconPath { get; protected set; } = []; // relative to GameData
         #endregion
 
-        public SortedDictionary<int, Dictionary<PartResourceDefinition, double>> ResourceUsage { get; protected set; } = new SortedDictionary<int, Dictionary<PartResourceDefinition, double>> { };
+        public SortedDictionary<int, Dictionary<PartResourceDefinition, double>> ResourceUsage { get; protected set; } = [];
 
         /// <summary>
         /// Used for custom checks (e.g. if a specific facility already exists in the colony), returns true if the facility can be built or upgraded.
@@ -188,10 +184,7 @@ namespace KerbalColonies
                 }
 
 
-                if (Funding.Instance != null)
-                {
-                    Funding.Instance.AddFunds(-Funds[level] * Configuration.FacilityCostMultiplier, TransactionReasons.None);
-                }
+                Funding.Instance?.AddFunds(-Funds[level] * Configuration.FacilityCostMultiplier, TransactionReasons.None);
                 return true;
             }
             return false;
@@ -209,20 +202,18 @@ namespace KerbalColonies
             if (!node.HasValue("type")) throw new MissingFieldException($"The facility {name} has no type.");
             type = KCFacilityTypeRegistry.GetType(node.GetValue("type"));
 
-            if (node.HasValue("category")) category = node.GetValue("category");
-            else category = type.Name;
+            category = node.HasValue("category") ? node.GetValue("category") : type.Name;
 
-            if (node.HasValue("hidden")) hidden = true;
-            else hidden = false;
+            hidden = node.HasValue("hidden");
 
 
-            resourceCost = new SortedDictionary<int, Dictionary<PartResourceDefinition, double>>();
-            Funds = new SortedDictionary<int, double>();
-            UpgradeTypes = new SortedDictionary<int, UpgradeType>();
-            UpgradeTimes = new SortedDictionary<int, double>();
-            BasegroupNames = new SortedDictionary<int, string>();
+            resourceCost = [];
+            Funds = [];
+            UpgradeTypes = [];
+            UpgradeTimes = [];
+            BasegroupNames = [];
 
-            ResourceUsage = new SortedDictionary<int, Dictionary<PartResourceDefinition, double>>();
+            ResourceUsage = [];
             PartResourceDefinition ec = PartResourceLibrary.Instance.GetDefinition("ElectricCharge");
             bool useECValue = false;
 
@@ -247,7 +238,7 @@ namespace KerbalColonies
                 if (n.HasNode("resources"))
                 {
                     ConfigNode resourceNode = n.GetNode("resources");
-                    Dictionary<PartResourceDefinition, double> resourceList = new Dictionary<PartResourceDefinition, double>();
+                    Dictionary<PartResourceDefinition, double> resourceList = [];
                     foreach (ConfigNode.Value v in resourceNode.values)
                     {
                         PartResourceDefinition resourceDef = PartResourceLibrary.Instance.GetDefinition(v.name);
@@ -258,7 +249,7 @@ namespace KerbalColonies
                 }
                 else
                 {
-                    resourceCost.Add(level, new Dictionary<PartResourceDefinition, double>());
+                    resourceCost.Add(level, []);
                 }
 
                 if (n.HasValue("Funds")) Funds.Add(level, double.Parse(n.GetValue("Funds")));
@@ -274,7 +265,7 @@ namespace KerbalColonies
                 if (n.HasNode("resourceUsage"))
                 {
                     ConfigNode resourceUsageNode = n.GetNode("resourceUsage");
-                    Dictionary<PartResourceDefinition, double> resourceList = new Dictionary<PartResourceDefinition, double>();
+                    Dictionary<PartResourceDefinition, double> resourceList = [];
                     foreach (ConfigNode.Value v in resourceUsageNode.values)
                     {
                         PartResourceDefinition resourceDef = PartResourceLibrary.Instance.GetDefinition(v.name);
@@ -284,7 +275,7 @@ namespace KerbalColonies
                     ResourceUsage.Add(level, resourceList);
                 }
                 else if (level != 0) ResourceUsage.Add(level, new Dictionary<PartResourceDefinition, double>(ResourceUsage[level - 1]));
-                else ResourceUsage.Add(0, new Dictionary<PartResourceDefinition, double>());
+                else ResourceUsage.Add(0, []);
 
 
                 if (n.HasValue("ECperSecond"))

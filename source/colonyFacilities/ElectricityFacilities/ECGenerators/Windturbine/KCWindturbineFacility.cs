@@ -27,7 +27,7 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Win
     {
         public KCWindturbineInfo info => (KCWindturbineInfo)facilityInfo;
 
-        public Dictionary<string, double> densityList { get; protected set; } = new Dictionary<string, double>();
+        public Dictionary<string, double> densityList { get; protected set; } = [];
 
 
         public override void WhileBuildingPlaced(GroupCenter kkGroupname)
@@ -120,9 +120,9 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Win
 
         public Dictionary<PartResourceDefinition, double> ResourceProduction(double lastTime, double deltaTime, double currentTime)
         {
-            if (!built) return new Dictionary<PartResourceDefinition, double>();
+            if (!built) return [];
 
-            Dictionary<PartResourceDefinition, double> resourcesProduced = new Dictionary<PartResourceDefinition, double>();
+            Dictionary<PartResourceDefinition, double> resourcesProduced = [];
 
             CelestialBody body = FlightGlobals.GetBodyByName(Colony.BodyName);
 
@@ -149,9 +149,9 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Win
 
         public Dictionary<PartResourceDefinition, double> ResourcesPerSecond()
         {
-            if (!built) return new Dictionary<PartResourceDefinition, double>();
+            if (!built) return [];
 
-            Dictionary<PartResourceDefinition, double> resourcesProduced = new Dictionary<PartResourceDefinition, double>();
+            Dictionary<PartResourceDefinition, double> resourcesProduced = [];
 
             CelestialBody body = FlightGlobals.GetBodyByName(Colony.BodyName);
 
@@ -182,7 +182,7 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Win
         {
             ConfigNode node = base.getConfigNode();
 
-            ConfigNode windturbineNode = new ConfigNode("KCWindturbineFacility");
+            ConfigNode windturbineNode = new("KCWindturbineFacility");
             densityList.ToList().ForEach(kvp => windturbineNode.AddValue(kvp.Key, kvp.Value));
 
             node.AddNode(windturbineNode);
@@ -192,7 +192,7 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Win
         public KCWindturbineFacility(colonyClass colony, KCFacilityInfoClass facilityInfo, ConfigNode node) : base(colony, facilityInfo, node)
         {
             ConfigNode windturbineNode = node.GetNode("KCWindturbineFacility");
-            densityList = new Dictionary<string, double>();
+            densityList = [];
             foreach (ConfigNode.Value value in windturbineNode.values)
             {
                 densityList.Add(value.name, double.Parse(value.value));

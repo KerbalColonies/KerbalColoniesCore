@@ -24,19 +24,16 @@ namespace KerbalColonies.colonyFacilities.KCMiningFacility
 {
     public class KCMiningFacilityWindow : KCFacilityWindowBase
     {
-        KCMiningFacility miningFacility;
+        private KCMiningFacility miningFacility;
         public KerbalGUI kerbalGUI;
 
-        private Vector2 resourceScrollPos = new Vector2();
-        private Vector2 resourceUsageScrollPos = new Vector2();
+        private Vector2 resourceScrollPos = new();
+        private Vector2 resourceUsageScrollPos = new();
         protected override void CustomWindow()
         {
             miningFacility.Colony.UpdateColony();
 
-            if (kerbalGUI == null)
-            {
-                kerbalGUI = new KerbalGUI(miningFacility, true);
-            }
+            kerbalGUI ??= new KerbalGUI(miningFacility, true);
 
             GUILayout.BeginHorizontal();
             {
@@ -70,7 +67,7 @@ namespace KerbalColonies.colonyFacilities.KCMiningFacility
 
                 GUILayout.EndVertical();
 
-                Dictionary<PartResourceDefinition, double> maxPerResource = new Dictionary<PartResourceDefinition, double> { };
+                Dictionary<PartResourceDefinition, double> maxPerResource = [];
                 miningFacility.miningFacilityInfo.rates.Where(kvp => kvp.Key <= miningFacility.level).ToList().ForEach(kvp => kvp.Value.ForEach(rate =>
                 {
                     if (!maxPerResource.ContainsKey(rate.resource)) maxPerResource.Add(rate.resource, rate.max);
@@ -128,7 +125,7 @@ namespace KerbalColonies.colonyFacilities.KCMiningFacility
         {
             this.miningFacility = miningFacility;
             toolRect = new Rect(100, 100, 800, 600);
-            this.kerbalGUI = null;
+            kerbalGUI = null;
         }
     }
 }

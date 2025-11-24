@@ -33,10 +33,7 @@ namespace KerbalColonies
         {
             get
             {
-                if (instance == null)
-                {
-                    instance = new CABSelectorWindow();
-                }
+                instance ??= new CABSelectorWindow();
                 return instance;
             }
         }
@@ -58,14 +55,14 @@ namespace KerbalColonies
                 else
                 {
                     Configuration.writeLog($"Insufficient {resource.Key.displayName} resources on vessel.");
-                    ScreenMessages.PostScreenMessage($"KC: {vesselAmount:f2}/{(resource.Value * Configuration.FacilityCostMultiplier):f2} {resource.Key.displayName}", 10f, ScreenMessageStyle.UPPER_RIGHT);
+                    ScreenMessages.PostScreenMessage($"KC: {vesselAmount:f2}/{resource.Value * Configuration.FacilityCostMultiplier:f2} {resource.Key.displayName}", 10f, ScreenMessageStyle.UPPER_RIGHT);
                     insufficientResources = true;
                 }
             }
 
             if (Funding.Instance != null)
             {
-                Configuration.writeLog($"Funds: {Funding.Instance.Funds:f2} / {(info.Funds[0] * Configuration.FacilityCostMultiplier):f2}");
+                Configuration.writeLog($"Funds: {Funding.Instance.Funds:f2} / {info.Funds[0] * Configuration.FacilityCostMultiplier:f2}");
                 if (Funding.Instance.Funds < info.Funds[0] * Configuration.FacilityCostMultiplier)
                 {
                     ScreenMessages.PostScreenMessage($"KC: {Funding.Instance.Funds}/{info.Funds[0] * Configuration.FacilityCostMultiplier} Funds", 10f, ScreenMessageStyle.UPPER_RIGHT);
@@ -83,13 +80,10 @@ namespace KerbalColonies
                 FlightGlobals.ActiveVessel.RequestResource(FlightGlobals.ActiveVessel.rootPart, resource.Key.id, resource.Value * Configuration.FacilityCostMultiplier, true);
             }
 
-            if (Funding.Instance != null)
-            {
-                Funding.Instance.AddFunds(-info.Funds[0] * Configuration.FacilityCostMultiplier, TransactionReasons.None);
-            }
+            Funding.Instance?.AddFunds(-info.Funds[0] * Configuration.FacilityCostMultiplier, TransactionReasons.None);
         }
 
-        private Vector2 scrollPosition = new Vector2(0, 0);
+        private Vector2 scrollPosition = new(0, 0);
         protected override void CustomWindow()
         {
             scrollPosition = GUILayout.BeginScrollView(scrollPosition);
@@ -140,7 +134,7 @@ namespace KerbalColonies
 
     internal static class ColonyBuilding
     {
-        internal static Queue<QueueInformation> buildQueue = new Queue<QueueInformation>();
+        internal static Queue<QueueInformation> buildQueue = new();
         public static bool placedGroup = false;
         public static bool nextFrame = false;
 
@@ -200,7 +194,7 @@ namespace KerbalColonies
         {
             Configuration.writeLog($"Adding facility {facility.name} with group {newGroupName} from colony {facility.Colony.Name} to the buildqueue");
 
-            QueueInformation buildObj = new QueueInformation(facility, newGroupName, facility.GetBaseGroupName(facility.level));
+            QueueInformation buildObj = new(facility, newGroupName, facility.GetBaseGroupName(facility.level));
 
             buildQueue.Enqueue(buildObj);
             placedGroup = true;
@@ -248,7 +242,7 @@ namespace KerbalColonies
 
             if (!Configuration.colonyDictionary.ContainsKey(FlightGlobals.currentMainBody.name))
             {
-                Configuration.colonyDictionary.Add(FlightGlobals.currentMainBody.name, new List<colonyClass> { });
+                Configuration.colonyDictionary.Add(FlightGlobals.currentMainBody.name, []);
             }
 
             int colonyCount = Configuration.colonyDictionary[FlightGlobals.currentMainBody.name].Count;
@@ -283,7 +277,7 @@ namespace KerbalColonies
             string colonyName = $"KC_{FlightGlobals.currentMainBody.name}_{colonyCount}";
             string groupName = $"{colonyName}_CAB";
 
-            colonyClass colony = new colonyClass(colonyName, CABInfo);
+            colonyClass colony = new(colonyName, CABInfo);
 
             Configuration.colonyDictionary[FlightGlobals.currentMainBody.name].Add(colony);
 

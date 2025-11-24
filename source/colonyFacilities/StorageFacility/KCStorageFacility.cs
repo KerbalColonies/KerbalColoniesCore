@@ -24,7 +24,7 @@ namespace KerbalColonies.colonyFacilities.StorageFacility
 {
     public class KCStorageFacility : KCFacilityBase, IKCResourceConsumer
     {
-        public static HashSet<string> blackListedResources = new HashSet<string> { "IntakeAir" };
+        public static HashSet<string> blackListedResources = ["IntakeAir"];
 
         public KCStorageFacilityInfo storageInfo { get { return (KCStorageFacilityInfo)facilityInfo; } }
         public KCUnifiedColonyStorage unifiedColonyStorage;
@@ -66,7 +66,7 @@ namespace KerbalColonies.colonyFacilities.StorageFacility
             StorageWindow.Toggle();
         }
 
-        public Dictionary<PartResourceDefinition, double> ExpectedResourceConsumption(double lastTime, double deltaTime, double currentTime) => enabled ? facilityInfo.ResourceUsage[level].Where(kvp => kvp.Value < 0).ToDictionary(kvp => kvp.Key, kvp => -kvp.Value * deltaTime) : new Dictionary<PartResourceDefinition, double>();
+        public Dictionary<PartResourceDefinition, double> ExpectedResourceConsumption(double lastTime, double deltaTime, double currentTime) => enabled ? facilityInfo.ResourceUsage[level].Where(kvp => kvp.Value < 0).ToDictionary(kvp => kvp.Key, kvp => -kvp.Value * deltaTime) : [];
 
         public void ConsumeResources(double lastTime, double deltaTime, double currentTime) => outOfResources = false;
 
@@ -77,7 +77,7 @@ namespace KerbalColonies.colonyFacilities.StorageFacility
             return limitingResources;
         }
 
-        public Dictionary<PartResourceDefinition, double> ResourceConsumptionPerSecond() => enabled ? facilityInfo.ResourceUsage[level].Where(kvp => kvp.Value < 0).ToDictionary(kvp => kvp.Key, kvp => -kvp.Value) : new Dictionary<PartResourceDefinition, double>();
+        public Dictionary<PartResourceDefinition, double> ResourceConsumptionPerSecond() => enabled ? facilityInfo.ResourceUsage[level].Where(kvp => kvp.Value < 0).ToDictionary(kvp => kvp.Key, kvp => -kvp.Value) : [];
 
         public KCStorageFacility(colonyClass colony, KCFacilityInfoClass facilityInfo, ConfigNode node) : base(colony, facilityInfo, node)
         {

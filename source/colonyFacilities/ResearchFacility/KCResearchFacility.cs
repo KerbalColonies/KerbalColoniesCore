@@ -41,7 +41,7 @@ namespace KerbalColonies.colonyFacilities.ResearchFacility
             lastUpdateTime = Planetarium.GetUniversalTime();
             enabled = built && kerbals.Count > 0 && !OutOfResources;
             if (enabled)
-                sciencePoints = Math.Min(researchFacilityInfo.maxSciencePoints[level], sciencePoints + ((researchFacilityInfo.sciencePointsPerDayperResearcher[level] / 6 / 60 / 60) * deltaTime) * kerbals.Count);
+                sciencePoints = Math.Min(researchFacilityInfo.maxSciencePoints[level], sciencePoints + (researchFacilityInfo.sciencePointsPerDayperResearcher[level] / 6 / 60 / 60 * deltaTime * kerbals.Count));
         }
 
         public override void OnBuildingClicked()
@@ -54,7 +54,7 @@ namespace KerbalColonies.colonyFacilities.ResearchFacility
             researchFacilityWindow.Toggle();
         }
 
-        public override string GetFacilityProductionDisplay() => $"Science Points: {sciencePoints:f2} / {MaxSciencePoints:f2}\nDaily rate: {(researchFacilityInfo.sciencePointsPerDayperResearcher[level] * kerbals.Count):f2}";
+        public override string GetFacilityProductionDisplay() => $"Science Points: {sciencePoints:f2} / {MaxSciencePoints:f2}\nDaily rate: {researchFacilityInfo.sciencePointsPerDayperResearcher[level] * kerbals.Count:f2}";
 
         public bool RetrieveSciencePoints()
         {
@@ -75,7 +75,7 @@ namespace KerbalColonies.colonyFacilities.ResearchFacility
         public int ResourceConsumptionPriority { get; set; } = 0;
         public bool OutOfResources { get; set; } = false;
 
-        public Dictionary<PartResourceDefinition, double> ExpectedResourceConsumption(double lastTime, double deltaTime, double currentTime) => enabled || OutOfResources ? facilityInfo.ResourceUsage[level].Where(kvp => kvp.Value < 0).ToDictionary(kvp => kvp.Key, kvp => -kvp.Value * kerbals.Count * deltaTime) : new Dictionary<PartResourceDefinition, double>();
+        public Dictionary<PartResourceDefinition, double> ExpectedResourceConsumption(double lastTime, double deltaTime, double currentTime) => enabled || OutOfResources ? facilityInfo.ResourceUsage[level].Where(kvp => kvp.Value < 0).ToDictionary(kvp => kvp.Key, kvp => -kvp.Value * kerbals.Count * deltaTime) : [];
 
         public void ConsumeResources(double lastTime, double deltaTime, double currentTime) => OutOfResources = false;
 
@@ -101,13 +101,13 @@ namespace KerbalColonies.colonyFacilities.ResearchFacility
         {
             sciencePoints = double.Parse(node.GetValue("sciencePoints"));
             if (int.TryParse(node.GetValue("ECConsumptionPriority"), out int ecPriority)) ResourceConsumptionPriority = ecPriority;
-            this.researchFacilityWindow = new KCResearchFacilityWindow(this);
+            researchFacilityWindow = new KCResearchFacilityWindow(this);
         }
 
         public KCResearchFacility(colonyClass colony, KCFacilityInfoClass facilityInfo, bool enabled) : base(colony, facilityInfo, enabled)
         {
             sciencePoints = 0;
-            this.researchFacilityWindow = new KCResearchFacilityWindow(this);
+            researchFacilityWindow = new KCResearchFacilityWindow(this);
         }
     }
 }

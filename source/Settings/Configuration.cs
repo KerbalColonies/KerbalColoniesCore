@@ -34,7 +34,7 @@ namespace KerbalColonies
     [KSPScenario(ScenarioCreationOptions.AddToAllGames, GameScenes.SPACECENTER, GameScenes.FLIGHT, GameScenes.EDITOR, GameScenes.TRACKSTATION)]
     public class Configuration : ScenarioModule
     {
-        ConfigNode loadedNode;
+        private ConfigNode loadedNode;
 
         public override void OnLoad(ConfigNode node)
         {
@@ -78,8 +78,8 @@ namespace KerbalColonies
                 node.AddNode(colonyNode);
                 node.AddValue("version", loadedNode.GetValue("version"));
 
-                Configuration.writeDebug($"loadedNode = {loadedNode.ToString()}");
-                Configuration.writeDebug($"node = {node.ToString()}");
+                Configuration.writeDebug($"loadedNode = {loadedNode}");
+                Configuration.writeDebug($"node = {node}");
 
                 return;
             }
@@ -91,11 +91,11 @@ namespace KerbalColonies
         }
 
 
-        internal static List<int> windowIDs { get; private set; } = new List<int> { }; // list of all ColonyChangeWindow IDs
+        internal static List<int> windowIDs { get; private set; } = []; // list of all ColonyChangeWindow IDs
 
         internal static int createWindowID()
         {
-            System.Random random = new System.Random();
+            System.Random random = new();
 
             while (true)
             {
@@ -108,7 +108,7 @@ namespace KerbalColonies
             }
         }
 
-        private static List<KC_CAB_Info> cabTypes = new List<KC_CAB_Info>(); // The list of all available CAB types
+        private static List<KC_CAB_Info> cabTypes = []; // The list of all available CAB types
         public static List<KC_CAB_Info> CabTypes { get { return cabTypes; } } // The list of all available CAB types
 
         public static bool RegisterCabInfo(KC_CAB_Info info)
@@ -134,7 +134,7 @@ namespace KerbalColonies
         /// <summary>
         /// Facilities that can be built from the CAB must be registered here during startup via the RegisterBuildableFacility method.
         /// </summary>
-        private static List<KCFacilityInfoClass> buildableFacilities = new List<KCFacilityInfoClass>();
+        private static List<KCFacilityInfoClass> buildableFacilities = [];
 
         public static List<KCFacilityInfoClass> BuildableFacilities { get { return buildableFacilities; } }
 
@@ -177,7 +177,7 @@ namespace KerbalColonies
         internal static KCFacilityBase CreateInstance(KCFacilityInfoClass info, colonyClass colony, ConfigNode node)
         {
             Configuration.writeLog($"Loading an instance of type {info.name} for {colony.Name}");
-            Configuration.writeDebug($"with node = {node.ToString()}");
+            Configuration.writeDebug($"with node = {node}");
             return (KCFacilityBase)Activator.CreateInstance(info.type, new object[] { colony, info, node });
         }
 
@@ -207,7 +207,7 @@ namespace KerbalColonies
 
         #region savingV3
 
-        public static Version saveVersion = new Version(4, 0, 1);
+        public static Version saveVersion = new(4, 0, 1);
         public static Version loadedSaveVersion;
 
         // New saving
@@ -232,7 +232,7 @@ namespace KerbalColonies
         /// <summary>
         /// This dictionary contains all of the groups across all savegames. It's used to disable the groups from other savegames to enable per savegame colonies
         /// </summary>
-        internal static Dictionary<string, Dictionary<int, Dictionary<string, ConfigNode>>> KCgroups = new Dictionary<string, Dictionary<int, Dictionary<string, ConfigNode>>> { };
+        internal static Dictionary<string, Dictionary<int, Dictionary<string, ConfigNode>>> KCgroups = [];
 
         internal static void AddGroup(int bodyIndex, string groupName, KCFacilityBase faciltiy)
         {
@@ -243,7 +243,7 @@ namespace KerbalColonies
         /// <summary>
         /// This dictionary contains all of the colonies in the current savegame
         /// </summary>
-        internal static Dictionary<string, List<colonyClass>> colonyDictionary = new Dictionary<string, List<colonyClass>> { };
+        internal static Dictionary<string, List<colonyClass>> colonyDictionary = [];
 
         public static colonyClass GetColonyByID(int colonyID) => colonyDictionary.SelectMany(c => c.Value).FirstOrDefault(colony => colony.uniqueID == colonyID);
 
@@ -251,7 +251,7 @@ namespace KerbalColonies
         /// This dictionary contains the facility attached to a specific KK group. Used for the on click event of the KK statics
         /// <para>the string is the KK group name</para>
         /// </summary>
-        internal static Dictionary<string, KCFacilityBase> GroupFacilities = new Dictionary<string, KCFacilityBase> { };
+        internal static Dictionary<string, KCFacilityBase> GroupFacilities = [];
 
         public static void LoadColoniesV3()
         {
@@ -267,13 +267,13 @@ namespace KerbalColonies
                 {
                     if (!KCgroups.ContainsKey(saveGame.name))
                     {
-                        KCgroups.Add(saveGame.name, new Dictionary<int, Dictionary<string, ConfigNode>> { });
+                        KCgroups.Add(saveGame.name, []);
 
                         foreach (ConfigNode bodyId in nodes[0].GetNode(saveGame.name).GetNodes())
                         {
                             if (!KCgroups[saveGame.name].ContainsKey(int.Parse(bodyId.name)))
                             {
-                                KCgroups[saveGame.name].Add(int.Parse(bodyId.name), new Dictionary<string, ConfigNode> { });
+                                KCgroups[saveGame.name].Add(int.Parse(bodyId.name), []);
                             }
 
                             foreach (ConfigNode group in nodes[0].GetNode(saveGame.name).GetNode(bodyId.name).GetNodes())
@@ -309,7 +309,7 @@ namespace KerbalColonies
                 {
                     string bodyName = loadedSaveVersion.Minor > 0 ? bodyNode.name : FlightGlobals.Bodies.First(b => b.flightGlobalsIndex == int.Parse(bodyNode.name)).name;
 
-                    colonyDictionary.TryAdd(bodyName, new List<colonyClass> { });
+                    colonyDictionary.TryAdd(bodyName, []);
                     foreach (ConfigNode colonyNode in bodyNode.GetNodes())
                     {
                         try
@@ -339,19 +339,19 @@ namespace KerbalColonies
         {
             string root = "KCgroups";
 
-            ConfigNode[] nodes = new ConfigNode[1] { new ConfigNode() };
+            ConfigNode[] nodes = new ConfigNode[1] { new() };
 
             if (KCgroups.Count == 0) return;
 
             foreach (KeyValuePair<string, Dictionary<int, Dictionary<string, ConfigNode>>> gameKVP in KCgroups)
             {
-                ConfigNode saveGameNode = new ConfigNode(gameKVP.Key, "The savegame name");
+                ConfigNode saveGameNode = new(gameKVP.Key, "The savegame name");
                 foreach (KeyValuePair<int, Dictionary<string, ConfigNode>> bodyKVP in gameKVP.Value)
                 {
-                    ConfigNode bodyNode = new ConfigNode(bodyKVP.Key.ToString(), "The celestial body id");
+                    ConfigNode bodyNode = new(bodyKVP.Key.ToString(), "The celestial body id");
                     foreach (KeyValuePair<string, ConfigNode> groupName in bodyKVP.Value)
                     {
-                        ConfigNode groupNode = new ConfigNode(groupName.Key, "The KK group name");
+                        ConfigNode groupNode = new(groupName.Key, "The KK group name");
                         if (groupName.Value != null) groupNode.AddNode(groupName.Value);
                         bodyNode.AddNode(groupNode);
                     }
@@ -362,7 +362,7 @@ namespace KerbalColonies
 
             string path = $"{Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)}{Path.DirectorySeparatorChar}..{Path.DirectorySeparatorChar}Configs{Path.DirectorySeparatorChar}ColonyDataV3.cfg";
 
-            ConfigNode node = new ConfigNode();
+            ConfigNode node = new();
             nodes[0].name = root;
             node.AddNode(nodes[0]);
             node.Save(path);
@@ -373,10 +373,10 @@ namespace KerbalColonies
             Configuration.writeLog($"Saving {colonyDictionary.SelectMany(x => x.Value).Count()} on {colonyDictionary.Count} bodies");
             int colonyNodeCount = 0;
             int bodyNodeCount = 0;
-            ConfigNode ColonyDictionaryNode = new ConfigNode("colonyNode", "The Colony node");
+            ConfigNode ColonyDictionaryNode = new("colonyNode", "The Colony node");
             foreach (KeyValuePair<string, List<colonyClass>> bodyKVP in colonyDictionary)
             {
-                ConfigNode bodyNode = new ConfigNode(bodyKVP.Key, "The celestial body name");
+                ConfigNode bodyNode = new(bodyKVP.Key, "The celestial body name");
                 foreach (colonyClass colony in bodyKVP.Value)
                 {
                     try
@@ -447,7 +447,7 @@ namespace KerbalColonies
 
         internal static void SaveConfiguration()
         {
-            ConfigNode[] nodes = new ConfigNode[1] { new ConfigNode() };
+            ConfigNode[] nodes = new ConfigNode[1] { new() };
 
             // config params
             nodes[0].SetValue("enableLogging", enableLogging, "Enable this only in debug purposes as it floods the logs very much", createIfNotFound: true);
@@ -456,7 +456,7 @@ namespace KerbalColonies
 
             string path = $"{Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)}{Path.DirectorySeparatorChar}..{Path.DirectorySeparatorChar}Configs{Path.DirectorySeparatorChar}KC.cfg";
 
-            ConfigNode node = new ConfigNode();
+            ConfigNode node = new();
             nodes[0].name = APP_NAME;
             node.AddNode(nodes[0]);
             node.Save(path);

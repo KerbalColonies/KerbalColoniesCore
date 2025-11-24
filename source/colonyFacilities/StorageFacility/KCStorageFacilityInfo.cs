@@ -24,17 +24,17 @@ namespace KerbalColonies.colonyFacilities.StorageFacility
 {
     public class KCStorageFacilityInfo : KCFacilityInfoClass
     {
-        public SortedDictionary<int, double> maxVolume { get; protected set; } = new SortedDictionary<int, double> { };
+        public SortedDictionary<int, double> maxVolume { get; protected set; } = [];
 
-        public SortedDictionary<int, List<PartResourceDefinition>> resourceWhitelist { get; protected set; } = new SortedDictionary<int, List<PartResourceDefinition>> { };
-        public SortedDictionary<int, List<PartResourceDefinition>> resourceBlacklist { get; protected set; } = new SortedDictionary<int, List<PartResourceDefinition>> { };
+        public SortedDictionary<int, List<PartResourceDefinition>> resourceWhitelist { get; protected set; } = [];
+        public SortedDictionary<int, List<PartResourceDefinition>> resourceBlacklist { get; protected set; } = [];
 
-        public SortedDictionary<int, float> TransferRange { get; protected set; } = new SortedDictionary<int, float>();
-        public SortedDictionary<int, List<Type>> RangeTypes { get; protected set; } = new SortedDictionary<int, List<Type>>(); // List of facility types that are used as nodes for the transfer range
-        public SortedDictionary<int, List<string>> RangeFacilities { get; protected set; } = new SortedDictionary<int, List<string>>(); // List of (additional) facility names that are used as nodes for the transfer range, if type in the facility type list then this name is not used
-        public SortedDictionary<int, bool> UseGravityMultiplier { get; protected set; } = new SortedDictionary<int, bool>();
-        public SortedDictionary<int, float> MinGravity { get; protected set; } = new SortedDictionary<int, float>();
-        public SortedDictionary<int, float> MaxGravity { get; protected set; } = new SortedDictionary<int, float>();
+        public SortedDictionary<int, float> TransferRange { get; protected set; } = [];
+        public SortedDictionary<int, List<Type>> RangeTypes { get; protected set; } = []; // List of facility types that are used as nodes for the transfer range
+        public SortedDictionary<int, List<string>> RangeFacilities { get; protected set; } = []; // List of (additional) facility names that are used as nodes for the transfer range, if type in the facility type list then this name is not used
+        public SortedDictionary<int, bool> UseGravityMultiplier { get; protected set; } = [];
+        public SortedDictionary<int, float> MinGravity { get; protected set; } = [];
+        public SortedDictionary<int, float> MaxGravity { get; protected set; } = [];
 
         public KCStorageFacilityInfo(ConfigNode node) : base(node)
         {
@@ -46,12 +46,15 @@ namespace KerbalColonies.colonyFacilities.StorageFacility
                 if (n.HasValue("maxVolume")) maxVolume[level] = double.Parse(n.GetValue("maxVolume"));
                 else if (type == typeof(KCECStorageFacility))
                 {
-                    if (n.HasValue("capacity")) maxVolume[level] = double.Parse(n.GetValue("capacity"));
-                    else if (level > 0) maxVolume[level] = maxVolume[level - 1];
-                    else throw new MissingFieldException($"The facility {name} (type: {type}) has no maxVolume (at least for level 0).");
+                    maxVolume[level] = n.HasValue("capacity")
+                        ? double.Parse(n.GetValue("capacity"))
+                        : level > 0
+                        ? maxVolume[level - 1]
+                        : throw new MissingFieldException($"The facility {name} (type: {type}) has no maxVolume (at least for level 0).");
                 }
-                else if (level > 0) maxVolume[level] = maxVolume[level - 1];
-                else throw new MissingFieldException($"The facility {name} (type: {type}) has no maxVolume (at least for level 0).");
+                else maxVolume[level] = level > 0
+                    ? maxVolume[level - 1]
+                    : throw new MissingFieldException($"The facility {name} (type: {type}) has no maxVolume (at least for level 0).");
 
                 if (n.HasValue("resourceWhitelist"))
                 {
@@ -61,14 +64,13 @@ namespace KerbalColonies.colonyFacilities.StorageFacility
                         if (resource != null)
                         {
                             Configuration.writeDebug($"KCStorageFacilityInfo: Adding resource {r} to whitelist for facility {name} (type: {type}) at level {level}.");
-                            if (!resourceWhitelist.ContainsKey(level)) resourceWhitelist.Add(level, new List<PartResourceDefinition> { resource });
+                            if (!resourceWhitelist.ContainsKey(level)) resourceWhitelist.Add(level, [resource]);
                             else resourceWhitelist[level].Add(resource);
                         }
                         else throw new Exception($"KCStorageFacilityInfo: Resource {r} not found in PartResourceLibrary for facility {name} (type: {type}) at level {level}.");
                     });
                 }
-                else if (level > 0) resourceWhitelist[level] = resourceWhitelist[level - 1].ToList();
-                else resourceWhitelist[level] = new List<PartResourceDefinition>();
+                else resourceWhitelist[level] = level > 0 ? resourceWhitelist[level - 1].ToList() : [];
 
                 if (n.HasValue("resourceBlacklist"))
                 {
@@ -78,14 +80,13 @@ namespace KerbalColonies.colonyFacilities.StorageFacility
                         if (resource != null)
                         {
                             Configuration.writeDebug($"KCStorageFacilityInfo: Adding resource {r} to blacklist for facility {name} (type: {type}) at level {level}.");
-                            if (!resourceBlacklist.ContainsKey(level)) resourceBlacklist.Add(level, new List<PartResourceDefinition> { resource });
+                            if (!resourceBlacklist.ContainsKey(level)) resourceBlacklist.Add(level, [resource]);
                             else resourceBlacklist[level].Add(resource);
                         }
                         else throw new Exception($"KCStorageFacilityInfo: Resource {r} not found in PartResourceLibrary for facility {name} (type: {type}) at level {level}.");
                     });
                 }
-                else if (level > 0) resourceBlacklist[level] = resourceBlacklist[level - 1].ToList();
-                else resourceBlacklist[level] = new List<PartResourceDefinition>();
+                else resourceBlacklist[level] = level > 0 ? resourceBlacklist[level - 1].ToList() : [];
 
                 if (type != typeof(KCECStorageFacility))
                 {
@@ -102,7 +103,7 @@ namespace KerbalColonies.colonyFacilities.StorageFacility
                 {
                     string[] strings = n.GetValue("RangeTypes").Split(',');
 
-                    List<Type> types = new List<Type>();
+                    List<Type> types = [];
 
                     strings.ToList().ForEach(s =>
                     {
@@ -127,13 +128,13 @@ namespace KerbalColonies.colonyFacilities.StorageFacility
                 }
                 else
                 {
-                    RangeTypes.Add(0, new List<Type>());
+                    RangeTypes.Add(0, []);
                 }
 
                 if (n.HasValue("RangeFacilities"))
                 {
                     string[] strings = n.GetValue("RangeFacilities").Split(',');
-                    List<string> facilities = new List<string>();
+                    List<string> facilities = [];
                     strings.ToList().ForEach(s =>
                     {
                         string facilityName = s.Trim();
@@ -152,7 +153,7 @@ namespace KerbalColonies.colonyFacilities.StorageFacility
                 else if (kvp.Key > 0)
                     RangeFacilities.Add(kvp.Key, RangeFacilities[kvp.Key - 1]);
                 else
-                    RangeFacilities.Add(0, new List<string>());
+                    RangeFacilities.Add(0, []);
 
 
                 if (n.HasValue("UseGravityMultiplier"))

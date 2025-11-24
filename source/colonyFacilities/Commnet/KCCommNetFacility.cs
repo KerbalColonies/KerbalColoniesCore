@@ -28,13 +28,13 @@ namespace KerbalColonies.colonyFacilities
 {
     public class KCCommNetWindow : KCFacilityWindowBase
     {
-        KCCommNetFacility commNetFacility;
+        private KCCommNetFacility commNetFacility;
 
-        bool changeNodeName = false;
-        KCCommNetNodeInfo targetInstance;
-        string newName;
-        Vector2 scrollPos = Vector2.zero;
-        Vector2 resourceUsageScrollPos = Vector2.zero;
+        private bool changeNodeName = false;
+        private KCCommNetNodeInfo targetInstance;
+        private string newName;
+        private Vector2 scrollPos = Vector2.zero;
+        private Vector2 resourceUsageScrollPos = Vector2.zero;
         protected override void CustomWindow()
         {
             facility.Colony.UpdateColony();
@@ -106,7 +106,7 @@ namespace KerbalColonies.colonyFacilities
 
     public class KCCommNetFacility : KCFacilityBase, IKCResourceConsumer
     {
-        public SortedSet<KCCommNetNodeInfo> commNetNodes { get; set; } = new SortedSet<KCCommNetNodeInfo>();
+        public SortedSet<KCCommNetNodeInfo> commNetNodes { get; set; } = [];
         protected KCCommNetWindow commNetWindow;
         public KCCommnetInfo commNetInfo => (KCCommnetInfo)facilityInfo;
         public bool rebuildCommNetNodes { get; set; } = false;
@@ -125,7 +125,7 @@ namespace KerbalColonies.colonyFacilities
                 return;
             }
 
-            KCCommNetNodeInfo newNode = new KCCommNetNodeInfo(kkgroup, null, newRange, true, level);
+            KCCommNetNodeInfo newNode = new(kkgroup, null, newRange, true, level);
             commNetNodes.Add(newNode);
 
             CommNet.CommNetNetwork.Reset();
@@ -170,7 +170,7 @@ namespace KerbalColonies.colonyFacilities
         public bool OutOfResources { get; protected set; } = false;
         public int ResourceConsumptionPriority { get; set; } = 0;
 
-        public Dictionary<PartResourceDefinition, double> ExpectedResourceConsumption(double lastTime, double deltaTime, double currentTime) => enabled || OutOfResources ? facilityInfo.ResourceUsage[level].Where(kvp => kvp.Value < 0).ToDictionary(kvp => kvp.Key, kvp => -kvp.Value * deltaTime) : new Dictionary<PartResourceDefinition, double> { };
+        public Dictionary<PartResourceDefinition, double> ExpectedResourceConsumption(double lastTime, double deltaTime, double currentTime) => enabled || OutOfResources ? facilityInfo.ResourceUsage[level].Where(kvp => kvp.Value < 0).ToDictionary(kvp => kvp.Key, kvp => -kvp.Value * deltaTime) : [];
 
         public void ConsumeResources(double lastTime, double deltaTime, double currentTime) => OutOfResources = false;
 
@@ -181,7 +181,7 @@ namespace KerbalColonies.colonyFacilities
             return limitingResources;
         }
 
-        public Dictionary<PartResourceDefinition, double> ResourceConsumptionPerSecond() => enabled || OutOfResources ? facilityInfo.ResourceUsage[level].Where(kvp => kvp.Value < 0).ToDictionary(kvp => kvp.Key, kvp => -kvp.Value) : new Dictionary<PartResourceDefinition, double> { };
+        public Dictionary<PartResourceDefinition, double> ResourceConsumptionPerSecond() => enabled || OutOfResources ? facilityInfo.ResourceUsage[level].Where(kvp => kvp.Value < 0).ToDictionary(kvp => kvp.Key, kvp => -kvp.Value) : [];
 
         public override ConfigNode getConfigNode()
         {
@@ -196,7 +196,7 @@ namespace KerbalColonies.colonyFacilities
         {
             node.GetNodes("CommNetNode").ToList().ForEach(n =>
             {
-                KCCommNetNodeInfo commNetNode = new KCCommNetNodeInfo(this, n);
+                KCCommNetNodeInfo commNetNode = new(this, n);
                 commNetNodes.Add(commNetNode);
             });
 

@@ -28,10 +28,10 @@ namespace KerbalColonies.colonyFacilities.ProductionFacility
 {
     public class KCProductionFacility : KCKerbalFacilityBase, IKCResourceConsumer
     {
-        public static Dictionary<colonyClass, Dictionary<KCFacilityBase, double>> ConstructingFacilities { get; protected set; } = new Dictionary<colonyClass, Dictionary<KCFacilityBase, double>>();
-        public static Dictionary<colonyClass, List<KCFacilityBase>> ConstructedFacilities { get; protected set; } = new Dictionary<colonyClass, List<KCFacilityBase>>();
-        public static Dictionary<colonyClass, Dictionary<KCFacilityBase, double>> UpgradingFacilities { get; protected set; } = new Dictionary<colonyClass, Dictionary<KCFacilityBase, double>>();
-        public static Dictionary<colonyClass, List<KCFacilityBase>> UpgradedFacilities { get; protected set; } = new Dictionary<colonyClass, List<KCFacilityBase>>();
+        public static Dictionary<colonyClass, Dictionary<KCFacilityBase, double>> ConstructingFacilities { get; protected set; } = [];
+        public static Dictionary<colonyClass, List<KCFacilityBase>> ConstructedFacilities { get; protected set; } = [];
+        public static Dictionary<colonyClass, Dictionary<KCFacilityBase, double>> UpgradingFacilities { get; protected set; } = [];
+        public static Dictionary<colonyClass, List<KCFacilityBase>> UpgradedFacilities { get; protected set; } = [];
 
         public static void AddConstructingFacility(KCFacilityBase facility, double time)
         {
@@ -55,7 +55,7 @@ namespace KerbalColonies.colonyFacilities.ProductionFacility
             UpgradedFacilities[facility.Colony].Add(facility);
         }
 
-        public bool FacilityQueue => ConstructingFacilities.ContainsKey(Colony) ? ConstructingFacilities[Colony].Count > 0 || UpgradingFacilities[Colony].Count > 0 : false;
+        public bool FacilityQueue => ConstructingFacilities.ContainsKey(Colony) && (ConstructingFacilities[Colony].Count > 0 || UpgradingFacilities[Colony].Count > 0);
         public bool VesselQueue => KCHangarFacility.GetConstructingVessels(Colony).Count > 0;
 
         private static double getDeltaTime(colonyClass colony)
@@ -63,7 +63,7 @@ namespace KerbalColonies.colonyFacilities.ProductionFacility
             ConfigNode timeNode = colony.sharedColonyNodes.FirstOrDefault(node => node.name == "KCProductionFacilityTime");
             if (timeNode == null)
             {
-                ConfigNode node = new ConfigNode("KCProductionFacilityTime");
+                ConfigNode node = new("KCProductionFacilityTime");
                 node.AddValue("lastTime", Planetarium.GetUniversalTime().ToString());
                 colony.sharedColonyNodes.Add(node);
                 return 0;
@@ -76,11 +76,11 @@ namespace KerbalColonies.colonyFacilities.ProductionFacility
 
         public static void ExecuteProduction(colonyClass colony)
         {
-            if (ConstructingFacilities.TryAdd(colony, new Dictionary<KCFacilityBase, double>()))
+            if (ConstructingFacilities.TryAdd(colony, []))
             {
-                ConstructedFacilities.Add(colony, new List<KCFacilityBase>());
-                UpgradingFacilities.Add(colony, new Dictionary<KCFacilityBase, double>());
-                UpgradedFacilities.Add(colony, new List<KCFacilityBase>());
+                ConstructedFacilities.Add(colony, []);
+                UpgradingFacilities.Add(colony, []);
+                UpgradedFacilities.Add(colony, []);
 
                 ConfigNode production = colony.sharedColonyNodes.FirstOrDefault(n => n.name == "production");
                 if (production != null)
@@ -114,8 +114,8 @@ namespace KerbalColonies.colonyFacilities.ProductionFacility
 
             KCProductionFacility.DailyProductions(colony, out double dailyProduction, out double dailyVesselProduction);
 
-            dailyProduction = (((dailyProduction * dt) / 6) / 60) / 60; // convert from Kerbin days (6 hours) to seconds
-            dailyVesselProduction = (((dailyVesselProduction * dt) / 6) / 60) / 60;
+            dailyProduction = dailyProduction * dt / 6 / 60 / 60; // convert from Kerbin days (6 hours) to seconds
+            dailyVesselProduction = dailyVesselProduction * dt / 6 / 60 / 60;
 
             List<StoredVessel> constructingVessel = KCHangarFacility.GetConstructingVessels(colony);
 
@@ -246,14 +246,14 @@ namespace KerbalColonies.colonyFacilities.ProductionFacility
                 DailyProductions(colony, out double dailyProduction, out double dailyVesselProduction);
                 GUILayout.BeginHorizontal();
                 {
-                    GUILayout.BeginVertical(GUILayout.Width(KC_CAB_Window.CABInfoWidth / 2 - 10));
+                    GUILayout.BeginVertical(GUILayout.Width((KC_CAB_Window.CABInfoWidth / 2) - 10));
                     {
                         GUILayout.Label($"Daily production: {dailyProduction:f2}");
                         GUILayout.Label($"Facilities building/upgrading: {ConstructingFacilities[colony].Count + UpgradingFacilities[colony].Count}");
                         GUILayout.Label($"Facilities built/upgraded: {ConstructedFacilities[colony].Count + UpgradedFacilities[colony].Count}");
                     }
                     GUILayout.EndVertical();
-                    GUILayout.BeginVertical(GUILayout.Width(KC_CAB_Window.CABInfoWidth / 2 - 10));
+                    GUILayout.BeginVertical(GUILayout.Width((KC_CAB_Window.CABInfoWidth / 2) - 10));
                     {
                         GUILayout.Label($"Daily vessel production: {dailyVesselProduction:f2}");
                         GUILayout.Label($"Vessels building: {KCHangarFacility.GetConstructingVessels(colony).Count}");
@@ -281,9 +281,9 @@ namespace KerbalColonies.colonyFacilities.ProductionFacility
 
             foreach (ProtoCrewMember pcm in kerbals.Keys)
             {
-                production += (info.baseProduction[level] + info.experienceMultiplier[level] * (pcm.experienceLevel - 1));
+                production += info.baseProduction[level] + (info.experienceMultiplier[level] * (pcm.experienceLevel - 1));
             }
-            production *= 1 + info.facilityLevelMultiplier[level] * level;
+            production *= 1 + (info.facilityLevelMultiplier[level] * level);
             lastProduction = production;
             return production;
         }
@@ -291,7 +291,7 @@ namespace KerbalColonies.colonyFacilities.ProductionFacility
         public override void Update()
         {
             lastUpdateTime = Planetarium.GetUniversalTime();
-            enabled = !OutOfResources && built && (FacilityQueue || VesselQueue && KCProductionInfo.CanBuildVessels(level));
+            enabled = !OutOfResources && built && (FacilityQueue || (VesselQueue && KCProductionInfo.CanBuildVessels(level)));
         }
 
         public override void OnBuildingClicked()
@@ -307,7 +307,7 @@ namespace KerbalColonies.colonyFacilities.ProductionFacility
         public int ResourceConsumptionPriority { get; set; } = 0;
 
 
-        public Dictionary<PartResourceDefinition, double> ExpectedResourceConsumption(double lastTime, double deltaTime, double currentTime) => lastProduction > 0 ? facilityInfo.ResourceUsage[level].Where(kvp => kvp.Value < 0).ToDictionary(kvp => kvp.Key, kvp => -kvp.Value * deltaTime) : new Dictionary<PartResourceDefinition, double>();
+        public Dictionary<PartResourceDefinition, double> ExpectedResourceConsumption(double lastTime, double deltaTime, double currentTime) => lastProduction > 0 ? facilityInfo.ResourceUsage[level].Where(kvp => kvp.Value < 0).ToDictionary(kvp => kvp.Key, kvp => -kvp.Value * deltaTime) : [];
 
         public void ConsumeResources(double lastTime, double deltaTime, double currentTime)
         {
@@ -321,7 +321,7 @@ namespace KerbalColonies.colonyFacilities.ProductionFacility
             return limitingResources;
         }
 
-        public Dictionary<PartResourceDefinition, double> ResourceConsumptionPerSecond() => lastProduction > 0 ? facilityInfo.ResourceUsage[level].Where(kvp => kvp.Value < 0).ToDictionary(kvp => kvp.Key, kvp => -kvp.Value) : new Dictionary<PartResourceDefinition, double>();
+        public Dictionary<PartResourceDefinition, double> ResourceConsumptionPerSecond() => lastProduction > 0 ? facilityInfo.ResourceUsage[level].Where(kvp => kvp.Value < 0).ToDictionary(kvp => kvp.Key, kvp => -kvp.Value) : [];
 
         public override string GetFacilityProductionDisplay() => $"{kerbals.Count} kerbals assigned\ndaily production: {dailyProduction():f2}\n{(KCProductionInfo.CanBuildVessels(level) ? "Can build vessels" : "Can't build vessels")}";
 
@@ -344,39 +344,39 @@ namespace KerbalColonies.colonyFacilities.ProductionFacility
             }
             else production.ClearNodes();
 
-            ConfigNode constructingFacilities = new ConfigNode("constructingFacilities");
+            ConfigNode constructingFacilities = new("constructingFacilities");
             ConstructingFacilities[colony].ToList().ForEach(pair =>
             {
-                ConfigNode facilityNode = new ConfigNode("facilityNode");
+                ConfigNode facilityNode = new("facilityNode");
                 facilityNode.AddValue("facilityID", pair.Key.id);
                 facilityNode.AddValue("remainingTime", pair.Value);
                 constructingFacilities.AddNode(facilityNode);
             });
             production.AddNode(constructingFacilities);
 
-            ConfigNode constructedFacilities = new ConfigNode("constructedFacilities");
+            ConfigNode constructedFacilities = new("constructedFacilities");
             ConstructedFacilities[colony].ForEach(facility =>
             {
-                ConfigNode facilityNode = new ConfigNode("facilityNode");
+                ConfigNode facilityNode = new("facilityNode");
                 facilityNode.AddValue("facilityID", facility.id);
                 constructedFacilities.AddNode(facilityNode);
             });
             production.AddNode(constructedFacilities);
 
-            ConfigNode upgradingFacilities = new ConfigNode("upgradingFacilities");
+            ConfigNode upgradingFacilities = new("upgradingFacilities");
             UpgradingFacilities[colony].ToList().ForEach(pair =>
             {
-                ConfigNode facilityNode = new ConfigNode("facilityNode");
+                ConfigNode facilityNode = new("facilityNode");
                 facilityNode.AddValue("facilityID", pair.Key.id);
                 facilityNode.AddValue("remainingTime", pair.Value);
                 upgradingFacilities.AddNode(facilityNode);
             });
             production.AddNode(upgradingFacilities);
 
-            ConfigNode upgradedFacilities = new ConfigNode("upgradedFacilities");
+            ConfigNode upgradedFacilities = new("upgradedFacilities");
             UpgradedFacilities[colony].ForEach(facility =>
             {
-                ConfigNode facilityNode = new ConfigNode("facilityNode");
+                ConfigNode facilityNode = new("facilityNode");
                 facilityNode.AddValue("facilityID", facility.id);
                 upgradedFacilities.AddNode(facilityNode);
             });
@@ -393,7 +393,7 @@ namespace KerbalColonies.colonyFacilities.ProductionFacility
                 if (!Colony.sharedColonyNodes.Any(n => n.name == "vesselBuildInfo"))
                 {
                     Configuration.writeDebug($"Facility {name} is now used to build vessels.");
-                    ConfigNode vesselBuildInfo = new ConfigNode("vesselBuildInfo");
+                    ConfigNode vesselBuildInfo = new("vesselBuildInfo");
                     vesselBuildInfo.AddValue("facilityConfig", name);
                     vesselBuildInfo.AddValue("facilityLevel", level);
                     Colony.sharedColonyNodes.Add(vesselBuildInfo);

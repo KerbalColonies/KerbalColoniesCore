@@ -23,7 +23,7 @@ namespace KerbalColonies.colonyFacilities.Commnet
 {
     public class KCCommnetInfo : KCFacilityInfoClass
     {
-        public Dictionary<int, double> range { get; protected set; } = new Dictionary<int, double> { };
+        public Dictionary<int, double> range { get; protected set; } = [];
 
         public KCCommnetInfo(ConfigNode node) : base(node)
         {
@@ -38,9 +38,9 @@ namespace KerbalColonies.colonyFacilities.Commnet
 
     public class KCGroundStationInfo : KCKerbalFacilityInfoClass
     {
-        public Dictionary<int, double> range { get; protected set; } = new Dictionary<int, double> { };
-        public Dictionary<int, double> kerbalRange { get; protected set; } = new Dictionary<int, double> { };
-        public Dictionary<int, double> kerbalMultiplier { get; protected set; } = new Dictionary<int, double> { };
+        public Dictionary<int, double> range { get; protected set; } = [];
+        public Dictionary<int, double> kerbalRange { get; protected set; } = [];
+        public Dictionary<int, double> kerbalMultiplier { get; protected set; } = [];
 
         public KCGroundStationInfo(ConfigNode node) : base(node)
         {

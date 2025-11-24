@@ -23,16 +23,16 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fus
 {
     public class KCFusionInfo : KCKerbalFacilityInfoClass
     {
-        public Dictionary<int, double> ECProduction { get; protected set; } = new Dictionary<int, double>();
-        public Dictionary<int, double> MinECThrottle { get; protected set; } = new Dictionary<int, double>();
-        public Dictionary<int, double> MaxECChangeRate { get; protected set; } = new Dictionary<int, double>();
-        public Dictionary<int, double> MinECRateChangeTime { get; protected set; } = new Dictionary<int, double>();
-        public Dictionary<int, double> ECChangeThreshold { get; protected set; } = new Dictionary<int, double>();
-        public Dictionary<int, double> PowerlevelChangeTime { get; protected set; } = new Dictionary<int, double>();
-        public Dictionary<int, double> LevelOffTime { get; protected set; } = new Dictionary<int, double>();
-        public Dictionary<int, int> MinKerbals { get; protected set; } = new Dictionary<int, int>();
-        public Dictionary<int, int> MinKerbalLevel { get; protected set; } = new Dictionary<int, int>();
-        public Dictionary<int, Dictionary<string, int>> RequiredTraits { get; protected set; } = new Dictionary<int, Dictionary<string, int>>();
+        public Dictionary<int, double> ECProduction { get; protected set; } = [];
+        public Dictionary<int, double> MinECThrottle { get; protected set; } = [];
+        public Dictionary<int, double> MaxECChangeRate { get; protected set; } = [];
+        public Dictionary<int, double> MinECRateChangeTime { get; protected set; } = [];
+        public Dictionary<int, double> ECChangeThreshold { get; protected set; } = [];
+        public Dictionary<int, double> PowerlevelChangeTime { get; protected set; } = [];
+        public Dictionary<int, double> LevelOffTime { get; protected set; } = [];
+        public Dictionary<int, int> MinKerbals { get; protected set; } = [];
+        public Dictionary<int, int> MinKerbalLevel { get; protected set; } = [];
+        public Dictionary<int, Dictionary<string, int>> RequiredTraits { get; protected set; } = [];
 
         public KCFusionInfo(ConfigNode node) : base(node)
         {
@@ -46,7 +46,7 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fus
                 if (n.HasNode("InputResources"))
                 {
                     ConfigNode inputNode = n.GetNode("InputResources");
-                    Dictionary<PartResourceDefinition, double> inputList = new Dictionary<PartResourceDefinition, double>();
+                    Dictionary<PartResourceDefinition, double> inputList = [];
                     foreach (ConfigNode.Value v in inputNode.values)
                     {
                         PartResourceDefinition resourceDef = PartResourceLibrary.Instance.GetDefinition(v.name);
@@ -58,7 +58,7 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fus
                 if (n.HasNode("OutputResources"))
                 {
                     ConfigNode outputNode = n.GetNode("OutputResources");
-                    Dictionary<PartResourceDefinition, double> outputList = new Dictionary<PartResourceDefinition, double>();
+                    Dictionary<PartResourceDefinition, double> outputList = [];
                     foreach (ConfigNode.Value v in outputNode.values)
                     {
                         PartResourceDefinition resourceDef = PartResourceLibrary.Instance.GetDefinition(v.name);
@@ -96,7 +96,7 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fus
                 if (n.HasNode("RequiredTraits"))
                 {
                     ConfigNode traitsNode = n.GetNode("RequiredTraits");
-                    Dictionary<string, int> traitsList = new Dictionary<string, int>();
+                    Dictionary<string, int> traitsList = [];
                     foreach (ConfigNode.Value v in traitsNode.values)
                     {
                         string traitName = v.name.ToLower();
@@ -108,7 +108,7 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fus
                 else if (kvp.Key > 0)
                     RequiredTraits.Add(kvp.Key, RequiredTraits[kvp.Key - 1]);
                 else
-                    RequiredTraits.Add(kvp.Key, new Dictionary<string, int>());
+                    RequiredTraits.Add(kvp.Key, []);
             });
         }
     }

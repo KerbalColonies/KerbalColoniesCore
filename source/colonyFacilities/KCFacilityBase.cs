@@ -61,7 +61,7 @@ namespace KerbalColonies.colonyFacilities
         /// <summary>
         /// The KK group name and the body id
         /// </summary>
-        public List<string> KKgroups = new List<string> { };
+        public List<string> KKgroups = [];
 
         public void changeDisplayName(string displayName)
         {
@@ -199,7 +199,7 @@ namespace KerbalColonies.colonyFacilities
 
         public static List<string> GetUUIDbyFacility(KCFacilityBase facility)
         {
-            List<string> uuids = new List<string>();
+            List<string> uuids = [];
 
             facility.KKgroups.ForEach(groupName => KerbalKonstructs.API.GetGroupStatics(groupName).ForEach(kkStatic => uuids.Add(kkStatic.UUID)));
 
@@ -229,7 +229,7 @@ namespace KerbalColonies.colonyFacilities
             return Configuration.colonyDictionary.Values.SelectMany(c => c).Any(c => c.Facilities.Any(fac => fac.id == id) || c.CAB.id == id);
         }
 
-        private static System.Random random = new System.Random();
+        private static System.Random random = new();
         internal static int createID()
         {
             int id = 0;
@@ -279,7 +279,7 @@ namespace KerbalColonies.colonyFacilities
         /// </summary>
         public virtual ConfigNode getConfigNode()
         {
-            ConfigNode node = new ConfigNode("facilityNode");
+            ConfigNode node = new("facilityNode");
             node.AddValue("name", name);
             node.AddValue("displayName", DisplayName);
             node.AddValue("useCustomDisplayName", useCustomDisplayName);
@@ -293,7 +293,7 @@ namespace KerbalColonies.colonyFacilities
 
             KKgroups.ForEach(x =>
             {
-                ConfigNode groupNode = new ConfigNode("kkGroupNode");
+                ConfigNode groupNode = new("kkGroupNode");
                 groupNode.AddValue("groupName", x);
                 node.AddNode(groupNode);
             }
@@ -304,7 +304,7 @@ namespace KerbalColonies.colonyFacilities
         public virtual bool UpgradeFacility(int level)
         {
             this.level = level;
-            if (this.level >= this.maxLevel) upgradeable = false;
+            if (this.level >= maxLevel) upgradeable = false;
             return true;
         }
 
@@ -324,19 +324,19 @@ namespace KerbalColonies.colonyFacilities
         /// </summary>
         protected KCFacilityBase(KC_CAB_Info CABInfo)
         {
-            this.facilityInfo = CABInfo;
+            facilityInfo = CABInfo;
 
-            this.name = CABInfo.facilityConfig.GetValue("name");
-            this.DisplayName = CABInfo.facilityConfig.GetValue("displayName");
-            this.enabled = true;
-            this.id = createID();
-            this.level = 0;
-            this.maxLevel = CABInfo.BasegroupNames.Count - 1;
-            this.facilityTypeNumber = 0;
+            name = CABInfo.facilityConfig.GetValue("name");
+            DisplayName = CABInfo.facilityConfig.GetValue("displayName");
+            enabled = true;
+            id = createID();
+            level = 0;
+            maxLevel = CABInfo.BasegroupNames.Count - 1;
+            facilityTypeNumber = 0;
             creationTime = Planetarium.GetUniversalTime();
             lastUpdateTime = Planetarium.GetUniversalTime();
 
-            this.upgradeable = level < maxLevel;
+            upgradeable = level < maxLevel;
         }
 
         /// <summary>
@@ -346,21 +346,21 @@ namespace KerbalColonies.colonyFacilities
         /// </summary>
         protected KCFacilityBase(KC_CAB_Info CABInfo, ConfigNode node)
         {
-            this.facilityInfo = CABInfo;
+            facilityInfo = CABInfo;
 
-            this.name = CABInfo.facilityConfig.GetValue("name");
-            this.DisplayName = CABInfo.facilityConfig.GetValue("displayName");
-            this.id = int.Parse(node.GetValue("id"));
-            this.enabled = bool.Parse(node.GetValue("enabled"));
-            this.level = int.Parse(node.GetValue("level"));
-            this.maxLevel = CABInfo.BasegroupNames.Count - 1;
-            this.facilityTypeNumber = 0;
-            this.creationTime = double.Parse(node.GetValue("creationTime"));
-            this.lastUpdateTime = double.Parse(node.GetValue("lastUpdateTime"));
-            this.KKgroups = new List<string> { };
+            name = CABInfo.facilityConfig.GetValue("name");
+            DisplayName = CABInfo.facilityConfig.GetValue("displayName");
+            id = int.Parse(node.GetValue("id"));
+            enabled = bool.Parse(node.GetValue("enabled"));
+            level = int.Parse(node.GetValue("level"));
+            maxLevel = CABInfo.BasegroupNames.Count - 1;
+            facilityTypeNumber = 0;
+            creationTime = double.Parse(node.GetValue("creationTime"));
+            lastUpdateTime = double.Parse(node.GetValue("lastUpdateTime"));
+            KKgroups = [];
             node.GetNodes("kkGroupNode").ToList().ForEach(n => KKgroups.Add(n.GetValue("groupName")));
 
-            this.upgradeable = level < maxLevel;
+            upgradeable = level < maxLevel;
         }
         #endregion
 
@@ -370,26 +370,25 @@ namespace KerbalColonies.colonyFacilities
         /// <param name="node"></param>
         protected KCFacilityBase(colonyClass colony, KCFacilityInfoClass facilityInfo, ConfigNode node)
         {
-            this.Colony = colony;
+            Colony = colony;
             this.facilityInfo = facilityInfo;
 
-            this.name = facilityInfo.name;
-            this.displayName = node.GetValue("displayName");
+            name = facilityInfo.name;
+            displayName = node.GetValue("displayName");
 
-            if (Configuration.loadedSaveVersion == new Version(3, 1, 1)) useCustomDisplayName = false;
-            else useCustomDisplayName = bool.Parse(node.GetValue("useCustomDisplayName"));
+            useCustomDisplayName = bool.Parse(node.GetValue("useCustomDisplayName"));
 
-            this.id = int.Parse(node.GetValue("id"));
-            this.enabled = bool.Parse(node.GetValue("enabled"));
-            this.level = int.Parse(node.GetValue("level"));
-            this.maxLevel = facilityInfo.BasegroupNames.Count - 1;
-            this.creationTime = double.Parse(node.GetValue("creationTime"));
-            this.lastUpdateTime = double.Parse(node.GetValue("lastUpdateTime"));
-            this.facilityTypeNumber = int.Parse(node.GetValue("facilityTypeNumber"));
-            this.KKgroups = new List<string> { };
+            id = int.Parse(node.GetValue("id"));
+            enabled = bool.Parse(node.GetValue("enabled"));
+            level = int.Parse(node.GetValue("level"));
+            maxLevel = facilityInfo.BasegroupNames.Count - 1;
+            creationTime = double.Parse(node.GetValue("creationTime"));
+            lastUpdateTime = double.Parse(node.GetValue("lastUpdateTime"));
+            facilityTypeNumber = int.Parse(node.GetValue("facilityTypeNumber"));
+            KKgroups = [];
             node.GetNodes("kkGroupNode").ToList().ForEach(n => KKgroups.Add(n.GetValue("groupName")));
 
-            this.upgradeable = level < maxLevel;
+            upgradeable = level < maxLevel;
         }
 
         /// <summary>
@@ -397,17 +396,17 @@ namespace KerbalColonies.colonyFacilities
         /// </summary>
         protected KCFacilityBase(colonyClass colony, KCFacilityInfoClass facilityInfo, bool enabled)
         {
-            this.Colony = colony;
+            Colony = colony;
             this.facilityInfo = facilityInfo;
 
-            this.name = facilityInfo.name;
-            this.DisplayName = "";
+            name = facilityInfo.name;
+            DisplayName = "";
             useCustomDisplayName = false;
             this.enabled = enabled;
-            this.id = createID();
-            this.level = 0;
-            this.maxLevel = facilityInfo.BasegroupNames.Count - 1;
-            this.facilityTypeNumber = CountFacilityType(facilityInfo, colony) + 1;
+            id = createID();
+            level = 0;
+            maxLevel = facilityInfo.BasegroupNames.Count - 1;
+            facilityTypeNumber = CountFacilityType(facilityInfo, colony) + 1;
             creationTime = Planetarium.GetUniversalTime();
             lastUpdateTime = Planetarium.GetUniversalTime();
             upgradeable = level < maxLevel;

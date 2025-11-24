@@ -2,7 +2,7 @@
 using KerbalColonies.colonyFacilities.LaunchPadFacility;
 using KerbalColonies.colonyFacilities.ProductionFacility;
 using KerbalColonies.colonyFacilities.StorageFacility;
-using KerbalColonies.UI;
+using NDTester;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -40,130 +40,21 @@ using UnityEngine;
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-namespace KerbalColonies.colonyFacilities
+namespace KerbalColonies.colonyFacilities.HangarFacility
 {
-    public class KCHangarInfo : KCFacilityInfoClass
-    {
-        public SortedDictionary<int, double> X { get; private set; } = [];
-        public SortedDictionary<int, double> Y { get; private set; } = [];
-        public SortedDictionary<int, double> Z { get; private set; } = [];
-        public SortedDictionary<int, int> VesselCapacity { get; private set; } = [];
-        public double Volume(int level) => X[level] * Y[level] * Z[level];
-
-
-        public KCHangarInfo(ConfigNode node) : base(node)
-        {
-            levelNodes.ToList().ForEach(n =>
-            {
-                if (n.Value.HasValue("x")) X[n.Key] = double.Parse(n.Value.GetValue("x"));
-                else X[n.Key] = n.Key > 0
-                    ? X[n.Key - 1]
-                    : throw new MissingFieldException($"The facility {name} (type: {type}) has no x value (at least for level 0).");
-
-                if (n.Value.HasValue("y")) Y[n.Key] = double.Parse(n.Value.GetValue("y"));
-                else Y[n.Key] = n.Key > 0
-                    ? Y[n.Key - 1]
-                    : throw new MissingFieldException($"The facility {name} (type: {type}) has no y value (at least for level 0).");
-
-                if (n.Value.HasValue("z")) Z[n.Key] = double.Parse(n.Value.GetValue("z"));
-                else Z[n.Key] = n.Key > 0
-                    ? Z[n.Key - 1]
-                    : throw new MissingFieldException($"The facility {name} (type: {type}) has no z value (at least for level 0).");
-
-                if (n.Value.HasValue("capacity")) VesselCapacity[n.Key] = int.Parse(n.Value.GetValue("capacity"));
-                else VesselCapacity[n.Key] = n.Key > 0
-                    ? VesselCapacity[n.Key - 1]
-                    : throw new MissingFieldException($"The facility {name} (type: {type}) has no capacity value (at least for level 0).");
-            });
-        }
-    }
-
-    public class KCHangarFacilityWindow : KCFacilityWindowBase
-    {
-        private KCHangarFacility hangar;
-        private Vector2 scrollPos;
-
-        protected override void CustomWindow()
-        {
-            hangar.Colony.UpdateColony();
-            List<StoredVessel> vesselList = hangar.storedVessels.ToList();
-            scrollPos = GUILayout.BeginScrollView(scrollPos);
-            GUILayout.BeginVertical();
-            vesselList.ForEach(vessel =>
-            {
-                GUILayout.BeginHorizontal();
-                GUILayout.Label(vessel.vesselName);
-
-                GUILayout.FlexibleSpace();
-
-                if (vessel.vesselBuildTime == null)
-                {
-                    if (GUILayout.Button("Load", GUILayout.Width(150)))
-                    {
-                        Vessel v = hangar.RollOutVessel(vessel).vesselRef;
-                    }
-                }
-                else
-                {
-                    GUILayout.Label($"Build time: {vessel.entireVesselBuildTime - vessel.vesselBuildTime:f2}/{vessel.entireVesselBuildTime:f2}");
-                }
-
-                if (GUILayout.Button("<b>x</b>", UIConfig.ButtonRed))
-                {
-                    Configuration.writeLog($"Removing vessel {vessel.vesselName} from hangar {hangar.name}");
-                    hangar.storedVessels.Remove(vessel);
-                }
-                GUILayout.EndHorizontal();
-            });
-            GUILayout.EndVertical();
-            GUILayout.EndScrollView();
-
-            if (hangar.Colony.CAB.PlayerInColony)
-            {
-                GUILayout.Space(10);
-                GUI.enabled = hangar.CanStoreVessel(FlightGlobals.ActiveVessel);
-
-                if (GUILayout.Button("Store vessel"))
-                {
-                    hangar.StoreVessel(FlightGlobals.ActiveVessel, null);
-                }
-            }
-
-            GUI.enabled = true;
-        }
-
-        public KCHangarFacilityWindow(KCHangarFacility hangar) : base(hangar, Configuration.createWindowID())
-        {
-            this.hangar = hangar;
-            toolRect = new Rect(100, 100, 450, 800);
-        }
-    }
-
-    public class StoredVessel
-    {
-        public string vesselName;
-        public Guid uuid;
-        public ConfigNode vesselNode;
-
-        public double vesselVolume;
-        public double? vesselBuildTime;
-        public double? entireVesselBuildTime;
-        public double? vesselDryMass;
-
-        public StoredVessel(string vesselName, Guid uuid, double vesselVolume, ConfigNode vesselNode = null, double? vesselBuildTime = null, double? entireVesselBuildTime = null, double? vesselDryMass = null)
-        {
-            this.vesselName = vesselName;
-            this.uuid = uuid;
-            this.vesselNode = vesselNode;
-            this.vesselVolume = vesselVolume;
-            this.vesselBuildTime = vesselBuildTime;
-            this.entireVesselBuildTime = entireVesselBuildTime;
-            this.vesselDryMass = vesselDryMass;
-        }
-    }
-
     public class KCHangarFacility : KCFacilityBase
     {
+        /// <summary>
+        /// Required for Dimensions > 3
+        /// </summary>
+        public enum NewDimCalculationMode
+        {
+            Fixed, // Size = 1
+            Sum,
+            Product,
+            RootProduct, // nth root of the product where n is the current dimension
+        }
+
         public static List<KCHangarFacility> GetHangarsInColony(colonyClass colony) => colony.Facilities.Where(f => f is KCHangarFacility).Select(f => (KCHangarFacility)f).ToList();
 
         public static List<StoredVessel> GetConstructingVessels(colonyClass colony) => GetHangarsInColony(colony).SelectMany(h => h.storedVessels.Where(v => v.vesselBuildTime != null)).ToList();
@@ -234,7 +125,7 @@ namespace KerbalColonies.colonyFacilities
         }
 
         // TODO: make it so the vessel oriantation doesn't matter, e.g. if the hangar has dimensions of 10, 5, 5 and a vessel with 4, 8, 4 (x, y, z in meters) it should work
-        public bool CanStoreVessel(Vessel vessel)
+        public bool CanStoreVessel(Vessel vessel, int MaxPermutations = 8192)
         {
             Configuration.writeLog($"CanStoreVessel: {name}");
             if (hangarInfo.VesselCapacity[level] <= storedVessels.Count)
@@ -246,16 +137,9 @@ namespace KerbalColonies.colonyFacilities
 
             vessel.UpdateVesselSize();
             Vector3 vesselSize = vessel.vesselSize;
-            if (vesselSize.x > info.X[level] || vesselSize.y > info.Y[level] || vesselSize.z > info.Z[level])
+            if (!CanStoreSize(new double[] { vesselSize.x, vesselSize.y, vesselSize.z }, MaxPermutations))
             {
-                Configuration.writeLog($"Vessel size: {vesselSize.x}, {vesselSize.y}, {vesselSize.z} is too big for the hangar: {info.X[level]}, {info.Y[level]}, {info.Z[level]}");
-                return false;
-            }
-
-            double vesselVolume = vesselSize.x * vesselSize.y * vesselSize.z * 0.8;
-            if (vesselVolume > info.Volume(level) - getStoredVolume())
-            {
-                Configuration.writeLog($"Vessel volume: {vesselVolume} is too big for the hangar: {info.Volume(level) - getStoredVolume()}");
+                Configuration.writeLog($"Vessel size: {vesselSize.x}, {vesselSize.y}, {vesselSize.z} is too big for the hangar");
                 return false;
             }
 
@@ -279,16 +163,9 @@ namespace KerbalColonies.colonyFacilities
 
             Vector3 vesselSize = ship.shipSize;
             Configuration.writeDebug($"vessel size: {vesselSize.x}, {vesselSize.y}, {vesselSize.z}");
-            if (vesselSize.x > info.X[level] || vesselSize.y > info.Y[level] || vesselSize.z > info.Z[level])
+            if (!CanStoreSize(new double[] { vesselSize.x, vesselSize.y, vesselSize.z }))
             {
-                Configuration.writeLog($"Vessel size: {vesselSize.x}, {vesselSize.y}, {vesselSize.z} is too big for the hangar: {info.X[level]}, {info.Y[level]}, {info.Z[level]}");
-                return false;
-            }
-
-            double vesselVolume = vesselSize.x * vesselSize.y * vesselSize.z * 0.8;
-            if (vesselVolume > info.Volume(level) - getStoredVolume())
-            {
-                Configuration.writeLog($"Vessel volume: {vesselVolume} is too big for the hangar: {info.Volume(level) - getStoredVolume()}");
+                Configuration.writeLog($"Vessel size: {vesselSize.x}, {vesselSize.y}, {vesselSize.z} is too big for the hangar");
                 return false;
             }
 
@@ -296,77 +173,153 @@ namespace KerbalColonies.colonyFacilities
             return true;
         }
 
-        public bool StoreVessel(Vessel vessel, double? vesselDryMass)
+        public bool CanStoreSize(double[] Size, int maxPermutations = 8192, int maxProcessors = 0)
         {
-            if (CanStoreVessel(vessel))
+            int dimensions = hangarInfo.Dimension;
+
+            int vesselCount = 0;
+            OrthogonalObject[] testObjects = new OrthogonalObject[storedVessels.Count + 1]; // All stored vessels + the new one
+            storedVessels.ForEach(vessel =>
             {
-                Configuration.writeLog($"Storing vessel {vessel.GetDisplayName()} in {name}");
+                double[] ShipSize = new double[dimensions];
 
-                Vector3 vesselSize = vessel.vesselSize;
+                ShipSize[0] = vessel.x;
+                ShipSize[1] = vessel.y;
+                ShipSize[2] = vessel.z;
 
-                StoredVessel storedVessel = new(vessel.GetDisplayName(), vessel.protoVessel.vesselID, vesselSize.x * vesselSize.y * vesselSize.z * 0.8);
-
-                if (vesselDryMass == null)
+                for (int i = 3; i < dimensions; i++)
                 {
-                    storedVessel.vesselBuildTime = null;
-                    storedVessel.entireVesselBuildTime = null;
-                }
-                else
-                {
-                    Configuration.writeDebug($"vessel part counts: {vessel.Parts.Count}, mass: {vesselDryMass}");
-                    storedVessel.vesselBuildTime = (vessel.Parts.Count + vesselDryMass) * 10 * Configuration.VesselTimeMultiplier;
-                    storedVessel.entireVesselBuildTime = storedVessel.vesselBuildTime;
-                    storedVessel.vesselDryMass = vesselDryMass;
-                }
-
-                //get the experience and assign the crew to the rooster
-                foreach (Part part in vessel.parts)
-                {
-                    int count = part.protoModuleCrew.Count;
-
-                    if (count != 0)
+                    switch (hangarInfo.NewDimCalculations[i])
                     {
-                        ProtoCrewMember[] crewList = part.protoModuleCrew.ToArray();
-
-                        for (int i = 0; i < count; i++)
-                        {
-                            crewList[i].flightLog.AddEntryUnique(FlightLog.EntryType.Recover);
-                            crewList[i].flightLog.AddEntryUnique(FlightLog.EntryType.Land, FlightGlobals.currentMainBody.name);
-                            crewList[i].ArchiveFlightLog();
-
-                            // remove the crew from the ship
-                            part.RemoveCrewmember(crewList[i]);
-                            KCCrewQuarters.AddKerbalToColony(Colony, crewList[i]);
-                        }
+                        case NewDimCalculationMode.Fixed:
+                            ShipSize[i] = 1;
+                            break;
+                        case NewDimCalculationMode.Sum:
+                            ShipSize[i] = ShipSize.Sum();
+                            break;
+                        case NewDimCalculationMode.Product:
+                            ShipSize[i] = ShipSize.Aggregate(1.0, (acc, val) => acc * val);
+                            break;
+                        case NewDimCalculationMode.RootProduct:
+                            double product = ShipSize.Aggregate(1.0, (acc, val) => acc * val);
+                            ShipSize[i] = Math.Pow(product, 1.0 / dimensions);
+                            break;
                     }
                 }
 
-                // save the ship
-                storedVessel.vesselNode = new ConfigNode("VESSEL");
+                testObjects[vesselCount] = new NDTester.OrthogonalObject(ShipSize, 1);
+                vesselCount++;
+            });
 
-                //create a backup of the current state, then save that state
-                ProtoVessel backup = vessel.BackupVessel();
-                backup.Save(storedVessel.vesselNode);
+            double[] ActiveShipSize = new double[dimensions];
 
-                // save the stored information in the hangar
-                storedVessels.Add(storedVessel);
+            ActiveShipSize[0] = Size[0];
+            ActiveShipSize[1] = Size[1];
+            ActiveShipSize[2] = Size[2];
 
-                // remove the stored vessel from the game
-                vessel.MakeInactive();
-                vessel.Unload();
-
-                FlightGlobals.RemoveVessel(vessel);
-                vessel?.protoVessel.Clean();
-
-                KerbalKonstructs.KerbalKonstructs.instance.UpdateCache();
-
-                GamePersistence.SaveGame("persistent", HighLogic.SaveFolder, SaveMode.OVERWRITE);
-                HighLogic.LoadScene(GameScenes.SPACECENTER);
-
-                return true;
+            for (int i = 3; i < dimensions; i++)
+            {
+                switch (hangarInfo.NewDimCalculations[i])
+                {
+                    case NewDimCalculationMode.Fixed:
+                        ActiveShipSize[i] = 1;
+                        break;
+                    case NewDimCalculationMode.Sum:
+                        ActiveShipSize[i] = ActiveShipSize.Sum();
+                        break;
+                    case NewDimCalculationMode.Product:
+                        ActiveShipSize[i] = ActiveShipSize.Aggregate(1.0, (acc, val) => acc * val);
+                        break;
+                    case NewDimCalculationMode.RootProduct:
+                        double product = ActiveShipSize.Aggregate(1.0, (acc, val) => acc * val);
+                        ActiveShipSize[i] = Math.Pow(product, 1.0 / dimensions);
+                        break;
+                }
             }
 
-            return false;
+            testObjects[vesselCount] = new NDTester.OrthogonalObject(ActiveShipSize, 1);
+
+            List<Container> Hangars = new List<Container>();
+
+            for (int i = 0; i <= level; i++)
+            {
+                if (facilityInfo.UpgradeTypes[i] != UpgradeType.withAdditionalGroup && i != level) continue;
+
+                Hangars.Add(new Container(hangarInfo.Sizes[i].Values.ToArray()));
+            }
+
+            Solver solver = new Solver(hangarInfo.Dimension, testObjects, Hangars.ToArray());
+
+            return solver.solve(maxPermutations: maxPermutations, maxProcessors: maxProcessors, stopEarly: true);
+        }
+
+        public bool StoreVessel(Vessel vessel, double? vesselDryMass)
+        {
+
+            Configuration.writeLog($"Storing vessel {vessel.GetDisplayName()} in {name}");
+
+            Vector3 vesselSize = vessel.vesselSize;
+
+            StoredVessel storedVessel = new(vessel.GetDisplayName(), vessel.protoVessel.vesselID, vesselSize.x, vesselSize.y, vesselSize.z);
+
+            if (vesselDryMass == null)
+            {
+                storedVessel.vesselBuildTime = null;
+                storedVessel.entireVesselBuildTime = null;
+            }
+            else
+            {
+                Configuration.writeDebug($"vessel part counts: {vessel.Parts.Count}, mass: {vesselDryMass}");
+                storedVessel.vesselBuildTime = (vessel.Parts.Count + vesselDryMass) * 10 * Configuration.VesselTimeMultiplier;
+                storedVessel.entireVesselBuildTime = storedVessel.vesselBuildTime;
+                storedVessel.vesselDryMass = vesselDryMass;
+            }
+
+            //get the experience and assign the crew to the rooster
+            foreach (Part part in vessel.parts)
+            {
+                int count = part.protoModuleCrew.Count;
+
+                if (count != 0)
+                {
+                    ProtoCrewMember[] crewList = part.protoModuleCrew.ToArray();
+
+                    for (int i = 0; i < count; i++)
+                    {
+                        crewList[i].flightLog.AddEntryUnique(FlightLog.EntryType.Recover);
+                        crewList[i].flightLog.AddEntryUnique(FlightLog.EntryType.Land, FlightGlobals.currentMainBody.name);
+                        crewList[i].ArchiveFlightLog();
+
+                        // remove the crew from the ship
+                        part.RemoveCrewmember(crewList[i]);
+                        KCCrewQuarters.AddKerbalToColony(Colony, crewList[i]);
+                    }
+                }
+            }
+
+            // save the ship
+            storedVessel.vesselNode = new ConfigNode("VESSEL");
+
+            //create a backup of the current state, then save that state
+            ProtoVessel backup = vessel.BackupVessel();
+            backup.Save(storedVessel.vesselNode);
+
+            // save the stored information in the hangar
+            storedVessels.Add(storedVessel);
+
+            // remove the stored vessel from the game
+            vessel.MakeInactive();
+            vessel.Unload();
+
+            FlightGlobals.RemoveVessel(vessel);
+            vessel?.protoVessel.Clean();
+
+            KerbalKonstructs.KerbalKonstructs.instance.UpdateCache();
+
+            GamePersistence.SaveGame("persistent", HighLogic.SaveFolder, SaveMode.OVERWRITE);
+            HighLogic.LoadScene(GameScenes.SPACECENTER);
+
+            return true;
         }
 
         /// <summary>
@@ -379,7 +332,7 @@ namespace KerbalColonies.colonyFacilities
             if (vesselsize == null) vesselsize = vessel.vesselSize;
             Vector3 vesselSize = (Vector3)vesselsize;
 
-            StoredVessel storedVessel = new(vessel.GetDisplayName(), vessel.protoVessel.vesselID, vesselSize.x * vesselSize.y * vesselSize.z * 0.8);
+            StoredVessel storedVessel = new(vessel.GetDisplayName(), vessel.protoVessel.vesselID, vesselSize.x, vesselSize.y, vesselSize.z);
 
             if (vesselDryMass == null)
             {
@@ -473,7 +426,9 @@ namespace KerbalColonies.colonyFacilities
                 vesselNode.AddValue("VesselID", vessel.uuid.ToString());
                 vesselNode.AddValue("VesselName", vessel.vesselName);
                 vesselNode.AddNode(vessel.vesselNode);
-                vesselNode.AddValue("VesselVolume", vessel.vesselVolume);
+                vesselNode.AddValue("x", vessel.x);
+                vesselNode.AddValue("y", vessel.y);
+                vesselNode.AddValue("z", vessel.z);
                 if (vessel.vesselBuildTime != null)
                 {
                     vesselNode.AddValue("VesselBuildTime", vessel.vesselBuildTime);
@@ -497,7 +452,7 @@ namespace KerbalColonies.colonyFacilities
             hangarWindow.Toggle();
         }
 
-        public override string GetFacilityProductionDisplay() => $"{storedVessels.Count}/{hangarInfo.VesselCapacity[level]} vessels stored\n{getStoredVolume():F1}m³/{hangarInfo.Volume(level):F1}m³ used\nSize: {hangarInfo.X[level]:F1}m * {hangarInfo.Y[level]:F1}m *{hangarInfo.Z[level]:F1}m";
+        public override string GetFacilityProductionDisplay() => $"{storedVessels.Count}/{hangarInfo.VesselCapacity[level]} vessels stored\n{getStoredVolume():F1}m³/{hangarInfo.Volume(level):F1}m³ used\nSize: {(string.Concat("\n", string.Join(", ", hangarInfo.Sizes[level].Select(kvp => $"{kvp.Key}: {kvp.Value:f2}"))))}";
 
         public KCHangarFacility(colonyClass colony, KCFacilityInfoClass facilityInfo, ConfigNode node) : base(colony, facilityInfo, node)
         {
@@ -505,7 +460,9 @@ namespace KerbalColonies.colonyFacilities
 
             foreach (ConfigNode vesselNode in node.GetNodes("vessel"))
             {
-                StoredVessel vessel = new(vesselNode.GetValue("VesselName"), Guid.Parse(vesselNode.GetValue("VesselID")), double.Parse(vesselNode.GetValue("VesselVolume")), vesselNode.GetNode("VESSEL"));
+                if (!vesselNode.HasValue("x")) continue;
+
+                StoredVessel vessel = new(vesselNode.GetValue("VesselName"), Guid.Parse(vesselNode.GetValue("VesselID")), double.Parse(vesselNode.GetValue("x")), double.Parse(vesselNode.GetValue("y")), double.Parse(vesselNode.GetValue("z")), vesselNode.GetNode("VESSEL"));
 
                 if (vesselNode.HasValue("VesselBuildTime"))
                 {

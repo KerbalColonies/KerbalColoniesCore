@@ -8,6 +8,7 @@ using KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.FuelCel
 using KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fusion;
 using KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Windturbine;
 using KerbalColonies.colonyFacilities.ElectricityFacilities.ECStorage;
+using KerbalColonies.colonyFacilities.HangarFacility;
 using KerbalColonies.colonyFacilities.KCMiningFacility;
 using KerbalColonies.colonyFacilities.KCResourceConverterFacility;
 using KerbalColonies.colonyFacilities.LaunchPadFacility;

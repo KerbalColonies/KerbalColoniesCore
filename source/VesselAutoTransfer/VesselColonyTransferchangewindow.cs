@@ -29,12 +29,12 @@ namespace KerbalColonies.VesselAutoTransfer
 
         public Vessel vessel => TransferModule.vessel;
         public Vector3 vesselPos => TransferModule.vessel.transform.position;
-        public int VesselPlanetID => TransferModule.vessel.mainBody.flightGlobalsIndex;
+        public string VesselPlanet => TransferModule.vessel.mainBody.name;
 
         Vector2 scrollPos = Vector2.zero;
         protected override void CustomWindow()
         {
-            List<colonyClass> currentbodyColonies = Configuration.colonyDictionary[VesselPlanetID];
+            List<colonyClass> currentbodyColonies = Configuration.colonyDictionary[VesselPlanet];
             List<colonyClass> possibleTargets = currentbodyColonies.Where(c => KCUnifiedColonyStorage.colonyStorages[c].VesselInRange(vessel)).ToList();
 
             if (possibleTargets.Count == 0)

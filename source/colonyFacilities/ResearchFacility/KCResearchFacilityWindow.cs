@@ -1,4 +1,6 @@
-﻿using KerbalColonies.UI;
+﻿using KerbalColonies.colonyFacilities.ProductionFacility;
+using KerbalColonies.UI;
+using System.Linq;
 using UnityEngine;
 
 // KC: Kerbal Colonies
@@ -25,6 +27,7 @@ namespace KerbalColonies.colonyFacilities.ResearchFacility
         KCResearchFacility researchFacility;
         public KerbalGUI kerbalGUI;
 
+        private Vector2 resourceUsageScrollPos = Vector2.zero;
         protected override void CustomWindow()
         {
             researchFacility.Colony.UpdateColony();
@@ -46,15 +49,26 @@ namespace KerbalColonies.colonyFacilities.ResearchFacility
                 researchFacility.RetrieveSciencePoints();
 
 
-            GUILayout.Space(10);
-            GUILayout.BeginHorizontal();
+            if (facility.facilityInfo.ResourceUsage[facility.level].Count > 0)
             {
-                GUILayout.Label($"EC Consumption Priority: {researchFacility.ResourceConsumptionPriority}", GUILayout.Height(18));
-                GUILayout.FlexibleSpace();
-                if (GUILayout.RepeatButton("--", GUILayout.Width(30), GUILayout.Height(23)) | GUILayout.Button("-", GUILayout.Width(30), GUILayout.Height(23))) researchFacility.ResourceConsumptionPriority--;
-                if (GUILayout.Button("+", GUILayout.Width(30), GUILayout.Height(23)) | GUILayout.RepeatButton("++", GUILayout.Width(30), GUILayout.Height(23))) researchFacility.ResourceConsumptionPriority++;
+                GUILayout.Space(10);
+                GUILayout.BeginHorizontal();
+                {
+                    GUILayout.Label($"Resource Consumption Priority: {researchFacility.ResourceConsumptionPriority}", GUILayout.Height(18));
+                    GUILayout.FlexibleSpace();
+                    if (GUILayout.RepeatButton("--", GUILayout.Width(30), GUILayout.Height(23)) | GUILayout.Button("-", GUILayout.Width(30), GUILayout.Height(23))) researchFacility.ResourceConsumptionPriority--;
+                    if (GUILayout.Button("+", GUILayout.Width(30), GUILayout.Height(23)) | GUILayout.RepeatButton("++", GUILayout.Width(30), GUILayout.Height(23))) researchFacility.ResourceConsumptionPriority++;
+                }
+                GUILayout.EndHorizontal();
+                GUILayout.Label("Resource usage:");
+                resourceUsageScrollPos = GUILayout.BeginScrollView(resourceUsageScrollPos, GUILayout.Height(120));
+                {
+                    researchFacility.facilityInfo.ResourceUsage[facility.level].ToList().ForEach(kvp =>
+                        GUILayout.Label($"- {kvp.Key.displayName}: {kvp.Value}/s")
+                    );
+                }
+                GUILayout.EndScrollView();
             }
-            GUILayout.EndHorizontal();
         }
 
         protected override void OnClose()

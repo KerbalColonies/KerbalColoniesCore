@@ -224,7 +224,7 @@ namespace KerbalColonies
         {
             Name = name;
             BodyID = FlightGlobals.GetBodyIndex(FlightGlobals.currentMainBody);
-            ColonyNumber = Configuration.colonyDictionary[FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody)].Count + 1;
+            ColonyNumber = Configuration.colonyDictionary[FlightGlobals.currentMainBody.name].Count + 1;
             CAB = new KC_CAB_Facility(this, CABInfo);
             Facilities = new List<KCFacilityBase>();
             sharedColonyNodes = new List<ConfigNode>();

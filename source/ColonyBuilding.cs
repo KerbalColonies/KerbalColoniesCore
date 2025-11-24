@@ -246,12 +246,12 @@ namespace KerbalColonies
         {
             if (CABSelectorWindow.Instance.IsOpen()) { return 3; }
 
-            if (!Configuration.colonyDictionary.ContainsKey(FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody)))
+            if (!Configuration.colonyDictionary.ContainsKey(FlightGlobals.currentMainBody.name))
             {
-                Configuration.colonyDictionary.Add(FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody), new List<colonyClass> { });
+                Configuration.colonyDictionary.Add(FlightGlobals.currentMainBody.name, new List<colonyClass> { });
             }
 
-            int colonyCount = Configuration.colonyDictionary[FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody)].Count;
+            int colonyCount = Configuration.colonyDictionary[FlightGlobals.currentMainBody.name].Count;
 
             if (colonyCount >= Configuration.MaxColoniesPerBody && Configuration.MaxColoniesPerBody != 0)
             {
@@ -278,14 +278,14 @@ namespace KerbalColonies
 
         internal static void BuildColony(KC_CAB_Info CABInfo)
         {
-            int colonyCount = Configuration.colonyDictionary[FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody)].Count + 1;
+            int colonyCount = Configuration.colonyDictionary[FlightGlobals.currentMainBody.name].Count + 1;
 
             string colonyName = $"KC_{FlightGlobals.currentMainBody.name}_{colonyCount}";
             string groupName = $"{colonyName}_CAB";
 
             colonyClass colony = new colonyClass(colonyName, CABInfo);
 
-            Configuration.colonyDictionary[FlightGlobals.Bodies.IndexOf(FlightGlobals.currentMainBody)].Add(colony);
+            Configuration.colonyDictionary[FlightGlobals.currentMainBody.name].Add(colony);
 
             KC_CAB_Facility cab = colony.CAB;
 

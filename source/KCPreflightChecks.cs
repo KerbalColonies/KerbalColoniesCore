@@ -1,6 +1,7 @@
 ﻿using CustomPreLaunchChecks;
 using KerbalColonies.colonyFacilities;
 using KerbalColonies.colonyFacilities.CrewQuarters;
+using KerbalColonies.colonyFacilities.HangarFacility;
 using KerbalColonies.colonyFacilities.LaunchPadFacility;
 using KerbalColonies.colonyFacilities.ProductionFacility;
 using KerbalColonies.colonyFacilities.StorageFacility;

@@ -207,7 +207,7 @@ namespace KerbalColonies
 
         #region savingV3
 
-        public static Version saveVersion = new Version(4, 0, 0);
+        public static Version saveVersion = new Version(4, 0, 1);
         public static Version loadedSaveVersion;
 
         // New saving
@@ -243,12 +243,7 @@ namespace KerbalColonies
         /// <summary>
         /// This dictionary contains all of the colonies in the current savegame
         /// </summary>
-        internal static Dictionary<int, List<colonyClass>> colonyDictionary = new Dictionary<int, List<colonyClass>> { };
-
-        public static int GetBodyIndex(colonyClass colony)
-        {
-            return colonyDictionary.FirstOrDefault(c => c.Value.Contains(colony)).Key;
-        }
+        internal static Dictionary<string, List<colonyClass>> colonyDictionary = new Dictionary<string, List<colonyClass>> { };
 
         public static colonyClass GetColonyByID(int colonyID) => colonyDictionary.SelectMany(c => c.Value).FirstOrDefault(colony => colony.uniqueID == colonyID);
 
@@ -297,7 +292,7 @@ namespace KerbalColonies
 
         public static void LoadColoniesV4(ConfigNode persistentNode)
         {
-            Version.TryParse(persistentNode.GetValue("version") ?? "4.0.0", out loadedSaveVersion);
+            Version.TryParse(persistentNode.GetValue("version") ?? "4.0.1", out loadedSaveVersion);
             Configuration.writeLog($"Loaded save version: {loadedSaveVersion}");
 
 
@@ -312,12 +307,14 @@ namespace KerbalColonies
                 ConfigNode primaryNode = persistentNode.GetNode("colonyNode");
                 foreach (ConfigNode bodyNode in primaryNode.GetNodes())
                 {
-                    colonyDictionary.TryAdd(int.Parse(bodyNode.name), new List<colonyClass> { });
+                    string bodyName = loadedSaveVersion.Minor > 0 ? bodyNode.name : FlightGlobals.Bodies.First(b => b.flightGlobalsIndex == int.Parse(bodyNode.name)).name;
+
+                    colonyDictionary.TryAdd(bodyName, new List<colonyClass> { });
                     foreach (ConfigNode colonyNode in bodyNode.GetNodes())
                     {
                         try
                         {
-                            colonyDictionary[int.Parse(bodyNode.name)].Add(new colonyClass(colonyNode));
+                            colonyDictionary[bodyName].Add(new colonyClass(colonyNode));
                         }
                         catch (Exception e)
                         {
@@ -377,9 +374,9 @@ namespace KerbalColonies
             int colonyNodeCount = 0;
             int bodyNodeCount = 0;
             ConfigNode ColonyDictionaryNode = new ConfigNode("colonyNode", "The Colony node");
-            foreach (KeyValuePair<int, List<colonyClass>> bodyKVP in colonyDictionary)
+            foreach (KeyValuePair<string, List<colonyClass>> bodyKVP in colonyDictionary)
             {
-                ConfigNode bodyNode = new ConfigNode(bodyKVP.Key.ToString(), "The celestial body id");
+                ConfigNode bodyNode = new ConfigNode(bodyKVP.Key, "The celestial body name");
                 foreach (colonyClass colony in bodyKVP.Value)
                 {
                     try

@@ -55,6 +55,10 @@
       <KSPAssemblyName>KerbalKonstructs</KSPAssemblyName>
       <KSPAssemblyVersion>1.11.0</KSPAssemblyVersion>
     </Reference>
+    <Reference Include="NDTester">
+      <HintPath>..\..\NDTester\NDTester\bin\Release\net481\NDTester.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="ToolbarControl">
       <HintPath>$(KSPRoot)\GameData\001_ToolbarControl\Plugins\ToolbarControl.dll</HintPath>
       <Private>false</Private>
@@ -87,7 +91,7 @@
   </ItemGroup>
   
   <PropertyGroup>
-    <FileVersion>1.1.7.0</FileVersion>
+    <FileVersion>1.2.0.0</FileVersion>
     <AssemblyVersion>1.1.0.0</AssemblyVersion>
   </PropertyGroup>
 

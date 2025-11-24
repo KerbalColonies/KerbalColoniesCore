@@ -26,11 +26,11 @@ namespace KerbalColonies.colonyFacilities.CabFacility
         /// <summary>
         /// All of the default facilties that are queued to be placed after the cab is placed.
         /// </summary>
-        public Dictionary<KCFacilityInfoClass, int> defaultFacilities { get; protected set; } = new Dictionary<KCFacilityInfoClass, int>();
+        public Dictionary<KCFacilityInfoClass, int> defaultFacilities { get; protected set; } = [];
         /// <summary>
         /// All of the default facilties that are queued to be placed before the cab is placed.
         /// </summary>
-        public Dictionary<KCFacilityInfoClass, int> priorityDefaultFacilities { get; protected set; } = new Dictionary<KCFacilityInfoClass, int>();
+        public Dictionary<KCFacilityInfoClass, int> priorityDefaultFacilities { get; protected set; } = [];
         public void addDefaultFacility(KCFacilityInfoClass facilityInfo, int amount)
         {
             if (!defaultFacilities.Any(c => facilityInfo.name == c.Key.name))
@@ -46,10 +46,10 @@ namespace KerbalColonies.colonyFacilities.CabFacility
             }
         }
 
-        public Dictionary<string, int> defaultFacilityStrings { get; protected set; } = new Dictionary<string, int>();
-        public Dictionary<string, int> priorityDefaultFacilityStrings { get; protected set; } = new Dictionary<string, int>();
+        public Dictionary<string, int> defaultFacilityStrings { get; protected set; } = [];
+        public Dictionary<string, int> priorityDefaultFacilityStrings { get; protected set; } = [];
 
-        public SortedDictionary<int, float> EditorRange { get; protected set; } = new SortedDictionary<int, float>();
+        public SortedDictionary<int, float> EditorRange { get; protected set; } = [];
 
         public override void lateInit()
         {

@@ -32,12 +32,12 @@ namespace KerbalColonies.colonyFacilities.KCMiningFacility
 
         public KCMiningFacilityInfo miningFacilityInfo { get { return (KCMiningFacilityInfo)facilityInfo; } }
 
-        public Dictionary<PartResourceDefinition, double> storedResoures { get; protected set; } = new Dictionary<PartResourceDefinition, double> { };
-        public Dictionary<PartResourceDefinition, bool> autoTransferResources { get; set; } = new Dictionary<PartResourceDefinition, bool> { };
-        public Dictionary<PartResourceDefinition, double> autoTransferLimits { get; set; } = new Dictionary<PartResourceDefinition, double> { };
-        public Dictionary<string, Dictionary<PartResourceDefinition, double>> groupDensities { get; protected set; } = new Dictionary<string, Dictionary<PartResourceDefinition, double>> { };
+        public Dictionary<PartResourceDefinition, double> storedResoures { get; protected set; } = [];
+        public Dictionary<PartResourceDefinition, bool> autoTransferResources { get; set; } = [];
+        public Dictionary<PartResourceDefinition, double> autoTransferLimits { get; set; } = [];
+        public Dictionary<string, Dictionary<PartResourceDefinition, double>> groupDensities { get; protected set; } = [];
 
-        protected Dictionary<PartResourceDefinition, double> autoTransferAmounts { get; set; } = new Dictionary<PartResourceDefinition, double> { };
+        protected Dictionary<PartResourceDefinition, double> autoTransferAmounts { get; set; } = [];
 
         public override void WhileBuildingPlaced(GroupCenter kkGroupname)
         {
@@ -45,12 +45,14 @@ namespace KerbalColonies.colonyFacilities.KCMiningFacility
             staticInstance.Update();
 
             KCMiningFacilityPlacementWindow.Instance.newRates.Clear();
-            AbundanceRequest request = new AbundanceRequest();
-            request.BodyId = Colony.BodyID;
-            request.ResourceType = miningFacilityInfo.HarvestType[level];
-            request.Longitude = staticInstance.RefLongitude;
-            request.Latitude = staticInstance.RefLatitude;
-            request.Altitude = kkGroupname.RadiusOffset;
+            AbundanceRequest request = new()
+            {
+                BodyId = Colony.BodyID,
+                ResourceType = miningFacilityInfo.HarvestType[level],
+                Longitude = staticInstance.RefLongitude,
+                Latitude = staticInstance.RefLatitude,
+                Altitude = kkGroupname.RadiusOffset
+            };
             miningFacilityInfo.rates[level].ForEach(rate =>
             {
                 if (rate.useFixedRate) KCMiningFacilityPlacementWindow.Instance.newRates.Add(rate.resource, rate.rate);
@@ -71,13 +73,15 @@ namespace KerbalColonies.colonyFacilities.KCMiningFacility
             KerbalKonstructs.Core.StaticInstance staticInstance = KerbalKonstructs.API.GetGroupStatics(kkgroup.Group, kkgroup.CelestialBody.name).First();
             staticInstance.Update();
 
-            AbundanceRequest request = new AbundanceRequest();
-            request.BodyId = Colony.BodyID;
-            request.ResourceType = miningFacilityInfo.HarvestType[level];
-            request.Longitude = staticInstance.RefLongitude;
-            request.Latitude = staticInstance.RefLatitude;
-            request.Altitude = kkgroup.RadiusOffset;
-            if (!groupDensities.TryAdd(kkgroup.Group, new Dictionary<PartResourceDefinition, double> { })) groupDensities[kkgroup.Group].Clear();
+            AbundanceRequest request = new()
+            {
+                BodyId = Colony.BodyID,
+                ResourceType = miningFacilityInfo.HarvestType[level],
+                Longitude = staticInstance.RefLongitude,
+                Latitude = staticInstance.RefLatitude,
+                Altitude = kkgroup.RadiusOffset
+            };
+            if (!groupDensities.TryAdd(kkgroup.Group, [])) groupDensities[kkgroup.Group].Clear();
 
             miningFacilityInfo.rates[level].ForEach(rate =>
             {
@@ -103,11 +107,11 @@ namespace KerbalColonies.colonyFacilities.KCMiningFacility
 
             groupDensities.ToList().ForEach(kvp => kvp.Value.ToList().ForEach(prdRate =>
             {
-                if (storedResoures.ContainsKey(prdRate.Key)) storedResoures[prdRate.Key] += (prdRate.Value / 6 / 60 / 60) * deltaTime * kerbals.Count;
-                else storedResoures.Add(prdRate.Key, ((prdRate.Value / 6 / 60 / 60) * deltaTime) * kerbals.Count);
+                if (storedResoures.ContainsKey(prdRate.Key)) storedResoures[prdRate.Key] += prdRate.Value / 6 / 60 / 60 * deltaTime * kerbals.Count;
+                else storedResoures.Add(prdRate.Key, prdRate.Value / 6 / 60 / 60 * deltaTime * kerbals.Count);
             }));
 
-            Dictionary<PartResourceDefinition, double> maxPerResource = new Dictionary<PartResourceDefinition, double> { };
+            Dictionary<PartResourceDefinition, double> maxPerResource = [];
             miningFacilityInfo.rates.Where(kvp => kvp.Key <= level).ToList().ForEach(kvp => kvp.Value.ForEach(rate =>
             {
                 if (!maxPerResource.ContainsKey(rate.resource)) maxPerResource.Add(rate.resource, rate.max);
@@ -121,7 +125,7 @@ namespace KerbalColonies.colonyFacilities.KCMiningFacility
                     if (autoTransferLimits[res.Key] > 0)
                     {
                         double colonyAmount = KCUnifiedColonyStorage.colonyStorages[Colony].Resources.GetValueOrDefault(res.Key);
-                        double transferAmount = autoTransferLimits[res.Key] * KCUnifiedColonyStorage.colonyStorages[Colony].ResourceVolume(res.Key) - colonyAmount;
+                        double transferAmount = (autoTransferLimits[res.Key] * KCUnifiedColonyStorage.colonyStorages[Colony].ResourceVolume(res.Key)) - colonyAmount;
 
                         if (transferAmount <= 0) storedResoures[res.Key] = Math.Min(maxPerResource[res.Key], res.Value);
                         else if (res.Value < transferAmount)
@@ -155,7 +159,7 @@ namespace KerbalColonies.colonyFacilities.KCMiningFacility
 
         public override string GetFacilityProductionDisplay()
         {
-            StringBuilder sb = new StringBuilder();
+            StringBuilder sb = new();
             miningFacilityInfo.rates[level].ForEach(rate =>
             {
                 if (storedResoures.ContainsKey(rate.resource))
@@ -185,16 +189,16 @@ namespace KerbalColonies.colonyFacilities.KCMiningFacility
         public Dictionary<PartResourceDefinition, double> ResourceProduction(double lastTime, double deltaTime, double currentTime)
         {
             enabled = built && kerbals.Count > 0 && enabled;
-            if (!enabled || OutOfResources) return new Dictionary<PartResourceDefinition, double>();
+            if (!enabled || OutOfResources) return [];
 
             Dictionary<PartResourceDefinition, double> resources = autoTransferAmounts.ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
             autoTransferAmounts.Clear();
             return resources;
         }
 
-        public Dictionary<PartResourceDefinition, double> ResourcesPerSecond() => enabled ? facilityInfo.ResourceUsage[level].Where(kvp => kvp.Value > 0).ToDictionary(kvp => kvp.Key, kvp => kvp.Value * kerbals.Count) : new Dictionary<PartResourceDefinition, double>();
+        public Dictionary<PartResourceDefinition, double> ResourcesPerSecond() => enabled ? facilityInfo.ResourceUsage[level].Where(kvp => kvp.Value > 0).ToDictionary(kvp => kvp.Key, kvp => kvp.Value * kerbals.Count) : [];
 
-        public Dictionary<PartResourceDefinition, double> ExpectedResourceConsumption(double lastTime, double deltaTime, double currentTime) => enabled ? facilityInfo.ResourceUsage[level].Where(kvp => kvp.Value < 0).ToDictionary(kvp => kvp.Key, kvp => -kvp.Value * deltaTime * kerbals.Count) : new Dictionary<PartResourceDefinition, double>();
+        public Dictionary<PartResourceDefinition, double> ExpectedResourceConsumption(double lastTime, double deltaTime, double currentTime) => enabled ? facilityInfo.ResourceUsage[level].Where(kvp => kvp.Value < 0).ToDictionary(kvp => kvp.Key, kvp => -kvp.Value * deltaTime * kerbals.Count) : [];
 
         public void ConsumeResources(double lastTime, double deltaTime, double currentTime)
         {
@@ -208,16 +212,16 @@ namespace KerbalColonies.colonyFacilities.KCMiningFacility
             return limitingResources;
         }
 
-        public Dictionary<PartResourceDefinition, double> ResourceConsumptionPerSecond() => enabled ? facilityInfo.ResourceUsage[level].Where(kvp => kvp.Value < 0).ToDictionary(kvp => kvp.Key, kvp => -kvp.Value) : new Dictionary<PartResourceDefinition, double>();
+        public Dictionary<PartResourceDefinition, double> ResourceConsumptionPerSecond() => enabled ? facilityInfo.ResourceUsage[level].Where(kvp => kvp.Value < 0).ToDictionary(kvp => kvp.Key, kvp => -kvp.Value) : [];
 
         public override ConfigNode getConfigNode()
         {
             ConfigNode node = base.getConfigNode();
 
-            ConfigNode resourceNode = new ConfigNode("resourceNode");
+            ConfigNode resourceNode = new("resourceNode");
             storedResoures.ToList().ForEach(res =>
             {
-                ConfigNode resNode = new ConfigNode("resource");
+                ConfigNode resNode = new("resource");
                 resNode.AddValue("name", res.Key.name);
                 resNode.AddValue("amount", res.Value);
                 resNode.AddValue("autoTransfer", autoTransferResources[res.Key]);
@@ -225,14 +229,14 @@ namespace KerbalColonies.colonyFacilities.KCMiningFacility
                 resourceNode.AddNode(resNode);
             });
 
-            ConfigNode rateNode = new ConfigNode("rates");
+            ConfigNode rateNode = new("rates");
             groupDensities.ToList().ForEach(kvp =>
             {
-                ConfigNode groupNode = new ConfigNode("group");
+                ConfigNode groupNode = new("group");
                 groupNode.AddValue("groupName", kvp.Key);
                 kvp.Value.ToList().ForEach(res =>
                 {
-                    ConfigNode resNode = new ConfigNode("resource");
+                    ConfigNode resNode = new("resource");
                     resNode.AddValue("resource", res.Key.name);
                     resNode.AddValue("rate", res.Value);
                     groupNode.AddNode(resNode);
@@ -261,7 +265,7 @@ namespace KerbalColonies.colonyFacilities.KCMiningFacility
                 }
             }
 
-            List<PartResourceDefinition> allResources = new List<PartResourceDefinition> { };
+            List<PartResourceDefinition> allResources = [];
 
             miningFacilityInfo.rates.Where(kvp => kvp.Key <= level).ToList().ForEach(kvp => kvp.Value.ForEach(rate =>
             {
@@ -277,12 +281,12 @@ namespace KerbalColonies.colonyFacilities.KCMiningFacility
                 foreach (ConfigNode groupNode in ratesNode.GetNodes("group"))
                 {
                     string groupName = groupNode.GetValue("groupName");
-                    Dictionary<PartResourceDefinition, double> groupRates = new Dictionary<PartResourceDefinition, double> { };
+                    Dictionary<PartResourceDefinition, double> groupRates = [];
                     foreach (ConfigNode resNode in groupNode.GetNodes("resource"))
                     {
                         PartResourceDefinition resDef = PartResourceLibrary.Instance.GetDefinition(resNode.GetValue("resource"));
-                        if (resDef == null) Configuration.writeLog((new NullReferenceException($"The resource {resNode.GetValue("resource")} is not defined in the PartResourceLibrary. Please check your configuration for the facility {facilityInfo.name} (type: {facilityInfo.type}).").ToString()));
-                        else if (!allResources.Contains(resDef)) Configuration.writeLog((new Exception($"Miningfacility: configuration has changed, the resource {resDef.name} is no longer a valid resource for this facility.")).ToString());
+                        if (resDef == null) Configuration.writeLog(new NullReferenceException($"The resource {resNode.GetValue("resource")} is not defined in the PartResourceLibrary. Please check your configuration for the facility {facilityInfo.name} (type: {facilityInfo.type}).").ToString());
+                        else if (!allResources.Contains(resDef)) Configuration.writeLog(new Exception($"Miningfacility: configuration has changed, the resource {resDef.name} is no longer a valid resource for this facility.").ToString());
                         else
                         {
                             double rate = double.Parse(resNode.GetValue("rate"));
@@ -314,13 +318,13 @@ namespace KerbalColonies.colonyFacilities.KCMiningFacility
                         KerbalKonstructs.Core.StaticInstance staticInstance = KerbalKonstructs.API.GetGroupStatics(KKgroups[i - offset], FlightGlobals.Bodies.First(b => FlightGlobals.GetBodyIndex(b) == Colony.BodyID).name).FirstOrDefault();
                         if (staticInstance != null)
                         {
-                            groupDensities.Add(KKgroups[i - offset], new Dictionary<PartResourceDefinition, double> { });
+                            groupDensities.Add(KKgroups[i - offset], []);
                             miningFacilityInfo.rates[i - offset].ForEach(rate =>
                             {
                                 if (rate.useFixedRate) groupDensities[KKgroups[i - offset]].Add(rate.resource, rate.rate);
                                 else
                                 {
-                                    AbundanceRequest request = new AbundanceRequest
+                                    AbundanceRequest request = new()
                                     {
                                         BodyId = Colony.BodyID,
                                         ResourceType = HarvestTypes.Planetary,

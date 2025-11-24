@@ -25,10 +25,10 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities
 {
     public class KCECTestWindow : KCFacilityWindowBase
     {
-        KCECTestFacility ecFacility => (KCECTestFacility)facility;
+        private KCECTestFacility ecFacility => (KCECTestFacility)facility;
 
-        List<double> valueList = new List<double> { -10000, -1000, -100, -10, -1, 1, 10, 100, 1000, 10000 };
-        List<int> ints = new List<int> { -10, -5, -1, 1, 5, 10 };
+        private List<double> valueList = [-10000, -1000, -100, -10, -1, 1, 10, 100, 1000, 10000];
+        private List<int> ints = [-10, -5, -1, 1, 5, 10];
         protected override void CustomWindow()
         {
             facility.Colony.UpdateColony();
@@ -67,7 +67,7 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities
 
     public class KCECTestFacility : KCFacilityBase, IKCResourceProducer, IKCResourceConsumer
     {
-        KCECTestWindow window;
+        private KCECTestWindow window;
 
         public double ECProduced { get; set; } = 0.0;
 
@@ -75,11 +75,11 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities
 
         public int ResourceConsumptionPriority { get; set; } = 0;
 
-        public Dictionary<PartResourceDefinition, double> ResourceProduction(double lastTime, double deltaTime, double currentTime) => new Dictionary<PartResourceDefinition, double> { { PartResourceLibrary.Instance.GetDefinition("ElectricCharge"), Math.Max(0, ECProduced) * deltaTime } };
+        public Dictionary<PartResourceDefinition, double> ResourceProduction(double lastTime, double deltaTime, double currentTime) => new() { { PartResourceLibrary.Instance.GetDefinition("ElectricCharge"), Math.Max(0, ECProduced) * deltaTime } };
 
-        public Dictionary<PartResourceDefinition, double> ResourcesPerSecond() => new Dictionary<PartResourceDefinition, double> { { PartResourceLibrary.Instance.GetDefinition("ElectricCharge"), Math.Max(0, ECProduced) } };
+        public Dictionary<PartResourceDefinition, double> ResourcesPerSecond() => new() { { PartResourceLibrary.Instance.GetDefinition("ElectricCharge"), Math.Max(0, ECProduced) } };
 
-        public Dictionary<PartResourceDefinition, double> ExpectedResourceConsumption(double lastTime, double deltaTime, double currentTime) => new Dictionary<PartResourceDefinition, double> { { PartResourceLibrary.Instance.GetDefinition("ElectricCharge"), Math.Max(0, -ECProduced) * deltaTime } };
+        public Dictionary<PartResourceDefinition, double> ExpectedResourceConsumption(double lastTime, double deltaTime, double currentTime) => new() { { PartResourceLibrary.Instance.GetDefinition("ElectricCharge"), Math.Max(0, -ECProduced) * deltaTime } };
 
         public void ConsumeResources(double lastTime, double deltaTime, double currentTime)
         {
@@ -87,11 +87,11 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities
 
         public Dictionary<PartResourceDefinition, double> InsufficientResources(double lastTime, double deltaTime, double currentTime, Dictionary<PartResourceDefinition, double> sufficientResources, Dictionary<PartResourceDefinition, double> limitingResources)
         {
-            if (ECProduced >= 0) return new Dictionary<PartResourceDefinition, double>();
+            if (ECProduced >= 0) return [];
             Configuration.writeDebug($"Insufficient EC in {DisplayName} facility.");
             ECProduced = 0;
 
-            return new Dictionary<PartResourceDefinition, double>();
+            return [];
         }
 
         public Dictionary<PartResourceDefinition, double> ResourceConsumptionPerSecond()

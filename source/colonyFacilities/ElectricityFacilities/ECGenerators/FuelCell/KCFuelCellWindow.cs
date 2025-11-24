@@ -25,11 +25,11 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fue
 {
     public class KCFuelCellWindow : KCFacilityWindowBase
     {
-        KCFuelCellFacility fuelCellFacility => (KCFuelCellFacility)facility;
+        private KCFuelCellFacility fuelCellFacility => (KCFuelCellFacility)facility;
 
-        Vector2 resourceProductionScrollPos = Vector2.zero;
-        Vector2 resourceUseageScrollPos = new Vector2();
-        Vector2 resourceDeltaScrollPos = new Vector2();
+        private Vector2 resourceProductionScrollPos = Vector2.zero;
+        private Vector2 resourceUseageScrollPos = new();
+        private Vector2 resourceDeltaScrollPos = new();
         protected override void CustomWindow()
         {
             facility.Colony.UpdateColony();
@@ -75,7 +75,7 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fue
 
         public KCFuelCellWindow(KCFuelCellFacility facility) : base(facility, Configuration.createWindowID())
         {
-            this.toolRect = new Rect(100, 100, 330, 600);
+            toolRect = new Rect(100, 100, 330, 600);
         }
 
     }

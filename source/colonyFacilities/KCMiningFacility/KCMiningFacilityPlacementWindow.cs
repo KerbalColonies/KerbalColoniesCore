@@ -29,17 +29,14 @@ namespace KerbalColonies.colonyFacilities.KCMiningFacility
         {
             get
             {
-                if (instance == null)
-                {
-                    instance = new KCMiningFacilityPlacementWindow();
-                }
+                instance ??= new KCMiningFacilityPlacementWindow();
                 return instance;
             }
         }
 
-        public Dictionary<PartResourceDefinition, double> newRates { get; set; } = new Dictionary<PartResourceDefinition, double> { };
+        public Dictionary<PartResourceDefinition, double> newRates { get; set; } = [];
 
-        Vector2 scrollPos = new Vector2();
+        private Vector2 scrollPos = new();
         protected override void CustomWindow()
         {
             scrollPos = GUILayout.BeginScrollView(scrollPos);
@@ -51,7 +48,7 @@ namespace KerbalColonies.colonyFacilities.KCMiningFacility
 
         public KCMiningFacilityPlacementWindow() : base(Configuration.createWindowID(), "Miningfacility placement info")
         {
-            this.toolRect = new Rect(100, 100, 400, 300);
+            toolRect = new Rect(100, 100, 400, 300);
         }
     }
 }

@@ -23,7 +23,7 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECStorage
 {
     public class KCECStorageInfo : KCStorageFacilityInfo
     {
-        public SortedDictionary<int, double> ECCapacity { get; protected set; } = new SortedDictionary<int, double>();
+        public SortedDictionary<int, double> ECCapacity { get; protected set; } = [];
 
         public KCECStorageInfo(ConfigNode node) : base(node)
         {

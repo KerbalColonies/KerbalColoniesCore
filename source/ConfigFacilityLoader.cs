@@ -48,15 +48,12 @@ namespace KerbalColonies
         {
             get
             {
-                if (instance == null)
-                {
-                    instance = new FacilityConfigExceptionWindow();
-                }
+                instance ??= new FacilityConfigExceptionWindow();
                 return !ConfigFacilityLoader.loaded ? instance : null;
             }
         }
 
-        Vector2 scrollPosition = new Vector2(0, 0);
+        private Vector2 scrollPosition = new(0, 0);
 
         protected override void OnClose()
         {
@@ -111,8 +108,8 @@ namespace KerbalColonies
         // Also includes a node for the base group names
         // display name and facility type
 
-        public static List<string> failedConfigs = new List<string>();
-        public static List<Exception> exceptions = new List<Exception>();
+        public static List<string> failedConfigs = [];
+        public static List<Exception> exceptions = [];
         public static bool loaded = false;
 
         protected void Awake()
@@ -218,17 +215,17 @@ namespace KerbalColonies
                     if (node.HasValue("name"))
                     {
                         failedConfigs.Add(node.GetValue("name"));
-                        Configuration.writeLog($"Invalid facility config: {node.GetValue("name")} \n\nConfig: {node.ToString()} \n\nException: {e}");
+                        Configuration.writeLog($"Invalid facility config: {node.GetValue("name")} \n\nConfig: {node} \n\nException: {e}");
                     }
                     else
                     {
                         failedConfigs.Add("Unknown");
-                        Configuration.writeLog($"Invalid facility config without a name: {node.ToString()} \n\nException: {e}");
+                        Configuration.writeLog($"Invalid facility config without a name: {node} \n\nException: {e}");
                     }
                 }
             }
 
-            List<KCFacilityInfoClass> invalidFacilities = new List<KCFacilityInfoClass> { };
+            List<KCFacilityInfoClass> invalidFacilities = [];
             Configuration.BuildableFacilities.ForEach(f =>
             {
                 try
@@ -240,10 +237,10 @@ namespace KerbalColonies
                     invalidFacilities.Add(f);
                     exceptions.Add(e);
                     failedConfigs.Add(f.name);
-                    Configuration.writeLog($"Invalid facility config: {f.name} \n\nConfig: {f.ToString()} \n\nException: {e}");
+                    Configuration.writeLog($"Invalid facility config: {f.name} \n\nConfig: {f} \n\nException: {e}");
                 }
             });
-            List<KC_CAB_Info> invalidCABInfos = new List<KC_CAB_Info>();
+            List<KC_CAB_Info> invalidCABInfos = [];
             Configuration.CabTypes.ForEach(f =>
             {
                 try
@@ -255,7 +252,7 @@ namespace KerbalColonies
                     invalidCABInfos.Add(f);
                     exceptions.Add(e);
                     failedConfigs.Add(f.name);
-                    Configuration.writeLog($"Invalid CAB config: {f.name} \n\nConfig: {f.ToString()} \n\nException: {e}");
+                    Configuration.writeLog($"Invalid CAB config: {f.name} \n\nConfig: {f} \n\nException: {e}");
                 }
             });
             invalidCABInfos.ForEach(f =>

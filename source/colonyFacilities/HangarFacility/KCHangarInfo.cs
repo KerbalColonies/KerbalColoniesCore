@@ -50,7 +50,7 @@ namespace KerbalColonies.colonyFacilities.HangarFacility
         {
             levelNodes.ToList().ForEach(n =>
             {
-                Sizes.Add(n.Key, new SortedDictionary<int, double>());
+                Sizes.Add(n.Key, []);
                 if (n.Value.HasNode("size"))
                 {
                     ConfigNode sizeNode = n.Value.GetNode("size");
@@ -68,8 +68,9 @@ namespace KerbalColonies.colonyFacilities.HangarFacility
                 else if (n.Key > 0) Sizes.Add(n.Key, Sizes[n.Key - 1]);
                 else throw new Exception($"Missing \"size\" node for level {n.Key}");
 
-                if (n.Value.HasValue("capacity")) VesselCapacity[n.Key] = int.Parse(n.Value.GetValue("capacity"));
-                else VesselCapacity[n.Key] = n.Key > 0
+                VesselCapacity[n.Key] = n.Value.HasValue("capacity")
+                    ? int.Parse(n.Value.GetValue("capacity"))
+                    : n.Key > 0
                     ? VesselCapacity[n.Key - 1]
                     : int.MaxValue;
             });

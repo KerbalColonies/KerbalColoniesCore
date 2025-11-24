@@ -30,14 +30,14 @@ namespace KerbalColonies.VesselAutoTransfer
         /// Key: PartModuleID
         /// Value: Transfer Info
         /// </summary>
-        public static Dictionary<uint, KCTransferInfo> ActiveTransfers { get; protected set; } = new Dictionary<uint, KCTransferInfo> { };
+        public static Dictionary<uint, KCTransferInfo> ActiveTransfers { get; protected set; } = [];
 
         public class KCColonyResourceTransferHandler : IKCResourceProducer, IKCResourceConsumer
         {
             public uint partModuleID { get; private set; }
 
-            public Dictionary<PartResourceDefinition, double> ResourceRates { get; set; } = new Dictionary<PartResourceDefinition, double>();
-            public List<PartResourceDefinition> LimitedResources { get; set; } = new List<PartResourceDefinition>();
+            public Dictionary<PartResourceDefinition, double> ResourceRates { get; set; } = [];
+            public List<PartResourceDefinition> LimitedResources { get; set; } = [];
 
             public int ResourceConsumptionPriority { get; set; } = 0;
 
@@ -66,9 +66,9 @@ namespace KerbalColonies.VesselAutoTransfer
             {
                 Configuration.writeDebug($"Creating EC transfer handler with partModuleID {partModuleID}");
 
-                if (!KCResourceManager.otherProducers.ContainsKey(colony)) KCResourceManager.otherProducers.Add(colony, new List<IKCResourceProducer>());
-                if (!KCResourceManager.otherConsumers.ContainsKey(colony)) KCResourceManager.otherConsumers.Add(colony, new SortedDictionary<int, List<IKCResourceConsumer>>());
-                if (!KCResourceManager.otherConsumers[colony].ContainsKey(0)) KCResourceManager.otherConsumers[colony].Add(0, new List<IKCResourceConsumer>());
+                if (!KCResourceManager.otherProducers.ContainsKey(colony)) KCResourceManager.otherProducers.Add(colony, []);
+                if (!KCResourceManager.otherConsumers.ContainsKey(colony)) KCResourceManager.otherConsumers.Add(colony, []);
+                if (!KCResourceManager.otherConsumers[colony].ContainsKey(0)) KCResourceManager.otherConsumers[colony].Add(0, []);
 
                 Configuration.writeDebug($"Existing EC transfer handlers count: {KCResourceManager.otherProducers[colony].OfType<KCColonyResourceTransferHandler>().Count()}");
                 //foreach (KCColonyTransferECHandler item in KCECManager.otherProducers[colony].ToList().OfType<KCColonyTransferECHandler>())

@@ -31,8 +31,8 @@ namespace KerbalColonies.colonyFacilities.StorageFacility
             Vessel_only,
         }
 
-        KCStorageFacility storageFacility;
-        public HashSet<PartResourceDefinition> allResources = new HashSet<PartResourceDefinition>();
+        private KCStorageFacility storageFacility;
+        public HashSet<PartResourceDefinition> allResources = [];
         protected Vector2 scrollPos;
 
         public void GetVesselResources()
@@ -96,7 +96,7 @@ namespace KerbalColonies.colonyFacilities.StorageFacility
             return vesselMaxAmount - vesselAmount;
         }
 
-        SortedDictionary<PartResourceDefinition, ResourceTransferAvailable> AvailableResources;
+        private SortedDictionary<PartResourceDefinition, ResourceTransferAvailable> AvailableResources;
         protected double transferAmount = 0;
         protected string transferAmountString = "0";
         protected bool trashResources = false;
@@ -112,12 +112,12 @@ namespace KerbalColonies.colonyFacilities.StorageFacility
             GUILayout.Label($"UsedVolume: {storageFacility.unifiedColonyStorage.UsedVolume:f2}", LabelGreen, GUILayout.Height(18));
             GUILayout.EndHorizontal();
             GUILayout.Space(2);
-            List<double> valueList = new List<double> { 0.01, 0.1, 1, 10, 100, 1000, 10000, 100000 };
+            List<double> valueList = [0.01, 0.1, 1, 10, 100, 1000, 10000, 100000];
 
 
             KCStorageFacilityInfo info = storageFacility.storageInfo;
 
-            bool canTranfer = FlightGlobals.ActiveVessel != null ? storageFacility.unifiedColonyStorage.VesselInRange(FlightGlobals.ActiveVessel) : false;
+            bool canTranfer = FlightGlobals.ActiveVessel != null && storageFacility.unifiedColonyStorage.VesselInRange(FlightGlobals.ActiveVessel);
             canTranfer |= trashResources;
 
 

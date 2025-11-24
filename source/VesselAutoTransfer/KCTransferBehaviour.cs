@@ -37,20 +37,21 @@ namespace KerbalColonies.VesselAutoTransfer
             BackgroundResourceProcessing.Core.InventoryState inventoryState = state.Processor.GetResourceState("ElectricCharge");
             Configuration.writeDebug($"KCTransferBehaviour GetResources called for vessel {state.Processor.Vessel.vesselName}. EC remaining: {inventoryState.amount}/{inventoryState.maxAmount}, {inventoryState.rate}/s");
 
-            ConverterResources resources = new ConverterResources();
-
-            resources.Inputs = new List<ResourceRatio>();
-            resources.Outputs = new List<ResourceRatio>();
-            resources.Requirements = new List<ResourceConstraint>();
+            ConverterResources resources = new()
+            {
+                Inputs = [],
+                Outputs = [],
+                Requirements = []
+            };
 
 
             PartResourceDefinition EC = PartResourceLibrary.Instance.GetDefinition("ElectricCharge");
 
             transferInfo?.resources.ForEach(res =>
             {
-                ResourceRatio ratio = new ResourceRatio(res.name, transferInfo.ResourcesTarget[res], false);
+                ResourceRatio ratio = new(res.name, transferInfo.ResourcesTarget[res], false);
 
-                ResourceConstraint constraint = new ResourceConstraint(ratio);
+                ResourceConstraint constraint = new(ratio);
                 double requirement = transferInfo.VesselTransferLimits[res] * state.Processor.GetResourceState(res.name).maxAmount;
                 constraint.Amount = requirement;
 
@@ -165,7 +166,7 @@ namespace KerbalColonies.VesselAutoTransfer
 
         public KCTransferBehaviour(ModuleKCTransfer module)
         {
-            this.transferMode = module.transferMode;
+            transferMode = module.transferMode;
 
             KCTransferInfo info = module.transferInfo;
 
@@ -175,9 +176,9 @@ namespace KerbalColonies.VesselAutoTransfer
                 return;
             }
 
-            this.transferInfo = info;
-            this.lastUpdateTime = module.lastUpdateTime;
-            this.Priority = int.MinValue;
+            transferInfo = info;
+            lastUpdateTime = module.lastUpdateTime;
+            Priority = int.MinValue;
         }
     }
 }

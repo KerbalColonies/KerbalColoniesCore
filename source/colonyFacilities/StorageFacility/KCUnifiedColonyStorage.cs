@@ -24,9 +24,9 @@ namespace KerbalColonies.colonyFacilities.StorageFacility
 {
     public class KCUnifiedColonyStorage : IKCResourceStorage
     {
-        public static Dictionary<colonyClass, KCUnifiedColonyStorage> colonyStorages = new Dictionary<colonyClass, KCUnifiedColonyStorage>();
+        public static Dictionary<colonyClass, KCUnifiedColonyStorage> colonyStorages = [];
 
-        public List<KCStorageFacility> storageFacilities = new List<KCStorageFacility>();
+        public List<KCStorageFacility> storageFacilities = [];
 
         public int Priority { get; set; } = 0;
         public double Volume => storageFacilities.Sum(facility => facility.locked ? 0 : facility.maxVolume);
@@ -113,12 +113,12 @@ namespace KerbalColonies.colonyFacilities.StorageFacility
         {
             if (!colonyStorages.ContainsKey(colony)) return;
 
-            ConfigNode storageNode = new ConfigNode("KCUnifiedColonyStorage");
+            ConfigNode storageNode = new("KCUnifiedColonyStorage");
             KCUnifiedColonyStorage colonyStorage = colonyStorages[colony];
 
             storageNode.AddValue("Priority", colonyStorage.Priority);
 
-            ConfigNode resourceNode = new ConfigNode("Resources");
+            ConfigNode resourceNode = new("Resources");
             colonyStorage.Resources.ToList().ForEach(kvp =>
             {
                 resourceNode.AddValue(kvp.Key.name, kvp.Value);
@@ -138,9 +138,7 @@ namespace KerbalColonies.colonyFacilities.StorageFacility
 
         public static KCUnifiedColonyStorage GetOrCreateColonyStorage(colonyClass colony, KCStorageFacility facility)
         {
-            KCUnifiedColonyStorage storage;
-            if (colonyStorages.ContainsKey(colony)) storage = colonyStorages[colony];
-            else storage = new KCUnifiedColonyStorage(colony);
+            KCUnifiedColonyStorage storage = colonyStorages.ContainsKey(colony) ? colonyStorages[colony] : new KCUnifiedColonyStorage(colony);
             storage.storageFacilities.Add(facility);
             return storage;
         }
@@ -150,8 +148,8 @@ namespace KerbalColonies.colonyFacilities.StorageFacility
         {
             colonyStorages[colony] = this;
 
-            KCResourceManager.otherStorages.TryAdd(colony, new SortedDictionary<int, List<IKCResourceStorage>>());
-            KCResourceManager.otherStorages[colony].TryAdd(Priority, new List<IKCResourceStorage>());
+            KCResourceManager.otherStorages.TryAdd(colony, []);
+            KCResourceManager.otherStorages[colony].TryAdd(Priority, []);
             KCResourceManager.otherStorages[colony].ToList().ForEach(kvp => kvp.Value.RemoveAll(s => s is KCUnifiedColonyStorage));
             KCResourceManager.otherStorages[colony][Priority].Add(this);
 

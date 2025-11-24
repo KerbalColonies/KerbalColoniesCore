@@ -1,5 +1,4 @@
-﻿using KerbalColonies.colonyFacilities.ProductionFacility;
-using KerbalColonies.UI;
+﻿using KerbalColonies.UI;
 using System.Linq;
 using UnityEngine;
 
@@ -24,7 +23,7 @@ namespace KerbalColonies.colonyFacilities.ResearchFacility
 {
     public class KCResearchFacilityWindow : KCFacilityWindowBase
     {
-        KCResearchFacility researchFacility;
+        private KCResearchFacility researchFacility;
         public KerbalGUI kerbalGUI;
 
         private Vector2 resourceUsageScrollPos = Vector2.zero;
@@ -32,10 +31,7 @@ namespace KerbalColonies.colonyFacilities.ResearchFacility
         {
             researchFacility.Colony.UpdateColony();
 
-            if (kerbalGUI == null)
-            {
-                kerbalGUI = new KerbalGUI(researchFacility, true);
-            }
+            kerbalGUI ??= new KerbalGUI(researchFacility, true);
 
             GUILayout.BeginHorizontal();
             GUILayout.Label($"Science Points: {researchFacility.SciencePoints:f2}");
@@ -84,7 +80,7 @@ namespace KerbalColonies.colonyFacilities.ResearchFacility
         {
             this.researchFacility = researchFacility;
             toolRect = new Rect(100, 100, 400, 800);
-            this.kerbalGUI = null;
+            kerbalGUI = null;
         }
     }
 }

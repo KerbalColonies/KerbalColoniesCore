@@ -28,7 +28,7 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECStorage
         public static double ColonyECCapacity(colonyClass colony) => KCFacilityBase.GetAllTInColony<KCECStorageFacility>(colony).Sum(f => f.ECCapacity);
         public static SortedDictionary<int, KCECStorageFacility> StoragePriority(colonyClass colony)
         {
-            SortedDictionary<int, KCECStorageFacility> dict = new SortedDictionary<int, KCECStorageFacility>(KCFacilityBase.GetAllTInColony<KCECStorageFacility>(colony)
+            SortedDictionary<int, KCECStorageFacility> dict = new(KCFacilityBase.GetAllTInColony<KCECStorageFacility>(colony)
 .ToDictionary(f => f.ECStoragePriority, f => f));
             dict.Reverse();
             return dict;

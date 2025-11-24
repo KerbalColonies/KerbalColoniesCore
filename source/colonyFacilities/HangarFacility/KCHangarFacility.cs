@@ -239,7 +239,7 @@ namespace KerbalColonies.colonyFacilities.HangarFacility
 
             testObjects[vesselCount] = new NDTester.OrthogonalObject(ActiveShipSize, 1);
 
-            List<Container> Hangars = new List<Container>();
+            List<Container> Hangars = [];
 
             for (int i = 0; i <= level; i++)
             {
@@ -248,7 +248,7 @@ namespace KerbalColonies.colonyFacilities.HangarFacility
                 Hangars.Add(new Container(hangarInfo.Sizes[i].Values.ToArray()));
             }
 
-            Solver solver = new Solver(hangarInfo.Dimension, testObjects, Hangars.ToArray());
+            Solver solver = new(hangarInfo.Dimension, testObjects, Hangars.ToArray());
 
             return solver.solve(maxPermutations: maxPermutations, maxProcessors: maxProcessors, stopEarly: true);
         }

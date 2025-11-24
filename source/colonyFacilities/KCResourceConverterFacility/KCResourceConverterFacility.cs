@@ -42,8 +42,8 @@ namespace KerbalColonies.colonyFacilities.KCResourceConverterFacility
                     }
                     Configuration.writeDebug($"Loading conversion rate {conversionName}");
                     string displayName = node.GetValue("displayName");
-                    Dictionary<PartResourceDefinition, double> InputResources = new Dictionary<PartResourceDefinition, double>();
-                    Dictionary<PartResourceDefinition, double> OutputResources = new Dictionary<PartResourceDefinition, double>();
+                    Dictionary<PartResourceDefinition, double> InputResources = [];
+                    Dictionary<PartResourceDefinition, double> OutputResources = [];
 
                     ConfigNode inputNode = node.GetNode("inputResources");
                     foreach (ConfigNode.Value v in inputNode.values)
@@ -107,11 +107,11 @@ namespace KerbalColonies.colonyFacilities.KCResourceConverterFacility
                         continue;
                     }
                     string recipeName = node.GetValue("recipeName");
-                    List<string> recipeNames = new List<string> { };
+                    List<string> recipeNames = [];
                     if (recipeName != null) recipeNames = recipeName.Split(',').ToList().Select(s => s.Trim()).ToList();
 
                     string conversionListName = node.GetValue("conversionList");
-                    List<string> conversionList = new List<string> { };
+                    List<string> conversionList = [];
                     if (conversionListName != null) conversionList = conversionListName.Split(',').ToList().Select(s => s.Trim()).ToList();
 
                     if (conversionList.Count == 0 && recipeNames.Count == 0)
@@ -143,21 +143,20 @@ namespace KerbalColonies.colonyFacilities.KCResourceConverterFacility
 
         public ResourceConversionList availableRecipes() => ((KCResourceConverterInfo)facilityInfo).availableRecipes[level];
         public ResourceConversionRate activeRecipe { get; protected set; }
-        public Dictionary<PartResourceDefinition, bool> resourceLimitsEnabled = new Dictionary<PartResourceDefinition, bool> { };
-        public Dictionary<PartResourceDefinition, double> resourceLimits = new Dictionary<PartResourceDefinition, double> { };
+        public Dictionary<PartResourceDefinition, bool> resourceLimitsEnabled = [];
+        public Dictionary<PartResourceDefinition, double> resourceLimits = [];
 
-        protected Dictionary<PartResourceDefinition, double> lastResourceProduction = new Dictionary<PartResourceDefinition, double> { };
-        protected Dictionary<PartResourceDefinition, double> lastResourceConsumption = new Dictionary<PartResourceDefinition, double> { };
+        protected Dictionary<PartResourceDefinition, double> lastResourceProduction = [];
+        protected Dictionary<PartResourceDefinition, double> lastResourceConsumption = [];
 
         public KCResourceConverterInfo info => (KCResourceConverterInfo)facilityInfo;
         public int ISRUcount()
         {
             IEnumerable<KeyValuePair<int, int>> isruCounts = AvailableISRUCounts.Where(kvp => kerbals.Count >= info.minKerbals[kvp.Key]);
-            if (isruCounts.Count() > 0) return isruCounts.Max(kvp => kvp.Value);
-            else return 0;
+            return isruCounts.Count() > 0 ? isruCounts.Max(kvp => kvp.Value) : 0;
         }
         public int LevelISRUcount() => info.ISRUcount[level];
-        public SortedDictionary<int, int> AvailableISRUCounts => new SortedDictionary<int, int>(info.ISRUcount.Where(kvp => kvp.Key <= level).ToDictionary(kvp => kvp.Key, kvp => kvp.Value));
+        public SortedDictionary<int, int> AvailableISRUCounts => new(info.ISRUcount.Where(kvp => kvp.Key <= level).ToDictionary(kvp => kvp.Key, kvp => kvp.Value));
 
 
         protected KCResourceConverterWindow kCResourceConverterWindow;
@@ -193,7 +192,7 @@ namespace KerbalColonies.colonyFacilities.KCResourceConverterFacility
             if (activeRecipe == null) return;
             if (!canExecuteRecipe(dTime)) return;
 
-            double ISRUdTime = this.ISRUcount() * dTime;
+            double ISRUdTime = ISRUcount() * dTime;
 
             foreach (KeyValuePair<PartResourceDefinition, double> kvp in activeRecipe.InputResources)
             {
@@ -215,7 +214,7 @@ namespace KerbalColonies.colonyFacilities.KCResourceConverterFacility
             if (!enabled) return false;
             else if (activeRecipe == null) return false;
             else if (outOfResources) { enabled = enabled && !outOfResourceDisable; return false; }
-            double ISRUdTime = this.ISRUcount() * dTime;
+            double ISRUdTime = ISRUcount() * dTime;
 
             double availableVolume = KCUnifiedColonyStorage.colonyStorages[Colony].FreeVolume;
 
@@ -239,7 +238,7 @@ namespace KerbalColonies.colonyFacilities.KCResourceConverterFacility
 
                 availableVolume -= remainingResource * kvp.Key.volume;
 
-                if (availableVolume < 0 || resourceLimitsEnabled[kvp.Key] && KCUnifiedColonyStorage.colonyStorages[Colony].Resources.GetValueOrDefault(kvp.Key) + remainingResource > resourceLimits[kvp.Key])
+                if (availableVolume < 0 || (resourceLimitsEnabled[kvp.Key] && KCUnifiedColonyStorage.colonyStorages[Colony].Resources.GetValueOrDefault(kvp.Key) + remainingResource > resourceLimits[kvp.Key]))
                 {
                     enabled = enabled && !outOfResourceDisable;
                     resourceLimited = true;
@@ -257,14 +256,14 @@ namespace KerbalColonies.colonyFacilities.KCResourceConverterFacility
         {
             executeRecipe(deltaTime);
 
-            Dictionary<PartResourceDefinition, double> producedResources = new Dictionary<PartResourceDefinition, double>(lastResourceProduction);
+            Dictionary<PartResourceDefinition, double> producedResources = new(lastResourceProduction);
             lastResourceProduction.Clear();
             return producedResources;
         }
 
-        public Dictionary<PartResourceDefinition, double> ResourcesPerSecond() => enabled && !resourceLimited ? activeRecipe.OutputResources.ToDictionary(kvp => kvp.Key, kvp => kvp.Value * ISRUcount()) : new Dictionary<PartResourceDefinition, double> { };
+        public Dictionary<PartResourceDefinition, double> ResourcesPerSecond() => enabled && !resourceLimited ? activeRecipe.OutputResources.ToDictionary(kvp => kvp.Key, kvp => kvp.Value * ISRUcount()) : [];
 
-        public Dictionary<PartResourceDefinition, double> ExpectedResourceConsumption(double lastTime, double deltaTime, double currentTime) => enabled && !resourceLimited ? activeRecipe.OutputResources.ToDictionary(kvp => kvp.Key, kvp => kvp.Value * ISRUcount() * deltaTime) : new Dictionary<PartResourceDefinition, double> { };
+        public Dictionary<PartResourceDefinition, double> ExpectedResourceConsumption(double lastTime, double deltaTime, double currentTime) => enabled && !resourceLimited ? activeRecipe.OutputResources.ToDictionary(kvp => kvp.Key, kvp => kvp.Value * ISRUcount() * deltaTime) : [];
 
         public void ConsumeResources(double lastTime, double deltaTime, double currentTime)
         {
@@ -299,8 +298,8 @@ namespace KerbalColonies.colonyFacilities.KCResourceConverterFacility
             node.AddValue("outOfResourceDisable", outOfResourceDisable);
             node.AddValue("ECConsumptionPriority", ResourceConsumptionPriority);
 
-            ConfigNode limitsEnabledNode = new ConfigNode("resourceLimitsEnabled");
-            ConfigNode limitsNode = new ConfigNode("resourceLimits");
+            ConfigNode limitsEnabledNode = new("resourceLimitsEnabled");
+            ConfigNode limitsNode = new("resourceLimits");
             resourceLimits.ToList().ForEach(kvp =>
             {
                 limitsEnabledNode.AddValue(kvp.Key.name, resourceLimitsEnabled[kvp.Key]);
@@ -316,11 +315,12 @@ namespace KerbalColonies.colonyFacilities.KCResourceConverterFacility
         {
             kCResourceConverterWindow = new KCResourceConverterWindow(this);
 
-            if (node.GetValue("recipe") == null) activeRecipe = availableRecipes().GetRecipes().FirstOrDefault();
-            else activeRecipe = ResourceConversionRate.GetConversionRate(node.GetValue("recipe"));
+            activeRecipe = node.GetValue("recipe") == null
+                ? availableRecipes().GetRecipes().FirstOrDefault()
+                : ResourceConversionRate.GetConversionRate(node.GetValue("recipe"));
             if (activeRecipe == null) throw new MissingFieldException($"The facility {facilityInfo.name} (type: {facilityInfo.type}) has no recipe called {node.GetValue("recipe")}.");
             if (bool.TryParse(node.GetValue("outOfResourceDisable"), out bool outOfResourceDisable)) this.outOfResourceDisable = outOfResourceDisable;
-            if (int.TryParse(node.GetValue("ECConsumptionPriority"), out int ecConsumptionPriority)) this.ResourceConsumptionPriority = ecConsumptionPriority;
+            if (int.TryParse(node.GetValue("ECConsumptionPriority"), out int ecConsumptionPriority)) ResourceConsumptionPriority = ecConsumptionPriority;
 
             if (node.HasNode("resourceLimitsEnabled"))
             {

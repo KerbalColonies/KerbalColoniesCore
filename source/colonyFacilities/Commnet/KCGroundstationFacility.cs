@@ -26,26 +26,23 @@ namespace KerbalColonies.colonyFacilities.Commnet
 {
     public class KCGroundstationWindow : KCFacilityWindowBase
     {
-        KCGroundstationFacility groundStation;
+        private KCGroundstationFacility groundStation;
         public KerbalGUI kerbalGUI;
 
-        bool changeNodeNode = false;
-        KCCommNetNodeInfo targetInstance;
-        string newName;
-        Vector2 scrollPos = Vector2.zero;
-        Vector2 resourceUsageScrollPos = Vector2.zero;
+        private bool changeNodeNode = false;
+        private KCCommNetNodeInfo targetInstance;
+        private string newName;
+        private Vector2 scrollPos = Vector2.zero;
+        private Vector2 resourceUsageScrollPos = Vector2.zero;
         protected override void CustomWindow()
         {
-            if (kerbalGUI == null)
-            {
-                kerbalGUI = new KerbalGUI(groundStation, true);
-            }
+            kerbalGUI ??= new KerbalGUI(groundStation, true);
 
             facility.Colony.UpdateColony();
 
             GUILayout.BeginHorizontal();
             {
-                GUILayout.BeginVertical(GUILayout.Width(toolRect.width / 2 - 10));
+                GUILayout.BeginVertical(GUILayout.Width((toolRect.width / 2) - 10));
                 {
                     GUILayout.Label($"Commnet nodes from this facility:");
                     scrollPos = GUILayout.BeginScrollView(scrollPos);
@@ -104,7 +101,7 @@ namespace KerbalColonies.colonyFacilities.Commnet
                     }
                 }
                 GUILayout.EndVertical();
-                GUILayout.BeginVertical(GUILayout.Width(toolRect.width / 2 - 10));
+                GUILayout.BeginVertical(GUILayout.Width((toolRect.width / 2) - 10));
                 {
                     kerbalGUI.StaffingInterface();
                 }
@@ -129,7 +126,7 @@ namespace KerbalColonies.colonyFacilities.Commnet
 
     public class KCGroundstationFacility : KCKerbalFacilityBase, IKCResourceConsumer
     {
-        public SortedSet<KCCommNetNodeInfo> commNetNodes { get; set; } = new SortedSet<KCCommNetNodeInfo>();
+        public SortedSet<KCCommNetNodeInfo> commNetNodes { get; set; } = [];
         public KCGroundstationWindow groundstationWindow { get; protected set; }
         public KCGroundStationInfo groundStationInfo => (KCGroundStationInfo)facilityInfo;
         public bool rebuildCommNetNodes { get; set; } = false;
@@ -138,7 +135,7 @@ namespace KerbalColonies.colonyFacilities.Commnet
         {
             Configuration.writeLog($"KC CommNetFacility: OnGroupPlaced {facilityInfo.BasegroupNames[level]}");
 
-            double newRange = (groundStationInfo.range[level] + groundStationInfo.kerbalRange[level] * kerbals.Count) * (1 + groundStationInfo.kerbalMultiplier[level] * kerbals.Count);
+            double newRange = (groundStationInfo.range[level] + (groundStationInfo.kerbalRange[level] * kerbals.Count)) * (1 + (groundStationInfo.kerbalMultiplier[level] * kerbals.Count));
 
             KCCommNetNodeInfo oldNode = commNetNodes.FirstOrDefault(node => node.GroupCenter == kkgroup);
             if (oldNode != null)
@@ -148,7 +145,7 @@ namespace KerbalColonies.colonyFacilities.Commnet
                 return;
             }
 
-            KCCommNetNodeInfo newNode = new KCCommNetNodeInfo(kkgroup, null, newRange, true, facilityLevel: level);
+            KCCommNetNodeInfo newNode = new(kkgroup, null, newRange, true, facilityLevel: level);
             commNetNodes.Add(newNode);
 
             CommNet.CommNetNetwork.Reset();
@@ -178,7 +175,7 @@ namespace KerbalColonies.colonyFacilities.Commnet
             {
                 rebuildCommNetNodes = false;
                 commNetNodes.ToList().ForEach(node =>
-                    node.SetRange((groundStationInfo.range[node.FacilityLevel] + groundStationInfo.kerbalRange[node.FacilityLevel] * kerbals.Count) * (1 + groundStationInfo.kerbalMultiplier[node.FacilityLevel] * kerbals.Count))
+                    node.SetRange((groundStationInfo.range[node.FacilityLevel] + (groundStationInfo.kerbalRange[node.FacilityLevel] * kerbals.Count)) * (1 + (groundStationInfo.kerbalMultiplier[node.FacilityLevel] * kerbals.Count)))
                 );
             }
         }
@@ -195,7 +192,7 @@ namespace KerbalColonies.colonyFacilities.Commnet
         public bool OutOfResources { get; protected set; } = false;
         public int ResourceConsumptionPriority { get; set; } = 0;
 
-        public Dictionary<PartResourceDefinition, double> ExpectedResourceConsumption(double lastTime, double deltaTime, double currentTime) => enabled || OutOfResources ? facilityInfo.ResourceUsage[level].Where(kvp => kvp.Value < 0).ToDictionary(kvp => kvp.Key, kvp => -kvp.Value * deltaTime) : new Dictionary<PartResourceDefinition, double> { };
+        public Dictionary<PartResourceDefinition, double> ExpectedResourceConsumption(double lastTime, double deltaTime, double currentTime) => enabled || OutOfResources ? facilityInfo.ResourceUsage[level].Where(kvp => kvp.Value < 0).ToDictionary(kvp => kvp.Key, kvp => -kvp.Value * deltaTime) : [];
 
         public void ConsumeResources(double lastTime, double deltaTime, double currentTime) => OutOfResources = false;
 
@@ -206,7 +203,7 @@ namespace KerbalColonies.colonyFacilities.Commnet
             return limitingResources;
         }
 
-        public Dictionary<PartResourceDefinition, double> ResourceConsumptionPerSecond() => enabled || OutOfResources ? facilityInfo.ResourceUsage[level].Where(kvp => kvp.Value < 0).ToDictionary(kvp => kvp.Key, kvp => -kvp.Value) : new Dictionary<PartResourceDefinition, double> { };
+        public Dictionary<PartResourceDefinition, double> ResourceConsumptionPerSecond() => enabled || OutOfResources ? facilityInfo.ResourceUsage[level].Where(kvp => kvp.Value < 0).ToDictionary(kvp => kvp.Key, kvp => -kvp.Value) : [];
 
 
         public override ConfigNode getConfigNode()
@@ -222,7 +219,7 @@ namespace KerbalColonies.colonyFacilities.Commnet
         {
             node.GetNodes("CommNetNode").ToList().ForEach(n =>
             {
-                KCCommNetNodeInfo commNetNode = new KCCommNetNodeInfo(this, n);
+                KCCommNetNodeInfo commNetNode = new(this, n);
                 commNetNodes.Add(commNetNode);
             });
 

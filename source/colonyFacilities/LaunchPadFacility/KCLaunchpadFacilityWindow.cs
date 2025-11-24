@@ -23,14 +23,14 @@ namespace KerbalColonies.colonyFacilities.LaunchPadFacility
 {
     public class KCLaunchpadFacilityWindow : KCFacilityWindowBase
     {
-        KCLaunchpadFacility launchpad;
+        private KCLaunchpadFacility launchpad;
 
-        bool changeLaunchpadName = false;
-        KerbalKonstructs.Core.StaticInstance targetInstance;
-        int launchSiteNum;
-        string newName;
-        Vector2 scrollPos = Vector2.zero;
-        Vector2 resourceUsageScrollPos = Vector2.zero;
+        private bool changeLaunchpadName = false;
+        private KerbalKonstructs.Core.StaticInstance targetInstance;
+        private int launchSiteNum;
+        private string newName;
+        private Vector2 scrollPos = Vector2.zero;
+        private Vector2 resourceUsageScrollPos = Vector2.zero;
         protected override void CustomWindow()
         {
             facility.Colony.UpdateColony();

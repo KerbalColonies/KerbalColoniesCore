@@ -28,7 +28,7 @@ namespace KerbalColonies.UI
 {
     public class Changelogwindow : KCSingleTimeWindowBase
     {
-        string ParseMarkdownToGUI(string markdown)
+        private string ParseMarkdownToGUI(string markdown)
         {
             markdown = markdown.Replace("\\n", "\n");
 
@@ -36,14 +36,9 @@ namespace KerbalColonies.UI
             {
                 return $"<size=20><b>{markdown.Substring(2).Trim()}</b></size>";
             }
-            else if (markdown.StartsWith("- "))
-            {
-                return $"• {markdown.Substring(2).Trim()}";
-            }
             else
             {
-                if (markdown.Trim() == "") return "\n";
-                else return markdown.Trim();
+                return markdown.StartsWith("- ") ? $"• {markdown.Substring(2).Trim()}" : markdown.Trim() == "" ? "\n" : markdown.Trim();
             }
         }
 
@@ -55,12 +50,12 @@ namespace KerbalColonies.UI
             public string Url; // Only set if Type == Link
         }
 
-        List<MarkdownSegment> ParseMarkdownLine(string line)
+        private List<MarkdownSegment> ParseMarkdownLine(string line)
         {
             var regex = new Regex(@"\[(.+?)\]\((.+?)\)");
             var matches = regex.Matches(line);
 
-            List<MarkdownSegment> segments = new List<MarkdownSegment>();
+            List<MarkdownSegment> segments = [];
             int lastIndex = 0;
 
             foreach (Match match in matches)
@@ -93,12 +88,12 @@ namespace KerbalColonies.UI
             return segments;
         }
 
-        List<string> changelogText;
+        private List<string> changelogText;
 
-        Vector2 scrollpos;
+        private Vector2 scrollpos;
         protected override void CustomWindow()
         {
-            GUIStyle linkButton = new GUIStyle(GUI.skin.button);
+            GUIStyle linkButton = new(GUI.skin.button);
             linkButton.normal.background = null;
             linkButton.hover.background = null;
             linkButton.active.background = null;
@@ -133,7 +128,7 @@ namespace KerbalColonies.UI
 
         protected override void OnClose()
         {
-            ConfigNode node = new ConfigNode("ShowKCChangelog");
+            ConfigNode node = new("ShowKCChangelog");
 #if DEBUG
             node.AddValue("ShowKCChangelog", "True");
 #else
@@ -141,7 +136,7 @@ namespace KerbalColonies.UI
 #endif
             string path = $"{Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)}{Path.DirectorySeparatorChar}..{Path.DirectorySeparatorChar}Configs{Path.DirectorySeparatorChar}ShowChangelog.cfg";
 
-            ConfigNode n = new ConfigNode();
+            ConfigNode n = new();
             n.AddNode(node);
             n.Save(path);
         }
@@ -168,7 +163,7 @@ namespace KerbalColonies.UI
             {
                 try
                 {
-                    changelogText = new List<string>();
+                    changelogText = [];
                     File.ReadAllLines($"{Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)}{Path.DirectorySeparatorChar}..{Path.DirectorySeparatorChar}KCChangelog.md").ToList().ForEach(l => changelogText.Add(ParseMarkdownToGUI(l)));
 
                     toolRect = new Rect(Screen.width / 3f, Screen.height * 0.1f, Screen.width / 3f, Screen.height * 0.8f);
@@ -176,7 +171,7 @@ namespace KerbalColonies.UI
                 catch (Exception e)
                 {
                     Debug.LogError($"Kerbal Colonies: Error loading changelog file: {e.Message}");
-                    changelogText = new List<string> { "Error loading changelog. Please check the log for details." };
+                    changelogText = ["Error loading changelog. Please check the log for details."];
                 }
             }
         }

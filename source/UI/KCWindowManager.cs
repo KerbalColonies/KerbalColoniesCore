@@ -44,7 +44,7 @@ namespace KerbalColonies.UI
 
         private Action draw;
 
-        private List<KCWindow> openWindows = new List<KCWindow> { };
+        private List<KCWindow> openWindows = [];
 
         /// <summary>
         /// First called before start. used settig up internal vaiabled
@@ -59,7 +59,7 @@ namespace KerbalColonies.UI
             instance = this;
             //DontDestroyOnLoad(KCInstance);
             draw = delegate { };
-            openWindows = new List<KCWindow>();
+            openWindows = [];
         }
 
         #region Monobehavior functions
@@ -147,12 +147,7 @@ namespace KerbalColonies.UI
         /// <returns></returns>
         public static bool IsOpen(KCWindow drawfunct)
         {
-            if (instance == null)
-            {
-                return false;
-            }
-
-            return instance.openWindows.Contains(drawfunct);
+            return instance != null && instance.openWindows.Contains(drawfunct);
         }
 
 

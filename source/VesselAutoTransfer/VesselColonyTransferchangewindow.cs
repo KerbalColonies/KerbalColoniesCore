@@ -31,7 +31,7 @@ namespace KerbalColonies.VesselAutoTransfer
         public Vector3 vesselPos => TransferModule.vessel.transform.position;
         public string VesselPlanet => TransferModule.vessel.mainBody.name;
 
-        Vector2 scrollPos = Vector2.zero;
+        private Vector2 scrollPos = Vector2.zero;
         protected override void CustomWindow()
         {
             List<colonyClass> currentbodyColonies = Configuration.colonyDictionary[VesselPlanet];
@@ -51,7 +51,7 @@ namespace KerbalColonies.VesselAutoTransfer
                     {
                         TransferModule.transferInfo = new KCTransferInfo(c, TransferModule.PersistentId, TransferModule.vessel.persistentId);
                         Configuration.writeLog($"Changed target colony of vessel {vessel.vesselName} to colony {c.Name}.");
-                        this.Close();
+                        Close();
                     }
                 });
             }
@@ -60,9 +60,9 @@ namespace KerbalColonies.VesselAutoTransfer
 
         public VesselColonyTransferchangewindow(ModuleKCTransfer transferModule) : base(Configuration.createWindowID(), "Change target colony", false)
         {
-            this.TransferModule = transferModule;
+            TransferModule = transferModule;
 
-            this.toolRect = new Rect(100, 100, 300, 250);
+            toolRect = new Rect(100, 100, 300, 250);
         }
     }
 }

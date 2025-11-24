@@ -23,26 +23,26 @@ namespace KerbalColonies.colonyFacilities.KCResourceConverterFacility
 {
     public class ResourceConversionRate
     {
-        public static HashSet<ResourceConversionRate> conversionRates = new HashSet<ResourceConversionRate> { };
+        public static HashSet<ResourceConversionRate> conversionRates = [];
 
         public static ResourceConversionRate GetConversionRate(string name) => conversionRates.FirstOrDefault(rcr => rcr.RecipeName == name);
 
         public static bool operator ==(ResourceConversionRate a, ResourceConversionRate b)
         {
-            if (ReferenceEquals(a, null) && ReferenceEquals(b, null)) return true;
-            else if (ReferenceEquals(a, null) || ReferenceEquals(b, null)) return false;
+            if (a is null && b is null) return true;
+            else if (a is null || b is null) return false;
             return a.RecipeName == b.RecipeName;
         }
         public static bool operator !=(ResourceConversionRate a, ResourceConversionRate b)
         {
-            if (ReferenceEquals(a, null) && ReferenceEquals(b, null)) return false;
-            else if (ReferenceEquals(a, null) || ReferenceEquals(b, null)) return true;
+            if (a is null && b is null) return false;
+            else if (a is null || b is null) return true;
             return a.RecipeName != b.RecipeName;
         }
 
         public override bool Equals(object obj)
         {
-            return obj is ResourceConversionRate && ((ResourceConversionRate)obj).recipeName == this.recipeName;
+            return obj is ResourceConversionRate && ((ResourceConversionRate)obj).recipeName == recipeName;
         }
 
         public override int GetHashCode()
@@ -64,7 +64,7 @@ namespace KerbalColonies.colonyFacilities.KCResourceConverterFacility
         public ResourceConversionRate(string recipeName, string displayName, Dictionary<PartResourceDefinition, double> inputResources, Dictionary<PartResourceDefinition, double> outputResources)
         {
             this.recipeName = recipeName;
-            this.DisplayName = displayName;
+            DisplayName = displayName;
             this.inputResources = inputResources;
             this.outputResources = outputResources;
 

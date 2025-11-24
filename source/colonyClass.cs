@@ -36,30 +36,23 @@ namespace KerbalColonies
 
         public static bool operator ==(ColonyAction action0, ColonyAction action1)
         {
-            if (ReferenceEquals(null, action0) && ReferenceEquals(null, action1)) return true;
-            if (ReferenceEquals(null, action0) || ReferenceEquals(null, action1)) return false;
-            else return action0.action == action1.action;
+            return action0 is null && action1 is null || action0 is not null && action1 is not null && action0.action == action1.action;
         }
 
         public static bool operator !=(ColonyAction action0, ColonyAction action1)
         {
-            if (ReferenceEquals(null, action0) && ReferenceEquals(null, action1)) return false;
-            if (ReferenceEquals(null, action0) || ReferenceEquals(null, action1)) return true;
-            else return action0.action != action1.action;
+            return (action0 is not null || action1 is not null) && (action0 is null || action1 is null || action0.action != action1.action);
         }
 
         public int CompareTo(ColonyAction other)
         {
-            if (other == null) return 1;
-            return priority.CompareTo(other.priority);
+            return other == null ? 1 : priority.CompareTo(other.priority);
         }
 
         public int Compare(ColonyAction x, ColonyAction y)
         {
             if (x == null && y == null) return 0;
-            if (x == null) return -1;
-            if (y == null) return 1;
-            return x.priority.CompareTo(y.priority);
+            return x == null ? -1 : y == null ? 1 : x.priority.CompareTo(y.priority);
         }
 
         public override bool Equals(object obj) => obj is ColonyAction action && this.action == action.action;
@@ -76,33 +69,29 @@ namespace KerbalColonies
     public class colonyClass : IComparable<colonyClass>, IComparer<colonyClass>
     {
         #region comparison
-        public int uniqueID => BodyID * 100000 + ColonyNumber;
+        public int uniqueID => (BodyID * 100000) + ColonyNumber;
 
         public int CompareTo(colonyClass other) => uniqueID.CompareTo(other.uniqueID);
 
         public int Compare(colonyClass x, colonyClass y)
         {
-            if (ReferenceEquals(null, x) && ReferenceEquals(null, y)) return 0;
-            else if (ReferenceEquals(null, x)) return -1;
-            else if (ReferenceEquals(null, y)) return 1;
+            if (x is null && y is null) return 0;
+            else if (x is null) return -1;
+            else if (y is null) return 1;
             return x.uniqueID.CompareTo(y.uniqueID);
         }
 
         public static bool operator ==(colonyClass colony0, colonyClass colony1)
         {
-            if (ReferenceEquals(null, colony0) && ReferenceEquals(null, colony1)) return true;
-            if (ReferenceEquals(null, colony0) || ReferenceEquals(null, colony1)) return false;
-            else return colony0.uniqueID == colony1.uniqueID;
+            return colony0 is null && colony1 is null || colony0 is not null && colony1 is not null && colony0.uniqueID == colony1.uniqueID;
         }
 
         public static bool operator !=(colonyClass colony0, colonyClass colony1)
         {
-            if (ReferenceEquals(null, colony0) && ReferenceEquals(null, colony1)) return false;
-            if (ReferenceEquals(null, colony0) || ReferenceEquals(null, colony1)) return true;
-            else return colony0.uniqueID != colony1.uniqueID;
+            return (colony0 is not null || colony1 is not null) && (colony0 is null || colony1 is null || colony0.uniqueID != colony1.uniqueID);
         }
 
-        public override bool Equals(object obj) => obj is colonyClass colony && this.uniqueID == colony.uniqueID;
+        public override bool Equals(object obj) => obj is colonyClass colony && uniqueID == colony.uniqueID;
         public override int GetHashCode() => uniqueID.GetHashCode();
         #endregion
 
@@ -114,23 +103,23 @@ namespace KerbalColonies
         /// ColonyPreLoad is called BEFORE the facilities are loaded but AFTER the shared nodes are loaded.
         /// Warning: Priorities must be unique!
         /// </summary>
-        public static SortedSet<ColonyAction> ColonyPreLoad = new SortedSet<ColonyAction> { };
+        public static SortedSet<ColonyAction> ColonyPreLoad = [];
         /// <summary>
         /// ColonyLoad is called AFTER the facilities are loaded.
         /// Warning: Priorities must be unique!
         /// </summary>
-        public static SortedSet<ColonyAction> ColonyLoad = new SortedSet<ColonyAction> { };
-        public static SortedSet<ColonyAction> ColonyUpdate = new SortedSet<ColonyAction> { };
+        public static SortedSet<ColonyAction> ColonyLoad = [];
+        public static SortedSet<ColonyAction> ColonyUpdate = [];
         /// <summary>
         /// ColonyPresave is called BEFORE anything is saved.
         /// Warning: Priorities must be unique!
         /// </summary>
-        public static SortedSet<ColonyAction> ColonyPreSave = new SortedSet<ColonyAction> { };
+        public static SortedSet<ColonyAction> ColonyPreSave = [];
         /// <summary>
         /// ColonySave is called AFTER the config node is created but BEFORE it is saved to the disk
         /// Warning: Priorities must be unique!
         /// </summary>
-        public static SortedSet<ColonyAction> ColonySave = new SortedSet<ColonyAction> { };
+        public static SortedSet<ColonyAction> ColonySave = [];
 
         public static colonyClass GetColony(string name)
         {
@@ -160,18 +149,18 @@ namespace KerbalColonies
 
             ColonyPreSave.ToList().ForEach(actionClass => actionClass.action.Invoke(this));
 
-            ConfigNode node = new ConfigNode("colonyClass");
+            ConfigNode node = new("colonyClass");
             node.AddValue("name", Name);
             node.AddValue("displayName", DisplayName);
             node.AddValue("useCustomDisplayName", UseCustomDisplayName);
             node.AddValue("colonyNumber", ColonyNumber);
             node.AddValue("bodyID", BodyID);
 
-            ConfigNode colonyNodes = new ConfigNode("sharedColonyNodes");
-            this.sharedColonyNodes.ForEach(x => colonyNodes.AddNode(x));
+            ConfigNode colonyNodes = new("sharedColonyNodes");
+            sharedColonyNodes.ForEach(x => colonyNodes.AddNode(x));
             node.AddNode(colonyNodes);
 
-            ConfigNode CABNode = new ConfigNode("CAB");
+            ConfigNode CABNode = new("CAB");
 
             CABNode.AddNode(CAB.getConfigNode());
             node.AddNode(CABNode);
@@ -180,7 +169,7 @@ namespace KerbalColonies
             {
                 try
                 {
-                    ConfigNode facilityNode = new ConfigNode("facility");
+                    ConfigNode facilityNode = new("facility");
 
                     ConfigNode facilityConfigNode = facility.getConfigNode();
                     if (facilityConfigNode.name == "facilityNode")
@@ -226,8 +215,8 @@ namespace KerbalColonies
             BodyID = FlightGlobals.GetBodyIndex(FlightGlobals.currentMainBody);
             ColonyNumber = Configuration.colonyDictionary[FlightGlobals.currentMainBody.name].Count + 1;
             CAB = new KC_CAB_Facility(this, CABInfo);
-            Facilities = new List<KCFacilityBase>();
-            sharedColonyNodes = new List<ConfigNode>();
+            Facilities = [];
+            sharedColonyNodes = [];
 
             ColonyPreLoad.ToList().ForEach(actionClass => actionClass.action.Invoke(this));
             ColonyLoad.ToList().ForEach(actionClass => actionClass.action.Invoke(this));
@@ -242,10 +231,10 @@ namespace KerbalColonies
             BodyID = int.Parse(node.GetValue("bodyID"));
             ColonyNumber = int.Parse(node.GetValue("colonyNumber"));
 
-            Facilities = new List<KCFacilityBase>();
+            Facilities = [];
             sharedColonyNodes = node.GetNode("sharedColonyNodes").GetNodes().ToList();
             Configuration.writeLog($"Loading colony {Name} with {sharedColonyNodes.Count} shared nodes");
-            sharedColonyNodes.ForEach(x => Configuration.writeDebug($"Shared node: {x.name}\n{x.ToString()}"));
+            sharedColonyNodes.ForEach(x => Configuration.writeDebug($"Shared node: {x.name}\n{x}"));
 
             ColonyPreLoad.ToList().ForEach(actionClass => actionClass.action.Invoke(this));
 
@@ -264,7 +253,7 @@ namespace KerbalColonies
                 catch (Exception e)
                 {
                     Configuration.writeLog($"Unable to load the facility {facility.name}: {e}");
-                    Configuration.writeLog($"ConfigNode: {facility.ToString()}");
+                    Configuration.writeLog($"ConfigNode: {facility}");
                 }
 
                 ConfigNode CABNode = node.GetNode("CAB");

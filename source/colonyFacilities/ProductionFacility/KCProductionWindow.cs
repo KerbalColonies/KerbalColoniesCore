@@ -24,17 +24,17 @@ namespace KerbalColonies.colonyFacilities.ProductionFacility
 {
     public class KCProductionWindow : KCFacilityWindowBase
     {
-        KCProductionFacility productionFacility;
+        private KCProductionFacility productionFacility;
         public KerbalGUI kerbalGUI;
-        string selectedType = null;
-        Vector2 scrollPosTypeOverview = new Vector2();
-        Vector2 scrollPosTypes = new Vector2();
-        Vector2 scrollPosUnfinishedFacilities = new Vector2();
-        Vector2 scrollPosVesselCost = new Vector2();
-        Vector2 resourceUsageScrollPos = new Vector2();
+        private string selectedType = null;
+        private Vector2 scrollPosTypeOverview = new();
+        private Vector2 scrollPosTypes = new();
+        private Vector2 scrollPosUnfinishedFacilities = new();
+        private Vector2 scrollPosVesselCost = new();
+        private Vector2 resourceUsageScrollPos = new();
 
         private int cabLevel;
-        private SortedDictionary<string, List<KCFacilityInfoClass>> sortedTypes = new SortedDictionary<string, List<KCFacilityInfoClass>>() { };
+        private SortedDictionary<string, List<KCFacilityInfoClass>> sortedTypes = [];
         public SortedDictionary<string, List<KCFacilityInfoClass>> SortedTypes => sortedTypes;
 
         public void addType(KCFacilityInfoClass info)
@@ -43,7 +43,7 @@ namespace KerbalColonies.colonyFacilities.ProductionFacility
             if (!KCTechTreeHandler.CanBuild(info, 0)) return;
 
             if (sortedTypes == null) sortedTypes = new SortedDictionary<string, List<KCFacilityInfoClass>>() { { info.category, new List<KCFacilityInfoClass> { info } } };
-            else if (!sortedTypes.ContainsKey(info.category)) sortedTypes.Add(info.category, new List<KCFacilityInfoClass> { info });
+            else if (!sortedTypes.ContainsKey(info.category)) sortedTypes.Add(info.category, [info]);
             else if (!sortedTypes[info.category].Contains(info)) sortedTypes[info.category].Add(info);
         }
 
@@ -59,10 +59,7 @@ namespace KerbalColonies.colonyFacilities.ProductionFacility
         {
             facility.Colony.UpdateColony();
 
-            if (kerbalGUI == null)
-            {
-                kerbalGUI = new KerbalGUI(productionFacility, true);
-            }
+            kerbalGUI ??= new KerbalGUI(productionFacility, true);
 
             if (sortedTypes.Count == 0) addAllTypes();
 
@@ -153,7 +150,7 @@ namespace KerbalColonies.colonyFacilities.ProductionFacility
                             {
                                 GUILayout.BeginHorizontal();
                                 double max = pair.Key.facilityInfo.UpgradeTimes[0] * Configuration.FacilityTimeMultiplier;
-                                GUILayout.Label($"{pair.Key.DisplayName}: {(max - pair.Value):f2}/{max:f2}");
+                                GUILayout.Label($"{pair.Key.DisplayName}: {max - pair.Value:f2}/{max:f2}");
                                 GUILayout.EndHorizontal();
                                 GUILayout.Space(10);
                                 GUILayout.Box("", GUILayout.ExpandWidth(true), GUILayout.Height(1));
@@ -217,7 +214,7 @@ namespace KerbalColonies.colonyFacilities.ProductionFacility
                             if (GUILayout.Button("Use this facility type to build vessels"))
                             {
                                 Configuration.writeDebug($"Facility {productionFacility.name} is now used to build vessels.");
-                                ConfigNode vesselBuildInfo = new ConfigNode("vesselBuildInfo");
+                                ConfigNode vesselBuildInfo = new("vesselBuildInfo");
                                 vesselBuildInfo.AddValue("facilityConfig", productionFacility.name);
                                 vesselBuildInfo.AddValue("facilityLevel", productionFacility.level);
                                 productionFacility.Colony.sharedColonyNodes.Add(vesselBuildInfo);
@@ -246,15 +243,15 @@ namespace KerbalColonies.colonyFacilities.ProductionFacility
                                 {
                                     for (int i = 0; i < t.resourceCost[0].Count; i++)
                                     {
-                                        GUILayout.Label($"{t.resourceCost[0].ElementAt(i).Key.displayName}: {(t.resourceCost[0].ElementAt(i).Value * Configuration.FacilityCostMultiplier):f2}");
+                                        GUILayout.Label($"{t.resourceCost[0].ElementAt(i).Key.displayName}: {t.resourceCost[0].ElementAt(i).Value * Configuration.FacilityCostMultiplier:f2}");
                                     }
                                 }
                                 GUILayout.EndVertical();
                                 GUILayout.FlexibleSpace();
                                 GUILayout.BeginVertical();
-                                GUILayout.Label($"Funds: {((t.Funds.Count > 0 ? t.Funds[0] : 0) * Configuration.FacilityCostMultiplier):f2}");
+                                GUILayout.Label($"Funds: {(t.Funds.Count > 0 ? t.Funds[0] : 0) * Configuration.FacilityCostMultiplier:f2}");
                                 //GUILayout.Label($"ECperSecond: {t.ECperSecond}");
-                                GUILayout.Label($"Time: {(t.UpgradeTimes[0] * Configuration.FacilityTimeMultiplier):f2}");
+                                GUILayout.Label($"Time: {t.UpgradeTimes[0] * Configuration.FacilityTimeMultiplier:f2}");
                                 if (!cabLevelPass) GUILayout.Label($"Minimum CAB Level: {t.MinCABLevel[0]}");
                                 GUILayout.EndVertical();
 
@@ -298,8 +295,8 @@ namespace KerbalColonies.colonyFacilities.ProductionFacility
 
         public KCProductionWindow(KCProductionFacility facility) : base(facility, Configuration.createWindowID())
         {
-            this.productionFacility = facility;
-            this.kerbalGUI = null;
+            productionFacility = facility;
+            kerbalGUI = null;
             toolRect = new Rect(100, 100, 620, 700);
         }
     }

@@ -75,8 +75,8 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fus
 
         public override List<ProtoCrewMember> filterKerbals(List<ProtoCrewMember> kerbals) => base.filterKerbals(kerbals).Where(k => k.experienceLevel >= FusionInfo.MinKerbalLevel[level]).ToList();
 
-        public SortedDictionary<int, double> AvailablePowerLevels() => new SortedDictionary<int, double>(FusionInfo.ECProduction.Where(kvp => kvp.Key <= level).ToDictionary(kvp => kvp.Key, kvp => kvp.Value));
-        public SortedDictionary<int, double> PossiblePowerLevels() => new SortedDictionary<int, double>(AvailablePowerLevels().Where(kvp =>
+        public SortedDictionary<int, double> AvailablePowerLevels() => new(FusionInfo.ECProduction.Where(kvp => kvp.Key <= level).ToDictionary(kvp => kvp.Key, kvp => kvp.Value));
+        public SortedDictionary<int, double> PossiblePowerLevels() => new(AvailablePowerLevels().Where(kvp =>
         {
             if (FusionInfo.MinKerbals[kvp.Key] > kerbals.Count) return false;
             foreach (KeyValuePair<string, int> traitKVP in FusionInfo.RequiredTraits[kvp.Key])
@@ -268,7 +268,7 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fus
                     ChangePowerTarget(lastPowerLevel.Value * currentThrottle, lastPowerLevel.Value * ThrottleTarget, currentTime);
                 }
             }
-            else if ((OldOutput < TargetOutput && ThrottleTarget < OldThrottleTarget || OldOutput > TargetOutput && ThrottleTarget > OldThrottleTarget) && !ResetPowerTarget)
+            else if (((OldOutput < TargetOutput && ThrottleTarget < OldThrottleTarget) || (OldOutput > TargetOutput && ThrottleTarget > OldThrottleTarget)) && !ResetPowerTarget)
             {
                 StopChangingPowerTarget(currentTime);
                 ResetThrottleTarget = true;
@@ -286,12 +286,12 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fus
 
             b = 4 * FusionInfo.MaxECChangeRate[level] / a * Math.Sign(targetOutput - oldOutput);
 
-            ChangeDuration = Math.Abs((-1 / b) * Math.Log((a / (a - FusionInfo.ECChangeThreshold[level])) - 1)) * 2;
+            ChangeDuration = Math.Abs(-1 / b * Math.Log((a / (a - FusionInfo.ECChangeThreshold[level])) - 1)) * 2;
 
             while (ChangeDuration < FusionInfo.MinECRateChangeTime[level])
             {
                 b *= 0.99;
-                ChangeDuration = Math.Abs((-1 / b) * Math.Log((a / (a - FusionInfo.ECChangeThreshold[level])) - 1)) * 2;
+                ChangeDuration = Math.Abs(-1 / b * Math.Log((a / (a - FusionInfo.ECChangeThreshold[level])) - 1)) * 2;
             }
 
             ChangeTime = currentTime;
@@ -307,15 +307,14 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fus
 
             if (currentTime - ChangeTime > ChangeDuration / 2) return;
 
-            double x = currentTime - ChangeTime - ChangeDuration / 2;
+            double x = currentTime - ChangeTime - (ChangeDuration / 2);
             LastResetOutput = TargetOutput;
 
             b = 4 * FusionInfo.MaxECChangeRate[level] / a * Math.Sign(TargetOutput - OldOutput);
 
-            if (TargetOutput > OldOutput)
-                TargetOutput = OldOutput + a / (1 + Math.Pow(Math.E, -b * x)) * 2;
-            else
-                TargetOutput = OldOutput - (a - a / (1 + Math.Pow(Math.E, -b * x))) * 2;
+            TargetOutput = TargetOutput > OldOutput
+                ? OldOutput + (a / (1 + Math.Pow(Math.E, -b * x)) * 2)
+                : OldOutput - ((a - (a / (1 + Math.Pow(Math.E, -b * x)))) * 2);
 
             ChangeDuration = (currentTime - ChangeTime) * 2;
 
@@ -335,10 +334,10 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fus
                 return 0;
             }
 
-            double x0 = lastTime - ChangeTime - ChangeDuration / 2;
+            double x0 = lastTime - ChangeTime - (ChangeDuration / 2);
             double x1 = x0 + deltaTime;
 
-            lastECPerSecond = OldOutput + a / (1 + Math.Pow(Math.E, -b * x1)) - (b < 0 ? a : 0);
+            lastECPerSecond = OldOutput + (a / (1 + Math.Pow(Math.E, -b * x1))) - (b < 0 ? a : 0);
 
             ChangingOutput = currentTime - ChangeTime < ChangeDuration;
             if (!ChangingOutput)
@@ -383,7 +382,7 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fus
 
             if (Active && !ShuttingDown)
             {
-                KeyValuePair<int, double> powerLevel = new KeyValuePair<int, double>(-1, 0.0);
+                KeyValuePair<int, double> powerLevel = new(-1, 0.0);
                 double throttle = 1;
 
                 if (!KCResourceManager.colonyResources.ContainsKey(Colony)) return 0;
@@ -403,7 +402,7 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fus
                     {
                         double kvpDelta = kvp.Value - lastECPerSecond + ecDelta;
 
-                        double powerLevelDelta = Math.Round(ecDelta - lastECPerSecond + powerLevel.Value * throttle, 4);
+                        double powerLevelDelta = Math.Round(ecDelta - lastECPerSecond + (powerLevel.Value * throttle), 4);
 
                         // ec storages not filled
                         if (canStoreEC && kvp.Value > powerLevel.Value)
@@ -417,7 +416,7 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fus
                             // minimum throttle for the current kvp
                             if (kvpDelta > 0)
                             {
-                                double minThrottle = Math.Max(fusionInfo.MinECThrottle[kvp.Key], Math.Ceiling(Math.Min(1, 1 - kvpDelta / kvp.Value) * 1000) / 1000.0);
+                                double minThrottle = Math.Max(fusionInfo.MinECThrottle[kvp.Key], Math.Ceiling(Math.Min(1, 1 - (kvpDelta / kvp.Value)) * 1000) / 1000.0);
                                 // 1.23456 -> 1234.56 -> 1235 -> 1.235
 
                                 powerLevel = kvp;
@@ -502,9 +501,7 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fus
                     return 0;
                 }
 
-                if (lastECPerSecond <= 0) return 0;
-
-                return ChangingPowerProduced(lastTime, deltaTime, currentTime);
+                return lastECPerSecond <= 0 ? 0 : ChangingPowerProduced(lastTime, deltaTime, currentTime);
             }
         }
 
@@ -519,7 +516,7 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fus
             else
             {
                 PartResourceDefinition ec = PartResourceLibrary.Instance.GetDefinition("ElectricCharge");
-                producedEC = ProduceEC(lastTime, deltaTime, currentTime) - FusionInfo.ResourceUsage[lastPowerLevel.Key == -1 ? 0 : lastPowerLevel.Key].GetValueOrDefault(ec) * deltaTime;
+                producedEC = ProduceEC(lastTime, deltaTime, currentTime) - (FusionInfo.ResourceUsage[lastPowerLevel.Key == -1 ? 0 : lastPowerLevel.Key].GetValueOrDefault(ec) * deltaTime);
                 ActualLastECPerSecond = lastECPerSecond - FusionInfo.ResourceUsage[lastPowerLevel.Key == -1 ? 0 : lastPowerLevel.Key].GetValueOrDefault(ec);
             }
         }
@@ -529,7 +526,7 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fus
         public Dictionary<PartResourceDefinition, double> ResourceProduction(double lastTime, double deltaTime, double currentTime)
         {
             ExecuteProduction(lastTime, deltaTime, currentTime);
-            Dictionary<PartResourceDefinition, double> producedResources = new Dictionary<PartResourceDefinition, double>();
+            Dictionary<PartResourceDefinition, double> producedResources = [];
             if (producedEC > 0) producedResources.Add(PartResourceLibrary.Instance.GetDefinition("ElectricCharge"), producedEC);
 
             if (lastPowerLevel.Key == -1) return producedResources;
@@ -545,7 +542,7 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fus
 
         public Dictionary<PartResourceDefinition, double> ExpectedResourceConsumption(double lastTime, double deltaTime, double currentTime)
         {
-            if (lastPowerLevel.Key == -1) return new Dictionary<PartResourceDefinition, double>(); ;
+            if (lastPowerLevel.Key == -1) return []; ;
 
             Dictionary<PartResourceDefinition, double> resources = facilityInfo.ResourceUsage[lastPowerLevel.Key];
             if (lastECPerSecond < 0) resources.Add(PartResourceLibrary.Instance.GetDefinition("ElectricCharge"), -lastECPerSecond);
@@ -593,7 +590,7 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fus
         {
             ConfigNode node = base.getConfigNode();
 
-            ConfigNode fusionNode = new ConfigNode("fusionNode");
+            ConfigNode fusionNode = new("fusionNode");
             fusionNode.AddValue("Active", Active);
             fusionNode.AddValue("ManualControl", ManualControl);
             fusionNode.AddValue("ManualPowerLevel", ManualPowerLevel);

@@ -28,10 +28,10 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fis
         public KCFissionReactor fissionReactor;
         public KerbalGUI kerbalGUI;
 
-        float manualLevel = 0;
-        Vector2 scrollPosPowerLevels = Vector2.zero;
-        Vector2 inputScrollPos = Vector2.zero;
-        Vector2 outputScrollPos = Vector2.zero;
+        private float manualLevel = 0;
+        private Vector2 scrollPosPowerLevels = Vector2.zero;
+        private Vector2 inputScrollPos = Vector2.zero;
+        private Vector2 outputScrollPos = Vector2.zero;
         protected override void CustomWindow()
         {
             fissionReactor.Colony.UpdateColony();

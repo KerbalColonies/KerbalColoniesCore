@@ -29,7 +29,7 @@ namespace KerbalColonies.UI
         protected bool canChangeTitle = false;
         private bool guiInitialized;
 
-        protected Rect toolRect = new Rect(100, 100, 330, 100);
+        protected Rect toolRect = new(100, 100, 330, 100);
 
         public virtual void OnTitleChange(string title) { }
 
@@ -65,7 +65,7 @@ namespace KerbalColonies.UI
 
         private bool showNameField = false;
         private string newTitle;
-        void KCWindow(int windowID)
+        private void KCWindow(int windowID)
         {
             GUILayout.BeginHorizontal();
             {
@@ -88,7 +88,7 @@ namespace KerbalColonies.UI
 
                 if (GUILayout.Button("X", UIConfig.DeadButtonRed, GUILayout.Height(21)))
                 {
-                    this.Close();
+                    Close();
                 }
             }
             GUILayout.EndHorizontal();

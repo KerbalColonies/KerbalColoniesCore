@@ -44,11 +44,7 @@ namespace KerbalColonies.UI
         {
             get
             {
-                if (_kcInstance == null)
-                {
-                    _kcInstance = new KCGroupEditor();
-
-                }
+                _kcInstance ??= new KCGroupEditor();
                 return _kcInstance;
             }
         }
@@ -80,7 +76,7 @@ namespace KerbalColonies.UI
 
             GUILayout.BeginHorizontal();
 
-            GUIStyle labelStyle = new GUIStyle(GUI.skin.label);
+            GUIStyle labelStyle = new(GUI.skin.label);
             labelStyle.fontSize *= 2;
             GUILayout.Label($"Facility: {selectedFacility.DisplayName}", labelStyle);
 
@@ -150,7 +146,7 @@ namespace KerbalColonies.UI
             GUILayout.BeginHorizontal();
             GUILayout.Label("Reference System: ");
             GUILayout.FlexibleSpace();
-            GUI.enabled = (referenceSystem == Space.World);
+            GUI.enabled = referenceSystem == Space.World;
 
             if (GUILayout.Button(new GUIContent(UIMain.iconCubes, "Model"), GUILayout.Height(23), GUILayout.Width(23)))
             {
@@ -158,7 +154,7 @@ namespace KerbalColonies.UI
                 UpdateVectors();
             }
 
-            GUI.enabled = (referenceSystem == Space.Self);
+            GUI.enabled = referenceSystem == Space.Self;
             if (GUILayout.Button(new GUIContent(UIMain.iconWorld, "World"), GUILayout.Height(23), GUILayout.Width(23)))
             {
                 referenceSystem = Space.World;
@@ -316,7 +312,7 @@ namespace KerbalColonies.UI
                     selectedGroup.childInstances.ForEach(instance => instance.isInSavegame = true);
 
                     KerbalKonstructs.API.OnGroupSaved.Invoke(selectedGroup);
-                    this.Close();
+                    Close();
                 }
             }
             GUILayout.EndHorizontal();

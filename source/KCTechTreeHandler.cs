@@ -17,7 +17,7 @@ namespace KerbalColonies
         {
             public AvailablePart part = null;
 
-            public List<string> techNodes = new List<string>();
+            public List<string> techNodes = [];
             public string partName = string.Empty;
             public string description = string.Empty;
             public string manufacturer = string.Empty;
@@ -27,24 +27,22 @@ namespace KerbalColonies
 
             public int CompareTo(KCTechPartInfo other)
             {
-                if (other == null) return 1;
-                else if (this.partName == other.partName) return this.level.CompareTo(other.level);
-                else return this.partName.CompareTo(other.partName);
+                return other == null ? 1 : partName == other.partName ? level.CompareTo(other.level) : partName.CompareTo(other.partName);
             }
 
             public KCTechPartInfo(KCFacilityInfoClass facility, int level)
             {
                 this.facility = facility;
                 this.level = level;
-                this.partName = facility.PartName[level];
-                this.description = facility.Description[level];
-                this.manufacturer = facility.Manufacturer[level];
-                this.techNodes = facility.TechNodesRequired[level];
+                partName = facility.PartName[level];
+                description = facility.Description[level];
+                manufacturer = facility.Manufacturer[level];
+                techNodes = facility.TechNodesRequired[level];
 
                 byte[] fileData = File.ReadAllBytes(Path.Combine(KSPUtil.ApplicationRootPath, "GameData", facility.IconPath[level]));
 
                 // Create new texture and load image
-                Texture2D tex = new Texture2D(2, 2);
+                Texture2D tex = new(2, 2);
                 if (!tex.LoadImage(fileData))  // LoadImage auto-resizes texture
                 {
                     Debug.LogError("Failed to load image from: " + facility.IconPath[level]);
@@ -61,7 +59,7 @@ namespace KerbalColonies
         }
 
 
-        public static List<KCTechPartInfo> TechParts = new List<KCTechPartInfo>();
+        public static List<KCTechPartInfo> TechParts = [];
 
         public static bool ContainsFacility(KCFacilityInfoClass facility, int level) => TechParts.Any(tp => tp.facility == facility && tp.level == level);
         public static KCTechPartInfo ContainsFacilityName(string partName) => TechParts.FirstOrDefault(tp => tp.partName == partName);
@@ -161,19 +159,18 @@ namespace KerbalColonies
 
                         TechParts.Where(tp => tp.techNodes.Contains(tech.techID)).ToList().ForEach(tp =>
                         {
-                            if (tp.part == null)
+                            tp.part ??= new AvailablePart
                             {
-                                tp.part = new AvailablePart();
-                                tp.part.name = "kerbalColoniesFakePart";
-                                tp.part.title = tp.partName;
-                                tp.part.manufacturer = tp.manufacturer;
-                                tp.part.description = tp.description;
-                                tp.part.author = "AMPW";
+                                name = "kerbalColoniesFakePart",
+                                title = tp.partName,
+                                manufacturer = tp.manufacturer,
+                                description = tp.description,
+                                author = "AMPW",
 
-                                tp.part.iconPrefab = basePart.iconPrefab;
-                                tp.part.iconScale = basePart.iconScale;
-                                tp.part.partPrefab = basePart.partPrefab;
-                            }
+                                iconPrefab = basePart.iconPrefab,
+                                iconScale = basePart.iconScale,
+                                partPrefab = basePart.partPrefab
+                            };
 
                             tech.partsAssigned.Add(tp.part);
                         });

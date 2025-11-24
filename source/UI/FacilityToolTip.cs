@@ -23,8 +23,8 @@ namespace KerbalColonies.UI
     public class FacilityToolTip : KCWindow
     {
         protected int windowID;
-        protected Rect toolRect = new Rect(100, 100, 250, 120);
-        public readonly Vector2 offset = new Vector2(20, 20);
+        protected Rect toolRect = new(100, 100, 250, 120);
+        public readonly Vector2 offset = new(20, 20);
         public static string FacilityTitle { get; set; }
         public static string FacilityText { get; set; }
 
@@ -33,10 +33,7 @@ namespace KerbalColonies.UI
         {
             get
             {
-                if (instance == null)
-                {
-                    instance = new FacilityToolTip();
-                }
+                instance ??= new FacilityToolTip();
                 return instance;
             }
         }
@@ -46,7 +43,7 @@ namespace KerbalColonies.UI
             toolRect = ClickThruBlocker.GUIWindow(windowID, toolRect, KCWindow, "", UIConfig.KKWindow);
         }
 
-        void KCWindow(int windowID)
+        private void KCWindow(int windowID)
         {
             GUILayout.BeginVertical();
             {

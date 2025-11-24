@@ -30,7 +30,7 @@ namespace KerbalColonies.UI
         {
             get
             {
-                instance = instance ?? new KCLegacySaveWarning();
+                instance ??= new KCLegacySaveWarning();
                 return instance;
             }
         }
@@ -46,26 +46,26 @@ namespace KerbalColonies.UI
                 if (GUILayout.Button("Keep Colonies", GUILayout.Width(190)))
                 {
                     LoadedSaves.TryAdd(HighLogic.CurrentGame.Seed.ToString(), false);
-                    this.Close();
+                    Close();
                 }
                 if (GUILayout.Button("Delete Colonies", GUILayout.Width(190)))
                 {
                     LoadedSaves.Remove(HighLogic.CurrentGame.Seed.ToString());
-                    this.Close();
+                    Close();
                 }
             }
             GUILayout.EndHorizontal();
         }
 
-        public static Dictionary<string, bool> LoadedSaves { get; private set; } = new Dictionary<string, bool>();
+        public static Dictionary<string, bool> LoadedSaves { get; private set; } = [];
         public static void SaveSettings()
         {
             string path = $"{Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)}{Path.DirectorySeparatorChar}..{Path.DirectorySeparatorChar}Configs{Path.DirectorySeparatorChar}LegacySaves.cfg";
-            ConfigNode node = new ConfigNode("LegacySaves");
+            ConfigNode node = new("LegacySaves");
 
             LoadedSaves.ToList().ForEach(kvp => node.AddValue(kvp.Key, kvp.Value));
 
-            ConfigNode n = new ConfigNode();
+            ConfigNode n = new();
             n.AddNode(node);
             n.Save(path);
         }
@@ -87,7 +87,7 @@ namespace KerbalColonies.UI
 
         public KCLegacySaveWarning() : base(Configuration.createWindowID(), "<b>Legacy Save Warning</b>", false)
         {
-            this.toolRect = new Rect(100, 100, 400, 240);
+            toolRect = new Rect(100, 100, 400, 240);
         }
     }
 }

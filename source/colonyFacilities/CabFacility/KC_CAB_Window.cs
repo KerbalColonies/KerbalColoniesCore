@@ -31,20 +31,20 @@ namespace KerbalColonies.colonyFacilities.CabFacility
 
         private KC_CAB_Facility CABFacility;
 
-        string selectedType;
-        Vector2 scrollPosTypes = new Vector2();
-        Vector2 scrollPosFacilities = new Vector2();
+        private string selectedType;
+        private Vector2 scrollPosTypes = new();
+        private Vector2 scrollPosFacilities = new();
         protected override void CustomWindow()
         {
             CABFacility.Colony.UpdateColony();
             bool playerInColony = CABFacility.PlayerInColony;
 
-            SortedDictionary<string, List<KCFacilityBase>> facilitiesByType = new SortedDictionary<string, List<KCFacilityBase>>();
+            SortedDictionary<string, List<KCFacilityBase>> facilitiesByType = [];
 
             void addType(KCFacilityBase facility)
             {
                 string category = facility.facilityInfo.category;
-                if (!facilitiesByType.ContainsKey(category)) facilitiesByType.Add(category, new List<KCFacilityBase> { facility });
+                if (!facilitiesByType.ContainsKey(category)) facilitiesByType.Add(category, [facility]);
                 else if (!facilitiesByType[category].Contains(facility)) facilitiesByType[category].Add(facility);
             }
 
@@ -52,7 +52,7 @@ namespace KerbalColonies.colonyFacilities.CabFacility
 
             facilitiesByType.ToList().ForEach(kvp => kvp.Value.Sort((x, y) => string.Compare(x.DisplayName, y.DisplayName)));
 
-            selectedType = selectedType ?? "CAB";
+            selectedType ??= "CAB";
 
             GUILayout.BeginHorizontal();
             {
@@ -170,7 +170,7 @@ namespace KerbalColonies.colonyFacilities.CabFacility
                                 {
                                     GUILayout.Label(facility.DisplayName);
                                     GUILayout.Label($"Level: {facility.level}");
-                                    if (facility.AllowClick && playerInColony || facility.AllowRemote && !playerInColony)
+                                    if ((facility.AllowClick && playerInColony) || (facility.AllowRemote && !playerInColony))
                                     {
                                         if (KCProductionFacility.ConstructedFacilities[facility.Colony].Contains(facility) || (!facility.AllowClick && playerInColony) || (!facility.AllowRemote && !playerInColony))
                                             GUI.enabled = false;
@@ -275,8 +275,8 @@ namespace KerbalColonies.colonyFacilities.CabFacility
 
         public KC_CAB_Window(KC_CAB_Facility facility) : base(Configuration.createWindowID(), facility.name)
         {
-            this.CABFacility = facility;
-            this.toolRect = new Rect(100, 100, 890, 600);
+            CABFacility = facility;
+            toolRect = new Rect(100, 100, 890, 600);
         }
     }
 }

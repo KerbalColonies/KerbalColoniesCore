@@ -25,13 +25,13 @@ namespace KerbalColonies.VesselAutoTransfer
 {
     public class VesselResourceRatesChangewindow : KCWindowBase
     {
-        ModuleKCTransfer transferModule = null;
+        private ModuleKCTransfer transferModule = null;
 
-        protected Dictionary<PartResourceDefinition, string> rateStrings = new Dictionary<PartResourceDefinition, string>();
-        protected Dictionary<PartResourceDefinition, string> colonyLimitStrings = new Dictionary<PartResourceDefinition, string>();
-        protected Dictionary<PartResourceDefinition, string> vesselLimitStrings = new Dictionary<PartResourceDefinition, string>();
+        protected Dictionary<PartResourceDefinition, string> rateStrings = [];
+        protected Dictionary<PartResourceDefinition, string> colonyLimitStrings = [];
+        protected Dictionary<PartResourceDefinition, string> vesselLimitStrings = [];
         public KCTransferInfo transfer => transferModule.transferInfo;
-        Vector2 scrollPos = Vector2.zero;
+        private Vector2 scrollPos = Vector2.zero;
 
         protected override void OnOpen()
         {
@@ -40,7 +40,7 @@ namespace KerbalColonies.VesselAutoTransfer
             colonyLimitStrings.Clear();
             vesselLimitStrings.Clear();
 
-            List<PartResourceDefinition> allResources = new List<PartResourceDefinition>();
+            List<PartResourceDefinition> allResources = [];
 
             foreach (PartResourceDefinition item in PartResourceLibrary.Instance.resourceDefinitions)
             {
@@ -122,7 +122,7 @@ namespace KerbalColonies.VesselAutoTransfer
         public VesselResourceRatesChangewindow(ModuleKCTransfer transferModule) : base(Configuration.createWindowID(), "Change resource rates", false)
         {
             this.transferModule = transferModule;
-            this.toolRect = new Rect(100, 100, 600, 250);
+            toolRect = new Rect(100, 100, 600, 250);
         }
     }
 }

@@ -23,19 +23,19 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fis
 {
     public class KCFissionInfo : KCKerbalFacilityInfoClass
     {
-        public SortedDictionary<int, double> ECProduction { get; protected set; } = new SortedDictionary<int, double>();
-        public SortedDictionary<int, double> MinECThrottle { get; protected set; } = new SortedDictionary<int, double>();
-        public SortedDictionary<int, double> MaxECChangeRate { get; protected set; } = new SortedDictionary<int, double>();
-        public SortedDictionary<int, double> MinECRateChangeTime { get; protected set; } = new SortedDictionary<int, double>();
-        public SortedDictionary<int, double> ECChangeThreshold { get; protected set; } = new SortedDictionary<int, double>();
-        public SortedDictionary<int, double> PowerlevelChangeTime { get; protected set; } = new SortedDictionary<int, double>();
-        public SortedDictionary<int, double> LevelOffTime { get; protected set; } = new SortedDictionary<int, double>();
+        public SortedDictionary<int, double> ECProduction { get; protected set; } = [];
+        public SortedDictionary<int, double> MinECThrottle { get; protected set; } = [];
+        public SortedDictionary<int, double> MaxECChangeRate { get; protected set; } = [];
+        public SortedDictionary<int, double> MinECRateChangeTime { get; protected set; } = [];
+        public SortedDictionary<int, double> ECChangeThreshold { get; protected set; } = [];
+        public SortedDictionary<int, double> PowerlevelChangeTime { get; protected set; } = [];
+        public SortedDictionary<int, double> LevelOffTime { get; protected set; } = [];
 
-        public SortedDictionary<int, Dictionary<PartResourceDefinition, double>> InputStorage { get; protected set; } = new SortedDictionary<int, Dictionary<PartResourceDefinition, double>>();
-        public SortedDictionary<int, Dictionary<PartResourceDefinition, double>> OutputStorage { get; protected set; } = new SortedDictionary<int, Dictionary<PartResourceDefinition, double>>();
-        public SortedDictionary<int, int> MinKerbals { get; protected set; } = new SortedDictionary<int, int>();
-        public SortedDictionary<int, int> MinKerbalLevel { get; protected set; } = new SortedDictionary<int, int>();
-        public SortedDictionary<int, double> RefillTime { get; protected set; } = new SortedDictionary<int, double>();
+        public SortedDictionary<int, Dictionary<PartResourceDefinition, double>> InputStorage { get; protected set; } = [];
+        public SortedDictionary<int, Dictionary<PartResourceDefinition, double>> OutputStorage { get; protected set; } = [];
+        public SortedDictionary<int, int> MinKerbals { get; protected set; } = [];
+        public SortedDictionary<int, int> MinKerbalLevel { get; protected set; } = [];
+        public SortedDictionary<int, double> RefillTime { get; protected set; } = [];
 
         public KCFissionInfo(ConfigNode node) : base(node)
         {
@@ -61,7 +61,7 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fis
                 if (n.HasNode("InputStorage"))
                 {
                     ConfigNode inputStorageNode = n.GetNode("InputStorage");
-                    Dictionary<PartResourceDefinition, double> inputStorageList = new Dictionary<PartResourceDefinition, double>();
+                    Dictionary<PartResourceDefinition, double> inputStorageList = [];
                     foreach (ConfigNode.Value v in inputStorageNode.values)
                     {
                         PartResourceDefinition resourceDef = PartResourceLibrary.Instance.GetDefinition(v.name);
@@ -71,7 +71,7 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fis
                     InputStorage.Add(kvp.Key, inputStorageList);
                 }
                 else
-                    InputStorage.Add(kvp.Key, new Dictionary<PartResourceDefinition, double>());
+                    InputStorage.Add(kvp.Key, []);
 
                 if (n.HasNode("OutputResources"))
                 {
@@ -87,7 +87,7 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fis
                 if (n.HasNode("OutputStorage"))
                 {
                     ConfigNode outputStorageNode = n.GetNode("OutputStorage");
-                    Dictionary<PartResourceDefinition, double> outputStorageList = new Dictionary<PartResourceDefinition, double>();
+                    Dictionary<PartResourceDefinition, double> outputStorageList = [];
                     foreach (ConfigNode.Value v in outputStorageNode.values)
                     {
                         PartResourceDefinition resourceDef = PartResourceLibrary.Instance.GetDefinition(v.name);
@@ -97,7 +97,7 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fis
                     OutputStorage.Add(kvp.Key, outputStorageList);
                 }
                 else
-                    OutputStorage.Add(kvp.Key, new Dictionary<PartResourceDefinition, double>());
+                    OutputStorage.Add(kvp.Key, []);
 
 
                 if (n.HasValue("minKerbals")) MinKerbals.Add(kvp.Key, int.Parse(n.GetValue("minKerbals")));

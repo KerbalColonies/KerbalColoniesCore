@@ -176,8 +176,10 @@ namespace KerbalColonies.UI
 
 
 
-            KKWindow = new GUIStyle(GUI.skin.window);
-            KKWindow.padding = new RectOffset(8, 8, 3, 3);
+            KKWindow = new GUIStyle(GUI.skin.window)
+            {
+                padding = new RectOffset(8, 8, 3, 3)
+            };
 
             ButtonTextYellow = new GUIStyle(GUI.skin.button);
             ButtonTextYellow.normal.textColor = XKCDColors.YellowGreen;

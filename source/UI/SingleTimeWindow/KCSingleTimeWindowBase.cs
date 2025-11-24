@@ -38,7 +38,7 @@ namespace KerbalColonies.UI.SingleTimePopup
         protected string title;
         private bool guiInitialized;
 
-        protected Rect toolRect = new Rect(100, 100, 330, 100);
+        protected Rect toolRect = new(100, 100, 330, 100);
 
         public bool showAgain = true;
 
@@ -71,7 +71,7 @@ namespace KerbalColonies.UI.SingleTimePopup
 
         protected abstract void CustomWindow();
 
-        void KCWindow(int windowID)
+        private void KCWindow(int windowID)
         {
             GUILayout.BeginHorizontal();
             {
@@ -90,7 +90,7 @@ namespace KerbalColonies.UI.SingleTimePopup
                 if (GUILayout.Button("X", UIConfig.DeadButtonRed, GUILayout.Height(21)))
                 {
                     showAgain = true;
-                    this.Close();
+                    Close();
                 }
             }
             GUILayout.EndHorizontal();
@@ -101,8 +101,8 @@ namespace KerbalColonies.UI.SingleTimePopup
 
             GUILayout.BeginHorizontal();
             {
-                if (GUILayout.Button("Don't show again", GUILayout.Width(toolRect.width / 2 - 15))) { showAgain = false; this.Close(); }
-                if (GUILayout.Button("Close", GUILayout.Width(toolRect.width / 2 - 15))) { showAgain = true; this.Close(); }
+                if (GUILayout.Button("Don't show again", GUILayout.Width((toolRect.width / 2) - 15))) { showAgain = false; Close(); }
+                if (GUILayout.Button("Close", GUILayout.Width((toolRect.width / 2) - 15))) { showAgain = true; Close(); }
             }
             GUILayout.EndHorizontal();
 
@@ -111,26 +111,26 @@ namespace KerbalColonies.UI.SingleTimePopup
 
         public int CompareTo(KCSingleTimeWindowBase other)
         {
-            if (ReferenceEquals(other, null)) return 1; // null is always less than any instance
-            return string.Compare(this.identifier, other.identifier, StringComparison.Ordinal);
+            if (other is null) return 1; // null is always less than any instance
+            return string.Compare(identifier, other.identifier, StringComparison.Ordinal);
         }
 
         public static bool operator ==(KCSingleTimeWindowBase a, KCSingleTimeWindowBase b)
         {
-            if (ReferenceEquals(a, null) && ReferenceEquals(b, null)) return true;
-            else if (ReferenceEquals(a, null) || ReferenceEquals(b, null)) return false;
+            if (a is null && b is null) return true;
+            else if (a is null || b is null) return false;
             return a.identifier == b.identifier;
         }
         public static bool operator !=(KCSingleTimeWindowBase a, KCSingleTimeWindowBase b)
         {
-            if (ReferenceEquals(a, null) && ReferenceEquals(b, null)) return false;
-            else if (ReferenceEquals(a, null) || ReferenceEquals(b, null)) return true;
+            if (a is null && b is null) return false;
+            else if (a is null || b is null) return true;
             return a.identifier != b.identifier;
         }
 
         public override bool Equals(object obj)
         {
-            return !ReferenceEquals(null, obj) && obj is KCSingleTimeWindowBase other && ((KCSingleTimeWindowBase)obj).identifier == this.identifier;
+            return obj is not null && obj is KCSingleTimeWindowBase other && ((KCSingleTimeWindowBase)obj).identifier == identifier;
         }
 
         public override int GetHashCode()
@@ -140,7 +140,7 @@ namespace KerbalColonies.UI.SingleTimePopup
 
         public KCSingleTimeWindowBase(string title, string identifier, bool Mainmenu, bool KSC, bool Editor, bool Flight, bool Trackingstation)
         {
-            this.windowID = Configuration.createWindowID();
+            windowID = Configuration.createWindowID();
             this.identifier = identifier;
             this.title = title;
             this.Mainmenu = Mainmenu;

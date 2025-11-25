@@ -1,5 +1,6 @@
 ﻿using KerbalColonies.colonyFacilities.StorageFacility;
 using KerbalColonies.ResourceManagment;
+using KerbalColonies.Settings;
 using KerbalKonstructs.Core;
 using Smooth.Collections;
 using System;

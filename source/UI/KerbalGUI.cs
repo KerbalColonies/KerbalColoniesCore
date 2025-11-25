@@ -3,6 +3,7 @@ using Expansions.Missions;
 using Expansions.Serenity;
 using KerbalColonies.colonyFacilities;
 using KerbalColonies.colonyFacilities.CrewQuarters;
+using KerbalColonies.Settings;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;

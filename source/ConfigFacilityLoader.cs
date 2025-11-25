@@ -16,6 +16,7 @@ using KerbalColonies.colonyFacilities.ProductionFacility;
 using KerbalColonies.colonyFacilities.ResearchFacility;
 using KerbalColonies.colonyFacilities.StorageFacility;
 using KerbalColonies.ResourceManagment;
+using KerbalColonies.Settings;
 using KerbalColonies.UI;
 using KerbalColonies.VesselAutoTransfer;
 using System;

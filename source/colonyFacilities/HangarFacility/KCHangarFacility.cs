@@ -2,7 +2,10 @@
 using KerbalColonies.colonyFacilities.LaunchPadFacility;
 using KerbalColonies.colonyFacilities.ProductionFacility;
 using KerbalColonies.colonyFacilities.StorageFacility;
+using KerbalColonies.ResourceManagment;
+using KerbalColonies.Settings;
 using NDTester;
+using Smooth.Collections;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -42,7 +45,7 @@ using UnityEngine;
 
 namespace KerbalColonies.colonyFacilities.HangarFacility
 {
-    public class KCHangarFacility : KCFacilityBase
+    public class KCHangarFacility : KCFacilityBase, IKCResourceConsumer
     {
         /// <summary>
         /// Required for Dimensions > 3
@@ -110,6 +113,9 @@ namespace KerbalColonies.colonyFacilities.HangarFacility
         private KCHangarFacilityWindow hangarWindow;
         public KCHangarInfo hangarInfo => (KCHangarInfo)facilityInfo;
 
+        public int ResourceConsumptionPriority { get; set; } = 0;
+        public bool OutOfResources { get; set; } = false;
+
         internal List<StoredVessel> storedVessels = [];
 
         public double getStoredVolume()
@@ -128,12 +134,8 @@ namespace KerbalColonies.colonyFacilities.HangarFacility
         public bool CanStoreVessel(Vessel vessel, int MaxPermutations = 8192)
         {
             Configuration.writeLog($"CanStoreVessel: {name}");
-            if (hangarInfo.VesselCapacity[level] <= storedVessels.Count)
-            {
-                return false;
-            }
-
-            KCHangarInfo info = hangarInfo;
+            if (hangarInfo.VesselCapacity[level] <= storedVessels.Count) return false;
+            if (!enabled || OutOfResources) return false;
 
             vessel.UpdateVesselSize();
             Vector3 vesselSize = vessel.vesselSize;
@@ -158,6 +160,7 @@ namespace KerbalColonies.colonyFacilities.HangarFacility
             Configuration.writeLog($"CanStoreShipConstruct: {name}");
             if (ship == null) return false;
             if (ship.Parts.Count == 0) return false;
+            if (!enabled || OutOfResources) return false;
             KCHangarInfo info = hangarInfo;
             if (info.VesselCapacity[level] <= storedVessels.Count) return false;
 
@@ -413,6 +416,52 @@ namespace KerbalColonies.colonyFacilities.HangarFacility
             }
 
             return protoVessel;
+        }
+
+        public Dictionary<PartResourceDefinition, double> ExpectedResourceConsumption(double lastTime, double deltaTime, double currentTime)
+        {
+            enabled = enabled || storedVessels.Count > 0;
+
+            if (enabled)
+            {
+                Dictionary<PartResourceDefinition, double> resourceConsumption = new();
+
+                facilityInfo.ResourceUsage[level].ToList().ForEach(kvp => resourceConsumption.Add(kvp.Key, kvp.Value * deltaTime));
+
+                hangarInfo.ResourceUsagePerVessel[level].ToList().ForEach(kvp => resourceConsumption.Add(kvp.Key, kvp.Value * deltaTime * storedVessels.Count));
+
+                return resourceConsumption;
+            }
+            return new();
+        }
+
+        public void ConsumeResources(double lastTime, double deltaTime, double currentTime)
+        {
+            OutOfResources = false;
+        }
+
+        public Dictionary<PartResourceDefinition, double> InsufficientResources(double lastTime, double deltaTime, double currentTime, Dictionary<PartResourceDefinition, double> sufficientResources, Dictionary<PartResourceDefinition, double> limitingResources)
+        {
+            OutOfResources = true;
+            limitingResources.AddAll(sufficientResources);
+            return limitingResources;
+        }
+
+        public Dictionary<PartResourceDefinition, double> ResourceConsumptionPerSecond()
+        {
+            enabled = enabled || storedVessels.Count > 0;
+
+            if (enabled)
+            {
+                Dictionary<PartResourceDefinition, double> resourceConsumption = new();
+
+                facilityInfo.ResourceUsage[level].ToList().ForEach(kvp => resourceConsumption.Add(kvp.Key, kvp.Value));
+
+                hangarInfo.ResourceUsagePerVessel[level].ToList().ForEach(kvp => resourceConsumption.Add(kvp.Key, kvp.Value * storedVessels.Count));
+
+                return resourceConsumption;
+            }
+            return new();
         }
 
         public override ConfigNode getConfigNode()

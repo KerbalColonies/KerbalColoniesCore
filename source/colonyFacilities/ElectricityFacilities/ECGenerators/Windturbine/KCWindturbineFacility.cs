@@ -1,4 +1,5 @@
 ﻿using KerbalColonies.ResourceManagment;
+using KerbalColonies.Settings;
 using KerbalKonstructs.Core;
 using System;
 using System.Collections.Generic;

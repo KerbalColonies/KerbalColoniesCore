@@ -1,4 +1,5 @@
 ﻿using KerbalColonies.colonyFacilities.StorageFacility;
+using KerbalColonies.Settings;
 using KerbalColonies.UI;
 using System.Collections.Generic;
 using System.Linq;

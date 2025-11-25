@@ -1,5 +1,6 @@
 ﻿using BackgroundResourceProcessing;
 using KerbalColonies.colonyFacilities;
+using KerbalColonies.Settings;
 using KerbalColonies.UI;
 using KerbalColonies.VesselAutoTransfer;
 using KSP.UI.Screens;

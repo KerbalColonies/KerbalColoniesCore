@@ -1,6 +1,7 @@
 ﻿using KerbalColonies.colonyFacilities.CabFacility;
 using KerbalColonies.colonyFacilities.HangarFacility;
 using KerbalColonies.ResourceManagment;
+using KerbalColonies.Settings;
 using Smooth.Collections;
 using System;
 using System.Collections.Generic;

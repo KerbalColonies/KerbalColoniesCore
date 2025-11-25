@@ -1,4 +1,5 @@
 ﻿using ClickThroughFix;
+using KerbalColonies.Settings;
 using KerbalColonies.UI.SingleTimeWindow;
 using System;
 using UnityEngine;

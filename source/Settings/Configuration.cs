@@ -25,7 +25,7 @@ using System.Reflection;
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/
 
-namespace KerbalColonies
+namespace KerbalColonies.Settings
 {
 
     /// <summary>
@@ -307,7 +307,7 @@ namespace KerbalColonies
                 ConfigNode primaryNode = persistentNode.GetNode("colonyNode");
                 foreach (ConfigNode bodyNode in primaryNode.GetNodes())
                 {
-                    string bodyName = loadedSaveVersion.Minor > 0 ? bodyNode.name : FlightGlobals.Bodies.First(b => b.flightGlobalsIndex == int.Parse(bodyNode.name)).name;
+                    string bodyName = loadedSaveVersion >= new Version(4, 0, 1) ? bodyNode.name : FlightGlobals.Bodies.First(b => b.flightGlobalsIndex == int.Parse(bodyNode.name)).name;
 
                     colonyDictionary.TryAdd(bodyName, []);
                     foreach (ConfigNode colonyNode in bodyNode.GetNodes())

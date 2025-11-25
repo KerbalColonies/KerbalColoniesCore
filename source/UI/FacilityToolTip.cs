@@ -1,4 +1,5 @@
 ﻿using ClickThroughFix;
+using KerbalColonies.Settings;
 using UnityEngine;
 
 // KC: Kerbal Colonies

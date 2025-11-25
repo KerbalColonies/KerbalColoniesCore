@@ -1,4 +1,5 @@
 ﻿using KerbalColonies.ResourceManagment;
+using KerbalColonies.Settings;
 using System.Collections.Generic;
 using System.Linq;
 using static KerbalColonies.VesselAutoTransfer.KCColonyTransferBehaviour;

@@ -1,4 +1,5 @@
 ﻿using KerbalColonies.ResourceManagment;
+using KerbalColonies.Settings;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -89,6 +90,7 @@ namespace KerbalColonies.colonyFacilities.StorageFacility
 
                 CelestialBody body = FlightGlobals.Bodies.First(b => FlightGlobals.GetBodyIndex(b) == fac.Colony.BodyID);
 
+                if (fac.KKgroups.Count == 0) return false;
                 double radius = fac.KKgroups.Average(g => KerbalKonstructs.API.GetGroupCenter(g, body.bodyName).RadiusOffset) + body.Radius;
                 double squareRadius = radius * radius;
                 double unMultiplier = body.gMagnitudeAtCenter / squareRadius;

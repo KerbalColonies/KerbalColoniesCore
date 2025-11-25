@@ -1,4 +1,5 @@
-﻿using KerbalColonies.UI;
+﻿using KerbalColonies.Settings;
+using KerbalColonies.UI;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -30,6 +31,9 @@ namespace KerbalColonies.VesselAutoTransfer
         protected Dictionary<PartResourceDefinition, string> rateStrings = [];
         protected Dictionary<PartResourceDefinition, string> colonyLimitStrings = [];
         protected Dictionary<PartResourceDefinition, string> vesselLimitStrings = [];
+        protected Dictionary<PartResourceDefinition, bool> disableIfColonyLimit = [];
+        protected Dictionary<PartResourceDefinition, bool> disableIfVesselLimit = [];
+
         public KCTransferInfo transfer => transferModule.transferInfo;
         private Vector2 scrollPos = Vector2.zero;
 
@@ -39,6 +43,8 @@ namespace KerbalColonies.VesselAutoTransfer
             rateStrings.Clear();
             colonyLimitStrings.Clear();
             vesselLimitStrings.Clear();
+            disableIfColonyLimit.Clear();
+            disableIfVesselLimit.Clear();
 
             List<PartResourceDefinition> allResources = [];
 
@@ -55,6 +61,8 @@ namespace KerbalColonies.VesselAutoTransfer
 
                         colonyLimitStrings.Add(item, transfer.ColonyTransferLimits[item].ToString());
                         vesselLimitStrings.Add(item, transfer.VesselTransferLimits[item].ToString());
+                        disableIfColonyLimit.Add(item, transfer.DisableIfColonyConstrains[item]);
+                        disableIfVesselLimit.Add(item, transfer.DisableIfVesselConstrains[item]);
                     }
                     else
                     {
@@ -62,6 +70,8 @@ namespace KerbalColonies.VesselAutoTransfer
                         rateStrings.TryAdd(item, "0");
                         colonyLimitStrings.TryAdd(item, "0.5");
                         vesselLimitStrings.TryAdd(item, "0.5");
+                        disableIfColonyLimit.TryAdd(item, false);
+                        disableIfVesselLimit.TryAdd(item, false);
                     }
                 }
             }
@@ -69,6 +79,19 @@ namespace KerbalColonies.VesselAutoTransfer
 
         protected override void CustomWindow()
         {
+            GUILayout.BeginHorizontal();
+            {
+                GUILayout.Label("Rate");
+                GUILayout.Label("Colony Limit");
+                GUILayout.Label("Vessel Limit");
+                GUILayout.Space(16);
+                GUILayout.Label("Disable if colony constrains");
+                GUILayout.Label("Disable if vessel constrains");
+                GUILayout.Space(16);
+                GUILayout.Label("Confirm");
+            }
+            GUILayout.EndHorizontal();
+
             scrollPos = GUILayout.BeginScrollView(scrollPos);
             {
                 rateStrings.ToList().ForEach(kvp =>
@@ -78,9 +101,16 @@ namespace KerbalColonies.VesselAutoTransfer
                         rateStrings[kvp.Key] = GUILayout.TextField(rateStrings[kvp.Key], GUILayout.Width(100));
                         colonyLimitStrings[kvp.Key] = GUILayout.TextField(colonyLimitStrings[kvp.Key], GUILayout.Width(100));
                         vesselLimitStrings[kvp.Key] = GUILayout.TextField(vesselLimitStrings[kvp.Key], GUILayout.Width(100));
+                        GUILayout.Space(16);
+                        disableIfColonyLimit[kvp.Key] = GUILayout.Toggle(disableIfColonyLimit[kvp.Key], "Disable if colony constrains");
+                        disableIfVesselLimit[kvp.Key] = GUILayout.Toggle(disableIfVesselLimit[kvp.Key], "Disable if vessel constrains");
+                        GUILayout.Space(16);
 
                         if (GUILayout.Button(kvp.Key.name))
                         {
+                            transfer.DisableIfColonyConstrains[kvp.Key] = disableIfColonyLimit[kvp.Key];
+                            transfer.DisableIfVesselConstrains[kvp.Key] = disableIfVesselLimit[kvp.Key];
+
                             if (double.TryParse(colonyLimitStrings[kvp.Key], out double colonyLimit))
                             {
                                 Configuration.writeLog($"Changed colony limit of {kvp.Key.name} to {colonyLimit}");
@@ -122,7 +152,7 @@ namespace KerbalColonies.VesselAutoTransfer
         public VesselResourceRatesChangewindow(ModuleKCTransfer transferModule) : base(Configuration.createWindowID(), "Change resource rates", false)
         {
             this.transferModule = transferModule;
-            toolRect = new Rect(100, 100, 600, 250);
+            toolRect = new Rect(100, 100, 1000, 250);
         }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using KerbalColonies.colonyFacilities;
 using KerbalColonies.colonyFacilities.StorageFacility;
+using KerbalColonies.Settings;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -280,7 +281,7 @@ namespace KerbalColonies
 
                 if (n.HasValue("ECperSecond"))
                 {
-                    ResourceUsage[level][ec] = double.Parse(n.GetValue("ECperSecond"));
+                    ResourceUsage[level][ec] = -double.Parse(n.GetValue("ECperSecond"));
                     useECValue = true;
                 }
                 else if (level != 0 && useECValue) ResourceUsage[level][ec] = ResourceUsage[level - 1][ec];

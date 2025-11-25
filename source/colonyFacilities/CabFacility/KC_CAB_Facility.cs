@@ -16,6 +16,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/
 
 using KerbalColonies.colonyFacilities.ProductionFacility;
+using KerbalColonies.Settings;
 using System.Linq;
 
 namespace KerbalColonies.colonyFacilities.CabFacility

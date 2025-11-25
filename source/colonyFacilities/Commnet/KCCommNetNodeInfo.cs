@@ -1,4 +1,5 @@
 ﻿using CommNet;
+using KerbalColonies.Settings;
 using KerbalKonstructs.Core;
 using System;
 using System.Collections.Generic;

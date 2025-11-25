@@ -1,5 +1,6 @@
 ﻿using KerbalColonies.colonyFacilities.ElectricityFacilities.ECStorage;
 using KerbalColonies.ResourceManagment;
+using KerbalColonies.Settings;
 using Smooth.Collections;
 using System;
 using System.Collections.Generic;

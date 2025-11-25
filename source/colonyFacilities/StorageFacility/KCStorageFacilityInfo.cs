@@ -1,4 +1,5 @@
 ﻿using KerbalColonies.colonyFacilities.ElectricityFacilities.ECStorage;
+using KerbalColonies.Settings;
 using System;
 using System.Collections.Generic;
 using System.Linq;

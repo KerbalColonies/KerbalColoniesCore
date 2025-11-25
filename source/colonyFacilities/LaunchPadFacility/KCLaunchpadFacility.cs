@@ -1,4 +1,5 @@
 ﻿using KerbalColonies.ResourceManagment;
+using KerbalColonies.Settings;
 using KerbalKonstructs;
 using Smooth.Collections;
 using System.Collections.Generic;

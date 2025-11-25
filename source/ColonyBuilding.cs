@@ -1,5 +1,6 @@
 ﻿using KerbalColonies.colonyFacilities;
 using KerbalColonies.colonyFacilities.CabFacility;
+using KerbalColonies.Settings;
 using KerbalColonies.UI;
 using KerbalKonstructs;
 using KerbalKonstructs.UI;

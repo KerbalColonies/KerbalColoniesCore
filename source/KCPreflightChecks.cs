@@ -5,6 +5,7 @@ using KerbalColonies.colonyFacilities.HangarFacility;
 using KerbalColonies.colonyFacilities.LaunchPadFacility;
 using KerbalColonies.colonyFacilities.ProductionFacility;
 using KerbalColonies.colonyFacilities.StorageFacility;
+using KerbalColonies.Settings;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;

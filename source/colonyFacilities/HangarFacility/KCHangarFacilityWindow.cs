@@ -1,4 +1,6 @@
-﻿using KerbalColonies.UI;
+﻿using KerbalColonies.colonyFacilities.StorageFacility;
+using KerbalColonies.Settings;
+using KerbalColonies.UI;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -46,6 +48,7 @@ namespace KerbalColonies.colonyFacilities.HangarFacility
         private int MaxPermutations = 8192;
         private int MaxProcessors;
         private Vector2 scrollPos;
+        private Vector2 resourceUsageScrollPos;
         protected override void CustomWindow()
         {
             hangar.Colony.UpdateColony();
@@ -118,6 +121,31 @@ namespace KerbalColonies.colonyFacilities.HangarFacility
             }
 
             GUI.enabled = true;
+
+            GUILayout.Space(5);
+
+            hangar.enabled = GUILayout.Toggle(hangar.enabled, "Enable hangar", GUILayout.Height(18));
+            GUILayout.Space(10);
+
+            if (facility.facilityInfo.ResourceUsage[facility.level].Count > 0)
+            {
+                GUILayout.BeginHorizontal();
+                {
+                    GUILayout.Label($"Resource Consumption Priority: {hangar.ResourceConsumptionPriority}", GUILayout.Height(18));
+                    GUILayout.FlexibleSpace();
+                    if (GUILayout.RepeatButton("--", GUILayout.Width(30), GUILayout.Height(23)) | GUILayout.Button("-", GUILayout.Width(30), GUILayout.Height(23))) hangar.ResourceConsumptionPriority--;
+                    if (GUILayout.Button("+", GUILayout.Width(30), GUILayout.Height(23)) | GUILayout.RepeatButton("++", GUILayout.Width(30), GUILayout.Height(23))) hangar.ResourceConsumptionPriority++;
+                }
+                GUILayout.EndHorizontal();
+                GUILayout.Label("Resource usage:");
+                resourceUsageScrollPos = GUILayout.BeginScrollView(resourceUsageScrollPos, GUILayout.Height(120));
+                {
+                    hangar.ResourceConsumptionPerSecond().ToList().ForEach(kvp =>
+                        GUILayout.Label($"- {kvp.Key.displayName}: {kvp.Value}/s")
+                    );
+                }
+                GUILayout.EndScrollView();
+            }
         }
 
         public KCHangarFacilityWindow(KCHangarFacility hangar) : base(hangar, Configuration.createWindowID())

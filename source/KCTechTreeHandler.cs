@@ -1,4 +1,5 @@
-﻿using KSP.UI;
+﻿using KerbalColonies.Settings;
+using KSP.UI;
 using KSP.UI.Screens;
 using System;
 using System.Collections.Generic;

@@ -1,5 +1,6 @@
 ﻿using BackgroundResourceProcessing;
 using BackgroundResourceProcessing.Behaviour;
+using KerbalColonies.Settings;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -77,6 +78,8 @@ namespace KerbalColonies.VesselAutoTransfer
 
         public override void OnRatesComputed(BackgroundResourceProcessor processor, BackgroundResourceProcessing.Core.ResourceConverter converter, RateCalculatedEvent evt)
         {
+            if (converter == null) return;
+
             // resource limits are enforced by the constraints
             // rates will be updated through the OnRatesComputed event
             // although it's also necessary to update the rates on every change point as e.g. solar panels will change the possible rates

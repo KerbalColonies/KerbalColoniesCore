@@ -1,4 +1,5 @@
-﻿using KerbalColonies.UI;
+﻿using KerbalColonies.Settings;
+using KerbalColonies.UI;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -97,8 +98,8 @@ namespace KerbalColonies.colonyFacilities.StorageFacility
         }
 
         private SortedDictionary<PartResourceDefinition, ResourceTransferAvailable> AvailableResources;
-        protected double transferAmount = 0;
-        protected string transferAmountString = "0";
+        protected double transferAmount = 1;
+        protected string transferAmountString = "1";
         protected bool trashResources = false;
         protected Vector2 resourceUsageScrollPos = Vector2.zero;
         protected override void CustomWindow()

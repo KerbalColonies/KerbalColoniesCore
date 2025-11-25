@@ -1,4 +1,5 @@
-﻿using System;
+﻿using KSP.UI.Screens;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using static KerbalColonies.colonyFacilities.HangarFacility.KCHangarFacility;
@@ -43,6 +44,7 @@ namespace KerbalColonies.colonyFacilities.HangarFacility
         public SortedDictionary<int, SortedDictionary<int, double>> Sizes { get; protected set; } = [];
         public SortedDictionary<int, KCHangarFacility.NewDimCalculationMode> NewDimCalculations { get; protected set; } = [];
         public SortedDictionary<int, int> VesselCapacity { get; protected set; } = [];
+        public SortedDictionary<int, Dictionary<PartResourceDefinition, double>> ResourceUsagePerVessel { get; protected set; } = [];
         public double Volume(int level) => Sizes[level].Values.Aggregate(1.0, (a, b) => a * b);
         public int Dimension => Sizes[0].Count;
 
@@ -67,6 +69,21 @@ namespace KerbalColonies.colonyFacilities.HangarFacility
                 }
                 else if (n.Key > 0) Sizes.Add(n.Key, Sizes[n.Key - 1]);
                 else throw new Exception($"Missing \"size\" node for level {n.Key}");
+
+                if (n.Value.HasNode("resourceUsagePerVessel"))
+                {
+                    ConfigNode resourceUsageNode = n.Value.GetNode("resourceUsagePerVessel");
+                    Dictionary<PartResourceDefinition, double> resourceList = [];
+                    foreach (ConfigNode.Value v in resourceUsageNode.values)
+                    {
+                        PartResourceDefinition resourceDef = PartResourceLibrary.Instance.GetDefinition(v.name);
+                        double amount = double.Parse(v.value);
+                        resourceList.Add(resourceDef, amount);
+                    }
+                    ResourceUsagePerVessel.Add(n.Key, resourceList);
+                }
+                else if (n.Key != 0) ResourceUsagePerVessel.Add(n.Key, new Dictionary<PartResourceDefinition, double>(ResourceUsagePerVessel[n.Key - 1]));
+                else ResourceUsagePerVessel.Add(0, []);
 
                 VesselCapacity[n.Key] = n.Value.HasValue("capacity")
                     ? int.Parse(n.Value.GetValue("capacity"))

@@ -1,4 +1,5 @@
-﻿using KerbalColonies.UI;
+﻿using KerbalColonies.Settings;
+using KerbalColonies.UI;
 using UnityEngine;
 
 // KC: Kerbal Colonies

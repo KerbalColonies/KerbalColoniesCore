@@ -1,6 +1,7 @@
 ﻿using Experience;
 using KerbalColonies.colonyFacilities.CabFacility;
 using KerbalColonies.ResourceManagment;
+using KerbalColonies.Settings;
 using Smooth.Collections;
 using System.Collections.Generic;
 using System.Linq;

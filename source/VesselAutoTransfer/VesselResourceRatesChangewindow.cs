@@ -81,14 +81,14 @@ namespace KerbalColonies.VesselAutoTransfer
         {
             GUILayout.BeginHorizontal();
             {
-                GUILayout.Label("Rate");
-                GUILayout.Label("Colony Limit");
-                GUILayout.Label("Vessel Limit");
-                GUILayout.Space(16);
-                GUILayout.Label("Disable if colony constrains");
-                GUILayout.Label("Disable if vessel constrains");
-                GUILayout.Space(16);
-                GUILayout.Label("Confirm");
+                GUILayout.Space(20);
+                GUILayout.Label("Rate", GUILayout.Width(100));
+                GUILayout.Label("Colony Limit", GUILayout.Width(100));
+                GUILayout.Label("Vessel Limit", GUILayout.Width(100));
+                GUILayout.Space(8);
+                GUILayout.Label("Disable if colony constrains", GUILayout.Width(220));
+                GUILayout.Label("Disable if vessel constrains", GUILayout.Width(220));
+                GUILayout.Label("Confirm", GUILayout.Width(220));
             }
             GUILayout.EndHorizontal();
 
@@ -101,12 +101,10 @@ namespace KerbalColonies.VesselAutoTransfer
                         rateStrings[kvp.Key] = GUILayout.TextField(rateStrings[kvp.Key], GUILayout.Width(100));
                         colonyLimitStrings[kvp.Key] = GUILayout.TextField(colonyLimitStrings[kvp.Key], GUILayout.Width(100));
                         vesselLimitStrings[kvp.Key] = GUILayout.TextField(vesselLimitStrings[kvp.Key], GUILayout.Width(100));
-                        GUILayout.Space(16);
-                        disableIfColonyLimit[kvp.Key] = GUILayout.Toggle(disableIfColonyLimit[kvp.Key], "Disable if colony constrains");
-                        disableIfVesselLimit[kvp.Key] = GUILayout.Toggle(disableIfVesselLimit[kvp.Key], "Disable if vessel constrains");
-                        GUILayout.Space(16);
+                        disableIfColonyLimit[kvp.Key] = GUILayout.Toggle(disableIfColonyLimit[kvp.Key], "Disable if colony constrains", GUILayout.Width(220));
+                        disableIfVesselLimit[kvp.Key] = GUILayout.Toggle(disableIfVesselLimit[kvp.Key], "Disable if vessel constrains", GUILayout.Width(220));
 
-                        if (GUILayout.Button(kvp.Key.name))
+                        if (GUILayout.Button(kvp.Key.name, GUILayout.Width(220)))
                         {
                             transfer.DisableIfColonyConstrains[kvp.Key] = disableIfColonyLimit[kvp.Key];
                             transfer.DisableIfVesselConstrains[kvp.Key] = disableIfVesselLimit[kvp.Key];

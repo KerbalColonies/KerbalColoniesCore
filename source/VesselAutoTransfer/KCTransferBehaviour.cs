@@ -78,7 +78,7 @@ namespace KerbalColonies.VesselAutoTransfer
 
         public override void OnRatesComputed(BackgroundResourceProcessor processor, BackgroundResourceProcessing.Core.ResourceConverter converter, RateCalculatedEvent evt)
         {
-            if (converter == null) return;
+            if (converter == null || processor == null) return;
 
             // resource limits are enforced by the constraints
             // rates will be updated through the OnRatesComputed event

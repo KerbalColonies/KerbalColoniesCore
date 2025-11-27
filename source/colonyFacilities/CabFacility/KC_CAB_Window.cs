@@ -35,6 +35,7 @@ namespace KerbalColonies.colonyFacilities.CabFacility
         private string selectedType;
         private Vector2 scrollPosTypes = new();
         private Vector2 scrollPosFacilities = new();
+        private Vector2 scrollPosOverview = new();
         protected override void CustomWindow()
         {
             CABFacility.Colony.UpdateColony();
@@ -155,7 +156,7 @@ namespace KerbalColonies.colonyFacilities.CabFacility
                         }
                         GUILayout.EndHorizontal();
 
-                        scrollPosFacilities = GUILayout.BeginScrollView(scrollPosFacilities);
+                        scrollPosOverview = GUILayout.BeginScrollView(scrollPosOverview, GUILayout.Height(400));
                         {
                             CABInfoWindow.Invoke(CABFacility.Colony);
                         }

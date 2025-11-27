@@ -182,6 +182,7 @@ namespace KerbalColonies
 
             KC_CAB_Window.CABInfoWindow += KCCrewQuarters.CABDisplay;
             KC_CAB_Window.CABInfoWindow += KCProductionFacility.CABDisplay;
+            KC_CAB_Window.CABInfoWindow += KCResourceManager.CABDisplay;
         }
 
         protected void Start()

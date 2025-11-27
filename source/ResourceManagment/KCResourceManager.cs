@@ -1,6 +1,8 @@
-﻿using System;
+﻿using KerbalColonies.colonyFacilities.CabFacility;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
 
 // KC: Kerbal Colonies
 // This mod aimes to create a Colony system with Kerbal Konstructs statics
@@ -47,6 +49,46 @@ namespace KerbalColonies.ResourceManagment
         public static Dictionary<colonyClass, SortedDictionary<int, List<IKCResourceStorage>>> otherStorages { get; set; } = [];
 
         public static Dictionary<colonyClass, KCColonyResourceData> colonyResources = [];
+
+        private static Dictionary<colonyClass, Vector2> resourceScrollPos = [];
+        public static void CABDisplay(colonyClass colony)
+        {
+            if (!colonyResources.ContainsKey(colony)) return;
+
+            if (!resourceScrollPos.ContainsKey(colony))
+                resourceScrollPos[colony] = Vector2.zero;
+
+            KCColonyResourceData colonyData = colonyResources[colony];
+
+
+            resourceScrollPos[colony] = GUILayout.BeginScrollView(resourceScrollPos[colony], GUILayout.Width(KC_CAB_Window.CABInfoWidth - 20), GUILayout.Height(200));
+            {
+                colonyData.resources.ToList().ForEach(res =>
+                {
+                    GUILayout.Label($"<b>{res.displayName}:</b>");
+                    GUILayout.BeginHorizontal();
+                    {
+                        GUILayout.BeginVertical(GUILayout.Width(KC_CAB_Window.CABInfoWidth / 2 - 20));
+                        {
+                            GUILayout.Label($"Produced: {(colonyData.ResourcesProduced.GetValueOrDefault(res) / colonyData.deltaTime):F2} {res.abbreviation}/s");
+                            GUILayout.Label($"Consumed: {(colonyData.ResourcesConsumed.GetValueOrDefault(res) / colonyData.deltaTime):F2} {res.abbreviation}/s");
+                        }
+                        GUILayout.EndVertical();
+                        GUILayout.BeginVertical(GUILayout.Width(KC_CAB_Window.CABInfoWidth / 2 - 20));
+                        {
+                            GUILayout.Label($"Stored: {(colonyData.ResourcesStored.GetValueOrDefault(res) / colonyData.deltaTime):F2} {res.abbreviation}");
+                            GUILayout.Label($"Delta: {(colonyData.ResourceDelta(res) / colonyData.deltaTime):F2} {res.abbreviation}/s");
+                        }
+                        GUILayout.EndVertical();
+                        GUILayout.FlexibleSpace();
+                    }
+                    GUILayout.EndHorizontal();
+                });
+
+            }
+            GUILayout.EndScrollView();
+        }
+
 
         private static void GetDeltaTime(colonyClass colony, out double lastTime, out double deltaTime, out double currentTime)
         {

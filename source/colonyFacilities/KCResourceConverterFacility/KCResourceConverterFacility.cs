@@ -199,7 +199,7 @@ namespace KerbalColonies.colonyFacilities.KCResourceConverterFacility
             {
                 double remainingResource = kvp.Value * ISRUdTime;
 
-                lastResourceConsumption[kvp.Key] = -remainingResource;
+                lastResourceConsumption[kvp.Key] = remainingResource;
             }
 
             foreach (KeyValuePair<PartResourceDefinition, double> kvp in activeRecipe.OutputResources)
@@ -264,7 +264,19 @@ namespace KerbalColonies.colonyFacilities.KCResourceConverterFacility
 
         public Dictionary<PartResourceDefinition, double> ResourcesPerSecond() => enabled && !resourceLimited ? activeRecipe.OutputResources.ToDictionary(kvp => kvp.Key, kvp => kvp.Value * ISRUcount()) : [];
 
-        public Dictionary<PartResourceDefinition, double> ExpectedResourceConsumption(double lastTime, double deltaTime, double currentTime) => enabled && !resourceLimited ? activeRecipe.OutputResources.ToDictionary(kvp => kvp.Key, kvp => kvp.Value * ISRUcount() * deltaTime) : [];
+        // Add resouce usage node values
+        public Dictionary<PartResourceDefinition, double> ExpectedResourceConsumption(double lastTime, double deltaTime, double currentTime)
+        {
+            if (enabled || !resourceLimited)
+            {
+                Dictionary<PartResourceDefinition, double> expectedConsumption = new();
+                expectedConsumption.AddAll(lastResourceConsumption);
+                lastResourceConsumption.Clear();
+                expectedConsumption.AddAll(facilityInfo.ResourceUsage[level].Where(kvp => kvp.Value < 0).ToDictionary(kvp => kvp.Key, kvp => -kvp.Value * ISRUcount() * deltaTime));
+                return expectedConsumption;
+            } 
+            else return [];
+        }
 
         public void ConsumeResources(double lastTime, double deltaTime, double currentTime)
         {

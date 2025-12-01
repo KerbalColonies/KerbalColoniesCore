@@ -160,7 +160,7 @@ namespace KerbalColonies
                         double remainingAmount = resource.Value * Configuration.FacilityCostMultiplier;
 
                         double vesselAmount = 0;
-                        double colonyAmount = colonyStorage.Resources[resource.Key];
+                        double colonyAmount = colonyStorage.Resources.GetValueOrDefault(resource.Key);
                         if (colony.CAB.PlayerInColony)
                         {
                             FlightGlobals.ActiveVessel.GetConnectedResourceTotals(resource.Key.id, out double amount, out double maxAmount);

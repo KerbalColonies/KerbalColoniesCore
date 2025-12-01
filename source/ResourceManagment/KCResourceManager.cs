@@ -76,7 +76,7 @@ namespace KerbalColonies.ResourceManagment
                         GUILayout.EndVertical();
                         GUILayout.BeginVertical(GUILayout.Width(KC_CAB_Window.CABInfoWidth / 2 - 20));
                         {
-                            GUILayout.Label($"Stored: {(colonyData.ResourcesStored.GetValueOrDefault(res) / colonyData.deltaTime):F2} {res.abbreviation}");
+                            GUILayout.Label($"Stored: {colonyData.ResourcesStored.GetValueOrDefault(res):F2} {res.abbreviation}");
                             GUILayout.Label($"Delta: {(colonyData.ResourceDelta(res) / colonyData.deltaTime):F2} {res.abbreviation}/s");
                         }
                         GUILayout.EndVertical();
@@ -239,7 +239,26 @@ namespace KerbalColonies.ResourceManagment
             if (insufficientResources.Count == 0)
             {
                 ResourceConsumers.SelectMany(kvp => kvp.Value).ToList().ForEach(f => f.ConsumeResources(lastTime, deltaTime, currentTime));
+
+                foreach (PartResourceDefinition res in colonyData.resources)
+                {
+                    double amount = storedResourcesUsed.GetValueOrDefault(res);
+
+                    foreach (KeyValuePair<int, List<IKCResourceStorage>> storageKVP in ResourceStored)
+                    {
+                        foreach (IKCResourceStorage storage in storageKVP.Value)
+                        {
+                            amount = storage.ChangeResourceStored(res, amount);
+
+                            if (amount == 0) break;
+                        }
+                    }
+                }
+
+                if (!colonyResources.ContainsKey(colony)) colonyResources.Add(colony, null);
+                colonyResources[colony] = colonyData;
                 sufficientResources.Clear();
+                return;
             }
             else
             {
@@ -305,8 +324,8 @@ namespace KerbalColonies.ResourceManagment
                 }
             }
 
-            colonyResources.Remove(colony);
-            colonyResources.Add(colony, colonyData);
+            if (!colonyResources.ContainsKey(colony)) colonyResources.Add(colony, null);
+            colonyResources[colony] = colonyData;
         }
     }
 }

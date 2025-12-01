@@ -428,7 +428,10 @@ namespace KerbalColonies.colonyFacilities.HangarFacility
 
                 facilityInfo.ResourceUsage[level].ToList().ForEach(kvp => resourceConsumption.Add(kvp.Key, kvp.Value * deltaTime));
 
-                hangarInfo.ResourceUsagePerVessel[level].ToList().ForEach(kvp => resourceConsumption.Add(kvp.Key, kvp.Value * deltaTime * storedVessels.Count));
+                hangarInfo.ResourceUsagePerVessel[level].ToList().ForEach(kvp => {
+                    if (resourceConsumption.ContainsKey(kvp.Key)) resourceConsumption[kvp.Key] += kvp.Value * deltaTime * storedVessels.Count;
+                    else resourceConsumption.Add(kvp.Key, kvp.Value * deltaTime * storedVessels.Count);
+                });
 
                 return resourceConsumption;
             }
@@ -457,7 +460,10 @@ namespace KerbalColonies.colonyFacilities.HangarFacility
 
                 facilityInfo.ResourceUsage[level].ToList().ForEach(kvp => resourceConsumption.Add(kvp.Key, kvp.Value));
 
-                hangarInfo.ResourceUsagePerVessel[level].ToList().ForEach(kvp => resourceConsumption.Add(kvp.Key, kvp.Value * storedVessels.Count));
+                hangarInfo.ResourceUsagePerVessel[level].ToList().ForEach(kvp => {
+                    if (resourceConsumption.ContainsKey(kvp.Key)) resourceConsumption[kvp.Key] *= kvp.Value * storedVessels.Count;
+                    else resourceConsumption.Add(kvp.Key, kvp.Value * storedVessels.Count);
+                });
 
                 return resourceConsumption;
             }

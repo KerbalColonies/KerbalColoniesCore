@@ -140,6 +140,7 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Win
                 {
                     facilityInfo.ResourceUsage[i].ToList().ForEach(kvp =>
                     {
+                        if (!resourcesProduced.ContainsKey(kvp.Key)) resourcesProduced.Add(kvp.Key, 0.0);
                         resourcesProduced[kvp.Key] += kvp.Value * densityList[KKgroups[i - offset]] * deltaTime;
                     });
                 }
@@ -169,6 +170,7 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Win
                 {
                     facilityInfo.ResourceUsage[i].ToList().ForEach(kvp =>
                     {
+                        if (!resourcesProduced.ContainsKey(kvp.Key)) resourcesProduced.Add(kvp.Key, 0.0);
                         resourcesProduced[kvp.Key] += kvp.Value * densityList[KKgroups[i - offset]];
                     });
                 }

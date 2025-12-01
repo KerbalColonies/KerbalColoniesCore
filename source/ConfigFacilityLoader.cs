@@ -18,6 +18,7 @@ using KerbalColonies.colonyFacilities.StorageFacility;
 using KerbalColonies.ResourceManagment;
 using KerbalColonies.Settings;
 using KerbalColonies.UI;
+using KerbalColonies.UI.SingleTimeWindow;
 using KerbalColonies.VesselAutoTransfer;
 using System;
 using System.Collections.Generic;

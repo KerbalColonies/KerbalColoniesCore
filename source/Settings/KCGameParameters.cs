@@ -30,22 +30,22 @@ namespace KerbalColonies.Settings
         public override int SectionOrder { get { return 1; } }
         public override bool HasPresets { get { return true; } }
 
-        [GameParameters.CustomFloatParameterUI("Facility build cost multiplier", toolTip = "Multiplies the build cost for all facilities and new colonies.", addTextField = true, asPercentage = false, autoPersistance = false, logBase = 1.5f, gameMode = GameParameters.GameMode.ANY, maxValue = 10f, newGameOnly = false, displayFormat = "0.00")]
+        [GameParameters.CustomFloatParameterUI("Facility build cost multiplier", toolTip = "Multiplies the build cost for all facilities and new colonies.", addTextField = true, asPercentage = false, autoPersistance = false, gameMode = GameParameters.GameMode.ANY, maxValue = 10f, newGameOnly = false, displayFormat = "0.00")]
         public float FacilityCostMultiplier { get => Configuration.FacilityCostMultiplier; set => Configuration.FacilityCostMultiplier = value; }
 
-        [GameParameters.CustomFloatParameterUI("Facility build time multiplier", toolTip = "Multiplies the build time for all facilities.", addTextField = true, asPercentage = false, autoPersistance = false, logBase = 1.5f, gameMode = GameParameters.GameMode.ANY, maxValue = 10f, newGameOnly = false, displayFormat = "0.00")]
+        [GameParameters.CustomFloatParameterUI("Facility build time multiplier", toolTip = "Multiplies the build time for all facilities.", addTextField = true, asPercentage = false, autoPersistance = false, gameMode = GameParameters.GameMode.ANY, maxValue = 10f, newGameOnly = false, displayFormat = "0.00")]
         public float FacilityTimeMultiplier { get => Configuration.FacilityTimeMultiplier; set => Configuration.FacilityTimeMultiplier = value; }
 
-        [GameParameters.CustomFloatParameterUI("Facility range multiplier", toolTip = "Multiplies the range of all facilities.", addTextField = true, asPercentage = false, autoPersistance = false, logBase = 1.5f, gameMode = GameParameters.GameMode.ANY, minValue = 0.1f, maxValue = 10f, newGameOnly = false, displayFormat = "0.00")]
+        [GameParameters.CustomFloatParameterUI("Facility range multiplier", toolTip = "Multiplies the range of all facilities.", addTextField = true, asPercentage = false, autoPersistance = false, gameMode = GameParameters.GameMode.ANY, minValue = 0.1f, maxValue = 10f, newGameOnly = false, displayFormat = "0.00")]
         public float FacilityRangeMultiplier { get => Configuration.FacilityRangeMultiplier; set => Configuration.FacilityRangeMultiplier = value; }
 
-        [GameParameters.CustomFloatParameterUI("Editor range multiplier", toolTip = "Multiplies the range of KCs custom KK editor.", addTextField = true, asPercentage = false, autoPersistance = false, logBase = 1.5f, gameMode = GameParameters.GameMode.ANY, minValue = 0.1f, maxValue = 10f, newGameOnly = false, displayFormat = "0.00")]
+        [GameParameters.CustomFloatParameterUI("Editor range multiplier", toolTip = "Multiplies the range of KCs custom KK editor.", addTextField = true, asPercentage = false, autoPersistance = false, gameMode = GameParameters.GameMode.ANY, minValue = 0.1f, maxValue = 10f, newGameOnly = false, displayFormat = "0.00")]
         public float EditorRangeMultiplier { get => Configuration.EditorRangeMultiplier; set => Configuration.EditorRangeMultiplier = value; }
 
-        [GameParameters.CustomFloatParameterUI("Vessel build cost multiplier", toolTip = "Multiplies the build cost for all vessel built at colonies.", addTextField = true, asPercentage = false, autoPersistance = false, logBase = 1.5f, gameMode = GameParameters.GameMode.ANY, maxValue = 10f, newGameOnly = false, displayFormat = "0.00")]
+        [GameParameters.CustomFloatParameterUI("Vessel build cost multiplier", toolTip = "Multiplies the build cost for all vessel built at colonies.", addTextField = true, asPercentage = false, autoPersistance = false, gameMode = GameParameters.GameMode.ANY, maxValue = 10f, newGameOnly = false, displayFormat = "0.00")]
         public float VesselCostMultiplier { get => Configuration.VesselCostMultiplier; set => Configuration.VesselCostMultiplier = value; }
 
-        [GameParameters.CustomFloatParameterUI("Vessel build time multiplier", toolTip = "Multiplies the build time for all vessel built at colonies.", addTextField = true, asPercentage = false, autoPersistance = false, logBase = 1.5f, gameMode = GameParameters.GameMode.ANY, maxValue = 10f, newGameOnly = false, displayFormat = "0.00")]
+        [GameParameters.CustomFloatParameterUI("Vessel build time multiplier", toolTip = "Multiplies the build time for all vessel built at colonies.", addTextField = true, asPercentage = false, autoPersistance = false, gameMode = GameParameters.GameMode.ANY, maxValue = 10f, newGameOnly = false, displayFormat = "0.00")]
         public float VesselTimeMultiplier { get => Configuration.VesselTimeMultiplier; set => Configuration.VesselTimeMultiplier = value; }
 
         [GameParameters.CustomIntParameterUI("Max colonies per body", toolTip = "Maximum number of colonies that can be built on a single body. Set to 0 to disable the limit.", autoPersistance = false, gameMode = GameParameters.GameMode.ANY, minValue = 0, maxValue = 15, newGameOnly = false)]

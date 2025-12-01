@@ -1,4 +1,5 @@
-﻿using KerbalColonies.UI.SingleTimePopup;
+﻿using KerbalColonies.Settings;
+using KerbalColonies.UI.SingleTimePopup;
 using System;
 using System.Collections.Generic;
 using System.IO;

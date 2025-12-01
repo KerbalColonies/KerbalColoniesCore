@@ -118,7 +118,7 @@ namespace KerbalColonies.colonyFacilities.ProductionFacility
                         }
                         GUILayout.EndHorizontal();
                         GUILayout.Label("Resource usage:");
-                        resourceUsageScrollPos = GUILayout.BeginScrollView(resourceUsageScrollPos, GUILayout.Height(120));
+                        resourceUsageScrollPos = GUILayout.BeginScrollView(resourceUsageScrollPos, GUILayout.Height(40));
                         {
                             productionFacility.facilityInfo.ResourceUsage[facility.level].ToList().ForEach(kvp =>
                                 GUILayout.Label($"- {kvp.Key.displayName}: {kvp.Value}/s")
@@ -298,7 +298,7 @@ namespace KerbalColonies.colonyFacilities.ProductionFacility
         {
             productionFacility = facility;
             kerbalGUI = null;
-            toolRect = new Rect(100, 100, 620, 700);
+            toolRect = new Rect(100, 100, 620, 800);
         }
     }
 }

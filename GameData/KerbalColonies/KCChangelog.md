@@ -1,3 +1,11 @@
+# v1.2.0
+- Reworked resource system (any resource is now supported for usage, not just ec)
+- Unified colony storage
+- Experimental vessel auto transfer (background transfer might not work as intended, active transfer mostly stable)
+- Accurate vessel placement checks for the hangar facility
+- N Dimensional hangar facility
+- Facility tooltips
+
 # v1.1.6 hotfix
 - Fixed the performance issues at the spacecenter
 

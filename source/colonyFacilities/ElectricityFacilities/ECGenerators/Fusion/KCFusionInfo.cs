@@ -51,7 +51,7 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fus
                     {
                         PartResourceDefinition resourceDef = PartResourceLibrary.Instance.GetDefinition(v.name);
                         double amount = double.Parse(v.value);
-                        base.ResourceUsage[kvp.Key].Add(resourceDef, amount);
+                        base.ResourceUsage[kvp.Key].Add(resourceDef, -amount);
                     }
                 }
 

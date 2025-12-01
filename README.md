@@ -63,6 +63,7 @@ This mod is fully licensed under the GNU GPLv3 license.
 * KerbalKonstructs >= v1.10.0.0
 * CustomPrelaunchChecks
 * Click Through Blocker
+* Background resource processing
 * Extraplanetary launchpads (used for more resources, eventually there will be stock resource configs)
 
 # Config packs

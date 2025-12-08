@@ -22,6 +22,7 @@ namespace KerbalColonies
             public string partName = string.Empty;
             public string description = string.Empty;
             public string manufacturer = string.Empty;
+            public string author = string.Empty;
             public Sprite icon = null;
             public KCFacilityInfoClass facility = null;
             public int level = 0;
@@ -38,6 +39,7 @@ namespace KerbalColonies
                 partName = facility.PartName[level];
                 description = facility.Description[level];
                 manufacturer = facility.Manufacturer[level];
+                author = facility.Author[level];
                 techNodes = facility.TechNodesRequired[level];
 
                 byte[] fileData = File.ReadAllBytes(Path.Combine(KSPUtil.ApplicationRootPath, "GameData", facility.IconPath[level]));
@@ -166,7 +168,7 @@ namespace KerbalColonies
                                 title = tp.partName,
                                 manufacturer = tp.manufacturer,
                                 description = tp.description,
-                                author = "AMPW",
+                                author = tp.author,
 
                                 iconPrefab = basePart.iconPrefab,
                                 iconScale = basePart.iconScale,

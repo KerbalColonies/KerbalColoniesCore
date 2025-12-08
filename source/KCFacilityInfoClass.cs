@@ -86,6 +86,7 @@ namespace KerbalColonies
         public SortedDictionary<int, string> PartName { get; protected set; } = [];
         public SortedDictionary<int, string> Description { get; protected set; } = [];
         public SortedDictionary<int, string> Manufacturer { get; protected set; } = [];
+        public SortedDictionary<int, string> Author { get; protected set; } = [];
         public SortedDictionary<int, string> IconPath { get; protected set; } = []; // relative to GameData
         #endregion
 

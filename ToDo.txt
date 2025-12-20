@@ -1,4 +1,0 @@
-- draining facility cost (continues facility cost during the build)
-- auto grass color
-- contracts
-- N-D storage facilities (because I like thinking in 4d, that's the entire reason)

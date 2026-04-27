@@ -1,3 +1,8 @@
+# v1.2.1
+- Fix missing dt usage for fuelcell facility production update (see [#60](https://github.com/KerbalColonies/KerbalColoniesCore/issues/60))
+- Add fuel cell throttle (manual only)
+- Add fixed dt step size limit
+
 # v1.2.0
 - Reworked resource system (any resource is now supported for usage, not just ec)
 - Unified colony storage

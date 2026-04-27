@@ -93,7 +93,6 @@ namespace KerbalColonies.colonyFacilities.ResearchFacility
             ConfigNode node = base.getConfigNode();
             node.AddValue("sciencePoints", sciencePoints);
             node.AddValue("ECConsumptionPriority", ResourceConsumptionPriority);
-
             return node;
         }
 

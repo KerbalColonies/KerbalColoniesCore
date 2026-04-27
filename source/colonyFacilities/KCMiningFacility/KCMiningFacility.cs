@@ -42,7 +42,7 @@ namespace KerbalColonies.colonyFacilities.KCMiningFacility
 
         public override void WhileBuildingPlaced(GroupCenter kkGroupname)
         {
-            KerbalKonstructs.Core.StaticInstance staticInstance = KerbalKonstructs.API.GetGroupStatics(kkGroupname.Group, kkGroupname.CelestialBody.name).First();
+            StaticInstance staticInstance = KerbalKonstructs.API.GetGroupStatics(kkGroupname.Group, kkGroupname.CelestialBody.name).First();
             staticInstance.Update();
 
             KCMiningFacilityPlacementWindow.Instance.newRates.Clear();
@@ -67,11 +67,11 @@ namespace KerbalColonies.colonyFacilities.KCMiningFacility
             if (!KCMiningFacilityPlacementWindow.Instance.IsOpen()) KCMiningFacilityPlacementWindow.Instance.Open();
         }
 
-        public override void OnGroupPlaced(KerbalKonstructs.Core.GroupCenter kkgroup)
+        public override void OnGroupPlaced(GroupCenter kkgroup)
         {
             KCMiningFacilityPlacementWindow.Instance.Close();
 
-            KerbalKonstructs.Core.StaticInstance staticInstance = KerbalKonstructs.API.GetGroupStatics(kkgroup.Group, kkgroup.CelestialBody.name).First();
+            StaticInstance staticInstance = KerbalKonstructs.API.GetGroupStatics(kkgroup.Group, kkgroup.CelestialBody.name).First();
             staticInstance.Update();
 
             AbundanceRequest request = new()
@@ -102,50 +102,6 @@ namespace KerbalColonies.colonyFacilities.KCMiningFacility
             lastUpdateTime = Planetarium.GetUniversalTime();
 
             enabled = built && kerbals.Count > 0 && enabled;
-            if (!enabled) return;
-
-            KCMiningFacilityInfo facilityInfo = miningFacilityInfo;
-
-            groupDensities.ToList().ForEach(kvp => kvp.Value.ToList().ForEach(prdRate =>
-            {
-                if (storedResoures.ContainsKey(prdRate.Key)) storedResoures[prdRate.Key] += prdRate.Value / 6 / 60 / 60 * deltaTime * kerbals.Count;
-                else storedResoures.Add(prdRate.Key, prdRate.Value / 6 / 60 / 60 * deltaTime * kerbals.Count);
-            }));
-
-            Dictionary<PartResourceDefinition, double> maxPerResource = [];
-            miningFacilityInfo.rates.Where(kvp => kvp.Key <= level).ToList().ForEach(kvp => kvp.Value.ForEach(rate =>
-            {
-                if (!maxPerResource.ContainsKey(rate.resource)) maxPerResource.Add(rate.resource, rate.max);
-                else maxPerResource[rate.resource] += rate.max;
-            }));
-
-            storedResoures.ToList().ForEach(res =>
-            {
-                if (autoTransferResources[res.Key] && res.Value > 0)
-                {
-                    if (autoTransferLimits[res.Key] > 0)
-                    {
-                        double colonyAmount = KCUnifiedColonyStorage.colonyStorages[Colony].Resources.GetValueOrDefault(res.Key);
-                        double transferAmount = (autoTransferLimits[res.Key] * KCUnifiedColonyStorage.colonyStorages[Colony].ResourceVolume(res.Key)) - colonyAmount;
-
-                        if (transferAmount <= 0) storedResoures[res.Key] = Math.Min(maxPerResource[res.Key], res.Value);
-                        else if (res.Value < transferAmount)
-                        {
-                            if (!autoTransferAmounts.ContainsKey(res.Key)) autoTransferAmounts.Add(res.Key, res.Value);
-                            else autoTransferAmounts[res.Key] += res.Value;
-                            storedResoures[res.Key] = 0;
-                        }
-                        else
-                        {
-                            if (!autoTransferAmounts.ContainsKey(res.Key)) autoTransferAmounts.Add(res.Key, transferAmount);
-                            else autoTransferAmounts[res.Key] += transferAmount;
-                            storedResoures[res.Key] = Math.Min(maxPerResource[res.Key], res.Value - transferAmount);
-                        }
-                    }
-                    else storedResoures[res.Key] = Math.Min(maxPerResource[res.Key], res.Value);
-                }
-                else storedResoures[res.Key] = Math.Min(maxPerResource[res.Key], res.Value);
-            });
         }
 
         public override void OnBuildingClicked()
@@ -191,6 +147,49 @@ namespace KerbalColonies.colonyFacilities.KCMiningFacility
         {
             enabled = built && kerbals.Count > 0 && enabled;
             if (!enabled || OutOfResources) return [];
+
+            KCMiningFacilityInfo facilityInfo = miningFacilityInfo;
+
+            groupDensities.ToList().ForEach(kvp => kvp.Value.ToList().ForEach(prdRate =>
+            {
+                if (storedResoures.ContainsKey(prdRate.Key)) storedResoures[prdRate.Key] += prdRate.Value / 6 / 60 / 60 * deltaTime * kerbals.Count;
+                else storedResoures.Add(prdRate.Key, prdRate.Value / 6 / 60 / 60 * deltaTime * kerbals.Count);
+            }));
+
+            Dictionary<PartResourceDefinition, double> maxPerResource = [];
+            miningFacilityInfo.rates.Where(kvp => kvp.Key <= level).ToList().ForEach(kvp => kvp.Value.ForEach(rate =>
+            {
+                if (!maxPerResource.ContainsKey(rate.resource)) maxPerResource.Add(rate.resource, rate.max);
+                else maxPerResource[rate.resource] += rate.max;
+            }));
+
+            storedResoures.ToList().ForEach(res =>
+            {
+                if (autoTransferResources[res.Key] && res.Value > 0)
+                {
+                    if (autoTransferLimits[res.Key] > 0)
+                    {
+                        double colonyAmount = KCUnifiedColonyStorage.colonyStorages[Colony].Resources.GetValueOrDefault(res.Key);
+                        double transferAmount = (autoTransferLimits[res.Key] * KCUnifiedColonyStorage.colonyStorages[Colony].ResourceVolume(res.Key)) - colonyAmount;
+
+                        if (transferAmount <= 0) storedResoures[res.Key] = Math.Min(maxPerResource[res.Key], res.Value);
+                        else if (res.Value < transferAmount)
+                        {
+                            if (!autoTransferAmounts.ContainsKey(res.Key)) autoTransferAmounts.Add(res.Key, res.Value);
+                            else autoTransferAmounts[res.Key] += res.Value;
+                            storedResoures[res.Key] = 0;
+                        }
+                        else
+                        {
+                            if (!autoTransferAmounts.ContainsKey(res.Key)) autoTransferAmounts.Add(res.Key, transferAmount);
+                            else autoTransferAmounts[res.Key] += transferAmount;
+                            storedResoures[res.Key] = Math.Min(maxPerResource[res.Key], res.Value - transferAmount);
+                        }
+                    }
+                    else storedResoures[res.Key] = Math.Min(maxPerResource[res.Key], res.Value);
+                }
+                else storedResoures[res.Key] = Math.Min(maxPerResource[res.Key], res.Value);
+            });
 
             Dictionary<PartResourceDefinition, double> resources = autoTransferAmounts.ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
             autoTransferAmounts.Clear();

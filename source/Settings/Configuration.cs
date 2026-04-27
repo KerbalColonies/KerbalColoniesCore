@@ -196,6 +196,7 @@ namespace KerbalColonies.Settings
         public static string baseBody = "Kerbin"; // The name of the celestial body where the KK base groups are located
         public static bool ConfigBaseBody = false; // If false, the base body will be set to the homeworld of the current game, if true, it will be read from the configuration file
         public static bool ClickToOpen = true; // If true, the user can click on the KK statics to open the colony ColonyChangeWindow
+        public static double maxDT = 0.5; // The max delta time for the colony resource updates, if dt > maxDT, the update will be split into multiple updates
 
 #if DEBUG
         public static bool enableLogging = true;            // Enable this only in debug purposes as it floods the logs very much

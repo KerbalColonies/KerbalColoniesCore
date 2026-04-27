@@ -22,6 +22,8 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fue
 {
     public class KCFuelCellInfo : KCFacilityInfoClass
     {
+        public float Throttle { get; set; } = 1.0f;
+
         public KCFuelCellInfo(ConfigNode node) : base(node)
         {
             PartResourceDefinition ec = PartResourceLibrary.Instance.GetDefinition("ElectricCharge");

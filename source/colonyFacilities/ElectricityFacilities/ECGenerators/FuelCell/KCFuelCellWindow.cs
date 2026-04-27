@@ -38,7 +38,7 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fue
             resourceProductionScrollPos = GUILayout.BeginScrollView(resourceProductionScrollPos);
             {
                 fuelCellFacility.facilityInfo.ResourceUsage[facility.level].Where(x => x.Value > 0).ToList().ForEach(kvp =>
-                    GUILayout.Label($"- {kvp.Key.name}: {kvp.Value:f2}/s, {KCUnifiedColonyStorage.colonyStorages[facility.Colony].Resources[kvp.Key]:f2} stored")
+                    GUILayout.Label($"- {kvp.Key.name}: {kvp.Value * fuelCellFacility.fuelCellInfo.Throttle:f2}/s, {KCUnifiedColonyStorage.colonyStorages[facility.Colony].Resources[kvp.Key]:f2} stored")
                 );
             }
             GUILayout.EndScrollView();
@@ -47,7 +47,7 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fue
             resourceUseageScrollPos = GUILayout.BeginScrollView(resourceUseageScrollPos);
             {
                 fuelCellFacility.facilityInfo.ResourceUsage[facility.level].Where(x => x.Value < 0).ToList().ForEach(kvp =>
-                    GUILayout.Label($"- {kvp.Key.name}: {kvp.Value:f2}/s, {KCUnifiedColonyStorage.colonyStorages[facility.Colony].Resources[kvp.Key]:f2} stored")
+                    GUILayout.Label($"- {kvp.Key.name}: {kvp.Value * fuelCellFacility.fuelCellInfo.Throttle:f2}/s, {KCUnifiedColonyStorage.colonyStorages[facility.Colony].Resources[kvp.Key]:f2} stored")
                 );
             }
             GUILayout.EndScrollView();
@@ -64,6 +64,14 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fue
                 if (GUILayout.Button("+", GUILayout.Width(30), GUILayout.Height(23)) | GUILayout.RepeatButton("++", GUILayout.Width(30), GUILayout.Height(23))) fuelCellFacility.ResourceConsumptionPriority++;
             }
             GUILayout.EndHorizontal();
+
+            GUILayout.Space(10);
+            GUILayout.BeginHorizontal();
+            GUILayout.Label($"Throttle: {(fuelCellFacility.fuelCellInfo.Throttle * 100):f1}%", GUILayout.Height(18));
+            fuelCellFacility.fuelCellInfo.Throttle = GUILayout.HorizontalSlider(fuelCellFacility.fuelCellInfo.Throttle, 0.0f, 1.0f);
+            GUILayout.EndHorizontal();
+            GUILayout.Space(10);
+
             GUILayout.Label("Resource Deltas:");
             resourceDeltaScrollPos = GUILayout.BeginScrollView(resourceDeltaScrollPos, GUILayout.Height(120));
             {
@@ -76,7 +84,7 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fue
 
         public KCFuelCellWindow(KCFuelCellFacility facility) : base(facility, Configuration.createWindowID())
         {
-            toolRect = new Rect(100, 100, 330, 600);
+            toolRect = new Rect(100, 100, 330, 630);
         }
 
     }

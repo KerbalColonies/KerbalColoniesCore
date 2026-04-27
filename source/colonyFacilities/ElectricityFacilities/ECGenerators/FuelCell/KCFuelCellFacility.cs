@@ -46,24 +46,13 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fue
             window.Toggle();
         }
 
-        public override string GetFacilityProductionDisplay() => $"Fuel cell production rate: {string.Join(", ", ResourcesPerSecond().Select(kvp => $"{kvp.Key.displayName}: {kvp.Value:f2}"))}";
+        public override string GetFacilityProductionDisplay() => $"Fuel cell production rate: {string.Join(", ", ResourcesPerSecond().Select(kvp => $"{kvp.Key.displayName}: {kvp.Value * fuelCellInfo.Throttle:f2}"))}";
 
-        public Dictionary<PartResourceDefinition, double> ResourceProduction(double lastTime, double deltaTime, double currentTime)
-        {
-            return CanProduce && enabled
-                ? facilityInfo.ResourceUsage[level].Where(kvp => kvp.Value > 0).ToDictionary(kvp => kvp.Key, kvp => kvp.Value)
-                : [];
-        }
+        public Dictionary<PartResourceDefinition, double> ResourceProduction(double lastTime, double deltaTime, double currentTime) => CanProduce && enabled ? facilityInfo.ResourceUsage[level].Where(kvp => kvp.Value > 0).ToDictionary(kvp => kvp.Key, kvp => kvp.Value * deltaTime * fuelCellInfo.Throttle) : [];
 
-        public Dictionary<PartResourceDefinition, double> ResourcesPerSecond()
-        {
-            return CanProduce && enabled
-                ? facilityInfo.ResourceUsage[level].Where(kvp => kvp.Value > 0).ToDictionary(kvp => kvp.Key, kvp => kvp.Value)
-                : [];
-        }
+        public Dictionary<PartResourceDefinition, double> ResourcesPerSecond() => CanProduce && enabled ? facilityInfo.ResourceUsage[level].Where(kvp => kvp.Value > 0).ToDictionary(kvp => kvp.Key, kvp => kvp.Value * fuelCellInfo.Throttle) : [];
 
-        public Dictionary<PartResourceDefinition, double> ExpectedResourceConsumption(double lastTime, double deltaTime, double currentTime) => enabled ? facilityInfo.ResourceUsage[level].Where(kvp => kvp.Value < 0).ToDictionary(kvp => kvp.Key, kvp => -kvp.Value * deltaTime) : [];
-
+        public Dictionary<PartResourceDefinition, double> ExpectedResourceConsumption(double lastTime, double deltaTime, double currentTime) => enabled ? facilityInfo.ResourceUsage[level].Where(kvp => kvp.Value < 0).ToDictionary(kvp => kvp.Key, kvp => -kvp.Value * deltaTime * fuelCellInfo.Throttle) : [];
         public void ConsumeResources(double lastTime, double deltaTime, double currentTime) => CanProduce = true;
 
         public Dictionary<PartResourceDefinition, double> InsufficientResources(double lastTime, double deltaTime, double currentTime, Dictionary<PartResourceDefinition, double> sufficientResources, Dictionary<PartResourceDefinition, double> limitingResources)
@@ -73,13 +62,21 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fue
             return limitingResources;
         }
 
-        public Dictionary<PartResourceDefinition, double> ResourceConsumptionPerSecond()
+        public Dictionary<PartResourceDefinition, double> ResourceConsumptionPerSecond() => facilityInfo.ResourceUsage[level].Where(kvp => kvp.Value < 0).ToDictionary(kvp => kvp.Key, kvp => -kvp.Value * fuelCellInfo.Throttle);
+        
+        public override ConfigNode getConfigNode()
         {
-            return facilityInfo.ResourceUsage[level].Where(kvp => kvp.Value < 0).ToDictionary(kvp => kvp.Key, kvp => -kvp.Value);
+            ConfigNode node = base.getConfigNode();
+            node.AddValue("Throttle", fuelCellInfo.Throttle);
+            node.AddValue("ECConsumptionPriority", ResourceConsumptionPriority);
+            return node;
         }
 
         public KCFuelCellFacility(colonyClass colony, KCFacilityInfoClass facilityInfo, ConfigNode node) : base(colony, facilityInfo, node)
         {
+            if (float.TryParse(node.GetValue("Throttle"), out float throttle)) fuelCellInfo.Throttle = throttle;
+            if (int.TryParse(node.GetValue("ECConsumptionPriority"), out int ecPriority)) ResourceConsumptionPriority = ecPriority;
+
             window = new KCFuelCellWindow(this);
         }
 

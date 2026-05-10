@@ -1,3 +1,6 @@
+# v1.2.2
+- Revert dt step size limit
+
 # v1.2.1
 - Fix missing dt usage for fuelcell facility production update (see [#60](https://github.com/KerbalColonies/KerbalColoniesCore/issues/60))
 - Add fuel cell throttle (manual only)

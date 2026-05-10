@@ -38,7 +38,7 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fue
             resourceProductionScrollPos = GUILayout.BeginScrollView(resourceProductionScrollPos);
             {
                 fuelCellFacility.facilityInfo.ResourceUsage[facility.level].Where(x => x.Value > 0).ToList().ForEach(kvp =>
-                    GUILayout.Label($"- {kvp.Key.name}: {kvp.Value * fuelCellFacility.fuelCellInfo.Throttle:f2}/s, {KCUnifiedColonyStorage.colonyStorages[facility.Colony].Resources[kvp.Key]:f2} stored")
+                    GUILayout.Label($"- {kvp.Key.name}: {kvp.Value * fuelCellFacility.Throttle:f2}/s, {KCUnifiedColonyStorage.colonyStorages[facility.Colony].Resources[kvp.Key]:f2} stored")
                 );
             }
             GUILayout.EndScrollView();
@@ -47,7 +47,7 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fue
             resourceUseageScrollPos = GUILayout.BeginScrollView(resourceUseageScrollPos);
             {
                 fuelCellFacility.facilityInfo.ResourceUsage[facility.level].Where(x => x.Value < 0).ToList().ForEach(kvp =>
-                    GUILayout.Label($"- {kvp.Key.name}: {kvp.Value * fuelCellFacility.fuelCellInfo.Throttle:f2}/s, {KCUnifiedColonyStorage.colonyStorages[facility.Colony].Resources[kvp.Key]:f2} stored")
+                    GUILayout.Label($"- {kvp.Key.name}: {kvp.Value * fuelCellFacility.Throttle:f2}/s, {KCUnifiedColonyStorage.colonyStorages[facility.Colony].Resources[kvp.Key]:f2} stored")
                 );
             }
             GUILayout.EndScrollView();
@@ -67,8 +67,8 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fue
 
             GUILayout.Space(10);
             GUILayout.BeginHorizontal();
-            GUILayout.Label($"Throttle: {(fuelCellFacility.fuelCellInfo.Throttle * 100):f1}%", GUILayout.Height(18));
-            fuelCellFacility.fuelCellInfo.Throttle = GUILayout.HorizontalSlider(fuelCellFacility.fuelCellInfo.Throttle, 0.0f, 1.0f);
+            GUILayout.Label($"Throttle: {(fuelCellFacility.Throttle * 100):f1}%", GUILayout.Height(18));
+            fuelCellFacility.Throttle = GUILayout.HorizontalSlider(fuelCellFacility.Throttle, 0.0f, 1.0f);
             GUILayout.EndHorizontal();
             GUILayout.Space(10);
 

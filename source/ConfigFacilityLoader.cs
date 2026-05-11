@@ -6,6 +6,8 @@ using KerbalColonies.colonyFacilities.ElectricityFacilities;
 using KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fission;
 using KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.FuelCell;
 using KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fusion;
+using KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Solarpanel;
+using KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.SolarPanel;
 using KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Windturbine;
 using KerbalColonies.colonyFacilities.ElectricityFacilities.ECStorage;
 using KerbalColonies.colonyFacilities.HangarFacility;
@@ -132,6 +134,7 @@ namespace KerbalColonies
             KCFacilityTypeRegistry.RegisterType<KCFuelCellFacility>();
             KCFacilityTypeRegistry.RegisterType<KCFissionReactor>();
             KCFacilityTypeRegistry.RegisterType<KCFusionReactor>();
+            KCFacilityTypeRegistry.RegisterType<KCSolarpanelFacility>();
 
             KCFacilityTypeRegistry.RegisterFacilityInfo<KC_CAB_Facility, KC_CAB_Info>();
             KCFacilityTypeRegistry.RegisterFacilityInfo<KCCommNetFacility, KCCommnetInfo>();
@@ -149,6 +152,7 @@ namespace KerbalColonies
             KCFacilityTypeRegistry.RegisterFacilityInfo<KCFuelCellFacility, KCFuelCellInfo>();
             KCFacilityTypeRegistry.RegisterFacilityInfo<KCFissionReactor, KCFissionInfo>();
             KCFacilityTypeRegistry.RegisterFacilityInfo<KCFusionReactor, KCFusionInfo>();
+            KCFacilityTypeRegistry.RegisterFacilityInfo<KCSolarpanelFacility, KCSolarpanelInfo>();
 
 #if DEBUG
             KCFacilityTypeRegistry.RegisterType<KCECTestFacility>();

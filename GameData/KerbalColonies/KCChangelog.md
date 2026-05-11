@@ -1,3 +1,6 @@
+# v1.3.0
+- Added a solar panel facility
+
 # v1.2.2
 - Revert dt step size limit
 

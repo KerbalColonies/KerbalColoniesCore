@@ -114,7 +114,7 @@ namespace KerbalColonies
                 }
                 else
                 {
-                    List<ProtoCrewMember> kerbalsInColonies = Configuration.colonyDictionary.Values.SelectMany(c => c).SelectMany(c => KCCrewQuarters.GetAllKerbalsInColony(c).Keys).ToList();
+                    List<ProtoCrewMember> kerbalsInColonies = KCSaveGame.colonyDictionary.Values.SelectMany(c => c).SelectMany(c => KCCrewQuarters.GetAllKerbalsInColony(c).Keys).ToList();
                     FlightGlobals.Vessels.ForEach(v =>
                     {
                         List<ProtoCrewMember> pcmInVessel = v.GetVesselCrew().Intersect(kerbalsInColonies, new KCProtoCrewMemberComparer()).ToList();
@@ -184,7 +184,7 @@ namespace KerbalColonies
         //{
         //    if (isFlightScene)
         //    {
-        //        colonyClass lastColony = Configuration.colonyDictionary.Values.SelectMany(x => x).FirstOrDefault(c => c.CAB.PlayerInColony);
+        //        colonyClass lastColony = KCSaveGame.colonyDictionary.Values.SelectMany(x => x).FirstOrDefault(c => c.CAB.PlayerInColony);
         //        if (lastColony != null)
         //        {
         //            lastColonyName = lastColony.Name;
@@ -292,7 +292,7 @@ namespace KerbalColonies
             kCLaunchpad = KCLaunchpadFacility.GetLaunchpadFacility(launchSiteName);
             if (kCLaunchpad == null)
             {
-                List<ProtoCrewMember> kerbalsInColonies = Configuration.colonyDictionary.Values.SelectMany(c => c).SelectMany(c => KCCrewQuarters.GetAllKerbalsInColony(c).Keys).ToList();
+                List<ProtoCrewMember> kerbalsInColonies = KCSaveGame.colonyDictionary.Values.SelectMany(c => c).SelectMany(c => KCCrewQuarters.GetAllKerbalsInColony(c).Keys).ToList();
                 ShipConstruction.ShipManifest.GetAllCrew(false).Intersect(kerbalsInColonies, new KCProtoCrewMemberComparer()).ToList().ForEach(pcm => invalidKerbals.Add(pcm));
                 Configuration.writeLog($"[KCCrewPreFlightCheck] Found {invalidKerbals.Count} kerbals in {launchSiteName} that are in colonies");
                 return invalidKerbals.Count == 0;

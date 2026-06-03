@@ -117,24 +117,24 @@ namespace KerbalColonies.colonyFacilities
         {
             if (!Configuration.ClickToOpen || ColonyBuilding.buildQueue.Count > 0) return;
 
-            if (Configuration.GroupFacilities.ContainsKey(instance.Group))
+            if (KCSaveGame.GroupFacilities.ContainsKey(instance.Group))
             {
-                Configuration.GroupFacilities[instance.Group].Update();
-                Configuration.GroupFacilities[instance.Group].OnBuildingClicked();
+                KCSaveGame.GroupFacilities[instance.Group].Update();
+                KCSaveGame.GroupFacilities[instance.Group].OnBuildingClicked();
             }
         }
 
         internal static void OnBuildingHoverHandler(KerbalKonstructs.Core.StaticInstance instance)
         {
-            if (Configuration.ClickToOpen && Configuration.GroupFacilities.ContainsKey(instance.Group))
+            if (Configuration.ClickToOpen && KCSaveGame.GroupFacilities.ContainsKey(instance.Group))
             {
-                Configuration.GroupFacilities[instance.Group].KKgroups
+                KCSaveGame.GroupFacilities[instance.Group].KKgroups
                     .ForEach(g => KerbalKonstructs.API.GetGroupStatics(g, instance.CelestialBody.bodyName)
                     .ForEach(s => KerbalKonstructs.API.HighLightStatic(s.UUID, new Color(0.7f, 0.7f, 1f))));
 
                 if (!FacilityToolTip.Instance.IsOpen()) FacilityToolTip.Instance.Open();
 
-                KCFacilityBase facility = Configuration.GroupFacilities[instance.Group];
+                KCFacilityBase facility = KCSaveGame.GroupFacilities[instance.Group];
                 FacilityToolTip.FacilityTitle = facility.DisplayName;
                 FacilityToolTip.FacilityText = facility.GetFacilityProductionDisplay();
             }
@@ -143,9 +143,9 @@ namespace KerbalColonies.colonyFacilities
 
         internal static void OnBuildingHoverExitHandler(KerbalKonstructs.Core.StaticInstance instance)
         {
-            if (Configuration.GroupFacilities.ContainsKey(instance.Group))
+            if (KCSaveGame.GroupFacilities.ContainsKey(instance.Group))
             {
-                Configuration.GroupFacilities[instance.Group].KKgroups
+                KCSaveGame.GroupFacilities[instance.Group].KKgroups
                     .ForEach(g => KerbalKonstructs.API.GetGroupStatics(g, instance.CelestialBody.bodyName)
                     .ForEach(s => KerbalKonstructs.API.HighLightStatic(s.UUID, Color.clear)));
 
@@ -209,7 +209,7 @@ namespace KerbalColonies.colonyFacilities
 
         public static KCFacilityBase GetFacilityByID(int id)
         {
-            foreach (var colony in Configuration.colonyDictionary.Values.SelectMany(c => c))
+            foreach (var colony in KCSaveGame.colonyDictionary.Values.SelectMany(c => c))
             {
                 foreach (var facility in colony.Facilities)
                 {
@@ -227,7 +227,7 @@ namespace KerbalColonies.colonyFacilities
 
         public static bool IDexists(int id)
         {
-            return Configuration.colonyDictionary.Values.SelectMany(c => c).Any(c => c.Facilities.Any(fac => fac.id == id) || c.CAB.id == id);
+            return KCSaveGame.colonyDictionary.Values.SelectMany(c => c).Any(c => c.Facilities.Any(fac => fac.id == id) || c.CAB.id == id);
         }
 
         private static System.Random random = new();

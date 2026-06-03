@@ -315,7 +315,7 @@ namespace KerbalColonies.colonyFacilities.KCMiningFacility
 
                     if (!groupDensities.ContainsKey(KKgroups[i - offset]))
                     {
-                        KerbalKonstructs.Core.StaticInstance staticInstance = KerbalKonstructs.API.GetGroupStatics(KKgroups[i - offset], FlightGlobals.Bodies.First(b => FlightGlobals.GetBodyIndex(b) == Colony.BodyID).name).FirstOrDefault();
+                        KerbalKonstructs.Core.StaticInstance staticInstance = KerbalKonstructs.API.GetGroupStatics(KKgroups[i - offset], Colony.BodyName).FirstOrDefault();
                         if (staticInstance != null)
                         {
                             groupDensities.Add(KKgroups[i - offset], []);

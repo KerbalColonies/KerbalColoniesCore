@@ -272,7 +272,7 @@ namespace KerbalColonies.colonyFacilities.LaunchPadFacility
 
         public static KCLaunchpadFacility GetLaunchpadFacility(string launchSiteName)
         {
-            return Configuration.colonyDictionary.SelectMany(x => x.Value).SelectMany(c => KCFacilityBase.GetAllTInColony<KCLaunchpadFacility>(c)).FirstOrDefault(l =>
+            return KCSaveGame.colonyDictionary.SelectMany(x => x.Value).SelectMany(c => KCFacilityBase.GetAllTInColony<KCLaunchpadFacility>(c)).FirstOrDefault(l =>
                 l.launchSiteName.ContainsValue(launchSiteName)
             );
         }

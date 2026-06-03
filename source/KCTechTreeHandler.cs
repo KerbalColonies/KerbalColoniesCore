@@ -124,7 +124,7 @@ namespace KerbalColonies
             RDNode.OnNodeSelected.Add(TechNodeChange);
         }
 
-        public void onDestroy()
+        public void OnDestroy()
         {
             RDTechTree.OnTechTreeSpawn.Remove(TechTreeSpawn);
             RDNode.OnNodeSelected.Remove(TechNodeChange);

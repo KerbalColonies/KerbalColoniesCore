@@ -35,7 +35,7 @@ namespace KerbalColonies.VesselAutoTransfer
         private Vector2 scrollPos = Vector2.zero;
         protected override void CustomWindow()
         {
-            List<colonyClass> currentbodyColonies = Configuration.colonyDictionary[VesselPlanet];
+            List<colonyClass> currentbodyColonies = KCSaveGame.colonyDictionary[VesselPlanet];
             List<colonyClass> possibleTargets = currentbodyColonies.Where(c => KCUnifiedColonyStorage.colonyStorages[c].VesselInRange(vessel)).ToList();
 
             if (possibleTargets.Count == 0)

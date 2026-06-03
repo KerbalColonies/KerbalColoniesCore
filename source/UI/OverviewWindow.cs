@@ -56,7 +56,7 @@ namespace KerbalColonies.UI
             GUILayout.Label("Colony list:");
 
             scrollPos = GUILayout.BeginScrollView(scrollPos);
-            Configuration.colonyDictionary.SelectMany(x => x.Value).ToList().ForEach(colony =>
+            KCSaveGame.colonyDictionary.SelectMany(x => x.Value).ToList().ForEach(colony =>
             {
                 GUILayout.BeginHorizontal(borderOnlyStyle);
                 {

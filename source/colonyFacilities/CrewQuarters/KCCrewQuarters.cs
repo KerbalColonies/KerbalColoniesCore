@@ -78,19 +78,12 @@ namespace KerbalColonies.colonyFacilities.CrewQuarters
             GUILayout.EndVertical();
         }
 
-        public static List<KCCrewQuarters> CrewQuartersInColony(colonyClass colony)
-        {
-            return colony.Facilities.Where(f => f is KCCrewQuarters).Select(f => (KCCrewQuarters)f).ToList();
-        }
+        public static List<KCCrewQuarters> CrewQuartersInColony(colonyClass colony) => [.. colony.Facilities.OfType<KCCrewQuarters>()];
 
         public static int ColonyKerbalCapacity(colonyClass colony) => CrewQuartersInColony(colony).Sum(crewQuarter => crewQuarter.MaxKerbals);
         public static int ColonyKerbalCount(colonyClass colony) => CrewQuartersInColony(colony).Sum(crewQuarter => crewQuarter.kerbals.Count);
 
-        public static KCCrewQuarters FindKerbalInCrewQuarters(colonyClass colony, ProtoCrewMember kerbal)
-        {
-            List<KCKerbalFacilityBase> facilitiesWithKerbal = KCKerbalFacilityBase.findKerbal(colony, kerbal);
-            return (KCCrewQuarters)facilitiesWithKerbal.Where(fac => fac is KCCrewQuarters).FirstOrDefault();
-        }
+        public static KCCrewQuarters FindKerbalInCrewQuarters(colonyClass colony, ProtoCrewMember kerbal) => (KCCrewQuarters)findKerbal(colony, kerbal).FirstOrDefault(fac => fac is KCCrewQuarters);
 
         public static bool AddKerbalToColony(colonyClass colony, ProtoCrewMember kerbal)
         {
@@ -153,7 +146,7 @@ namespace KerbalColonies.colonyFacilities.CrewQuarters
             lastUpdateTime = Planetarium.GetUniversalTime();
             if (!HighLogic.LoadedSceneIsFlight) kerbals.Keys.ToList().ForEach(kerbal => kerbal.rosterStatus = ProtoCrewMember.RosterStatus.Assigned);
 
-            enabled = built && !OutOfResources;
+            enabled = built;
             crewQuartersWindow ??= new KCCrewQuartersWindow(this);
             crewQuartersWindow.kerbalGUI.DisableTransferWindow = !enabled;
         }

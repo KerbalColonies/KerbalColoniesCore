@@ -1,7 +1,5 @@
 ﻿using KerbalColonies.colonyFacilities;
 using KerbalColonies.colonyFacilities.CabFacility;
-using KerbalColonies.colonyFacilities.ProductionFacility;
-using KerbalColonies.UI;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -27,68 +25,67 @@ using System.Reflection;
 
 namespace KerbalColonies.Settings
 {
-
     /// <summary>
     /// Reads and holds configuration parameters
     /// </summary> 
-    [KSPScenario(ScenarioCreationOptions.AddToAllGames, GameScenes.SPACECENTER, GameScenes.FLIGHT, GameScenes.EDITOR, GameScenes.TRACKSTATION)]
-    public class Configuration : ScenarioModule
+    //[KSPScenario(ScenarioCreationOptions.AddToAllGames, GameScenes.SPACECENTER, GameScenes.FLIGHT, GameScenes.EDITOR, GameScenes.TRACKSTATION)]
+    public class Configuration
     {
-        private ConfigNode loadedNode;
+        //private ConfigNode loadedNode;
 
-        public override void OnLoad(ConfigNode node)
-        {
-            loadedNode = node.CreateCopy();
-            Configuration.writeDebug(loadedNode.ToString());
+        //public override void OnLoad(ConfigNode node)
+        //{
+        //    loadedNode = node.CreateCopy();
+        //    Configuration.writeDebug(loadedNode.ToString());
 
-            KCLegacySaveWarning.LoadSettings();
-            LoadColoniesV3();
+        //    KCLegacySaveWarning.LoadSettings();
+        //    LoadColoniesV3();
 
-            string saveName = HighLogic.CurrentGame.Seed.ToString();
-            if (KCLegacySaveWarning.LoadedSaves.ContainsKey(saveName))
-            {
-                loadedSaveVersion = new Version(3, 0, 0);
-                return;
-            }
+        //    string saveName = HighLogic.CurrentGame.Seed.ToString();
+        //    if (KCLegacySaveWarning.LoadedSaves.ContainsKey(saveName))
+        //    {
+        //        loadedSaveVersion = new Version(3, 0, 0);
+        //        return;
+        //    }
 
 
-            KCProductionFacility.ConstructedFacilities.Clear();
-            KCProductionFacility.ConstructingFacilities.Clear();
-            KCProductionFacility.UpgradingFacilities.Clear();
-            KCProductionFacility.UpgradedFacilities.Clear();
+        //    KCProductionFacility.ConstructedFacilities.Clear();
+        //    KCProductionFacility.ConstructingFacilities.Clear();
+        //    KCProductionFacility.UpgradingFacilities.Clear();
+        //    KCProductionFacility.UpgradedFacilities.Clear();
 
-            KCgroups.Clear();
-            colonyDictionary.Clear();
-            GroupFacilities.Clear();
-            ColonyBuilding.buildQueue.Clear();
-            LoadConfiguration();
-            writeDebug("scenariomodule load");
-            writeDebug(node.ToString());
-            LoadColoniesV4(node);
-        }
-        public override void OnSave(ConfigNode node)
-        {
-            KCLegacySaveWarning.SaveSettings();
-            SaveColoniesV3();
-            if (KCLegacySaveWarning.LoadedSaves.ContainsKey(HighLogic.CurrentGame.Seed.ToString()))
-            {
-                Configuration.writeLog($"Saving legacy colonies");
-                ConfigNode colonyNode = loadedNode.GetNode("colonyNode");
+        //    KCgroups.Clear();
+        //    colonyDictionary.Clear();
+        //    GroupFacilities.Clear();
+        //    ColonyBuilding.buildQueue.Clear();
+        //    LoadConfiguration();
+        //    writeDebug("scenariomodule load");
+        //    writeDebug(node.ToString());
+        //    LoadColoniesV4(node);
+        //}
+        //public override void OnSave(ConfigNode node)
+        //{
+        //    KCLegacySaveWarning.SaveSettings();
+        //    SaveColoniesV3();
+        //    if (KCLegacySaveWarning.LoadedSaves.ContainsKey(HighLogic.CurrentGame.Seed.ToString()))
+        //    {
+        //        Configuration.writeLog($"Saving legacy colonies");
+        //        ConfigNode colonyNode = loadedNode.GetNode("colonyNode");
 
-                node.AddNode(colonyNode);
-                node.AddValue("version", loadedNode.GetValue("version"));
+        //        node.AddNode(colonyNode);
+        //        node.AddValue("version", loadedNode.GetValue("version"));
 
-                Configuration.writeDebug($"loadedNode = {loadedNode}");
-                Configuration.writeDebug($"node = {node}");
+        //        Configuration.writeDebug($"loadedNode = {loadedNode}");
+        //        Configuration.writeDebug($"node = {node}");
 
-                return;
-            }
+        //        return;
+        //    }
 
-            SaveConfiguration();
-            SaveColoniesV4(node);
-            writeDebug(node.ToString());
-            writeDebug("scenariomodule save");
-        }
+        //    SaveConfiguration();
+        //    SaveColoniesV4(node);
+        //    writeDebug(node.ToString());
+        //    writeDebug("scenariomodule save");
+        //}
 
 
         internal static List<int> windowIDs { get; private set; } = []; // list of all ColonyChangeWindow IDs
@@ -204,203 +201,6 @@ namespace KerbalColonies.Settings
 #endif
         #endregion
         public static bool Paused = false;
-
-        #region savingV3
-
-        public static Version saveVersion = new(4, 0, 1);
-        public static Version loadedSaveVersion;
-
-        // New saving
-        // The current system for creating facilities requieres exactly one facility per group
-        // -> Only the group name needs to be saved in the extra file and it only needs to be checked if one of the group statics is clicked
-        // 
-        // Extra file:
-        // Dictionary 0: the SaveGame name (the "name" field in the GAME node) as key
-        // Dictionary 1: bodyindex as key
-        // Dictionary 1: KK Groups as value
-        //
-        // Savegame content:
-        // Dictionary 0: the SaveGame name (the "name" field in the GAME node) as key
-        // Dictionary 1: bodyindex as key
-        // Dictionary 2: a Colony class object as key
-        // Dictionary 2: facilities with a List of KK groups
-        //
-        // Additional ram dictionary:
-        // Dictionary 0: group names as key and a of facilitiy as value
-        // Used for the on click event of the KK statics
-
-        /// <summary>
-        /// This dictionary contains all of the groups across all savegames. It's used to disable the groups from other savegames to enable per savegame colonies
-        /// </summary>
-        internal static Dictionary<string, Dictionary<int, Dictionary<string, ConfigNode>>> KCgroups = [];
-
-        internal static void AddGroup(int bodyIndex, string groupName, KCFacilityBase faciltiy)
-        {
-            if (!GroupFacilities.ContainsKey(groupName)) GroupFacilities.Add(groupName, faciltiy);
-            else GroupFacilities[groupName] = faciltiy;
-        }
-
-        /// <summary>
-        /// This dictionary contains all of the colonies in the current savegame
-        /// </summary>
-        internal static Dictionary<string, List<colonyClass>> colonyDictionary = [];
-
-        public static colonyClass GetColonyByID(int colonyID) => colonyDictionary.SelectMany(c => c.Value).FirstOrDefault(colony => colony.uniqueID == colonyID);
-
-        /// <summary>
-        /// This dictionary contains the facility attached to a specific KK group. Used for the on click event of the KK statics
-        /// <para>the string is the KK group name</para>
-        /// </summary>
-        internal static Dictionary<string, KCFacilityBase> GroupFacilities = [];
-
-        public static void LoadColoniesV3()
-        {
-            // Loaded to delete legacy KK groups
-            string path = $"{Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)}{Path.DirectorySeparatorChar}..{Path.DirectorySeparatorChar}Configs{Path.DirectorySeparatorChar}ColonyDataV3.cfg";
-
-            ConfigNode node = ConfigNode.Load(path);
-
-            if (node != null && node.GetNodes().Length > 0)
-            {
-                ConfigNode[] nodes = node.GetNodes();
-                foreach (ConfigNode saveGame in nodes[0].GetNodes())
-                {
-                    if (!KCgroups.ContainsKey(saveGame.name))
-                    {
-                        KCgroups.Add(saveGame.name, []);
-
-                        foreach (ConfigNode bodyId in nodes[0].GetNode(saveGame.name).GetNodes())
-                        {
-                            if (!KCgroups[saveGame.name].ContainsKey(int.Parse(bodyId.name)))
-                            {
-                                KCgroups[saveGame.name].Add(int.Parse(bodyId.name), []);
-                            }
-
-                            foreach (ConfigNode group in nodes[0].GetNode(saveGame.name).GetNode(bodyId.name).GetNodes())
-                            {
-                                if (!KCgroups[saveGame.name][int.Parse(bodyId.name)].ContainsKey(group.name))
-                                {
-                                    if (group.nodes.Count > 0) KCgroups[saveGame.name][int.Parse(bodyId.name)].Add(group.name, group.GetNodes().FirstOrDefault());
-                                    else KCgroups[saveGame.name][int.Parse(bodyId.name)].Add(group.name, null);
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        public static void LoadColoniesV4(ConfigNode persistentNode)
-        {
-            Version.TryParse(persistentNode.GetValue("version") ?? "4.0.1", out loadedSaveVersion);
-            Configuration.writeLog($"Loaded save version: {loadedSaveVersion}");
-
-
-            if (loadedSaveVersion.Major == 3 || loadedSaveVersion > saveVersion)
-            {
-                KCLegacySaveWarning.Instance.Open();
-                return;
-            }
-
-            if (persistentNode.HasNode("colonyNode"))
-            {
-                ConfigNode primaryNode = persistentNode.GetNode("colonyNode");
-                foreach (ConfigNode bodyNode in primaryNode.GetNodes())
-                {
-                    string bodyName = loadedSaveVersion >= new Version(4, 0, 1) ? bodyNode.name : FlightGlobals.Bodies.First(b => b.flightGlobalsIndex == int.Parse(bodyNode.name)).name;
-
-                    colonyDictionary.TryAdd(bodyName, []);
-                    foreach (ConfigNode colonyNode in bodyNode.GetNodes())
-                    {
-                        try
-                        {
-                            colonyDictionary[bodyName].Add(new colonyClass(colonyNode));
-                        }
-                        catch (Exception e)
-                        {
-                            writeLog($"Error while loading the colony {colonyNode.name} on body {bodyNode.name}: {e}");
-                            writeLog(colonyNode.ToString());
-                        }
-                    }
-                }
-
-                colonyDictionary.Values.ToList().ForEach(colonyList => colonyList.ForEach(colony =>
-                {
-                    colony.CAB.KKgroups.ForEach(group => GroupFacilities.Add(group, colony.CAB));
-                    colony.Facilities.ForEach(facility =>
-                    {
-                        facility.KKgroups.ForEach(group => GroupFacilities.TryAdd(group, facility));
-                    });
-                }));
-            }
-        }
-
-        public static void SaveColoniesV3()
-        {
-            string root = "KCgroups";
-
-            ConfigNode[] nodes = new ConfigNode[1] { new() };
-
-            if (KCgroups.Count == 0) return;
-
-            foreach (KeyValuePair<string, Dictionary<int, Dictionary<string, ConfigNode>>> gameKVP in KCgroups)
-            {
-                ConfigNode saveGameNode = new(gameKVP.Key, "The savegame name");
-                foreach (KeyValuePair<int, Dictionary<string, ConfigNode>> bodyKVP in gameKVP.Value)
-                {
-                    ConfigNode bodyNode = new(bodyKVP.Key.ToString(), "The celestial body id");
-                    foreach (KeyValuePair<string, ConfigNode> groupName in bodyKVP.Value)
-                    {
-                        ConfigNode groupNode = new(groupName.Key, "The KK group name");
-                        if (groupName.Value != null) groupNode.AddNode(groupName.Value);
-                        bodyNode.AddNode(groupNode);
-                    }
-                    saveGameNode.AddNode(bodyNode);
-                }
-                nodes[0].AddNode(saveGameNode);
-            }
-
-            string path = $"{Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)}{Path.DirectorySeparatorChar}..{Path.DirectorySeparatorChar}Configs{Path.DirectorySeparatorChar}ColonyDataV3.cfg";
-
-            ConfigNode node = new();
-            nodes[0].name = root;
-            node.AddNode(nodes[0]);
-            node.Save(path);
-        }
-
-        public static void SaveColoniesV4(ConfigNode persistentNode)
-        {
-            Configuration.writeLog($"Saving {colonyDictionary.SelectMany(x => x.Value).Count()} on {colonyDictionary.Count} bodies");
-            int colonyNodeCount = 0;
-            int bodyNodeCount = 0;
-            ConfigNode ColonyDictionaryNode = new("colonyNode", "The Colony node");
-            foreach (KeyValuePair<string, List<colonyClass>> bodyKVP in colonyDictionary)
-            {
-                ConfigNode bodyNode = new(bodyKVP.Key, "The celestial body name");
-                foreach (colonyClass colony in bodyKVP.Value)
-                {
-                    try
-                    {
-                        ConfigNode colonyNode = colony.CreateConfigNode();
-                        bodyNode.AddNode(colonyNode);
-                        colonyNodeCount++;
-                    }
-                    catch (Exception e)
-                    {
-                        writeLog($"Error while saving the colony {colony.Name} on body {bodyKVP.Key}: {e}");
-                        writeLog(colony.ToString());
-                    }
-                }
-                ColonyDictionaryNode.AddNode(bodyNode);
-                bodyNodeCount++;
-            }
-            writeLog($"Saved {colonyNodeCount} colonies on {bodyNodeCount} bodies");
-
-            persistentNode.AddValue("version", saveVersion.ToString());
-
-            persistentNode.AddNode(ColonyDictionaryNode);
-        }
-        #endregion
 
         // static parameters
         public const string APP_NAME = "KerbalColonies";

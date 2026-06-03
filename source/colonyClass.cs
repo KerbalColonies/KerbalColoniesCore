@@ -124,17 +124,17 @@ namespace KerbalColonies
 
         public static colonyClass GetColony(string name)
         {
-            return Configuration.colonyDictionary.Values.SelectMany(x => x).FirstOrDefault(c => c.Name == name);
+            return KCSaveGame.colonyDictionary.Values.SelectMany(x => x).FirstOrDefault(c => c.Name == name);
         }
 
         public string Name { get; private set; }
         private string displayName;
-        public string DisplayName { get => UseCustomDisplayName ? displayName ?? $"{FlightGlobals.Bodies.First(b => FlightGlobals.GetBodyIndex(b) == BodyID).bodyName} colony {ColonyNumber}" : $"{FlightGlobals.Bodies.First(b => FlightGlobals.GetBodyIndex(b) == BodyID).bodyName} colony {ColonyNumber}"; set { displayName = value; UseCustomDisplayName = true; } }
+        public string DisplayName { get => UseCustomDisplayName ? displayName ?? $"{BodyName} colony {ColonyNumber}" : $"{BodyName} colony {ColonyNumber}"; set { displayName = value; UseCustomDisplayName = true; } }
         public bool UseCustomDisplayName { get; private set; } = false;
 
         public int ColonyNumber { get; private set; }
-        public int BodyID { get; private set; }
-        public string BodyName => FlightGlobals.Bodies.First(b => FlightGlobals.GetBodyIndex(b) == BodyID).bodyName;
+        public int BodyID => FlightGlobals.GetBodyByName(BodyName).flightGlobalsIndex;
+        public readonly string BodyName;
 
         public bool currentFrameUpdated { get; set; } = false; // Used to prevent multiple updates in the same frame
 
@@ -155,7 +155,6 @@ namespace KerbalColonies
             node.AddValue("displayName", DisplayName);
             node.AddValue("useCustomDisplayName", UseCustomDisplayName);
             node.AddValue("colonyNumber", ColonyNumber);
-            node.AddValue("bodyID", BodyID);
 
             ConfigNode colonyNodes = new("sharedColonyNodes");
             sharedColonyNodes.ForEach(x => colonyNodes.AddNode(x));
@@ -213,8 +212,8 @@ namespace KerbalColonies
         public colonyClass(string name, KC_CAB_Info CABInfo)
         {
             Name = name;
-            BodyID = FlightGlobals.GetBodyIndex(FlightGlobals.currentMainBody);
-            ColonyNumber = Configuration.colonyDictionary[FlightGlobals.currentMainBody.name].Count + 1;
+            BodyName = FlightGlobals.currentMainBody.name;
+            ColonyNumber = KCSaveGame.colonyDictionary[FlightGlobals.currentMainBody.name].Count + 1;
             CAB = new KC_CAB_Facility(this, CABInfo);
             Facilities = [];
             sharedColonyNodes = [];
@@ -223,13 +222,13 @@ namespace KerbalColonies
             ColonyLoad.ToList().ForEach(actionClass => actionClass.action.Invoke(this));
         }
 
-        public colonyClass(ConfigNode node)
+        public colonyClass(ConfigNode node, string bodyName)
         {
             Name = node.GetValue("name");
 
             UseCustomDisplayName = bool.Parse(node.GetValue("useCustomDisplayName"));
             if (UseCustomDisplayName) DisplayName = node.GetValue("displayName");
-            BodyID = int.Parse(node.GetValue("bodyID"));
+            this.BodyName = bodyName;
             ColonyNumber = int.Parse(node.GetValue("colonyNumber"));
 
             Facilities = [];

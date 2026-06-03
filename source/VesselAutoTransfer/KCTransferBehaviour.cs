@@ -80,6 +80,15 @@ namespace KerbalColonies.VesselAutoTransfer
         {
             if (converter == null || processor == null) return;
 
+            if (transferInfo == null)
+            {
+                Configuration.writeDebug($"ERROR: TransferInfo was null in OnRatesComputed for vessel {processor.Vessel.vesselName}");
+                converter.Inputs.Clear();
+                converter.Outputs.Clear();
+                converter.NextChangepoint = double.PositiveInfinity;
+                return;
+            }
+
             // resource limits are enforced by the constraints
             // rates will be updated through the OnRatesComputed event
             // although it's also necessary to update the rates on every change point as e.g. solar panels will change the possible rates
@@ -93,7 +102,7 @@ namespace KerbalColonies.VesselAutoTransfer
 
             if (FlightGlobals.ActiveVessel != processor.Vessel)
             {
-                transferInfo.Efficiency = converter.Rate;
+                transferInfo.Efficiency = converter.Rate; // transferInfo is null
 
                 if (transferInfo.Efficiency < 1)
                 {

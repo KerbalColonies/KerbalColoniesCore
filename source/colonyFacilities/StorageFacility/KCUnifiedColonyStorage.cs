@@ -88,16 +88,29 @@ namespace KerbalColonies.colonyFacilities.StorageFacility
             {
                 KCStorageFacilityInfo info = fac.storageInfo;
 
-                CelestialBody body = FlightGlobals.Bodies.First(b => FlightGlobals.GetBodyIndex(b) == fac.Colony.BodyID);
+                float multiplier = 1.0f;
 
-                if (fac.KKgroups.Count == 0) return false;
-                double radius = fac.KKgroups.Average(g => KerbalKonstructs.API.GetGroupCenter(g, body.bodyName).RadiusOffset) + body.Radius;
-                double squareRadius = radius * radius;
-                double unMultiplier = body.gMagnitudeAtCenter / squareRadius;
+                if (info.UseGravityMultiplier[fac.level])
+                {
+                    CelestialBody body = FlightGlobals.GetBodyByName(fac.Colony.BodyName);
 
-                float multiplier = info.UseGravityMultiplier[fac.level] ? Math.Max(info.MinGravity[fac.level], Math.Min(info.MaxGravity[fac.level], (float)unMultiplier / 9.80665f)) : 1;
-                if (info.UseGravityMultiplier[fac.level] && !Configuration.Paused) Configuration.writeDebug($"KCECStorageWindow: radius: {radius}, radius²: {squareRadius}, unMultiplier: {unMultiplier}");
+                    if (fac.KKgroups.Count == 0) return false;
+                    var centers = fac.KKgroups
+                        .Select(group => KerbalKonstructs.API.GetGroupCenter(group, fac.Colony.BodyName))
+                        .Where(center => center != null)
+                        .ToList();
 
+                    if (centers.Count == 0) return false;
+                    else if (centers.Count != fac.KKgroups.Count) Configuration.writeDebug($"KCUnifiedColonyStorage: Not all centers found for {fac.facilityInfo.name} on {fac.Colony.BodyName}, using average of found centers for gravity multiplier calculation");
+
+                    double radius = body.Radius + centers.Average(center => center.RadiusOffset);
+                    double squareRadius = radius * radius;
+                    double unMultiplier = body.gMagnitudeAtCenter / squareRadius;
+
+                    multiplier = Math.Max(info.MinGravity[fac.level], Math.Min(info.MaxGravity[fac.level], (float)unMultiplier / 9.80665f));
+                    if (info.UseGravityMultiplier[fac.level] && !Configuration.Paused) Configuration.writeDebug($"KCUnifiedColonyStorage: radius: {radius}, radius²: {squareRadius}, unMultiplier: {unMultiplier}");
+
+                }
 
                 List<Type> types = info.RangeTypes[fac.level];
                 List<string> names = info.RangeFacilities[fac.level];

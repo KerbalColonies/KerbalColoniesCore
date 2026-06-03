@@ -1,3 +1,11 @@
+# v1.4.0
+- Renamed ScenarioModule to KCSaveGame
+- Kerbal transfer when out of resources is now allowed
+- Fixed the use of celestial body ID for saved colonies potentially causing a nullReferencException, see issue [#64](https://github.com/KerbalColonies/KerbalColoniesCore/issues/64)
+- Fixed the TechTreeHandler OnDestroy naming
+- Removed legacy save warning
+- Fixed a nullReferenceException in the auto vessel transfer. Maybe this fixes issue [#63](https://github.com/KerbalColonies/KerbalColoniesCore/issues/63)
+
 # v1.3.0
 - Added a solar panel facility
 

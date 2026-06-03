@@ -224,7 +224,7 @@ namespace KerbalColonies
 
                 KerbalKonstructs.API.RegisterOnGroupSaved(ColonyBuilding.PlaceNewGroupSave);
                 ColonyBuilding.buildQueue.Peek().Facility.KKgroups.Add(ColonyBuilding.buildQueue.Peek().groupName); // add the group to the facility groups
-                Configuration.AddGroup(FlightGlobals.GetBodyIndex(FlightGlobals.currentMainBody), ColonyBuilding.buildQueue.Peek().groupName, ColonyBuilding.buildQueue.Peek().Facility);
+                KCSaveGame.AddGroup(FlightGlobals.GetBodyIndex(FlightGlobals.currentMainBody), ColonyBuilding.buildQueue.Peek().groupName, ColonyBuilding.buildQueue.Peek().Facility);
             }
             else
             {
@@ -241,12 +241,12 @@ namespace KerbalColonies
         {
             if (CABSelectorWindow.Instance.IsOpen()) { return 3; }
 
-            if (!Configuration.colonyDictionary.ContainsKey(FlightGlobals.currentMainBody.name))
+            if (!KCSaveGame.colonyDictionary.ContainsKey(FlightGlobals.currentMainBody.name))
             {
-                Configuration.colonyDictionary.Add(FlightGlobals.currentMainBody.name, []);
+                KCSaveGame.colonyDictionary.Add(FlightGlobals.currentMainBody.name, []);
             }
 
-            int colonyCount = Configuration.colonyDictionary[FlightGlobals.currentMainBody.name].Count;
+            int colonyCount = KCSaveGame.colonyDictionary[FlightGlobals.currentMainBody.name].Count;
 
             if (colonyCount >= Configuration.MaxColoniesPerBody && Configuration.MaxColoniesPerBody != 0)
             {
@@ -273,14 +273,14 @@ namespace KerbalColonies
 
         internal static void BuildColony(KC_CAB_Info CABInfo)
         {
-            int colonyCount = Configuration.colonyDictionary[FlightGlobals.currentMainBody.name].Count + 1;
+            int colonyCount = KCSaveGame.colonyDictionary[FlightGlobals.currentMainBody.name].Count + 1;
 
             string colonyName = $"KC_{FlightGlobals.currentMainBody.name}_{colonyCount}";
             string groupName = $"{colonyName}_CAB";
 
             colonyClass colony = new(colonyName, CABInfo);
 
-            Configuration.colonyDictionary[FlightGlobals.currentMainBody.name].Add(colony);
+            KCSaveGame.colonyDictionary[FlightGlobals.currentMainBody.name].Add(colony);
 
             KC_CAB_Facility cab = colony.CAB;
 

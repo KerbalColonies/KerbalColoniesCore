@@ -133,7 +133,7 @@ namespace KerbalColonies.VesselAutoTransfer
 
             if (node == null) return null;
 
-            colonyClass colony = Configuration.GetColonyByID(int.Parse(node.GetValue("colonyID")));
+            colonyClass colony = KCSaveGame.GetColonyByID(int.Parse(node.GetValue("colonyID")));
             uint partModuleID = uint.Parse(node.GetValue("partModuleID"));
             uint vesselID = uint.Parse(node.GetValue("vesselID"));
 

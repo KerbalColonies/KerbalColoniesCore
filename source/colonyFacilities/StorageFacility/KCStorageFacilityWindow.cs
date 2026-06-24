@@ -70,7 +70,7 @@ namespace KerbalColonies.colonyFacilities.StorageFacility
             return vesselAmount;
         }
 
-        public bool facilityHasRessources(PartResourceDefinition resouce, double amount) => storageFacility.unifiedColonyStorage.Resources[resouce] >= amount;
+        public bool facilityHasRessources(PartResourceDefinition resouce, double amount) => storageFacility.unifiedColonyStorage.Resources.TryGetValue(resouce, out double storedAmount) && storedAmount >= amount;
 
         public double getFacilityResource(PartResourceDefinition resource)
         {
@@ -269,10 +269,20 @@ namespace KerbalColonies.colonyFacilities.StorageFacility
             GUILayout.Label("Warning: enabling the trash resources option will delete the resource instead of transferring it to the vessel.");
         }
 
+        private void TryAddResource(PartResourceDefinition resource, ResourceTransferAvailable status)
+        {
+            if (!AvailableResources.TryAdd(resource, status))
+            {
+                Configuration.writeLog($"KCStorageFacilityWindow: Failed to add resource {resource.name} ({resource.displayName}) to AvailableResources with {status} status.");
+                Configuration.writeLog($"KCStorageFacilityWindow: Existing resource with same displayName: {AvailableResources.Keys.FirstOrDefault(r => r.displayName == resource.displayName)?.name ?? "None"}");
+            }
+        }
+
         protected override void OnOpen()
         {
             if (FlightGlobals.ActiveVessel != null)
             {
+                // Comparison via displayName to ensure consistent ordering of resources in the UI
                 AvailableResources = new SortedDictionary<PartResourceDefinition, ResourceTransferAvailable>(Comparer<PartResourceDefinition>.Create((x, y) => x.displayName.CompareTo(y.displayName)));
 
                 foreach (PartResourceDefinition resource in PartResourceLibrary.Instance.resourceDefinitions)
@@ -283,42 +293,24 @@ namespace KerbalColonies.colonyFacilities.StorageFacility
                     if (max > 0)
                     {
                         if (storageFacility.unifiedColonyStorage.ResourceVolume(resource) <= 0 && storageFacility.unifiedColonyStorage.Resources.GetValueOrDefault(resource) <= 0)
-                        {
-                            AvailableResources.Add(resource, ResourceTransferAvailable.Vessel_only);
-                        }
-                        else
-                        {
-                            AvailableResources.Add(resource, ResourceTransferAvailable.Possible);
-                        }
+                            TryAddResource(resource, ResourceTransferAvailable.Vessel_only);
+                        else TryAddResource(resource, ResourceTransferAvailable.Possible);
                     }
-                    else if (storageFacility.unifiedColonyStorage.Resources.GetValueOrDefault(resource) > 0)
-                    {
-                        AvailableResources.Add(resource, ResourceTransferAvailable.Colony_only);
-                    }
+                    else if (storageFacility.unifiedColonyStorage.Resources.GetValueOrDefault(resource) > 0) TryAddResource(resource, ResourceTransferAvailable.Colony_only);
                 }
             }
             else
             {
                 AvailableResources = new SortedDictionary<PartResourceDefinition, ResourceTransferAvailable>(Comparer<PartResourceDefinition>.Create((x, y) => x.displayName.CompareTo(y.displayName)));
 
-                KCUnifiedColonyStorage.colonyStorages[facility.Colony].Resources.ToList().ForEach(kvp => AvailableResources.Add(kvp.Key, ResourceTransferAvailable.Colony_only));
+                KCUnifiedColonyStorage.colonyStorages[facility.Colony].Resources.ToList().ForEach(kvp => TryAddResource(kvp.Key, ResourceTransferAvailable.Colony_only));
             }
         }
-
-        //protected override void OnClose()
-        //{
-        //}
 
         public KCStorageFacilityWindow(KCStorageFacility storageFacility) : base(storageFacility, Configuration.createWindowID())
         {
             this.storageFacility = storageFacility;
-            //GetVesselResources();
-            //foreach (PartResourceDefinition resource in allResources)
-            //{
-            //    storageFacility.addRessource(resource);
-            //}
             toolRect = new Rect(100, 100, 400, 600);
         }
     }
-
 }

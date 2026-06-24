@@ -86,6 +86,11 @@ namespace KerbalColonies.colonyFacilities.ProductionFacility
                 ConfigNode production = colony.sharedColonyNodes.FirstOrDefault(n => n.name == "production");
                 if (production != null)
                 {
+                    if (!production.HasNode("constructingFacilities")) production.AddNode(new ConfigNode("constructingFacilities"));
+                    if (!production.HasNode("constructedFacilities")) production.AddNode(new ConfigNode("constructedFacilities"));
+                    if (!production.HasNode("upgradingFacilities")) production.AddNode(new ConfigNode("upgradingFacilities"));
+                    if (!production.HasNode("upgradedFacilities")) production.AddNode(new ConfigNode("upgradedFacilities"));
+
                     foreach (ConfigNode facilityNode in production.GetNode("constructingFacilities").GetNodes("facilityNode"))
                     {
                         KCFacilityBase facility = KCFacilityBase.GetFacilityByID(int.Parse(facilityNode.GetValue("facilityID")));
@@ -111,14 +116,21 @@ namespace KerbalColonies.colonyFacilities.ProductionFacility
 
 
             double dt = getDeltaTime(colony);
-            if (dt == 0) return;
+            if (dt == 0)
+            {
+                Configuration.writeDebug($"ExecuteProduction early return dt=0 for colony={colony.DisplayName}");
+                return;
+            }
 
             KCProductionFacility.DailyProductions(colony, out double dailyProduction, out double dailyVesselProduction);
+            Configuration.writeDebug($"ExecuteProduction daily base production for colony={colony.DisplayName}: facility={dailyProduction}, vessel={dailyVesselProduction}, dt={dt}");
 
             dailyProduction = dailyProduction * dt / 6 / 60 / 60; // convert from Kerbin days (6 hours) to seconds
             dailyVesselProduction = dailyVesselProduction * dt / 6 / 60 / 60;
+            Configuration.writeDebug($"ExecuteProduction scaled production for colony={colony.DisplayName}: facility={dailyProduction}, vessel={dailyVesselProduction}");
 
             List<StoredVessel> constructingVessel = KCHangarFacility.GetConstructingVessels(colony);
+            Configuration.writeDebug($"ExecuteProduction vessel queue for colony={colony.DisplayName}: count={constructingVessel.Count}");
 
             if (constructingVessel.Count > 0)
             {
@@ -156,6 +168,7 @@ namespace KerbalColonies.colonyFacilities.ProductionFacility
             }
 
             dailyProduction += dailyVesselProduction;
+            Configuration.writeDebug($"ExecuteProduction facility queue start for colony={colony.DisplayName}: availableProduction={dailyProduction}, upgradingCount={UpgradingFacilities[colony].Count}, constructingCount={ConstructingFacilities[colony].Count}");
 
             if (UpgradingFacilities[colony].Count > 0 || ConstructingFacilities[colony].Count > 0)
             {
@@ -190,6 +203,8 @@ namespace KerbalColonies.colonyFacilities.ProductionFacility
                                     break;
                             }
                         }
+
+            Configuration.writeDebug($"ExecuteProduction end for colony={colony.DisplayName}: remainingProduction={dailyProduction}, upgradingCount={UpgradingFacilities[colony].Count}, constructingCount={ConstructingFacilities[colony].Count}");
                     }
                     else if (ConstructingFacilities[colony].Count > 0)
                     {

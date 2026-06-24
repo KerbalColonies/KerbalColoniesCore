@@ -140,9 +140,9 @@ namespace KerbalColonies
 
         public KC_CAB_Facility CAB { get; private set; }
 
-        public List<KCFacilityBase> Facilities { get; private set; }
+        public List<KCFacilityBase> Facilities { get; private set; } = [];
         public void AddFacility(KCFacilityBase facility) => Facilities.Add(facility);
-        public List<ConfigNode> sharedColonyNodes { get; set; }
+        public List<ConfigNode> sharedColonyNodes { get; set; } = [];
 
         public ConfigNode CreateConfigNode()
         {

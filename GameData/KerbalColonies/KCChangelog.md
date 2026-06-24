@@ -1,3 +1,8 @@
+# v1.4.1
+- Fix storage facility won't open with duplicated resource, see issue [#65](https://github.com/KerbalColonies/KerbalColoniesCore/issues/65)
+- Add labels for missing tech nodes for facility upgrades
+- Fix a bug with the colony production execution
+
 # v1.4.0
 - Renamed ScenarioModule to KCSaveGame
 - Kerbal transfer when out of resources is now allowed

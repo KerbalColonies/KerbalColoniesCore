@@ -123,25 +123,40 @@ namespace KerbalColonies.colonyFacilities.CabFacility
                                 }
                                 else
                                 {
-                                    if (CABFacility.upgradeable && CABFacility.level < CABFacility.maxLevel && KCTechTreeHandler.CanBuild(CABFacility.facilityInfo, CABFacility.level + 1))
+                                    if (CABFacility.upgradeable && CABFacility.level < CABFacility.maxLevel)
                                     {
-                                        if (!CABFacility.facilityInfo.checkResources(CABFacility.level + 1, CABFacility.Colony)) GUI.enabled = false;
-                                        if (GUILayout.Button("Upgrade"))
+                                        if (!KCTechTreeHandler.CanBuild(CABFacility.facilityInfo, CABFacility.level + 1))
                                         {
-                                            Configuration.writeLog($"KC: Upgrading facility {CABFacility.DisplayName} in {CABFacility.Colony.DisplayName} to level {CABFacility.level + 1}");
-                                            CABFacility.facilityInfo.removeResources(CABFacility.level + 1, CABFacility.Colony);
-                                            CABFacility.AddUpgradeableFacility(CABFacility);
+                                            GUI.enabled = false;
+                                            GUILayout.Button("Upgrade (tech required)");
+
+                                            GUI.enabled = true;
+                                            List<string> missingTechIds = KCTechTreeHandler.GetMissingTechIds(CABFacility.facilityInfo, CABFacility.level + 1);
+                                            foreach (string techId in missingTechIds)
+                                            {
+                                                GUILayout.Label($"- {ResearchAndDevelopment.GetTechnologyTitle(techId)}");
+                                            }
                                         }
                                         else
                                         {
-                                            GUI.enabled = true;
-                                            GUILayout.Label("Upgrade cost:");
-                                            CABFacility.facilityInfo.resourceCost[CABFacility.level + 1].ToList().ForEach(pair =>
+                                            if (!CABFacility.facilityInfo.checkResources(CABFacility.level + 1, CABFacility.Colony)) GUI.enabled = false;
+                                            if (GUILayout.Button("Upgrade"))
                                             {
-                                                GUILayout.Label($"- {pair.Key.displayName}: {pair.Value * Configuration.FacilityCostMultiplier:f3}");
-                                            });
-                                            if (CABFacility.facilityInfo.Funds[CABFacility.level + 1] != 0) GUILayout.Label($"Funds: {CABFacility.facilityInfo.Funds[CABFacility.level + 1] * Configuration.FacilityCostMultiplier:f3}");
-                                            GUILayout.Label($"Time: {CABFacility.facilityInfo.UpgradeTimes[CABFacility.level + 1] * Configuration.FacilityTimeMultiplier:f3}");
+                                                Configuration.writeLog($"KC: Upgrading facility {CABFacility.DisplayName} in {CABFacility.Colony.DisplayName} to level {CABFacility.level + 1}");
+                                                CABFacility.facilityInfo.removeResources(CABFacility.level + 1, CABFacility.Colony);
+                                                CABFacility.AddUpgradeableFacility(CABFacility);
+                                            }
+                                            else
+                                            {
+                                                GUI.enabled = true;
+                                                GUILayout.Label("Upgrade cost:");
+                                                CABFacility.facilityInfo.resourceCost[CABFacility.level + 1].ToList().ForEach(pair =>
+                                                {
+                                                    GUILayout.Label($"- {pair.Key.displayName}: {pair.Value * Configuration.FacilityCostMultiplier:f3}");
+                                                });
+                                                if (CABFacility.facilityInfo.Funds[CABFacility.level + 1] != 0) GUILayout.Label($"Funds: {CABFacility.facilityInfo.Funds[CABFacility.level + 1] * Configuration.FacilityCostMultiplier:f3}");
+                                                GUILayout.Label($"Time: {CABFacility.facilityInfo.UpgradeTimes[CABFacility.level + 1] * Configuration.FacilityTimeMultiplier:f3}");
+                                            }
                                         }
                                     }
                                     else
@@ -227,28 +242,43 @@ namespace KerbalColonies.colonyFacilities.CabFacility
                                     }
                                     else
                                     {
-                                        if (facility.upgradeable && facility.level < facility.maxLevel && KCTechTreeHandler.CanBuild(facility.facilityInfo, facility.level + 1))
+                                        if (facility.upgradeable && facility.level < facility.maxLevel)
                                         {
-                                            bool higherCABLevelNeeded = facility.facilityInfo.MinCABLevel[facility.level] > CABFacility.level;
-
-                                            if (!facility.facilityInfo.checkResources(facility.level + 1, CABFacility.Colony) || higherCABLevelNeeded) GUI.enabled = false;
-                                            if (GUILayout.Button("Upgrade"))
+                                            if (!KCTechTreeHandler.CanBuild(facility.facilityInfo, facility.level + 1))
                                             {
-                                                Configuration.writeLog($"KC: Upgrading facility {facility.DisplayName} in {CABFacility.Colony.DisplayName} to level {facility.level + 1}");
-                                                facility.facilityInfo.removeResources(facility.level + 1, CABFacility.Colony);
-                                                CABFacility.AddUpgradeableFacility(facility);
-                                                continue;
+                                                GUI.enabled = false;
+                                                GUILayout.Button("Upgrade (tech required)");
+
+                                                GUI.enabled = true;
+                                                List<string> missingTechIds = KCTechTreeHandler.GetMissingTechIds(facility.facilityInfo, facility.level + 1);
+                                                foreach (string techId in missingTechIds)
+                                                {
+                                                    GUILayout.Label($"- {ResearchAndDevelopment.GetTechnologyTitle(techId)}");
+                                                }
                                             }
-                                            GUI.enabled = true;
-
-                                            GUILayout.Label("Upgrade cost:");
-                                            facility.facilityInfo.resourceCost[facility.level + 1].ToList().ForEach(pair =>
+                                            else
                                             {
-                                                GUILayout.Label($"- {pair.Key.displayName}: {pair.Value * Configuration.FacilityCostMultiplier:f3}");
-                                            });
-                                            if (facility.facilityInfo.Funds[facility.level + 1] != 0) GUILayout.Label($"Funds: {facility.facilityInfo.Funds[facility.level + 1] * Configuration.FacilityCostMultiplier:f3}");
-                                            GUILayout.Label($"Time: {facility.facilityInfo.UpgradeTimes[facility.level + 1] * Configuration.FacilityTimeMultiplier:f3}");
-                                            if (higherCABLevelNeeded) GUILayout.Label($"CAB Level required: {facility.facilityInfo.MinCABLevel[facility.level]} (current: {CABFacility.level})");
+                                                bool higherCABLevelNeeded = facility.facilityInfo.MinCABLevel[facility.level] > CABFacility.level;
+
+                                                if (!facility.facilityInfo.checkResources(facility.level + 1, CABFacility.Colony) || higherCABLevelNeeded) GUI.enabled = false;
+                                                if (GUILayout.Button("Upgrade"))
+                                                {
+                                                    Configuration.writeLog($"KC: Upgrading facility {facility.DisplayName} in {CABFacility.Colony.DisplayName} to level {facility.level + 1}");
+                                                    facility.facilityInfo.removeResources(facility.level + 1, CABFacility.Colony);
+                                                    CABFacility.AddUpgradeableFacility(facility);
+                                                    continue;
+                                                }
+                                                GUI.enabled = true;
+
+                                                GUILayout.Label("Upgrade cost:");
+                                                facility.facilityInfo.resourceCost[facility.level + 1].ToList().ForEach(pair =>
+                                                {
+                                                    GUILayout.Label($"- {pair.Key.displayName}: {pair.Value * Configuration.FacilityCostMultiplier:f3}");
+                                                });
+                                                if (facility.facilityInfo.Funds[facility.level + 1] != 0) GUILayout.Label($"Funds: {facility.facilityInfo.Funds[facility.level + 1] * Configuration.FacilityCostMultiplier:f3}");
+                                                GUILayout.Label($"Time: {facility.facilityInfo.UpgradeTimes[facility.level + 1] * Configuration.FacilityTimeMultiplier:f3}");
+                                                if (higherCABLevelNeeded) GUILayout.Label($"CAB Level required: {facility.facilityInfo.MinCABLevel[facility.level]} (current: {CABFacility.level})");
+                                            }
                                         }
                                         else
                                         {

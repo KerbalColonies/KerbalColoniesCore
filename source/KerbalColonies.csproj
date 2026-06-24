@@ -76,8 +76,8 @@
   </ItemGroup>
 
   <PropertyGroup>
-    <TargetFramework>net481</TargetFramework>
-    <LangVersion>preview</LangVersion>
+<TargetFramework>net481</TargetFramework>
+<LangVersion>latest</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>
@@ -91,7 +91,7 @@
   </ItemGroup>
   
   <PropertyGroup>
-    <FileVersion>1.4.0.0</FileVersion>
+    <FileVersion>1.4.1.0</FileVersion>
     <AssemblyVersion>1.4.0.0</AssemblyVersion>
   </PropertyGroup>
 

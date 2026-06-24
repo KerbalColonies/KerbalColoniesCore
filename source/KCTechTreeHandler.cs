@@ -117,6 +117,25 @@ namespace KerbalColonies
             return true;
         }
 
+        public static List<string> GetMissingTechIds(KCFacilityInfoClass facility, int level)
+        {
+            List<string> missingTechs = [];
+            foreach (KCTechPartInfo tp in TechParts)
+            {
+                if (tp.facility == facility && tp.level >= level)
+                {
+                    foreach (string tech in tp.techNodes)
+                    {
+                        if (ResearchAndDevelopment.GetTechnologyState(tech) != RDTech.State.Available && !missingTechs.Contains(tech))
+                        {
+                            missingTechs.Add(tech);
+                        }
+                    }
+                }
+            }
+            return missingTechs;
+        }
+
 
         public void Start()
         {

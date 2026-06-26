@@ -91,7 +91,7 @@
   </ItemGroup>
   
   <PropertyGroup>
-    <FileVersion>1.4.1.0</FileVersion>
+    <FileVersion>1.4.2.0</FileVersion>
     <AssemblyVersion>1.4.0.0</AssemblyVersion>
   </PropertyGroup>
 

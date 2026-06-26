@@ -36,22 +36,28 @@ namespace KerbalColonies.colonyFacilities.ProductionFacility
 
         public static void AddConstructingFacility(KCFacilityBase facility, double time)
         {
+            ConstructingFacilities.TryAdd(facility.Colony, []);
             ConstructingFacilities[facility.Colony].TryAdd(facility, time);
         }
 
         public static void AddConstructedFacility(KCFacilityBase facility)
         {
+            ConstructingFacilities.TryAdd(facility.Colony, []);
+            ConstructedFacilities.TryAdd(facility.Colony, []);
             ConstructingFacilities[facility.Colony].Remove(facility);
             ConstructedFacilities[facility.Colony].Add(facility);
         }
 
         public static void AddUpgradingFacility(KCFacilityBase facility, double time)
         {
+            UpgradingFacilities.TryAdd(facility.Colony, []);
             UpgradingFacilities[facility.Colony].TryAdd(facility, time);
         }
 
         public static void AddUpgradedFacility(KCFacilityBase facility)
         {
+            UpgradingFacilities.TryAdd(facility.Colony, []);
+            UpgradedFacilities.TryAdd(facility.Colony, []);
             UpgradingFacilities[facility.Colony].Remove(facility);
             UpgradedFacilities[facility.Colony].Add(facility);
         }
@@ -77,7 +83,12 @@ namespace KerbalColonies.colonyFacilities.ProductionFacility
 
         public static void ExecuteProduction(colonyClass colony)
         {
-            if (ConstructingFacilities.TryAdd(colony, []))
+            if (
+                ConstructingFacilities.TryAdd(colony, [])
+                | ConstructedFacilities.TryAdd(colony, [])
+                | UpgradingFacilities.TryAdd(colony, [])
+                | UpgradedFacilities.TryAdd(colony, [])
+            )
             {
                 ConstructedFacilities.Add(colony, []);
                 UpgradingFacilities.Add(colony, []);
@@ -361,6 +372,7 @@ namespace KerbalColonies.colonyFacilities.ProductionFacility
             else production.ClearNodes();
 
             ConfigNode constructingFacilities = new("constructingFacilities");
+            ConstructingFacilities.TryAdd(colony, []);
             ConstructingFacilities[colony].ToList().ForEach(pair =>
             {
                 ConfigNode facilityNode = new("facilityNode");
@@ -371,6 +383,7 @@ namespace KerbalColonies.colonyFacilities.ProductionFacility
             production.AddNode(constructingFacilities);
 
             ConfigNode constructedFacilities = new("constructedFacilities");
+            ConstructedFacilities.TryAdd(colony, []);
             ConstructedFacilities[colony].ForEach(facility =>
             {
                 ConfigNode facilityNode = new("facilityNode");
@@ -380,6 +393,7 @@ namespace KerbalColonies.colonyFacilities.ProductionFacility
             production.AddNode(constructedFacilities);
 
             ConfigNode upgradingFacilities = new("upgradingFacilities");
+            UpgradingFacilities.TryAdd(colony, []);
             UpgradingFacilities[colony].ToList().ForEach(pair =>
             {
                 ConfigNode facilityNode = new("facilityNode");
@@ -390,6 +404,7 @@ namespace KerbalColonies.colonyFacilities.ProductionFacility
             production.AddNode(upgradingFacilities);
 
             ConfigNode upgradedFacilities = new("upgradedFacilities");
+            UpgradedFacilities.TryAdd(colony, []);
             UpgradedFacilities[colony].ForEach(facility =>
             {
                 ConfigNode facilityNode = new("facilityNode");

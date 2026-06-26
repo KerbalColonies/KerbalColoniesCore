@@ -1,3 +1,6 @@
+# v1.4.2
+- Fixed a possible NRE during the production facility saving, see issue [#67](https://github.com/KerbalColonies/KerbalColoniesCore/issues/67)
+
 # v1.4.1
 - Fix storage facility won't open with duplicated resource, see issue [#65](https://github.com/KerbalColonies/KerbalColoniesCore/issues/65)
 - Add labels for missing tech nodes for facility upgrades

@@ -28,66 +28,8 @@ namespace KerbalColonies.Settings
     /// <summary>
     /// Reads and holds configuration parameters
     /// </summary> 
-    //[KSPScenario(ScenarioCreationOptions.AddToAllGames, GameScenes.SPACECENTER, GameScenes.FLIGHT, GameScenes.EDITOR, GameScenes.TRACKSTATION)]
     public class Configuration
     {
-        //private ConfigNode loadedNode;
-
-        //public override void OnLoad(ConfigNode node)
-        //{
-        //    loadedNode = node.CreateCopy();
-        //    Configuration.writeDebug(loadedNode.ToString());
-
-        //    KCLegacySaveWarning.LoadSettings();
-        //    LoadColoniesV3();
-
-        //    string saveName = HighLogic.CurrentGame.Seed.ToString();
-        //    if (KCLegacySaveWarning.LoadedSaves.ContainsKey(saveName))
-        //    {
-        //        loadedSaveVersion = new Version(3, 0, 0);
-        //        return;
-        //    }
-
-
-        //    KCProductionFacility.ConstructedFacilities.Clear();
-        //    KCProductionFacility.ConstructingFacilities.Clear();
-        //    KCProductionFacility.UpgradingFacilities.Clear();
-        //    KCProductionFacility.UpgradedFacilities.Clear();
-
-        //    KCgroups.Clear();
-        //    colonyDictionary.Clear();
-        //    GroupFacilities.Clear();
-        //    ColonyBuilding.buildQueue.Clear();
-        //    LoadConfiguration();
-        //    writeDebug("scenariomodule load");
-        //    writeDebug(node.ToString());
-        //    LoadColoniesV4(node);
-        //}
-        //public override void OnSave(ConfigNode node)
-        //{
-        //    KCLegacySaveWarning.SaveSettings();
-        //    SaveColoniesV3();
-        //    if (KCLegacySaveWarning.LoadedSaves.ContainsKey(HighLogic.CurrentGame.Seed.ToString()))
-        //    {
-        //        Configuration.writeLog($"Saving legacy colonies");
-        //        ConfigNode colonyNode = loadedNode.GetNode("colonyNode");
-
-        //        node.AddNode(colonyNode);
-        //        node.AddValue("version", loadedNode.GetValue("version"));
-
-        //        Configuration.writeDebug($"loadedNode = {loadedNode}");
-        //        Configuration.writeDebug($"node = {node}");
-
-        //        return;
-        //    }
-
-        //    SaveConfiguration();
-        //    SaveColoniesV4(node);
-        //    writeDebug(node.ToString());
-        //    writeDebug("scenariomodule save");
-        //}
-
-
         internal static List<int> windowIDs { get; private set; } = []; // list of all ColonyChangeWindow IDs
 
         internal static int createWindowID()

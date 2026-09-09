@@ -90,10 +90,6 @@ namespace KerbalColonies.colonyFacilities.ProductionFacility
                 | UpgradedFacilities.TryAdd(colony, [])
             )
             {
-                ConstructedFacilities.Add(colony, []);
-                UpgradingFacilities.Add(colony, []);
-                UpgradedFacilities.Add(colony, []);
-
                 ConfigNode production = colony.sharedColonyNodes.FirstOrDefault(n => n.name == "production");
                 if (production != null)
                 {

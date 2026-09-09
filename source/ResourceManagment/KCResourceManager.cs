@@ -1,4 +1,5 @@
 ﻿using KerbalColonies.colonyFacilities.CabFacility;
+using KSP.Localization;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -70,14 +71,14 @@ namespace KerbalColonies.ResourceManagment
                     {
                         GUILayout.BeginVertical(GUILayout.Width(KC_CAB_Window.CABInfoWidth / 2 - 20));
                         {
-                            GUILayout.Label($"Produced: {(colonyData.ResourcesProduced.GetValueOrDefault(res) / colonyData.deltaTime):F2} {res.abbreviation}/s");
-                            GUILayout.Label($"Consumed: {(colonyData.ResourcesConsumed.GetValueOrDefault(res) / colonyData.deltaTime):F2} {res.abbreviation}/s");
+                            GUILayout.Label(Localizer.Format("#LOC_KC_RESOURCES_PRODUCED", (colonyData.ResourcesProduced.GetValueOrDefault(res) / colonyData.deltaTime).ToString("F2"), res.abbreviation));
+                            GUILayout.Label(Localizer.Format("#LOC_KC_RESOURCES_CONSUMED", (colonyData.ResourcesConsumed.GetValueOrDefault(res) / colonyData.deltaTime).ToString("F2"), res.abbreviation));
                         }
                         GUILayout.EndVertical();
                         GUILayout.BeginVertical(GUILayout.Width(KC_CAB_Window.CABInfoWidth / 2 - 20));
                         {
-                            GUILayout.Label($"Stored: {colonyData.ResourcesStored.GetValueOrDefault(res):F2} {res.abbreviation}");
-                            GUILayout.Label($"Delta: {(colonyData.ResourceDelta(res) / colonyData.deltaTime):F2} {res.abbreviation}/s");
+                            GUILayout.Label(Localizer.Format("#LOC_KC_RESOURCES_STORED", colonyData.ResourcesStored.GetValueOrDefault(res).ToString("F2"), res.abbreviation));
+                            GUILayout.Label(Localizer.Format("#LOC_KC_RESOURCES_DELTA", (colonyData.ResourceDelta(res) / colonyData.deltaTime).ToString("F2"), res.abbreviation));
                         }
                         GUILayout.EndVertical();
                         GUILayout.FlexibleSpace();

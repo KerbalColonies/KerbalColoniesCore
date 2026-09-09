@@ -1,5 +1,6 @@
 ﻿using KerbalColonies.Settings;
 using KerbalColonies.UI;
+using KSP.Localization;
 using System.Linq;
 using UnityEngine;
 
@@ -36,7 +37,7 @@ namespace KerbalColonies.colonyFacilities.LaunchPadFacility
         {
             facility.Colony.UpdateColony();
 
-            GUILayout.Label($"Launch sites from this facility:");
+            GUILayout.Label(Localizer.Format("#LOC_KC_LAUNCHPAD_SITES"));
             scrollPos = GUILayout.BeginScrollView(scrollPos);
             {
                 launchpad.launchSiteName.ToList().ForEach(kvp =>
@@ -54,12 +55,12 @@ namespace KerbalColonies.colonyFacilities.LaunchPadFacility
 
             if (changeLaunchpadName)
             {
-                GUILayout.Label($"Changing name of launchpad {targetInstance.launchSite.LaunchSiteName}:");
+                GUILayout.Label(Localizer.Format("#LOC_KC_LAUNCHPAD_RENAME", targetInstance.launchSite.LaunchSiteName));
                 newName = GUILayout.TextField(newName);
 
                 GUILayout.BeginHorizontal();
                 {
-                    if (GUILayout.Button("OK", GUILayout.Height(23)))
+                    if (GUILayout.Button(Localizer.Format("#LOC_KC_COMMON_OK"), GUILayout.Height(23)))
                     {
                         KerbalKonstructs.Core.LaunchSiteManager.DeleteLaunchSite(targetInstance.launchSite);
                         targetInstance.launchSite.LaunchSiteName = newName;
@@ -67,7 +68,7 @@ namespace KerbalColonies.colonyFacilities.LaunchPadFacility
                         KerbalKonstructs.Core.LaunchSiteManager.RegisterLaunchSite(targetInstance.launchSite);
                         changeLaunchpadName = false;
                     }
-                    if (GUILayout.Button("Cancel", GUILayout.Height(23)))
+                    if (GUILayout.Button(Localizer.Format("#LOC_KC_COMMON_CANCEL"), GUILayout.Height(23)))
                     {
                         changeLaunchpadName = false;
                     }
@@ -81,17 +82,17 @@ namespace KerbalColonies.colonyFacilities.LaunchPadFacility
             {
                 GUILayout.BeginHorizontal();
                 {
-                    GUILayout.Label($"Resource Consumption Priority: {launchpad.ResourceConsumptionPriority}", GUILayout.Height(18));
+                    GUILayout.Label(Localizer.Format("#LOC_KC_COMMON_RESOURCE_PRIORITY", launchpad.ResourceConsumptionPriority), GUILayout.Height(18));
                     GUILayout.FlexibleSpace();
                     if (GUILayout.RepeatButton("--", GUILayout.Width(30), GUILayout.Height(23)) | GUILayout.Button("-", GUILayout.Width(30), GUILayout.Height(23))) launchpad.ResourceConsumptionPriority--;
                     if (GUILayout.Button("+", GUILayout.Width(30), GUILayout.Height(23)) | GUILayout.RepeatButton("++", GUILayout.Width(30), GUILayout.Height(23))) launchpad.ResourceConsumptionPriority++;
                 }
                 GUILayout.EndHorizontal();
-                GUILayout.Label("Resource usage:");
+                GUILayout.Label(Localizer.Format("#LOC_KC_COMMON_RESOURCE_USAGE"));
                 resourceUsageScrollPos = GUILayout.BeginScrollView(resourceUsageScrollPos, GUILayout.Height(120));
                 {
                     launchpad.facilityInfo.ResourceUsage[facility.level].ToList().ForEach(kvp =>
-                        GUILayout.Label($"- {kvp.Key.displayName}: {kvp.Value}/s")
+                        GUILayout.Label(Localizer.Format("#LOC_KC_COMMON_RESOURCE_RATE_ITEM", kvp.Key.displayName, kvp.Value))
                     );
                 }
                 GUILayout.EndScrollView();

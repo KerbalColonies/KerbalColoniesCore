@@ -1,5 +1,6 @@
 ﻿using KerbalColonies.Settings;
 using KerbalColonies.UI;
+using KSP.Localization;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -83,13 +84,13 @@ namespace KerbalColonies.VesselAutoTransfer
             GUILayout.BeginHorizontal();
             {
                 GUILayout.Space(20);
-                GUILayout.Label("Rate", GUILayout.Width(100));
-                GUILayout.Label("Colony Limit", GUILayout.Width(100));
-                GUILayout.Label("Vessel Limit", GUILayout.Width(100));
+                GUILayout.Label(Localizer.Format("#LOC_KC_TRANSFER_RATE"), GUILayout.Width(100));
+                GUILayout.Label(Localizer.Format("#LOC_KC_TRANSFER_COLONY_LIMIT"), GUILayout.Width(100));
+                GUILayout.Label(Localizer.Format("#LOC_KC_TRANSFER_VESSEL_LIMIT"), GUILayout.Width(100));
                 GUILayout.Space(8);
-                GUILayout.Label("Disable if colony constrains", GUILayout.Width(180));
-                GUILayout.Label("Disable if vessel constrains", GUILayout.Width(210));
-                GUILayout.Label("Confirm", GUILayout.Width(220));
+                GUILayout.Label(Localizer.Format("#LOC_KC_TRANSFER_DISABLE_COLONY"), GUILayout.Width(180));
+                GUILayout.Label(Localizer.Format("#LOC_KC_TRANSFER_DISABLE_VESSEL"), GUILayout.Width(210));
+                GUILayout.Label(Localizer.Format("#LOC_KC_TRANSFER_CONFIRM"), GUILayout.Width(220));
             }
             GUILayout.EndHorizontal();
 
@@ -102,8 +103,8 @@ namespace KerbalColonies.VesselAutoTransfer
                         rateStrings[kvp.Key] = GUILayout.TextField(rateStrings[kvp.Key], GUILayout.Width(100));
                         colonyLimitStrings[kvp.Key] = GUILayout.TextField(colonyLimitStrings[kvp.Key], GUILayout.Width(100));
                         vesselLimitStrings[kvp.Key] = GUILayout.TextField(vesselLimitStrings[kvp.Key], GUILayout.Width(100));
-                        disableIfColonyLimit[kvp.Key] = GUILayout.Toggle(disableIfColonyLimit[kvp.Key], "Disable if colony constrains", GUILayout.Width(210));
-                        disableIfVesselLimit[kvp.Key] = GUILayout.Toggle(disableIfVesselLimit[kvp.Key], "Disable if vessel constrains", GUILayout.Width(210));
+                        disableIfColonyLimit[kvp.Key] = GUILayout.Toggle(disableIfColonyLimit[kvp.Key], Localizer.Format("#LOC_KC_TRANSFER_DISABLE_COLONY"), GUILayout.Width(210));
+                        disableIfVesselLimit[kvp.Key] = GUILayout.Toggle(disableIfVesselLimit[kvp.Key], Localizer.Format("#LOC_KC_TRANSFER_DISABLE_VESSEL"), GUILayout.Width(210));
 
                         if (GUILayout.Button(kvp.Key.name, GUILayout.Width(220)))
                         {
@@ -144,7 +145,7 @@ namespace KerbalColonies.VesselAutoTransfer
 
             GUILayout.Space(16);
 
-            GUILayout.Label("Current Transfer Mode: " + transferModule.transferMode.ToString());
+            GUILayout.Label(Localizer.Format("#LOC_KC_TRANSFER_CURRENT_MODE", transferModule.transferMode.ToString()));
             scrollPosTransferMode = GUILayout.BeginScrollView(scrollPosTransferMode, GUILayout.Height(150));
             {
                 foreach (ResourceFlowMode mode in Enum.GetValues(typeof(ResourceFlowMode)))
@@ -170,7 +171,7 @@ namespace KerbalColonies.VesselAutoTransfer
             transfer?.CleanResources();
         }
 
-        public VesselResourceRatesChangewindow(ModuleKCTransfer transferModule) : base(Configuration.createWindowID(), "Change resource rates", false)
+        public VesselResourceRatesChangewindow(ModuleKCTransfer transferModule) : base(Configuration.createWindowID(), Localizer.Format("#LOC_KC_TRANSFER_CHANGE_RATES"), false)
         {
             this.transferModule = transferModule;
             toolRect = new Rect(100, 100, 1000, 500);

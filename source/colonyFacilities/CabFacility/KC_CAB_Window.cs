@@ -1,6 +1,7 @@
 ﻿using KerbalColonies.colonyFacilities.ProductionFacility;
 using KerbalColonies.Settings;
 using KerbalColonies.UI;
+using KSP.Localization;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -62,7 +63,7 @@ namespace KerbalColonies.colonyFacilities.CabFacility
                 scrollPosTypes = GUILayout.BeginScrollView(scrollPosTypes);
                 {
                     if (selectedType == "CAB") GUI.enabled = false;
-                    if (GUILayout.Button($"CAB"))
+                    if (GUILayout.Button(Localizer.Format("#LOC_KC_CAB_CAB")))
                     {
                         selectedType = "CAB";
                         scrollPosFacilities = new Vector2();
@@ -84,7 +85,7 @@ namespace KerbalColonies.colonyFacilities.CabFacility
                 GUILayout.EndVertical();
                 GUILayout.BeginVertical(GUILayout.Width(620));
                 if (selectedType != "CAB")
-                    GUILayout.Label($"<b>Facilities of type {selectedType} in {CABFacility.Colony.DisplayName}</b>:");
+                    GUILayout.Label(Localizer.Format("#LOC_KC_CAB_FACILITIES_OF_TYPE", selectedType, CABFacility.Colony.DisplayName));
                 scrollPosFacilities = GUILayout.BeginScrollView(scrollPosFacilities);
                 {
                     GUILayout.Space(10);
@@ -96,8 +97,8 @@ namespace KerbalColonies.colonyFacilities.CabFacility
                             GUILayout.BeginVertical(GUILayout.Width(250));
                             {
                                 GUILayout.Label($"<b>{CABFacility.Colony.DisplayName}{(CABFacility.Colony.UseCustomDisplayName ? $" ({CABFacility.Colony.BodyName})" : "")}</b>");
-                                GUILayout.Label($"CAB Level: {CABFacility.level}/{CABFacility.maxLevel}");
-                                GUILayout.Label($"Facilities: {CABFacility.Colony.Facilities.Count}");
+                                GUILayout.Label(Localizer.Format("#LOC_KC_CAB_LEVEL", CABFacility.level, CABFacility.maxLevel));
+                                GUILayout.Label(Localizer.Format("#LOC_KC_CAB_FACILITIES", CABFacility.Colony.Facilities.Count));
                             }
                             GUILayout.EndVertical();
 
@@ -108,7 +109,7 @@ namespace KerbalColonies.colonyFacilities.CabFacility
                                 if (KCProductionFacility.UpgradedFacilities[CABFacility.Colony].Contains(CABFacility))
                                 {
                                     if (!playerInColony) GUI.enabled = false;
-                                    if (GUILayout.Button("Place upgrade"))
+                                    if (GUILayout.Button(Localizer.Format("#LOC_KC_CAB_PLACE_UPGRADE")))
                                     {
                                         KCFacilityBase.UpgradeFacilityWithAdditionalGroup(CABFacility);
                                         KCProductionFacility.UpgradedFacilities[CABFacility.Colony].Remove(CABFacility);
@@ -118,7 +119,7 @@ namespace KerbalColonies.colonyFacilities.CabFacility
                                 else if (KCProductionFacility.GetQueue(CABFacility.Colony).OfType<KCFacilityProductionQueueItem>().Any(item => item.FacilityId == CABFacility.id && item.IsUpgrade))
                                 {
                                     GUI.enabled = false;
-                                    GUILayout.Button("Upgrading...");
+                                    GUILayout.Button(Localizer.Format("#LOC_KC_CAB_UPGRADING"));
                                     GUI.enabled = true;
                                 }
                                 else
@@ -128,18 +129,18 @@ namespace KerbalColonies.colonyFacilities.CabFacility
                                         if (!KCTechTreeHandler.CanBuild(CABFacility.facilityInfo, CABFacility.level + 1))
                                         {
                                             GUI.enabled = false;
-                                            GUILayout.Button("Upgrade (tech required)");
+                                            GUILayout.Button(Localizer.Format("#LOC_KC_CAB_UPGRADE_TECH_REQUIRED"));
 
                                             GUI.enabled = true;
                                             List<string> missingTechIds = KCTechTreeHandler.GetMissingTechIds(CABFacility.facilityInfo, CABFacility.level + 1);
                                             foreach (string techId in missingTechIds)
                                             {
-                                                GUILayout.Label($"- {ResearchAndDevelopment.GetTechnologyTitle(techId)}");
+                                                GUILayout.Label(Localizer.Format("#LOC_KC_CAB_MISSING_TECH", ResearchAndDevelopment.GetTechnologyTitle(techId)));
                                             }
                                         }
                                         else
                                         {
-                                            if (GUILayout.Button("Upgrade"))
+                                            if (GUILayout.Button(Localizer.Format("#LOC_KC_CAB_UPGRADE")))
                                             {
                                                 Configuration.writeLog($"KC: Upgrading facility {CABFacility.DisplayName} in {CABFacility.Colony.DisplayName} to level {CABFacility.level + 1}");
                                                 CABFacility.AddUpgradeableFacility(CABFacility);
@@ -147,20 +148,20 @@ namespace KerbalColonies.colonyFacilities.CabFacility
                                             else
                                             {
                                                 GUI.enabled = true;
-                                                GUILayout.Label("Upgrade cost:");
+                                                GUILayout.Label(Localizer.Format("#LOC_KC_CAB_UPGRADE_COST"));
                                                 CABFacility.facilityInfo.resourceCost[CABFacility.level + 1].ToList().ForEach(pair =>
                                                 {
-                                                    GUILayout.Label($"- {pair.Key.displayName}: {pair.Value * Configuration.FacilityCostMultiplier:f3}");
+                                                    GUILayout.Label(Localizer.Format("#LOC_KC_CAB_RESOURCE_COST", pair.Key.displayName, (pair.Value * Configuration.FacilityCostMultiplier).ToString("f3")));
                                                 });
-                                                if (CABFacility.facilityInfo.Funds[CABFacility.level + 1] != 0) GUILayout.Label($"Funds: {CABFacility.facilityInfo.Funds[CABFacility.level + 1] * Configuration.FacilityCostMultiplier:f3}");
-                                                GUILayout.Label($"Time: {CABFacility.facilityInfo.UpgradeTimes[CABFacility.level + 1] * Configuration.FacilityTimeMultiplier:f3}");
+                                                if (CABFacility.facilityInfo.Funds[CABFacility.level + 1] != 0) GUILayout.Label(Localizer.Format("#LOC_KC_COMMON_FUNDS", (CABFacility.facilityInfo.Funds[CABFacility.level + 1] * Configuration.FacilityCostMultiplier).ToString("f3")));
+                                                GUILayout.Label(Localizer.Format("#LOC_KC_COMMON_TIME", (CABFacility.facilityInfo.UpgradeTimes[CABFacility.level + 1] * Configuration.FacilityTimeMultiplier).ToString("f3")));
                                             }
                                         }
                                     }
                                     else
                                     {
                                         GUI.enabled = false;
-                                        GUILayout.Button("Max level reached");
+                                        GUILayout.Button(Localizer.Format("#LOC_KC_CAB_MAX_LEVEL"));
                                         GUI.enabled = true;
                                     }
                                 }
@@ -184,13 +185,13 @@ namespace KerbalColonies.colonyFacilities.CabFacility
                                 GUILayout.BeginVertical(GUILayout.Width(195));
                                 {
                                     GUILayout.Label(facility.DisplayName);
-                                    GUILayout.Label($"Level: {facility.level}");
+                                    GUILayout.Label(Localizer.Format("#LOC_KC_COMMON_LEVEL", facility.level));
                                     if ((facility.AllowClick && playerInColony) || (facility.AllowRemote && !playerInColony))
                                     {
                                         if (KCProductionFacility.ConstructedFacilities[facility.Colony].Contains(facility) || (!facility.AllowClick && playerInColony) || (!facility.AllowRemote && !playerInColony))
                                             GUI.enabled = false;
 
-                                        if (GUILayout.Button("Open"))
+                                        if (GUILayout.Button(Localizer.Format("#LOC_KC_CAB_OPEN")))
                                         {
                                             facility.Update();
                                             if (playerInColony) facility.OnBuildingClicked();
@@ -210,7 +211,7 @@ namespace KerbalColonies.colonyFacilities.CabFacility
                                     if (KCProductionFacility.ConstructedFacilities[facility.Colony].Contains(facility))
                                     {
                                         if (!playerInColony) GUI.enabled = false;
-                                        if (GUILayout.Button("Place"))
+                                        if (GUILayout.Button(Localizer.Format("#LOC_KC_CAB_PLACE")))
                                         {
                                             facility.enabled = true;
 
@@ -225,7 +226,7 @@ namespace KerbalColonies.colonyFacilities.CabFacility
                                     else if (KCProductionFacility.UpgradedFacilities[facility.Colony].Contains(facility))
                                     {
                                         if (!playerInColony) GUI.enabled = false;
-                                        if (GUILayout.Button("Place upgrade"))
+                                        if (GUILayout.Button(Localizer.Format("#LOC_KC_CAB_PLACE_UPGRADE")))
                                         {
                                             KCFacilityBase.UpgradeFacilityWithAdditionalGroup(facility);
                                             KCProductionFacility.UpgradedFacilities[facility.Colony].Remove(facility);
@@ -235,7 +236,7 @@ namespace KerbalColonies.colonyFacilities.CabFacility
                                     else if (KCProductionFacility.GetQueue(facility.Colony).OfType<KCFacilityProductionQueueItem>().Any(item => item.FacilityId == facility.id && item.IsUpgrade))
                                     {
                                         GUI.enabled = false;
-                                        GUILayout.Button("Upgrading...");
+                                        GUILayout.Button(Localizer.Format("#LOC_KC_CAB_UPGRADING"));
                                         GUI.enabled = true;
                                     }
                                     else
@@ -245,13 +246,13 @@ namespace KerbalColonies.colonyFacilities.CabFacility
                                             if (!KCTechTreeHandler.CanBuild(facility.facilityInfo, facility.level + 1))
                                             {
                                                 GUI.enabled = false;
-                                                GUILayout.Button("Upgrade (tech required)");
+                                                GUILayout.Button(Localizer.Format("#LOC_KC_CAB_UPGRADE_TECH_REQUIRED"));
 
                                                 GUI.enabled = true;
                                                 List<string> missingTechIds = KCTechTreeHandler.GetMissingTechIds(facility.facilityInfo, facility.level + 1);
                                                 foreach (string techId in missingTechIds)
                                                 {
-                                                    GUILayout.Label($"- {ResearchAndDevelopment.GetTechnologyTitle(techId)}");
+                                                    GUILayout.Label(Localizer.Format("#LOC_KC_CAB_MISSING_TECH", ResearchAndDevelopment.GetTechnologyTitle(techId)));
                                                 }
                                             }
                                             else
@@ -259,7 +260,7 @@ namespace KerbalColonies.colonyFacilities.CabFacility
                                                 bool higherCABLevelNeeded = facility.facilityInfo.MinCABLevel[facility.level] > CABFacility.level;
 
                                                 if (higherCABLevelNeeded) GUI.enabled = false;
-                                                if (GUILayout.Button("Upgrade"))
+                                                if (GUILayout.Button(Localizer.Format("#LOC_KC_CAB_UPGRADE")))
                                                 {
                                                     Configuration.writeLog($"KC: Upgrading facility {facility.DisplayName} in {CABFacility.Colony.DisplayName} to level {facility.level + 1}");
                                                     CABFacility.AddUpgradeableFacility(facility);
@@ -267,20 +268,20 @@ namespace KerbalColonies.colonyFacilities.CabFacility
                                                 }
                                                 GUI.enabled = true;
 
-                                                GUILayout.Label("Upgrade cost:");
+                                                GUILayout.Label(Localizer.Format("#LOC_KC_CAB_UPGRADE_COST"));
                                                 facility.facilityInfo.resourceCost[facility.level + 1].ToList().ForEach(pair =>
                                                 {
-                                                    GUILayout.Label($"- {pair.Key.displayName}: {pair.Value * Configuration.FacilityCostMultiplier:f3}");
+                                                    GUILayout.Label(Localizer.Format("#LOC_KC_CAB_RESOURCE_COST", pair.Key.displayName, (pair.Value * Configuration.FacilityCostMultiplier).ToString("f3")));
                                                 });
-                                                if (facility.facilityInfo.Funds[facility.level + 1] != 0) GUILayout.Label($"Funds: {facility.facilityInfo.Funds[facility.level + 1] * Configuration.FacilityCostMultiplier:f3}");
-                                                GUILayout.Label($"Time: {facility.facilityInfo.UpgradeTimes[facility.level + 1] * Configuration.FacilityTimeMultiplier:f3}");
-                                                if (higherCABLevelNeeded) GUILayout.Label($"CAB Level required: {facility.facilityInfo.MinCABLevel[facility.level]} (current: {CABFacility.level})");
+                                                if (facility.facilityInfo.Funds[facility.level + 1] != 0) GUILayout.Label(Localizer.Format("#LOC_KC_COMMON_FUNDS", (facility.facilityInfo.Funds[facility.level + 1] * Configuration.FacilityCostMultiplier).ToString("f3")));
+                                                GUILayout.Label(Localizer.Format("#LOC_KC_COMMON_TIME", (facility.facilityInfo.UpgradeTimes[facility.level + 1] * Configuration.FacilityTimeMultiplier).ToString("f3")));
+                                                if (higherCABLevelNeeded) GUILayout.Label(Localizer.Format("#LOC_KC_CAB_LEVEL_REQUIRED", facility.facilityInfo.MinCABLevel[facility.level], CABFacility.level));
                                             }
                                         }
                                         else
                                         {
                                             GUI.enabled = false;
-                                            GUILayout.Button("Max level reached");
+                                            GUILayout.Button(Localizer.Format("#LOC_KC_CAB_MAX_LEVEL"));
                                             GUI.enabled = true;
                                         }
                                     }

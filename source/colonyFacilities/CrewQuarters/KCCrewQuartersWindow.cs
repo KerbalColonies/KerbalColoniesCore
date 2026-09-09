@@ -1,5 +1,6 @@
 ﻿using KerbalColonies.Settings;
 using KerbalColonies.UI;
+using KSP.Localization;
 using UnityEngine;
 
 // KC: Kerbal Colonies
@@ -35,7 +36,7 @@ namespace KerbalColonies.colonyFacilities.CrewQuarters
             GUILayout.Space(10);
             GUILayout.BeginHorizontal();
             {
-                GUILayout.Label($"Resource Consumption Priority: {CrewQuarterFacility.ResourceConsumptionPriority}", GUILayout.Height(18));
+                GUILayout.Label(Localizer.Format("#LOC_KC_COMMON_RESOURCE_PRIORITY", CrewQuarterFacility.ResourceConsumptionPriority), GUILayout.Height(18));
                 GUILayout.FlexibleSpace();
                 if (GUILayout.RepeatButton("--", GUILayout.Width(30), GUILayout.Height(23)) | GUILayout.Button("-", GUILayout.Width(30), GUILayout.Height(23))) CrewQuarterFacility.ResourceConsumptionPriority--;
                 if (GUILayout.Button("+", GUILayout.Width(30), GUILayout.Height(23)) | GUILayout.RepeatButton("++", GUILayout.Width(30), GUILayout.Height(23))) CrewQuarterFacility.ResourceConsumptionPriority++;

@@ -1,6 +1,7 @@
 ﻿using KerbalColonies.ResourceManagment;
 using KerbalColonies.Settings;
 using KerbalColonies.UI;
+using KSP.Localization;
 using Smooth.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -45,7 +46,7 @@ namespace KerbalColonies.colonyFacilities.Commnet
             {
                 GUILayout.BeginVertical(GUILayout.Width((toolRect.width / 2) - 10));
                 {
-                    GUILayout.Label($"Commnet nodes from this facility:");
+                    GUILayout.Label(Localizer.Format("#LOC_KC_COMMNET_NODES"));
                     scrollPos = GUILayout.BeginScrollView(scrollPos);
                     {
                         groundStation.commNetNodes.ToList().ForEach(node =>
@@ -62,17 +63,17 @@ namespace KerbalColonies.colonyFacilities.Commnet
 
                     if (changeNodeNode)
                     {
-                        GUILayout.Label($"Changing name of commnet node {targetInstance.Name}:");
+                        GUILayout.Label(Localizer.Format("#LOC_KC_COMMNET_RENAME", targetInstance.Name));
                         newName = GUILayout.TextField(newName);
 
                         GUILayout.BeginHorizontal();
                         {
-                            if (GUILayout.Button("OK", GUILayout.Height(23)))
+                            if (GUILayout.Button(Localizer.Format("#LOC_KC_COMMON_OK"), GUILayout.Height(23)))
                             {
                                 targetInstance.SetCustomName(newName);
                                 changeNodeNode = false;
                             }
-                            if (GUILayout.Button("Cancel", GUILayout.Height(23)))
+                            if (GUILayout.Button(Localizer.Format("#LOC_KC_COMMON_CANCEL"), GUILayout.Height(23)))
                             {
                                 changeNodeNode = false;
                             }
@@ -85,17 +86,17 @@ namespace KerbalColonies.colonyFacilities.Commnet
                         GUILayout.Space(10);
                         GUILayout.BeginHorizontal();
                         {
-                            GUILayout.Label($"Resource Consumption Priority: {groundStation.ResourceConsumptionPriority}", GUILayout.Height(18));
+                            GUILayout.Label(Localizer.Format("#LOC_KC_COMMON_RESOURCE_PRIORITY", groundStation.ResourceConsumptionPriority), GUILayout.Height(18));
                             GUILayout.FlexibleSpace();
                             if (GUILayout.RepeatButton("--", GUILayout.Width(30), GUILayout.Height(23)) | GUILayout.Button("-", GUILayout.Width(30), GUILayout.Height(23))) groundStation.ResourceConsumptionPriority--;
                             if (GUILayout.Button("+", GUILayout.Width(30), GUILayout.Height(23)) | GUILayout.RepeatButton("++", GUILayout.Width(30), GUILayout.Height(23))) groundStation.ResourceConsumptionPriority++;
                         }
                         GUILayout.EndHorizontal();
-                        GUILayout.Label("Resource usage:");
+                        GUILayout.Label(Localizer.Format("#LOC_KC_COMMON_RESOURCE_USAGE"));
                         resourceUsageScrollPos = GUILayout.BeginScrollView(resourceUsageScrollPos, GUILayout.Height(120));
                         {
                             groundStation.facilityInfo.ResourceUsage[facility.level].ToList().ForEach(kvp =>
-                                GUILayout.Label($"- {kvp.Key.displayName}: {kvp.Value}/s")
+                                GUILayout.Label(Localizer.Format("#LOC_KC_COMMON_RESOURCE_RATE_ITEM", kvp.Key.displayName, kvp.Value))
                             );
                         }
                         GUILayout.EndScrollView();

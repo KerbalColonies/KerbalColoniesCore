@@ -1,6 +1,7 @@
 ﻿using KerbalColonies.colonyFacilities;
 using KerbalColonies.colonyFacilities.StorageFacility;
 using KerbalColonies.Settings;
+using KSP.Localization;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -307,13 +308,13 @@ namespace KerbalColonies
                     List<string> techNodeList = n.GetValue("techNodes").Split(',').Select(s => s.Trim()).ToList();
                     TechNodesRequired.Add(level, techNodeList);
 
-                    PartName.Add(level, $"{displayName}{(level > 0 ? $" level {level}" : "")}");
+                    PartName.Add(level, level > 0 ? Localizer.Format("#LOC_KC_FACILITYINFO_LEVEL_NAME", displayName, level) : displayName);
 
                     if (n.HasValue("description")) Description.Add(level, n.GetValue("description"));
-                    else Description.Add(level, "Kerbal Colonies facility");
+                    else Description.Add(level, Localizer.Format("#LOC_KC_FACILITYINFO_DEFAULT_DESCRIPTION"));
 
                     if (n.HasValue("manufacturer")) Manufacturer.Add(level, n.GetValue("manufacturer"));
-                    else Manufacturer.Add(level, "MPW");
+                    else Manufacturer.Add(level, Localizer.Format("#LOC_KC_FACILITYINFO_DEFAULT_MANUFACTURER"));
 
                     if (n.HasValue("iconPath"))
                         IconPath.Add(level,

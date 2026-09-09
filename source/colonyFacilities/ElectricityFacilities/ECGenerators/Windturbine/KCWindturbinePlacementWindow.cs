@@ -1,5 +1,6 @@
 ﻿using KerbalColonies.Settings;
 using KerbalColonies.UI;
+using KSP.Localization;
 using UnityEngine;
 
 // KC: Kerbal Colonies
@@ -41,12 +42,12 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Win
 
         protected override void CustomWindow()
         {
-            GUILayout.Label($"Wind turbine production rate: {ECProductionRate} EC/s");
-            GUILayout.Label($"Density: {Density} kg/m³");
-            GUILayout.Label($"Pressure: {Pressure} Pa");
+            GUILayout.Label(Localizer.Format("#LOC_KC_WINDTURBINE_RATE", ECProductionRate));
+            GUILayout.Label(Localizer.Format("#LOC_KC_WINDTURBINE_DENSITY", Density));
+            GUILayout.Label(Localizer.Format("#LOC_KC_WINDTURBINE_PRESSURE", Pressure));
         }
 
-        public KCWindturbinePlacementWindow() : base(Configuration.createWindowID(), "Wind turbine placement info")
+        public KCWindturbinePlacementWindow() : base(Configuration.createWindowID(), Localizer.Format("#LOC_KC_WINDTURBINE_PLACEMENT_TITLE"))
         {
             toolRect = new Rect(100, 100, 300, 200);
         }

@@ -1,5 +1,6 @@
 ﻿using KerbalColonies.Settings;
 using KerbalColonies.UI;
+using KSP.Localization;
 using System.Linq;
 using UnityEngine;
 
@@ -35,14 +36,14 @@ namespace KerbalColonies.colonyFacilities.ResearchFacility
             kerbalGUI ??= new KerbalGUI(researchFacility, true);
 
             GUILayout.BeginHorizontal();
-            GUILayout.Label($"Science Points: {researchFacility.SciencePoints:f2}");
-            GUILayout.Label($"Max Science Points: {researchFacility.MaxSciencePoints:f2}");
+            GUILayout.Label(Localizer.Format("#LOC_KC_RESEARCH_SCIENCE", researchFacility.SciencePoints.ToString("f2")));
+            GUILayout.Label(Localizer.Format("#LOC_KC_RESEARCH_MAX_SCIENCE", researchFacility.MaxSciencePoints.ToString("f2")));
             GUILayout.EndHorizontal();
 
             kerbalGUI.StaffingInterface();
 
             GUI.enabled = facility.enabled;
-            if (GUILayout.Button("Retrieve Science Points"))
+            if (GUILayout.Button(Localizer.Format("#LOC_KC_RESEARCH_RETRIEVE")))
                 researchFacility.RetrieveSciencePoints();
 
 
@@ -51,17 +52,17 @@ namespace KerbalColonies.colonyFacilities.ResearchFacility
                 GUILayout.Space(10);
                 GUILayout.BeginHorizontal();
                 {
-                    GUILayout.Label($"Resource Consumption Priority: {researchFacility.ResourceConsumptionPriority}", GUILayout.Height(18));
+                    GUILayout.Label(Localizer.Format("#LOC_KC_COMMON_RESOURCE_PRIORITY", researchFacility.ResourceConsumptionPriority), GUILayout.Height(18));
                     GUILayout.FlexibleSpace();
                     if (GUILayout.RepeatButton("--", GUILayout.Width(30), GUILayout.Height(23)) | GUILayout.Button("-", GUILayout.Width(30), GUILayout.Height(23))) researchFacility.ResourceConsumptionPriority--;
                     if (GUILayout.Button("+", GUILayout.Width(30), GUILayout.Height(23)) | GUILayout.RepeatButton("++", GUILayout.Width(30), GUILayout.Height(23))) researchFacility.ResourceConsumptionPriority++;
                 }
                 GUILayout.EndHorizontal();
-                GUILayout.Label("Resource usage:");
+                GUILayout.Label(Localizer.Format("#LOC_KC_COMMON_RESOURCE_USAGE"));
                 resourceUsageScrollPos = GUILayout.BeginScrollView(resourceUsageScrollPos, GUILayout.Height(120));
                 {
                     researchFacility.facilityInfo.ResourceUsage[facility.level].ToList().ForEach(kvp =>
-                        GUILayout.Label($"- {kvp.Key.displayName}: {kvp.Value}/s")
+                        GUILayout.Label(Localizer.Format("#LOC_KC_COMMON_RESOURCE_RATE_ITEM", kvp.Key.displayName, kvp.Value))
                     );
                 }
                 GUILayout.EndScrollView();

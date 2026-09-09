@@ -1,5 +1,6 @@
 ﻿using KerbalColonies.Settings;
 using KerbalColonies.UI;
+using KSP.Localization;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -84,7 +85,7 @@ namespace KerbalColonies.colonyFacilities.ProductionFacility
                         {
                             kerbalGUI.StaffingInterface();
                             GUILayout.Space(10);
-                            GUILayout.Label($"Daily production: {productionFacility.dailyProduction():f2}");
+                            GUILayout.Label(Localizer.Format("#LOC_KC_PRODUCTION_DAILY", productionFacility.dailyProduction().ToString("f2")));
                         }
                         GUILayout.EndVertical();
                         GUILayout.BeginVertical(GUILayout.Width(300));
@@ -119,17 +120,17 @@ namespace KerbalColonies.colonyFacilities.ProductionFacility
                         GUILayout.Space(10);
                         GUILayout.BeginHorizontal();
                         {
-                            GUILayout.Label($"Resource Consumption Priority: {productionFacility.ResourceConsumptionPriority}", GUILayout.Height(18));
+                            GUILayout.Label(Localizer.Format("#LOC_KC_COMMON_RESOURCE_PRIORITY", productionFacility.ResourceConsumptionPriority), GUILayout.Height(18));
                             GUILayout.FlexibleSpace();
                             if (GUILayout.RepeatButton("--", GUILayout.Width(30), GUILayout.Height(23)) | GUILayout.Button("-", GUILayout.Width(30), GUILayout.Height(23))) productionFacility.ResourceConsumptionPriority--;
                             if (GUILayout.Button("+", GUILayout.Width(30), GUILayout.Height(23)) | GUILayout.RepeatButton("++", GUILayout.Width(30), GUILayout.Height(23))) productionFacility.ResourceConsumptionPriority++;
                         }
                         GUILayout.EndHorizontal();
-                        GUILayout.Label("Resource usage:");
+                        GUILayout.Label(Localizer.Format("#LOC_KC_COMMON_RESOURCE_USAGE"));
                         resourceUsageScrollPos = GUILayout.BeginScrollView(resourceUsageScrollPos, GUILayout.Height(40));
                         {
                             productionFacility.facilityInfo.ResourceUsage[facility.level].ToList().ForEach(kvp =>
-                                GUILayout.Label($"- {kvp.Key.displayName}: {kvp.Value}/s")
+                                GUILayout.Label(Localizer.Format("#LOC_KC_COMMON_RESOURCE_RATE_ITEM", kvp.Key.displayName, kvp.Value))
                             );
                         }
                         GUILayout.EndScrollView();
@@ -138,8 +139,8 @@ namespace KerbalColonies.colonyFacilities.ProductionFacility
                     if (((KCProductionInfo)productionFacility.facilityInfo).CanBuildVessels(productionFacility.level))
                     {
                         GUILayout.Space(10);
-                        GUILayout.Label("This facility can build vessels.");
-                        GUILayout.Label("Costs per ton of the vessel:");
+                        GUILayout.Label(Localizer.Format("#LOC_KC_PRODUCTION_CAN_BUILD_VESSELS"));
+                        GUILayout.Label(Localizer.Format("#LOC_KC_PRODUCTION_VESSEL_COSTS"));
                         scrollPosVesselCost = GUILayout.BeginScrollView(scrollPosVesselCost, GUIStyle.none);
                         {
                             KCProductionInfo kCProductionInfo = (KCProductionInfo)productionFacility.facilityInfo;
@@ -150,7 +151,7 @@ namespace KerbalColonies.colonyFacilities.ProductionFacility
                                     for (int i = 0; i < kCProductionInfo.vesselResourceCost[productionFacility.level].Count / 2; i++)
                                     {
                                         KeyValuePair<PartResourceDefinition, double> resource = kCProductionInfo.vesselResourceCost[productionFacility.level].ElementAt(i);
-                                        GUILayout.Label($"{resource.Key.displayName}: {resource.Value * Configuration.VesselCostMultiplier}");
+                                        GUILayout.Label(Localizer.Format("#LOC_KC_COMMON_LABEL_VALUE", resource.Key.displayName, resource.Value * Configuration.VesselCostMultiplier));
                                     }
                                 }
                                 GUILayout.EndVertical();
@@ -159,7 +160,7 @@ namespace KerbalColonies.colonyFacilities.ProductionFacility
                                     for (int i = kCProductionInfo.vesselResourceCost[productionFacility.level].Count / 2; i < kCProductionInfo.vesselResourceCost[productionFacility.level].Count; i++)
                                     {
                                         KeyValuePair<PartResourceDefinition, double> resource = kCProductionInfo.vesselResourceCost[productionFacility.level].ElementAt(i);
-                                        GUILayout.Label($"{resource.Key.displayName}: {resource.Value * Configuration.VesselCostMultiplier}");
+                                        GUILayout.Label(Localizer.Format("#LOC_KC_COMMON_LABEL_VALUE", resource.Key.displayName, resource.Value * Configuration.VesselCostMultiplier));
                                     }
                                 }
                                 GUILayout.EndVertical();
@@ -175,7 +176,7 @@ namespace KerbalColonies.colonyFacilities.ProductionFacility
                             if (info != null)
                             {
                                 if (info.HasSameRecipe(int.Parse(colonyNode.GetValue("facilityLevel")), productionFacility)) GUI.enabled = false;
-                                if (GUILayout.Button("Use this facility type to build vessels"))
+                                if (GUILayout.Button(Localizer.Format("#LOC_KC_PRODUCTION_USE_FOR_VESSELS")))
                                 {
                                     Configuration.writeDebug($"Facility {productionFacility.name} is now used to build vessels.");
                                     colonyNode.SetValue("facilityConfig", productionFacility.name);
@@ -185,7 +186,7 @@ namespace KerbalColonies.colonyFacilities.ProductionFacility
                         }
                         else
                         {
-                            if (GUILayout.Button("Use this facility type to build vessels"))
+                            if (GUILayout.Button(Localizer.Format("#LOC_KC_PRODUCTION_USE_FOR_VESSELS")))
                             {
                                 Configuration.writeDebug($"Facility {productionFacility.name} is now used to build vessels.");
                                 ConfigNode vesselBuildInfo = new("vesselBuildInfo");
@@ -203,7 +204,7 @@ namespace KerbalColonies.colonyFacilities.ProductionFacility
                 {
                     GUILayout.BeginVertical(GUILayout.Width(480));
                     {
-                        GUILayout.Label($"{selectedType} facilities");
+                        GUILayout.Label(Localizer.Format("#LOC_KC_PRODUCTION_FACILITY_TYPE", selectedType));
                         scrollPosTypes = GUILayout.BeginScrollView(scrollPosTypes);
                         {
                             foreach (KCFacilityInfoClass t in SortedTypes[selectedType])
@@ -217,16 +218,16 @@ namespace KerbalColonies.colonyFacilities.ProductionFacility
                                 {
                                     for (int i = 0; i < t.resourceCost[0].Count; i++)
                                     {
-                                        GUILayout.Label($"{t.resourceCost[0].ElementAt(i).Key.displayName}: {t.resourceCost[0].ElementAt(i).Value * Configuration.FacilityCostMultiplier:f2}");
+                                        GUILayout.Label(Localizer.Format("#LOC_KC_COMMON_LABEL_VALUE", t.resourceCost[0].ElementAt(i).Key.displayName, (t.resourceCost[0].ElementAt(i).Value * Configuration.FacilityCostMultiplier).ToString("f2")));
                                     }
                                 }
                                 GUILayout.EndVertical();
                                 GUILayout.FlexibleSpace();
                                 GUILayout.BeginVertical();
-                                GUILayout.Label($"Funds: {(t.Funds.Count > 0 ? t.Funds[0] : 0) * Configuration.FacilityCostMultiplier:f2}");
+                                GUILayout.Label(Localizer.Format("#LOC_KC_COMMON_FUNDS", ((t.Funds.Count > 0 ? t.Funds[0] : 0) * Configuration.FacilityCostMultiplier).ToString("f2")));
                                 //GUILayout.Label($"ECperSecond: {t.ECperSecond}");
-                                GUILayout.Label($"Time: {t.UpgradeTimes[0] * Configuration.FacilityTimeMultiplier:f2}");
-                                if (!cabLevelPass) GUILayout.Label($"Minimum CAB Level: {t.MinCABLevel[0]}");
+                                GUILayout.Label(Localizer.Format("#LOC_KC_COMMON_TIME", (t.UpgradeTimes[0] * Configuration.FacilityTimeMultiplier).ToString("f2")));
+                                if (!cabLevelPass) GUILayout.Label(Localizer.Format("#LOC_KC_PRODUCTION_MIN_CAB", t.MinCABLevel[0]));
                                 GUILayout.EndVertical();
 
                                 GUILayout.EndHorizontal();
@@ -235,7 +236,7 @@ namespace KerbalColonies.colonyFacilities.ProductionFacility
 
                                 if (!cabLevelPass) { GUI.enabled = false; }
 
-                                if (GUILayout.Button("Build"))
+                                if (GUILayout.Button(Localizer.Format("#LOC_KC_COMMON_BUILD")))
                                 {
                                     Configuration.writeLog($"Building facility {t.displayName} in colony {productionFacility.Colony.Name}");
 
@@ -260,9 +261,9 @@ namespace KerbalColonies.colonyFacilities.ProductionFacility
         private void DrawProductionQueue()
         {
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Production queue");
+            GUILayout.Label(Localizer.Format("#LOC_KC_PRODUCTION_QUEUE"));
             GUILayout.FlexibleSpace();
-            if (GUILayout.Button(editQueue ? "Done canceling" : "Cancel items", GUILayout.Width(100))) editQueue = !editQueue;
+            if (GUILayout.Button(Localizer.Format(editQueue ? "#LOC_KC_PRODUCTION_DONE_CANCELING" : "#LOC_KC_PRODUCTION_CANCEL_ITEMS"), GUILayout.Width(100))) editQueue = !editQueue;
             GUILayout.EndHorizontal();
 
             scrollPosUnfinishedFacilities = GUILayout.BeginScrollView(scrollPosUnfinishedFacilities);
@@ -274,16 +275,16 @@ namespace KerbalColonies.colonyFacilities.ProductionFacility
                 bool affordable = item.GetAffordableProgress(facility.Colony, item.RemainingProgress) > 0;
                 double requiredProgress = item.GetBuildTime(facility.Colony);
 
-                GUILayout.Label($"{item.GetDisplayName(facility.Colony)}{(!compatible ? " (no compatible producer)" : !affordable ? " (waiting for costs)" : "")}");
+                GUILayout.Label($"{item.GetDisplayName(facility.Colony)}{(!compatible ? Localizer.Format("#LOC_KC_PRODUCTION_NO_PRODUCER") : !affordable ? Localizer.Format("#LOC_KC_PRODUCTION_WAITING_COSTS") : "")}");
                 GUILayout.BeginHorizontal();
-                GUILayout.Label($"{item.Progress * requiredProgress:f2}/{requiredProgress:f2} points ({item.Progress * 100:f1})", GUILayout.Width(160));
+                GUILayout.Label(Localizer.Format("#LOC_KC_PRODUCTION_PROGRESS", (item.Progress * requiredProgress).ToString("f2"), requiredProgress.ToString("f2"), (item.Progress * 100).ToString("f1")), GUILayout.Width(160));
                 GUILayout.FlexibleSpace();
                 GUI.enabled = i > 0;
-                if (GUILayout.Button("↑", GUILayout.Width(25))) KCProductionFacility.MoveQueueItem(facility.Colony, item, -1);
+                if (GUILayout.Button(Localizer.Format("#LOC_KC_PRODUCTION_MOVE_UP"), GUILayout.Width(25))) KCProductionFacility.MoveQueueItem(facility.Colony, item, -1);
                 GUI.enabled = i < queue.Count - 1;
-                if (GUILayout.Button("↓", GUILayout.Width(25))) KCProductionFacility.MoveQueueItem(facility.Colony, item, 1);
+                if (GUILayout.Button(Localizer.Format("#LOC_KC_PRODUCTION_MOVE_DOWN"), GUILayout.Width(25))) KCProductionFacility.MoveQueueItem(facility.Colony, item, 1);
                 GUI.enabled = true;
-                if (editQueue && GUILayout.Button("Cancel", UIConfig.ButtonRed, GUILayout.Width(55)))
+                if (editQueue && GUILayout.Button(Localizer.Format("#LOC_KC_COMMON_CANCEL"), UIConfig.ButtonRed, GUILayout.Width(55)))
                 {
                     KCProductionFacility.CancelQueueItem(facility.Colony, item);
                     break;

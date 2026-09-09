@@ -2,6 +2,7 @@
 using KerbalColonies.ResourceManagment;
 using KerbalColonies.Settings;
 using KerbalColonies.SunMath;
+using KSP.Localization;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -129,8 +130,8 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Sol
         public override string GetFacilityProductionDisplay()
         {
             double radiance = built ? cachedReceivedRadiance : 0.0;
-            string resources = string.Join(", ", ResourcesPerSecond().Select(kvp => $"{kvp.Key.displayName}: {kvp.Value:f2}/s"));
-            return $"Solar panel radiance: {radiance:f3}; production: {resources}";
+            string resources = string.Join(", ", ResourcesPerSecond().Select(kvp => Localizer.Format("#LOC_KC_SOLARPANEL_RESOURCE_ITEM", kvp.Key.displayName, kvp.Value.ToString("f2"))));
+            return Localizer.Format("#LOC_KC_SOLARPANEL_SUMMARY", radiance.ToString("f3"), resources);
         }
 
         public override ConfigNode getConfigNode()

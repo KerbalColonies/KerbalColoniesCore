@@ -1,4 +1,5 @@
 ﻿using ClickThroughFix;
+using KSP.Localization;
 using UnityEngine;
 
 // KC: Kerbal Colonies
@@ -70,7 +71,7 @@ namespace KerbalColonies.UI
             GUILayout.BeginHorizontal();
             {
                 GUI.enabled = false;
-                GUILayout.Button("-KC-", UIConfig.DeadButton, GUILayout.Height(21));
+                GUILayout.Button(Localizer.Format("#LOC_KC_COMMON_WINDOW_BRAND"), UIConfig.DeadButton, GUILayout.Height(21));
 
                 GUILayout.FlexibleSpace();
 
@@ -86,7 +87,7 @@ namespace KerbalColonies.UI
 
                 GUI.enabled = true;
 
-                if (GUILayout.Button("X", UIConfig.DeadButtonRed, GUILayout.Height(21)))
+                if (GUILayout.Button(Localizer.Format("#LOC_KC_COMMON_CLOSE"), UIConfig.DeadButtonRed, GUILayout.Height(21)))
                 {
                     Close();
                 }
@@ -97,19 +98,19 @@ namespace KerbalColonies.UI
 
             if (showNameField)
             {
-                GUILayout.Label("Enter new Name: ");
+                GUILayout.Label(Localizer.Format("#LOC_KC_COMMON_RENAME_PROMPT"));
 
                 newTitle = GUILayout.TextField(newTitle);
 
                 GUILayout.BeginHorizontal();
                 {
-                    if (GUILayout.Button("OK", GUILayout.Height(23)))
+                    if (GUILayout.Button(Localizer.Format("#LOC_KC_COMMON_OK"), GUILayout.Height(23)))
                     {
                         OnTitleChange(newTitle);
                         title = newTitle;
                         showNameField = false;
                     }
-                    if (GUILayout.Button("Cancel", GUILayout.Height(23)))
+                    if (GUILayout.Button(Localizer.Format("#LOC_KC_COMMON_CANCEL"), GUILayout.Height(23)))
                     {
                         showNameField = false;
                     }

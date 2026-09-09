@@ -1,5 +1,6 @@
 ﻿using KerbalColonies.Settings;
 using KerbalColonies.UI;
+using KSP.Localization;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -41,8 +42,8 @@ namespace KerbalColonies.colonyFacilities.KCResourceConverterFacility
             ResourceConversionRate recipe = resourceConverter.activeRecipe;
             if (recipe == null)
             {
-                GUILayout.Label($"Failed to load a recipe");
-                if (GUILayout.Button("Select a new Recipe:"))
+                GUILayout.Label(Localizer.Format("#LOC_KC_CONVERTER_RECIPE_LOAD_FAILED"));
+                if (GUILayout.Button(Localizer.Format("#LOC_KC_CONVERTER_SELECT_RECIPE")))
                 {
                     recipeSelector.Open();
                 }
@@ -53,12 +54,12 @@ namespace KerbalColonies.colonyFacilities.KCResourceConverterFacility
             {
                 GUILayout.BeginVertical(GUILayout.Width((toolRect.width * 3.5f / 10) - 10));
                 {
-                    GUILayout.Label($"Current recipe: {recipe.DisplayName}");
+                    GUILayout.Label(Localizer.Format("#LOC_KC_CONVERTER_CURRENT_RECIPE", recipe.DisplayName));
 
                     GUILayout.BeginHorizontal();
 
                     GUILayout.BeginVertical();
-                    GUILayout.Label("Input:");
+                    GUILayout.Label(Localizer.Format("#LOC_KC_CONVERTER_INPUT"));
                     foreach (PartResourceDefinition prd in recipe.InputResources.Keys)
                     {
                         GUILayout.Label(prd.displayName);
@@ -66,7 +67,7 @@ namespace KerbalColonies.colonyFacilities.KCResourceConverterFacility
                     GUILayout.EndVertical();
 
                     GUILayout.BeginVertical();
-                    GUILayout.Label("Amount:");
+                    GUILayout.Label(Localizer.Format("#LOC_KC_CONVERTER_AMOUNT"));
                     foreach (double amount in recipe.InputResources.Values)
                     {
                         GUILayout.Label(amount.ToString());
@@ -74,7 +75,7 @@ namespace KerbalColonies.colonyFacilities.KCResourceConverterFacility
                     GUILayout.EndVertical();
 
                     GUILayout.BeginVertical();
-                    GUILayout.Label("Output:");
+                    GUILayout.Label(Localizer.Format("#LOC_KC_CONVERTER_OUTPUT"));
                     foreach (PartResourceDefinition prd in recipe.OutputResources.Keys)
                     {
                         GUILayout.Label(prd.displayName);
@@ -82,7 +83,7 @@ namespace KerbalColonies.colonyFacilities.KCResourceConverterFacility
                     GUILayout.EndVertical();
 
                     GUILayout.BeginVertical();
-                    GUILayout.Label("Amount:");
+                    GUILayout.Label(Localizer.Format("#LOC_KC_CONVERTER_AMOUNT"));
                     foreach (double amount in recipe.OutputResources.Values)
                     {
                         GUILayout.Label(amount.ToString());
@@ -91,17 +92,17 @@ namespace KerbalColonies.colonyFacilities.KCResourceConverterFacility
 
                     GUILayout.EndHorizontal();
 
-                    if (GUILayout.Button("Select a new Recipe:"))
+                    if (GUILayout.Button(Localizer.Format("#LOC_KC_CONVERTER_SELECT_RECIPE")))
                     {
                         recipeSelector.Toggle();
                     }
 
-                    facility.enabled = GUILayout.Toggle(facility.enabled, "enable/disable");
+                    facility.enabled = GUILayout.Toggle(facility.enabled, Localizer.Format("#LOC_KC_CONVERTER_ENABLE"));
 
-                    resourceConverter.outOfResourceDisable = GUILayout.Toggle(resourceConverter.outOfResourceDisable, "Disable facility if resources are missing");
+                    resourceConverter.outOfResourceDisable = GUILayout.Toggle(resourceConverter.outOfResourceDisable, Localizer.Format("#LOC_KC_CONVERTER_DISABLE_ON_SHORTAGE"));
 
-                    GUILayout.Label($"Current ISRU count: {resourceConverter.ISRUcount()}");
-                    GUILayout.Label("This facility works with the following ISRU counts for the following kerbal counts.");
+                    GUILayout.Label(Localizer.Format("#LOC_KC_CONVERTER_ISRU_COUNT", resourceConverter.ISRUcount()));
+                    GUILayout.Label(Localizer.Format("#LOC_KC_CONVERTER_ISRU_DESCRIPTION"));
 
                     scrollPosISRUCount = GUILayout.BeginScrollView(scrollPosISRUCount);
                     {
@@ -115,7 +116,7 @@ namespace KerbalColonies.colonyFacilities.KCResourceConverterFacility
                         });
 
                         List<int> kerbalCounts = [];
-                        ISRUperKerbals.ToList().ForEach(kvp => GUILayout.Label($"{kvp.Key} Kerbals = {kvp.Value} ISRUs"));
+                        ISRUperKerbals.ToList().ForEach(kvp => GUILayout.Label(Localizer.Format("#LOC_KC_CONVERTER_ISRU_ITEM", kvp.Key, kvp.Value)));
                     }
                     GUILayout.EndScrollView();
                 }
@@ -126,7 +127,7 @@ namespace KerbalColonies.colonyFacilities.KCResourceConverterFacility
                     GUILayout.Space(10);
                     GUILayout.BeginHorizontal();
                     {
-                        GUILayout.Label($"Resource Consumption Priority: {resourceConverter.ResourceConsumptionPriority}", GUILayout.Height(18));
+                        GUILayout.Label(Localizer.Format("#LOC_KC_COMMON_RESOURCE_PRIORITY", resourceConverter.ResourceConsumptionPriority), GUILayout.Height(18));
                         GUILayout.FlexibleSpace();
                         if (GUILayout.RepeatButton("--", GUILayout.Width(30), GUILayout.Height(23)) | GUILayout.Button("-", GUILayout.Width(30), GUILayout.Height(23))) resourceConverter.ResourceConsumptionPriority--;
                         if (GUILayout.Button("+", GUILayout.Width(30), GUILayout.Height(23)) | GUILayout.RepeatButton("++", GUILayout.Width(30), GUILayout.Height(23))) resourceConverter.ResourceConsumptionPriority++;
@@ -147,7 +148,7 @@ namespace KerbalColonies.colonyFacilities.KCResourceConverterFacility
 
                                 GUILayout.BeginVertical(GUILayout.Width(150));
                                 {
-                                    resourceConverter.resourceLimitsEnabled[res.Key] = GUILayout.Toggle(res.Value, "Resource limits");
+                                    resourceConverter.resourceLimitsEnabled[res.Key] = GUILayout.Toggle(res.Value, Localizer.Format("#LOC_KC_CONVERTER_RESOURCE_LIMITS"));
                                     if (double.TryParse(GUILayout.TextField(resourceConverter.resourceLimits[res.Key].ToString("F3")), out double autoLimit)) resourceConverter.resourceLimits[res.Key] = autoLimit;
                                 }
                                 GUILayout.EndVertical();

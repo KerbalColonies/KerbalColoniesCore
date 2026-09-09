@@ -1,4 +1,5 @@
 ﻿using ToolbarControl_NS;
+using KSP.Localization;
 using UnityEngine;
 
 // KC: Kerbal Colonies
@@ -25,7 +26,7 @@ namespace KerbalColonies.UI
     {
         private void Start()
         {
-            ToolbarControl.RegisterMod("KerbalColonies_NS", "Kerbal Colonies");
+            ToolbarControl.RegisterMod("KerbalColonies_NS", Localizer.Format("#LOC_KC_COMMON_BRAND"));
         }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using KerbalColonies.ResourceManagment;
 using KerbalColonies.Settings;
 using KerbalKonstructs;
+using KSP.Localization;
 using Smooth.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -158,7 +159,7 @@ namespace KerbalColonies.colonyFacilities.LaunchPadFacility
             else
             {
                 Configuration.writeLog($"{GetBaseGroupName(level)} contains no launchsite, unable to create the launchsite");
-                ScreenMessages.PostScreenMessage($"KC: the launchpad basegroup {GetBaseGroupName(level)} contains no launchsite", 20f, ScreenMessageStyle.KERBAL_EVA, color: UnityEngine.Color.red);
+                ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KC_LAUNCHPAD_MISSING_SITE", GetBaseGroupName(level)), 20f, ScreenMessageStyle.KERBAL_EVA, color: UnityEngine.Color.red);
                 /*
                 // Intended default config for launchpad incase no launchsite is found
                 // The launchsite transform can't be set, this would require changes to KK which I don't wanna do before the release
@@ -381,8 +382,8 @@ namespace KerbalColonies.colonyFacilities.LaunchPadFacility
         public override string GetFacilityProductionDisplay()
         {
             StringBuilder sb = new();
-            sb.AppendLine("Available Launch Sites:");
-            instance.Values.ToList().ForEach(kkInstance => sb.AppendLine($"- {kkInstance.launchSite.LaunchSiteName} ({kkInstance.launchSite.LaunchSiteType})"));
+            sb.AppendLine(Localizer.Format("#LOC_KC_LAUNCHPAD_AVAILABLE_SITES"));
+            instance.Values.ToList().ForEach(kkInstance => sb.AppendLine(Localizer.Format("#LOC_KC_LAUNCHPAD_SITE_ITEM", kkInstance.launchSite.LaunchSiteName, kkInstance.launchSite.LaunchSiteType)));
 
             return sb.ToString();
         }

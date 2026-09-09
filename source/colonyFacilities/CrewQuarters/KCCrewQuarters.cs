@@ -2,6 +2,7 @@
 using KerbalColonies.colonyFacilities.CabFacility;
 using KerbalColonies.ResourceManagment;
 using KerbalColonies.Settings;
+using KSP.Localization;
 using Smooth.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -47,14 +48,14 @@ namespace KerbalColonies.colonyFacilities.CrewQuarters
 
             GUILayout.BeginVertical(GUILayout.Width(KC_CAB_Window.CABInfoWidth), GUILayout.Height(traitCounts.Count > 0 ? 100 : 70));
             {
-                GUILayout.Label($"<b>Crew Quarters:</b>");
+                GUILayout.Label(Localizer.Format("#LOC_KC_CREWQUARTERS_TITLE"));
 
                 GUILayout.BeginHorizontal();
                 {
                     GUILayout.BeginVertical(GUILayout.Width((KC_CAB_Window.CABInfoWidth / 2) - 10));
                     {
-                        GUILayout.Label($"Kerbals: {ColonyKerbalCount(colony)}/{ColonyKerbalCapacity(colony)}");
-                        GUILayout.Label($"Crew quarters: {CrewQuartersInColony(colony).Count}");
+                        GUILayout.Label(Localizer.Format("#LOC_KC_CREWQUARTERS_KERBALS", ColonyKerbalCount(colony), ColonyKerbalCapacity(colony)));
+                        GUILayout.Label(Localizer.Format("#LOC_KC_CREWQUARTERS_COUNT", CrewQuartersInColony(colony).Count));
                     }
                     GUILayout.EndVertical();
                     GUILayout.BeginVertical(GUILayout.Width((KC_CAB_Window.CABInfoWidth / 2) - 10));
@@ -148,7 +149,7 @@ namespace KerbalColonies.colonyFacilities.CrewQuarters
 
             enabled = built;
             crewQuartersWindow ??= new KCCrewQuartersWindow(this);
-            crewQuartersWindow.kerbalGUI.DisableTransferWindow = !enabled;
+            crewQuartersWindow.kerbalGUI.DisableTransferWindow = !enabled || FlightGlobals.ActiveVessel?.isEVA == true;
         }
 
         public override void OnBuildingClicked()
@@ -166,7 +167,7 @@ namespace KerbalColonies.colonyFacilities.CrewQuarters
         public bool OutOfResources { get; set; }
         public int ResourceConsumptionPriority { get; set; } = 0;
 
-        public override string GetFacilityProductionDisplay() => $"{kerbals.Count} / {MaxKerbals} kerbals assigned{(facilityInfo.ResourceUsage[level].Count > 0 ? string.Concat("\n", string.Join(", ", facilityInfo.ResourceUsage[level].Select(kvp => $"{kvp.Key.displayName}: {kvp.Value:f2}"))) : "")}";
+        public override string GetFacilityProductionDisplay() => Localizer.Format("#LOC_KC_CREWQUARTERS_ASSIGNED", kerbals.Count, MaxKerbals, facilityInfo.ResourceUsage[level].Count > 0 ? string.Concat("\n", string.Join(", ", facilityInfo.ResourceUsage[level].Select(kvp => Localizer.Format("#LOC_KC_COMMON_LABEL_VALUE", kvp.Key.displayName, kvp.Value.ToString("f2"))))) : "");
 
         public Dictionary<PartResourceDefinition, double> ExpectedResourceConsumption(double lastTime, double deltaTime, double currentTime) => (enabled && kerbals.Count > 0) || OutOfResources ? facilityInfo.ResourceUsage[level].Where(kvp => kvp.Value < 0).ToDictionary(kvp => kvp.Key, kvp => -kvp.Value * deltaTime) : [];
 

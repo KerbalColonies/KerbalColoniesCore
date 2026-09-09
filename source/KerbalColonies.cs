@@ -3,6 +3,7 @@ using KerbalColonies.colonyFacilities;
 using KerbalColonies.Settings;
 using KerbalColonies.UI;
 using KerbalColonies.VesselAutoTransfer;
+using KSP.Localization;
 using KSP.UI.Screens;
 using System;
 using System.Linq;
@@ -66,7 +67,7 @@ namespace KerbalColonies
                 "KerbalColoniesButton",
                 "KerbalColonies/KC",
                 "KerbalColonies/KC",
-                toolTip: "Kerbal Colonies overview"
+                toolTip: Localizer.Format("#LOC_KC_TOOLBAR_OVERVIEW")
             );
             toolbarControl.AddLeftRightClickCallbacks(
                 () =>
@@ -83,7 +84,7 @@ namespace KerbalColonies
                 {
                     Configuration.ClickToOpen = !Configuration.ClickToOpen;
                     Configuration.writeDebug($"Toggling ClickToOpen: {Configuration.ClickToOpen}");
-                    ScreenMessages.PostScreenMessage($"KC: {(Configuration.ClickToOpen ? "enabled" : "disabled")} clicking on buildings.", 10f, ScreenMessageStyle.UPPER_RIGHT);
+                    ScreenMessages.PostScreenMessage(Localizer.Format(Configuration.ClickToOpen ? "#LOC_KC_TOOLBAR_CLICK_ENABLED" : "#LOC_KC_TOOLBAR_CLICK_DISABLED"), 10f, ScreenMessageStyle.UPPER_RIGHT);
                 }
             );
 

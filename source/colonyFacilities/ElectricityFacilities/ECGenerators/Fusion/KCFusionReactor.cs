@@ -1,6 +1,7 @@
 ﻿using KerbalColonies.colonyFacilities.ElectricityFacilities.ECStorage;
 using KerbalColonies.ResourceManagment;
 using KerbalColonies.Settings;
+using KSP.Localization;
 using Smooth.Collections;
 using System;
 using System.Collections.Generic;
@@ -591,7 +592,7 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fus
             window.Toggle();
         }
 
-        public override string GetFacilityProductionDisplay() => $"Fusion reactor production rate: {ActualLastECPerSecond:f2} EC/s";
+        public override string GetFacilityProductionDisplay() => Localizer.Format("#LOC_KC_FUSION_SUMMARY", ActualLastECPerSecond.ToString("f2"));
 
         public override ConfigNode getConfigNode()
         {

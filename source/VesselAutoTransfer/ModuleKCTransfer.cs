@@ -36,13 +36,13 @@ namespace KerbalColonies.VesselAutoTransfer
 
         private Dictionary<PartResourceDefinition, double> lastResourceValue = [];
 
-        [KSPEvent(guiName = "Change target colony", active = true, advancedTweakable = false, category = "Colonytransfer", externalToEVAOnly = false, groupDisplayName = null, groupName = null, groupStartCollapsed = false, guiActive = true, guiActiveEditor = false, guiActiveUnfocused = false)]
+        [KSPEvent(guiName = "#LOC_KC_TRANSFER_CHANGE_TARGET", active = true, advancedTweakable = false, category = "#LOC_KC_TRANSFER_CATEGORY", externalToEVAOnly = false, groupDisplayName = null, groupName = null, groupStartCollapsed = false, guiActive = true, guiActiveEditor = false, guiActiveUnfocused = false)]
         public void ChangeColonyTarget()
         {
             if (!ColonyChangeWindow.IsOpen()) ColonyChangeWindow.Open();
         }
 
-        [KSPEvent(guiName = "Change resource rates", active = true, advancedTweakable = false, category = "Colonytransfer", externalToEVAOnly = false, groupDisplayName = null, groupName = null, groupStartCollapsed = false, guiActive = true, guiActiveEditor = false, guiActiveUnfocused = false)]
+        [KSPEvent(guiName = "#LOC_KC_TRANSFER_CHANGE_RATES", active = true, advancedTweakable = false, category = "#LOC_KC_TRANSFER_CATEGORY", externalToEVAOnly = false, groupDisplayName = null, groupName = null, groupStartCollapsed = false, guiActive = true, guiActiveEditor = false, guiActiveUnfocused = false)]
         public void ChangeResourceRates()
         {
             if (transferInfo == null)

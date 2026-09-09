@@ -3,6 +3,7 @@ using KerbalColonies.colonyFacilities.CabFacility;
 using KerbalColonies.Settings;
 using KerbalKonstructs;
 using KerbalKonstructs.UI;
+using KSP.Localization;
 using UnityEngine;
 
 // KC: Kerbal Colonies
@@ -62,11 +63,11 @@ namespace KerbalColonies.UI
             GUILayout.BeginHorizontal();
             {
                 GUI.enabled = false;
-                GUILayout.Button("KC", UIMain.DeadButton, GUILayout.Height(21));
+                GUILayout.Button(Localizer.Format("#LOC_KC_COMMON_BRAND"), UIMain.DeadButton, GUILayout.Height(21));
 
                 GUILayout.FlexibleSpace();
 
-                GUILayout.Button("Custom Group Editor", UIMain.DeadButton, GUILayout.Height(21));
+                GUILayout.Button(Localizer.Format("#LOC_KC_GROUPEDITOR_TITLE"), UIMain.DeadButton, GUILayout.Height(21));
                 GUI.enabled = true;
             }
             GUILayout.EndHorizontal();
@@ -80,7 +81,7 @@ namespace KerbalColonies.UI
 
             GUIStyle labelStyle = new(GUI.skin.label);
             labelStyle.fontSize *= 2;
-            GUILayout.Label($"Facility: {selectedFacility.DisplayName}", labelStyle);
+            GUILayout.Label(Localizer.Format("#LOC_KC_GROUPEDITOR_FACILITY", selectedFacility.DisplayName), labelStyle);
 
             GUILayout.EndHorizontal();
 
@@ -89,7 +90,7 @@ namespace KerbalColonies.UI
                 GUILayout.FlexibleSpace();
                 if (!foldedIn)
                 {
-                    GUILayout.Label("Increment");
+                    GUILayout.Label(Localizer.Format("#LOC_KC_GROUPEDITOR_INCREMENT"));
                     increment = float.Parse(GUILayout.TextField(increment.ToString(), 5, GUILayout.Width(48)));
 
                     GUILayout.EndHorizontal();
@@ -123,7 +124,7 @@ namespace KerbalColonies.UI
                 }
                 else
                 {
-                    GUILayout.Label("i");
+                    GUILayout.Label(Localizer.Format("#LOC_KC_GROUPEDITOR_INCREMENT_SHORT"));
                     increment = float.Parse(GUILayout.TextField(increment.ToString(), 3, GUILayout.Width(25)));
 
                     if (GUILayout.Button("0.1", GUILayout.Height(23)))
@@ -146,25 +147,25 @@ namespace KerbalColonies.UI
             // Set reference butons
             //
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Reference System: ");
+            GUILayout.Label(Localizer.Format("#LOC_KC_GROUPEDITOR_REFERENCE_SYSTEM"));
             GUILayout.FlexibleSpace();
             GUI.enabled = referenceSystem == Space.World;
 
-            if (GUILayout.Button(new GUIContent(UIMain.iconCubes, "Model"), GUILayout.Height(23), GUILayout.Width(23)))
+            if (GUILayout.Button(new GUIContent(UIMain.iconCubes, Localizer.Format("#LOC_KC_GROUPEDITOR_MODEL")), GUILayout.Height(23), GUILayout.Width(23)))
             {
                 referenceSystem = Space.Self;
                 UpdateVectors();
             }
 
             GUI.enabled = referenceSystem == Space.Self;
-            if (GUILayout.Button(new GUIContent(UIMain.iconWorld, "World"), GUILayout.Height(23), GUILayout.Width(23)))
+            if (GUILayout.Button(new GUIContent(UIMain.iconWorld, Localizer.Format("#LOC_KC_GROUPEDITOR_WORLD")), GUILayout.Height(23), GUILayout.Width(23)))
             {
                 referenceSystem = Space.World;
                 UpdateVectors();
             }
             GUI.enabled = true;
 
-            GUILayout.Label(referenceSystem.ToString());
+            GUILayout.Label(Localizer.Format(referenceSystem == Space.Self ? "#LOC_KC_GROUPEDITOR_SELF" : "#LOC_KC_GROUPEDITOR_WORLD"));
 
             GUILayout.EndHorizontal();
             float fTempWidth = 80f;
@@ -175,7 +176,7 @@ namespace KerbalColonies.UI
 
             if (referenceSystem == Space.Self)
             {
-                GUILayout.Label("Back / Forward:");
+                GUILayout.Label(Localizer.Format("#LOC_KC_GROUPEDITOR_BACK_FORWARD"));
                 GUILayout.FlexibleSpace();
 
                 if (foldedIn)
@@ -186,7 +187,7 @@ namespace KerbalColonies.UI
                 GUILayout.EndHorizontal();
 
                 GUILayout.BeginHorizontal();
-                GUILayout.Label("Left / Right:");
+                GUILayout.Label(Localizer.Format("#LOC_KC_GROUPEDITOR_LEFT_RIGHT"));
                 GUILayout.FlexibleSpace();
                 if (GUILayout.RepeatButton("<<", GUILayout.Width(30), GUILayout.Height(21)) | GUILayout.Button("<", GUILayout.Width(30), GUILayout.Height(21))) SetTransform(Vector3.left * increment);
                 if (GUILayout.Button(">", GUILayout.Width(30), GUILayout.Height(21)) | GUILayout.RepeatButton(">>", GUILayout.Width(30), GUILayout.Height(21))) SetTransform(Vector3.right * increment);
@@ -197,7 +198,7 @@ namespace KerbalColonies.UI
             }
             else
             {
-                GUILayout.Label("West / East :");
+                GUILayout.Label(Localizer.Format("#LOC_KC_GROUPEDITOR_WEST_EAST"));
                 GUILayout.FlexibleSpace();
 
                 if (foldedIn)
@@ -208,7 +209,7 @@ namespace KerbalColonies.UI
                 GUILayout.EndHorizontal();
 
                 GUILayout.BeginHorizontal();
-                GUILayout.Label("South / North:");
+                GUILayout.Label(Localizer.Format("#LOC_KC_GROUPEDITOR_SOUTH_NORTH"));
                 GUILayout.FlexibleSpace();
                 if (GUILayout.RepeatButton("<<", GUILayout.Width(30), GUILayout.Height(21)) | GUILayout.Button("<", GUILayout.Width(30), GUILayout.Height(21)))
                 {
@@ -226,11 +227,11 @@ namespace KerbalColonies.UI
 
             GUILayout.BeginHorizontal();
             {
-                GUILayout.Label("Lat: ");
+                GUILayout.Label(Localizer.Format("#LOC_KC_GROUPEDITOR_LATITUDE"));
                 GUILayout.FlexibleSpace();
                 refLat = GUILayout.TextField(refLat, 10, GUILayout.Width(fTempWidth));
 
-                GUILayout.Label("  Lng: ");
+                GUILayout.Label(Localizer.Format("#LOC_KC_GROUPEDITOR_LONGITUDE"));
                 GUILayout.FlexibleSpace();
                 refLng = GUILayout.TextField(refLng, 10, GUILayout.Width(fTempWidth));
             }
@@ -241,7 +242,7 @@ namespace KerbalColonies.UI
             //
             GUILayout.BeginHorizontal();
             {
-                GUILayout.Label("Alt.");
+                GUILayout.Label(Localizer.Format("#LOC_KC_GROUPEDITOR_ALTITUDE"));
                 GUILayout.FlexibleSpace();
                 selectedGroup.RadiusOffset = float.Parse(GUILayout.TextField(selectedGroup.RadiusOffset.ToString(), 25, GUILayout.Width(fTempWidth)));
                 if (GUILayout.RepeatButton("<<", GUILayout.Width(30), GUILayout.Height(21)) | GUILayout.Button("<", GUILayout.Width(30), GUILayout.Height(21)))
@@ -269,7 +270,7 @@ namespace KerbalColonies.UI
             //
             GUILayout.BeginHorizontal();
             {
-                GUILayout.Label("Rotation:");
+                GUILayout.Label(Localizer.Format("#LOC_KC_GROUPEDITOR_ROTATION"));
                 GUILayout.FlexibleSpace();
                 headingStr = GUILayout.TextField(headingStr, 9, GUILayout.Width(fTempWidth));
 
@@ -283,7 +284,7 @@ namespace KerbalColonies.UI
 
             GUILayout.BeginHorizontal();
             {
-                GUILayout.Label("SeaLevel as Reference:");
+                GUILayout.Label(Localizer.Format("#LOC_KC_GROUPEDITOR_SEA_LEVEL"));
                 GUILayout.FlexibleSpace();
                 selectedGroup.SeaLevelAsReference = GUILayout.Toggle(selectedGroup.SeaLevelAsReference, "", GUILayout.Width(140), GUILayout.Height(23));
             }
@@ -308,7 +309,7 @@ namespace KerbalColonies.UI
             GUILayout.BeginHorizontal();
             {
                 GUI.enabled = true;
-                if (GUILayout.Button("Save", GUILayout.Height(23)))
+                if (GUILayout.Button(Localizer.Format("#LOC_KC_GROUPEDITOR_SAVE"), GUILayout.Height(23)))
                 {
                     selectedGroup.isInSavegame = true;
                     selectedGroup.childInstances.ForEach(instance => instance.isInSavegame = true);

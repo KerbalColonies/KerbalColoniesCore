@@ -1,5 +1,6 @@
 ﻿using KerbalColonies.Settings;
 using KerbalColonies.UI;
+using KSP.Localization;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -42,24 +43,24 @@ namespace KerbalColonies.colonyFacilities.KCMiningFacility
                 {
                     kerbalGUI.StaffingInterface();
 
-                    facility.enabled = GUILayout.Toggle(facility.enabled, "Enabled", GUILayout.Width(100));
+                    facility.enabled = GUILayout.Toggle(facility.enabled, Localizer.Format("#LOC_KC_COMMON_ENABLED"), GUILayout.Width(100));
 
 
                     if (facility.facilityInfo.ResourceUsage[facility.level].Count > 0)
                     {
                         GUILayout.BeginHorizontal();
                         {
-                            GUILayout.Label($"Resource Consumption Priority: {miningFacility.ResourceConsumptionPriority}", GUILayout.Height(18));
+                        GUILayout.Label(Localizer.Format("#LOC_KC_COMMON_RESOURCE_PRIORITY", miningFacility.ResourceConsumptionPriority), GUILayout.Height(18));
                             GUILayout.FlexibleSpace();
                             if (GUILayout.RepeatButton("--", GUILayout.Width(30), GUILayout.Height(23)) | GUILayout.Button("-", GUILayout.Width(30), GUILayout.Height(23))) miningFacility.ResourceConsumptionPriority--;
                             if (GUILayout.Button("+", GUILayout.Width(30), GUILayout.Height(23)) | GUILayout.RepeatButton("++", GUILayout.Width(30), GUILayout.Height(23))) miningFacility.ResourceConsumptionPriority++;
                         }
                         GUILayout.EndHorizontal();
-                        GUILayout.Label("Resource usage:");
+                        GUILayout.Label(Localizer.Format("#LOC_KC_COMMON_RESOURCE_USAGE"));
                         resourceUsageScrollPos = GUILayout.BeginScrollView(resourceUsageScrollPos, GUILayout.Height(120));
                         {
                             miningFacility.facilityInfo.ResourceUsage[facility.level].ToList().ForEach(kvp =>
-                                GUILayout.Label($"- {kvp.Key.displayName}: {kvp.Value}/s")
+                                GUILayout.Label(Localizer.Format("#LOC_KC_COMMON_RESOURCE_RATE_ITEM", kvp.Key.displayName, kvp.Value))
                             );
                         }
                         GUILayout.EndScrollView();
@@ -86,16 +87,16 @@ namespace KerbalColonies.colonyFacilities.KCMiningFacility
                         {
                             GUILayout.BeginVertical();
                             {
-                                GUILayout.Label($"Daily rate: {(miningFacility.groupDensities.Sum(kvp => kvp.Value.ContainsKey(res.Key) ? kvp.Value[res.Key] : 0) * miningFacility.getKerbals().Count):f2}/day");
-                                GUILayout.Label($"Stored: {res.Value:f2}");
-                                GUILayout.Label($"Max: {maxPerResource[res.Key]:f2}");
+                                GUILayout.Label(Localizer.Format("#LOC_KC_MINING_DAILY_RATE", (miningFacility.groupDensities.Sum(kvp => kvp.Value.ContainsKey(res.Key) ? kvp.Value[res.Key] : 0) * miningFacility.getKerbals().Count).ToString("f2")));
+                                GUILayout.Label(Localizer.Format("#LOC_KC_MINING_STORED", res.Value.ToString("f2")));
+                                GUILayout.Label(Localizer.Format("#LOC_KC_MINING_MAX", maxPerResource[res.Key].ToString("f2")));
                             }
                             GUILayout.EndVertical();
                             GUILayout.BeginVertical(GUILayout.Width(200));
                             {
-                                miningFacility.autoTransferResources[res.Key] = GUILayout.Toggle(miningFacility.autoTransferResources[res.Key], "Auto-transfer");
+                                miningFacility.autoTransferResources[res.Key] = GUILayout.Toggle(miningFacility.autoTransferResources[res.Key], Localizer.Format("#LOC_KC_MINING_AUTO_TRANSFER"));
                                 if (double.TryParse(GUILayout.TextField(miningFacility.autoTransferLimits[res.Key].ToString("F3")), out double autoLimit)) miningFacility.autoTransferLimits[res.Key] = autoLimit;
-                                if (GUILayout.Button($"Retrieve {res.Key.displayName}")) miningFacility.RetriveResource(res.Key);
+                                if (GUILayout.Button(Localizer.Format("#LOC_KC_MINING_RETRIEVE", res.Key.displayName))) miningFacility.RetriveResource(res.Key);
                             }
                             GUILayout.EndVertical();
                         }

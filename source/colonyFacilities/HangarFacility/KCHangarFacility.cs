@@ -4,6 +4,7 @@ using KerbalColonies.colonyFacilities.ProductionFacility;
 using KerbalColonies.colonyFacilities.StorageFacility;
 using KerbalColonies.ResourceManagment;
 using KerbalColonies.Settings;
+using KSP.Localization;
 using NDTester;
 using Smooth.Collections;
 using System;
@@ -517,7 +518,7 @@ namespace KerbalColonies.colonyFacilities.HangarFacility
             hangarWindow.Toggle();
         }
 
-        public override string GetFacilityProductionDisplay() => $"{storedVessels.Count}/{hangarInfo.VesselCapacity[level]} vessels stored\n{getStoredVolume():F1}m³/{hangarInfo.Volume(level):F1}m³ used\nSize: {(string.Concat("\n", string.Join(", ", hangarInfo.Sizes[level].Select(kvp => $"{kvp.Key}: {kvp.Value:f2}"))))}";
+        public override string GetFacilityProductionDisplay() => Localizer.Format("#LOC_KC_HANGAR_SUMMARY", storedVessels.Count, hangarInfo.VesselCapacity[level], getStoredVolume().ToString("F1"), hangarInfo.Volume(level).ToString("F1"), string.Concat("\n", string.Join(", ", hangarInfo.Sizes[level].Select(kvp => Localizer.Format("#LOC_KC_COMMON_LABEL_VALUE", kvp.Key, kvp.Value.ToString("f2"))))));
 
         public KCHangarFacility(colonyClass colony, KCFacilityInfoClass facilityInfo, ConfigNode node) : base(colony, facilityInfo, node)
         {

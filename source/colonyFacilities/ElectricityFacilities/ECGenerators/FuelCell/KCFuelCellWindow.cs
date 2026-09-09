@@ -2,6 +2,7 @@
 using KerbalColonies.ResourceManagment;
 using KerbalColonies.Settings;
 using KerbalColonies.UI;
+using KSP.Localization;
 using System.Linq;
 using UnityEngine;
 

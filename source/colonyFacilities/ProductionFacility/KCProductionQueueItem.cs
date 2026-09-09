@@ -163,35 +163,79 @@ namespace KerbalColonies.colonyFacilities.ProductionFacility
         {
             KCFacilityBase facility = Facility;
             if (facility == null) return;
-
-            if (!IsUpgrade)
-            {
-                KCProductionFacility.AddConstructedFacility(facility);
-                return;
-            }
-
-            switch (facility.facilityInfo.UpgradeTypes[TargetLevel])
-            {
-                case UpgradeType.withGroupChange:
-                    KCFacilityBase.UpgradeFacilityWithGroupChange(facility);
-                    break;
-                case UpgradeType.withoutGroupChange:
-                    KCFacilityBase.UpgradeFacilityWithoutGroupChange(facility);
-                    break;
-                case UpgradeType.withAdditionalGroup:
-                    KCProductionFacility.AddUpgradedFacility(facility);
-                    break;
-            }
+            if (IsUpgrade) facility.CompleteUpgrade();
+            else facility.CompleteConstruction();
         }
 
         public override void Cancel(colonyClass colony)
         {
-            if (!IsUpgrade && Facility != null) colony.Facilities.Remove(Facility);
+            if (!IsUpgrade) Facility?.CancelConstruction();
         }
 
         protected override void SavePayload(ConfigNode node)
         {
             node.AddValue("facilityId", FacilityId);
+            node.AddValue("targetLevel", TargetLevel);
+            node.AddValue("isUpgrade", IsUpgrade);
+        }
+    }
+
+    public class KCBuildableProductionQueueItem : KCProductionQueueItem
+    {
+        public int BuildableId { get; }
+        public int TargetLevel { get; }
+        public bool IsUpgrade { get; }
+
+        public KCBuildableBase Buildable => KCFacilityBase.GetBuildableByID(BuildableId) as KCBuildableBase;
+
+        public KCBuildableProductionQueueItem(KCBuildableBase buildable, int targetLevel, bool isUpgrade, double progress = 0, bool paid = false)
+            : base(buildable.Name, buildable.BuildableInfo.BuildConstraints[targetLevel], progress, paid)
+        {
+            BuildableId = buildable.Id;
+            TargetLevel = targetLevel;
+            IsUpgrade = isUpgrade;
+        }
+
+        public KCBuildableProductionQueueItem(ConfigNode node)
+            : base(node.GetValue("variant"), node.GetValues("constraint"), double.Parse(node.GetValue("progress")), bool.Parse(node.GetValue("paid")))
+        {
+            BuildableId = int.Parse(node.GetValue("buildableId"));
+            TargetLevel = int.Parse(node.GetValue("targetLevel"));
+            IsUpgrade = bool.Parse(node.GetValue("isUpgrade"));
+        }
+
+        public override double GetBuildTime(colonyClass colony) => Buildable.BuildableInfo.UpgradeTimes[TargetLevel] * Configuration.FacilityTimeMultiplier;
+
+        protected override KCProductionCosts CalculateCosts(colonyClass colony)
+        {
+            KCFacilityInfoClass info = Buildable.BuildableInfo;
+            return new KCProductionCosts(
+                info.resourceCost[TargetLevel].ToDictionary(pair => pair.Key, pair => pair.Value * Configuration.FacilityCostMultiplier),
+                info.Funds[TargetLevel] * Configuration.FacilityCostMultiplier);
+        }
+
+        public override bool IsAvailable(colonyClass colony) => Buildable != null && (IsUpgrade ? Buildable.Level + 1 == TargetLevel : !Buildable.Built);
+
+        public override string GetDisplayName(colonyClass colony)
+        {
+            string buildableName = Buildable?.DisplayName ?? Localizer.Format("#LOC_KC_PRODUCTION_MISSING_FACILITY");
+            return Localizer.Format(IsUpgrade ? "#LOC_KC_PRODUCTION_UPGRADE_ITEM" : "#LOC_KC_PRODUCTION_CONSTRUCTION_ITEM", buildableName);
+        }
+
+        public override void Complete(colonyClass colony)
+        {
+            if (IsUpgrade) Buildable?.CompleteUpgrade();
+            else Buildable?.CompleteConstruction();
+        }
+
+        public override void Cancel(colonyClass colony)
+        {
+            if (!IsUpgrade) Buildable?.CancelConstruction();
+        }
+
+        protected override void SavePayload(ConfigNode node)
+        {
+            node.AddValue("buildableId", BuildableId);
             node.AddValue("targetLevel", TargetLevel);
             node.AddValue("isUpgrade", IsUpgrade);
         }

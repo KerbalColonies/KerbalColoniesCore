@@ -136,6 +136,8 @@ namespace KerbalColonies
             KCFacilityTypeRegistry.RegisterType<KCFissionReactor>();
             KCFacilityTypeRegistry.RegisterType<KCFusionReactor>();
             KCFacilityTypeRegistry.RegisterType<KCSolarpanelFacility>();
+            KCFacilityTypeRegistry.RegisterType<KCGroupedBuildable>();
+            KCFacilityTypeRegistry.RegisterType<KCSingleStaticBuildable>();
 
             KCFacilityTypeRegistry.RegisterFacilityInfo<KC_CAB_Facility, KC_CAB_Info>();
             KCFacilityTypeRegistry.RegisterFacilityInfo<KCCommNetFacility, KCCommnetInfo>();
@@ -154,6 +156,8 @@ namespace KerbalColonies
             KCFacilityTypeRegistry.RegisterFacilityInfo<KCFissionReactor, KCFissionInfo>();
             KCFacilityTypeRegistry.RegisterFacilityInfo<KCFusionReactor, KCFusionInfo>();
             KCFacilityTypeRegistry.RegisterFacilityInfo<KCSolarpanelFacility, KCSolarpanelInfo>();
+            KCFacilityTypeRegistry.RegisterFacilityInfo<KCGroupedBuildable, KCGroupedBuildableInfo>();
+            KCFacilityTypeRegistry.RegisterFacilityInfo<KCSingleStaticBuildable, KCSingleStaticBuildableInfo>();
 
 #if DEBUG
             KCFacilityTypeRegistry.RegisterType<KCECTestFacility>();
@@ -211,7 +215,11 @@ namespace KerbalColonies
                 {
                     KCFacilityInfoClass facilityInfo = (KCFacilityInfoClass)Activator.CreateInstance(KCFacilityTypeRegistry.GetInfoType(KCFacilityTypeRegistry.GetType(node.GetValue("type")) ?? throw new Exception($"No type named {node.GetValue("type")} was found")) ?? throw new Exception($"No type named {node.GetValue("type")} was found"), new object[] { node });
 
-                    if (!(facilityInfo is KC_CAB_Info))
+                    if (facilityInfo is KCBuildableInfoClass buildableInfo)
+                    {
+                        if (!Configuration.RegisterBuildable(buildableInfo)) throw new Exception($"A buildable with the name {facilityInfo.name} already exists.");
+                    }
+                    else if (!(facilityInfo is KC_CAB_Info))
                     {
                         if (!Configuration.RegisterBuildableFacility(facilityInfo)) throw new Exception($"A facility with the name {facilityInfo.name} already exists.");
                     }
@@ -247,6 +255,26 @@ namespace KerbalColonies
                     failedConfigs.Add(f.name);
                     Configuration.writeLog($"Invalid facility config: {f.name} \n\nConfig: {f} \n\nException: {e}");
                 }
+            });
+            List<KCBuildableInfoClass> invalidBuildables = [];
+            Configuration.Buildables.ForEach(f =>
+            {
+                try
+                {
+                    f.lateInit();
+                }
+                catch (Exception e)
+                {
+                    invalidBuildables.Add(f);
+                    exceptions.Add(e);
+                    failedConfigs.Add(f.name);
+                    Configuration.writeLog($"Invalid buildable config: {f.name} \n\nConfig: {f} \n\nException: {e}");
+                }
+            });
+            invalidBuildables.ForEach(f =>
+            {
+                Configuration.UnregisterBuildable(f);
+                Configuration.writeLog($"Removed invalid buildable config: {f.name}");
             });
             List<KC_CAB_Info> invalidCABInfos = [];
             Configuration.CabTypes.ForEach(f =>

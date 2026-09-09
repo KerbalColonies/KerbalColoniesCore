@@ -77,15 +77,27 @@ namespace KerbalColonies.Settings
 
         public static List<KCFacilityInfoClass> BuildableFacilities { get { return buildableFacilities; } }
 
+        private static List<KCBuildableInfoClass> buildables = [];
+        public static List<KCBuildableInfoClass> Buildables => buildables;
+
         public static bool RegisterBuildableFacility(KCFacilityInfoClass info)
         {
-            if (!buildableFacilities.Contains(info))
+            if (!buildableFacilities.Contains(info) && !buildables.Any(buildable => buildable.name == info.name))
             {
                 buildableFacilities.Add(info);
                 return true;
             }
             return false;
         }
+
+        public static bool RegisterBuildable(KCBuildableInfoClass info)
+        {
+            if (buildables.Any(buildable => buildable.name == info.name) || buildableFacilities.Any(facility => facility.name == info.name)) return false;
+            buildables.Add(info);
+            return true;
+        }
+
+        public static bool UnregisterBuildable(KCBuildableInfoClass info) => buildables.Remove(info);
 
         public static bool UnregisterBuildableFacility(KCFacilityInfoClass info)
         {
@@ -104,8 +116,10 @@ namespace KerbalColonies.Settings
 
         public static KCFacilityInfoClass GetInfoClass(string name)
         {
-            return buildableFacilities.FirstOrDefault(c => c.name == name);
+            return buildableFacilities.FirstOrDefault(c => c.name == name) ?? buildables.FirstOrDefault(c => c.name == name);
         }
+
+        public static KCBuildableInfoClass GetBuildableInfoClass(string name) => buildables.FirstOrDefault(c => c.name == name);
 
         internal static KCFacilityBase CreateInstance(KCFacilityInfoClass info, colonyClass colony, bool enabled)
         {
@@ -118,6 +132,18 @@ namespace KerbalColonies.Settings
             Configuration.writeLog($"Loading an instance of type {info.name} for {colony.Name}");
             Configuration.writeDebug($"with node = {node}");
             return (KCFacilityBase)Activator.CreateInstance(info.type, new object[] { colony, info, node });
+        }
+
+        internal static KCBuildableBase CreateBuildable(KCBuildableInfoClass info, colonyClass colony, bool enabled)
+        {
+            Configuration.writeLog($"Creating a new buildable of type {info.name} for {colony.Name}");
+            return (KCBuildableBase)Activator.CreateInstance(info.type, new object[] { colony, info, enabled });
+        }
+
+        internal static KCBuildableBase CreateBuildable(KCBuildableInfoClass info, colonyClass colony, ConfigNode node)
+        {
+            Configuration.writeLog($"Loading a buildable of type {info.name} for {colony.Name}");
+            return (KCBuildableBase)Activator.CreateInstance(info.type, new object[] { colony, info, node });
         }
 
         #region parameters

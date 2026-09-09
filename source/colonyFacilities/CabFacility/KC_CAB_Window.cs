@@ -28,6 +28,8 @@ namespace KerbalColonies.colonyFacilities.CabFacility
 {
     public class KC_CAB_Window : KCWindowBase
     {
+        private const string BuildablesType = "Buildables";
+
         public static Action<colonyClass> CABInfoWindow;
         public static int CABInfoWidth = 590;
 
@@ -80,11 +82,21 @@ namespace KerbalColonies.colonyFacilities.CabFacility
                         }
                         GUI.enabled = true;
                     });
+
+                    if (selectedType == BuildablesType) GUI.enabled = false;
+                    if (GUILayout.Button(Localizer.Format("#LOC_KC_CAB_BUILDABLES_COUNT", CABFacility.Colony.Buildables.Count)))
+                    {
+                        selectedType = BuildablesType;
+                        scrollPosFacilities = new Vector2();
+                    }
+                    GUI.enabled = true;
                 }
                 GUILayout.EndScrollView();
                 GUILayout.EndVertical();
                 GUILayout.BeginVertical(GUILayout.Width(620));
-                if (selectedType != "CAB")
+                if (selectedType == BuildablesType)
+                    GUILayout.Label(Localizer.Format("#LOC_KC_CAB_BUILDABLES_IN_COLONY", CABFacility.Colony.DisplayName));
+                else if (selectedType != "CAB")
                     GUILayout.Label(Localizer.Format("#LOC_KC_CAB_FACILITIES_OF_TYPE", selectedType, CABFacility.Colony.DisplayName));
                 scrollPosFacilities = GUILayout.BeginScrollView(scrollPosFacilities);
                 {
@@ -175,6 +187,10 @@ namespace KerbalColonies.colonyFacilities.CabFacility
                             CABInfoWindow.Invoke(CABFacility.Colony);
                         }
                         GUILayout.EndScrollView();
+                    }
+                    else if (selectedType == BuildablesType)
+                    {
+                        DrawBuildables(playerInColony);
                     }
                     else
                         for (int i = 0; i < facilitiesByType[selectedType].Count; i++)
@@ -300,6 +316,110 @@ namespace KerbalColonies.colonyFacilities.CabFacility
                 GUILayout.EndScrollView();
                 GUILayout.EndVertical();
             }
+            GUILayout.EndHorizontal();
+        }
+
+        private void DrawBuildables(bool playerInColony)
+        {
+            colonyClass colony = CABFacility.Colony;
+            List<KCProductionQueueItem> queue = KCProductionFacility.GetQueue(colony);
+            KCProductionFacility.ConstructedBuildables.TryAdd(colony, []);
+            KCProductionFacility.UpgradedBuildables.TryAdd(colony, []);
+
+            List<KCBuildableBase> buildables = colony.Buildables
+                .Where(buildable => !queue.OfType<KCBuildableProductionQueueItem>()
+                    .Any(item => item.BuildableId == buildable.Id && !item.IsUpgrade))
+                .OrderBy(buildable => buildable.BuildableInfo.category)
+                .ThenBy(buildable => ((KCBuildableInfoClass)buildable.BuildableInfo).subgroup)
+                .ThenBy(buildable => buildable.DisplayName)
+                .ToList();
+
+            foreach (IGrouping<string, KCBuildableBase> category in buildables.GroupBy(buildable => buildable.BuildableInfo.category))
+            {
+                GUILayout.Label(Localizer.Format("#LOC_KC_CAB_BUILDABLE_CATEGORY", category.Key));
+                foreach (IGrouping<string, KCBuildableBase> subgroup in category.GroupBy(buildable => ((KCBuildableInfoClass)buildable.BuildableInfo).subgroup))
+                {
+                    GUILayout.Label(Localizer.Format("#LOC_KC_CAB_BUILDABLE_SUBGROUP", subgroup.Key));
+                    foreach (KCBuildableBase buildable in subgroup)
+                    {
+                        DrawBuildable(buildable, playerInColony, queue);
+                        GUILayout.Space(10);
+                        GUILayout.Box("", GUILayout.ExpandWidth(true), GUILayout.Height(1));
+                        GUILayout.Space(10);
+                    }
+                }
+            }
+        }
+
+        private void DrawBuildable(KCBuildableBase buildable, bool playerInColony, List<KCProductionQueueItem> queue)
+        {
+            GUILayout.BeginHorizontal();
+            GUILayout.BeginVertical(GUILayout.Width(260));
+            GUILayout.Label($"<b>{buildable.DisplayName}</b>");
+            GUILayout.Label(Localizer.Format("#LOC_KC_COMMON_LEVEL", buildable.Level));
+            GUILayout.EndVertical();
+
+            GUILayout.BeginVertical(GUILayout.Width(320));
+            if (KCProductionFacility.ConstructedBuildables[buildable.Colony].Contains(buildable))
+            {
+                GUI.enabled = playerInColony;
+                if (GUILayout.Button(Localizer.Format("#LOC_KC_CAB_PLACE")))
+                {
+                    KCProductionFacility.ConstructedBuildables[buildable.Colony].Remove(buildable);
+                    ColonyBuilding.PlaceBuildable(buildable, 0, false);
+                }
+                GUI.enabled = true;
+            }
+            else if (KCProductionFacility.UpgradedBuildables[buildable.Colony].Contains(buildable))
+            {
+                GUI.enabled = playerInColony;
+                if (GUILayout.Button(Localizer.Format("#LOC_KC_CAB_PLACE_UPGRADE")))
+                {
+                    KCProductionFacility.UpgradedBuildables[buildable.Colony].Remove(buildable);
+                    ColonyBuilding.PlaceBuildable(buildable, buildable.Level + 1, true);
+                }
+                GUI.enabled = true;
+            }
+            else if (queue.OfType<KCBuildableProductionQueueItem>().Any(item => item.BuildableId == buildable.Id && item.IsUpgrade))
+            {
+                GUI.enabled = false;
+                GUILayout.Button(Localizer.Format("#LOC_KC_CAB_UPGRADING"));
+                GUI.enabled = true;
+            }
+            else if (buildable.Upgradeable)
+            {
+                int targetLevel = buildable.Level + 1;
+                KCFacilityInfoClass info = buildable.BuildableInfo;
+                bool techAvailable = KCTechTreeHandler.CanBuild(info, targetLevel);
+                bool cabLevelAvailable = info.MinCABLevel[targetLevel] <= CABFacility.level;
+
+                GUI.enabled = techAvailable && cabLevelAvailable;
+                if (GUILayout.Button(Localizer.Format(techAvailable ? "#LOC_KC_CAB_UPGRADE" : "#LOC_KC_CAB_UPGRADE_TECH_REQUIRED")))
+                    KCProductionFacility.Enqueue(buildable.Colony, new KCBuildableProductionQueueItem(buildable, targetLevel, true));
+                GUI.enabled = true;
+
+                GUILayout.Label(Localizer.Format("#LOC_KC_CAB_UPGRADE_COST"));
+                foreach (KeyValuePair<PartResourceDefinition, double> resource in info.resourceCost[targetLevel])
+                    GUILayout.Label(Localizer.Format("#LOC_KC_CAB_RESOURCE_COST", resource.Key.displayName, (resource.Value * Configuration.FacilityCostMultiplier).ToString("f3")));
+                if (info.Funds[targetLevel] != 0)
+                    GUILayout.Label(Localizer.Format("#LOC_KC_COMMON_FUNDS", (info.Funds[targetLevel] * Configuration.FacilityCostMultiplier).ToString("f3")));
+                GUILayout.Label(Localizer.Format("#LOC_KC_COMMON_TIME", (info.UpgradeTimes[targetLevel] * Configuration.FacilityTimeMultiplier).ToString("f3")));
+
+                if (!cabLevelAvailable)
+                    GUILayout.Label(Localizer.Format("#LOC_KC_CAB_LEVEL_REQUIRED", info.MinCABLevel[targetLevel], CABFacility.level));
+                if (!techAvailable)
+                {
+                    foreach (string techId in KCTechTreeHandler.GetMissingTechIds(info, targetLevel))
+                        GUILayout.Label(Localizer.Format("#LOC_KC_CAB_MISSING_TECH", ResearchAndDevelopment.GetTechnologyTitle(techId)));
+                }
+            }
+            else
+            {
+                GUI.enabled = false;
+                GUILayout.Button(Localizer.Format("#LOC_KC_CAB_MAX_LEVEL"));
+                GUI.enabled = true;
+            }
+            GUILayout.EndVertical();
             GUILayout.EndHorizontal();
         }
 

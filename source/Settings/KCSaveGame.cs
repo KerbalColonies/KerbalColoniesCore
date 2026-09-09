@@ -35,6 +35,8 @@ namespace KerbalColonies.Settings
 
             KCProductionFacility.ConstructedFacilities.Clear();
             KCProductionFacility.UpgradedFacilities.Clear();
+            KCProductionFacility.ConstructedBuildables.Clear();
+            KCProductionFacility.UpgradedBuildables.Clear();
             KCProductionFacility.ProductionQueues.Clear();
 
             colonyDictionary.Clear();
@@ -55,7 +57,7 @@ namespace KerbalColonies.Settings
         }
 
         #region saving
-        public static Version saveVersion = new(4, 1, 0);
+        public static Version saveVersion = new(4, 2, 0);
         public static Version loadedSaveVersion;
 
         internal static void AddGroup(int bodyIndex, string groupName, KCFacilityBase faciltiy)

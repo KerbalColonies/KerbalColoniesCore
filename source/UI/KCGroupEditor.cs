@@ -1,6 +1,7 @@
 ﻿using KerbalColonies.colonyFacilities;
 using KerbalColonies.colonyFacilities.CabFacility;
 using KerbalColonies.Settings;
+using KerbalKonstructs;
 using KerbalKonstructs.UI;
 using UnityEngine;
 
@@ -338,6 +339,12 @@ namespace KerbalColonies.UI
             oldEditorRange = KerbalKonstructs.UI.GroupEditor.maxEditorRange;
             KC_CAB_Facility cab = selectedFacility.Colony.CAB;
             KerbalKonstructs.UI.GroupEditor.maxEditorRange = cab.cabInfo.EditorRange[cab.level] * Configuration.EditorRangeMultiplier;
+            selectedGroup.isInSavegame = true;
+            foreach (var item in API.GetGroupStatics(selectedGroup.Group, selectedGroup.CelestialBody.name))
+            {
+                item.ToggleAllColliders(false);
+                item.isInSavegame = true;
+            }
             base.Open();
         }
 

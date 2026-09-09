@@ -210,19 +210,18 @@ namespace KerbalColonies
             {
                 Configuration.writeLog($"Placing group {buildQueue.Peek().groupName} for facility {buildQueue.Peek().Facility.name} at level {buildQueue.Peek().Facility.level}");
 
-                KerbalKonstructs.API.RemoveGroup(ColonyBuilding.buildQueue.Peek().groupName); // remove the group if it exists
-                KerbalKonstructs.API.CreateGroup(ColonyBuilding.buildQueue.Peek().groupName);
-                KerbalKonstructs.API.CopyGroup(ColonyBuilding.buildQueue.Peek().groupName, ColonyBuilding.buildQueue.Peek().fromGroupName, fromBodyName: Configuration.baseBody);
-                KerbalKonstructs.API.GetGroupStatics(ColonyBuilding.buildQueue.Peek().groupName).ForEach(instance => instance.ToggleAllColliders(false));
+                API.RemoveGroup(ColonyBuilding.buildQueue.Peek().groupName); // remove the group if it exists
+                API.CreateGroup(ColonyBuilding.buildQueue.Peek().groupName);
+                API.CopyGroup(ColonyBuilding.buildQueue.Peek().groupName, ColonyBuilding.buildQueue.Peek().fromGroupName, fromBodyName: Configuration.baseBody);
 
                 EditorGUI.CloseEditors();
                 MapDecalEditor.Instance.Close();
                 GroupEditor.instance.Close();
                 GroupEditor.selectedGroup = API.GetGroupCenter(ColonyBuilding.buildQueue.Peek().groupName);
-                UI.KCGroupEditor.selectedFacility = ColonyBuilding.buildQueue.Peek().Facility;
-                UI.KCGroupEditor.KCInstance.Open();
+                KCGroupEditor.selectedFacility = ColonyBuilding.buildQueue.Peek().Facility;
+                KCGroupEditor.KCInstance.Open();
 
-                KerbalKonstructs.API.RegisterOnGroupSaved(ColonyBuilding.PlaceNewGroupSave);
+                API.RegisterOnGroupSaved(ColonyBuilding.PlaceNewGroupSave);
                 ColonyBuilding.buildQueue.Peek().Facility.KKgroups.Add(ColonyBuilding.buildQueue.Peek().groupName); // add the group to the facility groups
                 KCSaveGame.AddGroup(FlightGlobals.GetBodyIndex(FlightGlobals.currentMainBody), ColonyBuilding.buildQueue.Peek().groupName, ColonyBuilding.buildQueue.Peek().Facility);
             }

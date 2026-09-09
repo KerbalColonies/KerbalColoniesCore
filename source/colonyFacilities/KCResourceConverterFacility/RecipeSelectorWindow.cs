@@ -1,5 +1,6 @@
 ﻿using KerbalColonies.Settings;
 using KerbalColonies.UI;
+using KSP.Localization;
 using UnityEngine;
 
 // KC: Kerbal Colonies
@@ -37,7 +38,7 @@ namespace KerbalColonies.colonyFacilities.KCResourceConverterFacility
                 GUILayout.BeginHorizontal();
 
                 GUILayout.BeginVertical();
-                GUILayout.Label("Input:");
+                GUILayout.Label(Localizer.Format("#LOC_KC_CONVERTER_INPUT"));
                 foreach (PartResourceDefinition prd in recipe.InputResources.Keys)
                 {
                     GUILayout.Label(prd.displayName);
@@ -45,7 +46,7 @@ namespace KerbalColonies.colonyFacilities.KCResourceConverterFacility
                 GUILayout.EndVertical();
 
                 GUILayout.BeginVertical();
-                GUILayout.Label("Amount:");
+                GUILayout.Label(Localizer.Format("#LOC_KC_CONVERTER_AMOUNT"));
                 foreach (double amount in recipe.InputResources.Values)
                 {
                     GUILayout.Label(amount.ToString());
@@ -53,7 +54,7 @@ namespace KerbalColonies.colonyFacilities.KCResourceConverterFacility
                 GUILayout.EndVertical();
 
                 GUILayout.BeginVertical();
-                GUILayout.Label("Output:");
+                GUILayout.Label(Localizer.Format("#LOC_KC_CONVERTER_OUTPUT"));
                 foreach (PartResourceDefinition prd in recipe.OutputResources.Keys)
                 {
                     GUILayout.Label(prd.displayName);
@@ -61,7 +62,7 @@ namespace KerbalColonies.colonyFacilities.KCResourceConverterFacility
                 GUILayout.EndVertical();
 
                 GUILayout.BeginVertical();
-                GUILayout.Label("Amount:");
+                GUILayout.Label(Localizer.Format("#LOC_KC_CONVERTER_AMOUNT"));
                 foreach (double amount in recipe.OutputResources.Values)
                 {
                     GUILayout.Label(amount.ToString());
@@ -70,7 +71,7 @@ namespace KerbalColonies.colonyFacilities.KCResourceConverterFacility
 
                 GUILayout.EndHorizontal();
 
-                if (GUILayout.Button("Use this recipe"))
+                if (GUILayout.Button(Localizer.Format("#LOC_KC_CONVERTER_USE_RECIPE")))
                 {
                     resourceConverter.ChangeRecipe(recipe);
                     Close();
@@ -83,7 +84,7 @@ namespace KerbalColonies.colonyFacilities.KCResourceConverterFacility
             GUILayout.EndScrollView();
         }
 
-        public RecipeSelectorWindow(KCResourceConverterFacility resourceConverter) : base(Configuration.createWindowID(), "Recipe Selector")
+        public RecipeSelectorWindow(KCResourceConverterFacility resourceConverter) : base(Configuration.createWindowID(), Localizer.Format("#LOC_KC_CONVERTER_RECIPE_SELECTOR"))
         {
             this.resourceConverter = resourceConverter;
             toolRect = new Rect(100, 100, 400, 800);

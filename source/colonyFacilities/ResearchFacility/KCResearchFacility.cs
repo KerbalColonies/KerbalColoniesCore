@@ -1,4 +1,5 @@
 ﻿using KerbalColonies.ResourceManagment;
+using KSP.Localization;
 using Smooth.Collections;
 using System;
 using System.Collections.Generic;
@@ -54,7 +55,7 @@ namespace KerbalColonies.colonyFacilities.ResearchFacility
             researchFacilityWindow.Toggle();
         }
 
-        public override string GetFacilityProductionDisplay() => $"Science Points: {sciencePoints:f2} / {MaxSciencePoints:f2}\nDaily rate: {researchFacilityInfo.sciencePointsPerDayperResearcher[level] * kerbals.Count:f2}";
+        public override string GetFacilityProductionDisplay() => Localizer.Format("#LOC_KC_RESEARCH_SUMMARY", sciencePoints.ToString("f2"), MaxSciencePoints.ToString("f2"), (researchFacilityInfo.sciencePointsPerDayperResearcher[level] * kerbals.Count).ToString("f2"));
 
         public bool RetrieveSciencePoints()
         {

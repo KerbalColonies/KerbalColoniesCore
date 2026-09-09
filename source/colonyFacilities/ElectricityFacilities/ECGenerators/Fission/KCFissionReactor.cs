@@ -2,6 +2,7 @@
 using KerbalColonies.colonyFacilities.StorageFacility;
 using KerbalColonies.ResourceManagment;
 using KerbalColonies.Settings;
+using KSP.Localization;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -586,7 +587,7 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fis
             window.Toggle();
         }
 
-        public override string GetFacilityProductionDisplay() => $"Fission reactor production rate: {lastECPerSecond:f2} EC/s";
+        public override string GetFacilityProductionDisplay() => Localizer.Format("#LOC_KC_FISSION_SUMMARY", lastECPerSecond.ToString("f2"));
 
 
         public override ConfigNode getConfigNode()

@@ -1,4 +1,5 @@
 ﻿using KerbalColonies.ResourceManagment;
+using KSP.Localization;
 using Smooth.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -54,7 +55,7 @@ namespace KerbalColonies.colonyFacilities.StorageFacility
             return node;
         }
 
-        public override string GetFacilityProductionDisplay() => $"{unifiedColonyStorage.UsedVolume:f2}/{unifiedColonyStorage.Volume:f2}m³ used\n{unifiedColonyStorage.Resources.Count} resources stored";
+        public override string GetFacilityProductionDisplay() => Localizer.Format("#LOC_KC_STORAGE_SUMMARY", unifiedColonyStorage.UsedVolume.ToString("f2"), unifiedColonyStorage.Volume.ToString("f2"), unifiedColonyStorage.Resources.Count);
 
         public override void OnBuildingClicked()
         {

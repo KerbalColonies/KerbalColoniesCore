@@ -2,6 +2,7 @@
 using KerbalColonies.colonyFacilities.HangarFacility;
 using KerbalColonies.ResourceManagment;
 using KerbalColonies.Settings;
+using KSP.Localization;
 using Smooth.Collections;
 using System;
 using System.Collections.Generic;
@@ -235,21 +236,21 @@ namespace KerbalColonies.colonyFacilities.ProductionFacility
             GUILayout.Space(10);
             GUILayout.BeginVertical(GUILayout.Width(KC_CAB_Window.CABInfoWidth), GUILayout.Height(80));
             {
-                GUILayout.Label($"<b>Production:</b>");
+                GUILayout.Label(Localizer.Format("#LOC_KC_PRODUCTION_TITLE"));
                 DailyProductions(colony, out double dailyProduction, out double dailyVesselProduction);
                 GUILayout.BeginHorizontal();
                 {
                     GUILayout.BeginVertical(GUILayout.Width((KC_CAB_Window.CABInfoWidth / 2) - 10));
                     {
-                        GUILayout.Label($"Daily production: {dailyProduction:f2}");
-                        GUILayout.Label($"Facilities building/upgrading: {GetQueue(colony).OfType<KCFacilityProductionQueueItem>().Count()}");
-                        GUILayout.Label($"Facilities built/upgraded: {ConstructedFacilities[colony].Count + UpgradedFacilities[colony].Count}");
+                        GUILayout.Label(Localizer.Format("#LOC_KC_PRODUCTION_DAILY", dailyProduction.ToString("f2")));
+                        GUILayout.Label(Localizer.Format("#LOC_KC_PRODUCTION_BUILDING_FACILITIES", GetQueue(colony).OfType<KCFacilityProductionQueueItem>().Count()));
+                        GUILayout.Label(Localizer.Format("#LOC_KC_PRODUCTION_BUILT_FACILITIES", ConstructedFacilities[colony].Count + UpgradedFacilities[colony].Count));
                     }
                     GUILayout.EndVertical();
                     GUILayout.BeginVertical(GUILayout.Width((KC_CAB_Window.CABInfoWidth / 2) - 10));
                     {
-                        GUILayout.Label($"Daily vessel production: {dailyVesselProduction:f2}");
-                        GUILayout.Label($"Vessels building: {GetQueue(colony).OfType<KCVesselProductionQueueItem>().Count()}");
+                        GUILayout.Label(Localizer.Format("#LOC_KC_PRODUCTION_DAILY_VESSEL", dailyVesselProduction.ToString("f2")));
+                        GUILayout.Label(Localizer.Format("#LOC_KC_PRODUCTION_BUILDING_VESSELS", GetQueue(colony).OfType<KCVesselProductionQueueItem>().Count()));
                     }
                     GUILayout.EndVertical();
                     GUILayout.FlexibleSpace();
@@ -316,7 +317,7 @@ namespace KerbalColonies.colonyFacilities.ProductionFacility
 
         public Dictionary<PartResourceDefinition, double> ResourceConsumptionPerSecond() => lastProduction > 0 ? facilityInfo.ResourceUsage[level].Where(kvp => kvp.Value < 0).ToDictionary(kvp => kvp.Key, kvp => -kvp.Value) : [];
 
-        public override string GetFacilityProductionDisplay() => $"{kerbals.Count} kerbals assigned\ndaily production: {dailyProduction():f2}\n{(KCProductionInfo.CanBuildVessels(level) ? "Can build vessels" : "Can't build vessels")}";
+        public override string GetFacilityProductionDisplay() => Localizer.Format("#LOC_KC_PRODUCTION_SUMMARY", kerbals.Count, dailyProduction().ToString("f2"), Localizer.Format(KCProductionInfo.CanBuildVessels(level) ? "#LOC_KC_PRODUCTION_CAN_BUILD" : "#LOC_KC_PRODUCTION_CANNOT_BUILD"));
 
         public override ConfigNode getConfigNode()
         {

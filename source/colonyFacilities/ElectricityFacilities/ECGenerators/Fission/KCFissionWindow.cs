@@ -1,5 +1,6 @@
 ﻿using KerbalColonies.Settings;
 using KerbalColonies.UI;
+using KSP.Localization;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -47,21 +48,21 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fis
                 GUILayout.Space(10);
                 GUILayout.BeginVertical(GUILayout.Width(420));
                 {
-                    GUILayout.Label($"Current power output: {fissionReactor.lastECPerSecond} EC/s");
-                    GUILayout.Label($"Current power level: {fissionReactor.lastPowerLevel.Key}");
-                    GUILayout.Label($"Current throttle: {fissionReactor.currentThrottle}");
+                    GUILayout.Label(Localizer.Format("#LOC_KC_COMMON_CURRENT_POWER_OUTPUT", fissionReactor.lastECPerSecond));
+                    GUILayout.Label(Localizer.Format("#LOC_KC_COMMON_CURRENT_POWER_LEVEL", fissionReactor.lastPowerLevel.Key));
+                    GUILayout.Label(Localizer.Format("#LOC_KC_COMMON_CURRENT_THROTTLE", fissionReactor.currentThrottle));
 
                     SortedDictionary<int, double> powerLevels = fissionReactor.AvailablePowerLevels();
 
-                    GUILayout.Label("Available Power Levels:");
+                    GUILayout.Label(Localizer.Format("#LOC_KC_COMMON_AVAILABLE_POWER_LEVELS"));
                     scrollPosPowerLevels = GUILayout.BeginScrollView(scrollPosPowerLevels, GUILayout.Height(125));
                     {
-                        powerLevels.ToList().ForEach(kvp => GUILayout.Label($"Power Level: {fissionReactor.FissionInfo.MinKerbals[kvp.Key]} Kerbals = {kvp.Value} EC/s"));
+                        powerLevels.ToList().ForEach(kvp => GUILayout.Label(Localizer.Format("#LOC_KC_COMMON_POWER_LEVEL", fissionReactor.FissionInfo.MinKerbals[kvp.Key], kvp.Value)));
                     }
                     GUILayout.EndScrollView();
 
 
-                    if (GUILayout.Toggle(fissionReactor.ManualControl, "Manual control"))
+                    if (GUILayout.Toggle(fissionReactor.ManualControl, Localizer.Format("#LOC_KC_COMMON_MANUAL_CONTROL")))
                     {
                         if (!fissionReactor.ManualControl)
                         {
@@ -84,7 +85,7 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fis
                     {
                         GUILayout.BeginHorizontal();
                         {
-                            GUILayout.Label("Level: 0");
+                            GUILayout.Label(Localizer.Format("#LOC_KC_COMMON_LEVEL", 0));
                             GUILayout.FlexibleSpace();
                             manualLevel = 0;
                             manualLevel = GUILayout.HorizontalSlider(manualLevel, 0, 0, GUILayout.Width(300));
@@ -96,7 +97,7 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fis
                     {
                         GUILayout.BeginHorizontal();
                         {
-                            GUILayout.Label($"Level: {fissionReactor.ManualPowerLevel}");
+                            GUILayout.Label(Localizer.Format("#LOC_KC_COMMON_LEVEL", fissionReactor.ManualPowerLevel));
                             GUILayout.FlexibleSpace();
                             manualLevel = GUILayout.HorizontalSlider(manualLevel, possiblePowerLevels.First().Key, possiblePowerLevels.Last().Key, GUILayout.Width(300));
                             fissionReactor.ManualPowerLevel = (int)Math.Round(manualLevel, 0);
@@ -106,7 +107,7 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fis
 
                     GUILayout.BeginHorizontal();
                     {
-                        GUILayout.Label($"Throttle: {fissionReactor.ManualThrottle}");
+                        GUILayout.Label(Localizer.Format("#LOC_KC_COMMON_THROTTLE", fissionReactor.ManualThrottle));
                         GUILayout.FlexibleSpace();
                         fissionReactor.ManualThrottle = Math.Round(GUILayout.HorizontalSlider((float)fissionReactor.ManualThrottle, (float)fissionReactor.FissionInfo.MinECThrottle[fissionReactor.ManualPowerLevel], 1, GUILayout.Width(300)), 3);
                         fissionReactor.ManualThrottle = Math.Max(fissionReactor.ManualThrottle, fissionReactor.FissionInfo.MinECThrottle[fissionReactor.ManualPowerLevel]);
@@ -115,9 +116,9 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fis
 
 
                     GUI.enabled = !fissionReactor.Refilling;
-                    fissionReactor.Active = GUILayout.Toggle(fissionReactor.Active, "Reactor active");
+                    fissionReactor.Active = GUILayout.Toggle(fissionReactor.Active, Localizer.Format("#LOC_KC_COMMON_REACTOR_ACTIVE"));
                     GUI.enabled = !fissionReactor.Active && !fissionReactor.ShuttingDown && !fissionReactor.Refilling;
-                    if (GUILayout.Button("Refill Reactor"))
+                    if (GUILayout.Button(Localizer.Format("#LOC_KC_FISSION_REFILL")))
                         fissionReactor.Refill();
                     GUI.enabled = true;
                     GUILayout.BeginHorizontal(GUILayout.Height(155));
@@ -125,10 +126,10 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fis
                         GUILayout.BeginVertical();
                         {
                             {
-                                GUILayout.Label("Input Resources:");
+                                GUILayout.Label(Localizer.Format("#LOC_KC_COMMON_INPUT_RESOURCES"));
                                 inputScrollPos = GUILayout.BeginScrollView(inputScrollPos);
                                 {
-                                    fissionReactor.StoredInput.ToList().ForEach(kvp => GUILayout.Label($"{kvp.Key.name}: {kvp.Value}/{fissionReactor.FissionInfo.InputStorage[fissionReactor.level][kvp.Key]}"));
+                                    fissionReactor.StoredInput.ToList().ForEach(kvp => GUILayout.Label(Localizer.Format("#LOC_KC_FISSION_RESOURCE_ITEM", kvp.Key.name, kvp.Value, fissionReactor.FissionInfo.InputStorage[fissionReactor.level][kvp.Key])));
                                 }
                                 GUILayout.EndScrollView();
                             }
@@ -137,10 +138,10 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fis
 
                         GUILayout.BeginVertical();
                         {
-                            GUILayout.Label("Output Resources:");
+                            GUILayout.Label(Localizer.Format("#LOC_KC_COMMON_OUTPUT_RESOURCES"));
                             outputScrollPos = GUILayout.BeginScrollView(outputScrollPos);
                             {
-                                fissionReactor.StoredOutput.ToList().ForEach(kvp => GUILayout.Label($"{kvp.Key.name}: {kvp.Value}/{fissionReactor.FissionInfo.OutputStorage[fissionReactor.level][kvp.Key]}"));
+                                fissionReactor.StoredOutput.ToList().ForEach(kvp => GUILayout.Label(Localizer.Format("#LOC_KC_FISSION_RESOURCE_ITEM", kvp.Key.name, kvp.Value, fissionReactor.FissionInfo.OutputStorage[fissionReactor.level][kvp.Key])));
                             }
                             GUILayout.EndScrollView();
                         }

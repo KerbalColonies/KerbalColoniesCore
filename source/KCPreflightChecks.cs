@@ -6,6 +6,7 @@ using KerbalColonies.colonyFacilities.LaunchPadFacility;
 using KerbalColonies.colonyFacilities.ProductionFacility;
 using KerbalColonies.colonyFacilities.StorageFacility;
 using KerbalColonies.Settings;
+using KSP.Localization;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -252,12 +253,12 @@ namespace KerbalColonies
 
         public string GetWarningTitle()
         {
-            return "KC Hangar prelaunch check";
+            return Localizer.Format("#LOC_KC_PREFLIGHT_HANGAR_TITLE");
         }
 
-        public string GetWarningDescription() => $"The colony {colony.DisplayName} has no suitable Hangar to build the craft.";
+        public string GetWarningDescription() => Localizer.Format("#LOC_KC_PREFLIGHT_NO_HANGAR", colony.DisplayName);
         public string GetProceedOption() => null;
-        public string GetAbortOption() => "Abort launch.";
+        public string GetAbortOption() => Localizer.Format("#LOC_KC_PREFLIGHT_ABORT");
 
         public static PreFlightTests.IPreFlightTest GetKCHangarTest(string launchSiteName)
         {
@@ -305,26 +306,26 @@ namespace KerbalColonies
 
         public string GetWarningTitle()
         {
-            return "KC crew prelaunch check";
+            return Localizer.Format("#LOC_KC_PREFLIGHT_CREW_TITLE");
         }
 
         public string GetWarningDescription()
         {
-            if (invalidKerbals.Count == 0) return "Due to current limitations of the vessel storage there must be no crew assigned to the vessel while launching.";
+            if (invalidKerbals.Count == 0) return Localizer.Format("#LOC_KC_PREFLIGHT_CREW_NOT_ALLOWED");
             else
             {
                 StringBuilder sb = new();
-                sb.AppendLine("The following kerbals are already in Colonies:");
+                sb.AppendLine(Localizer.Format("#LOC_KC_PREFLIGHT_CREW_IN_COLONIES"));
                 foreach (ProtoCrewMember pcm in invalidKerbals)
                 {
-                    sb.AppendLine($"-{pcm.name}");
+                    sb.AppendLine(Localizer.Format("#LOC_KC_PREFLIGHT_CREW_ITEM", pcm.name));
                 }
-                sb.AppendLine("You can continue with the launch but these kerbals will be removed from the vessel.");
+                sb.AppendLine(Localizer.Format("#LOC_KC_PREFLIGHT_CREW_REMOVED"));
                 return sb.ToString();
             }
         }
-        public string GetProceedOption() => kCLaunchpad == null ? "Continue launch." : null;
-        public string GetAbortOption() => "Abort launch.";
+        public string GetProceedOption() => kCLaunchpad == null ? Localizer.Format("#LOC_KC_PREFLIGHT_CONTINUE") : null;
+        public string GetAbortOption() => Localizer.Format("#LOC_KC_PREFLIGHT_ABORT");
 
         public static PreFlightTests.IPreFlightTest GetKCCrewTest(string launchSiteName)
         {
@@ -406,19 +407,19 @@ namespace KerbalColonies
                     Configuration.writeDebug($"[KCResourcePreFlightCheck] {message}");
                     return true;
                 case 1:
-                    message = "[KCResourcePreFlightCheck] No production facilities that can build vessels in the colony";
+                    message = Localizer.Format("#LOC_KC_PREFLIGHT_NO_VESSEL_PRODUCTION");
                     Configuration.writeDebug($"[KCResourcePreFlightCheck] {message}");
                     return false;
                 case 2:
-                    message = "[KCResourcePreFlightCheck] No production facilities with the selected recipe";
+                    message = Localizer.Format("#LOC_KC_PREFLIGHT_NO_SELECTED_RECIPE");
                     Configuration.writeDebug($"[KCResourcePreFlightCheck] {message}");
                     return false;
                 case 3:
                     StringBuilder messageBuilder = new();
-                    messageBuilder.AppendLine("The following resources are missing:");
+                    messageBuilder.AppendLine(Localizer.Format("#LOC_KC_PREFLIGHT_RESOURCES_MISSING"));
                     foreach (KeyValuePair<string, double> res in Insufficientresources)
                     {
-                        messageBuilder.AppendLine($"-{res.Key}: {res.Value}");
+                        messageBuilder.AppendLine(Localizer.Format("#LOC_KC_PREFLIGHT_RESOURCE_ITEM", res.Key, res.Value));
                     }
                     message = messageBuilder.ToString();
                     Configuration.writeDebug($"[KCResourcePreFlightCheck] {message}");
@@ -431,12 +432,12 @@ namespace KerbalColonies
 
         public string GetWarningTitle()
         {
-            return "KC resources prelaunch check";
+            return Localizer.Format("#LOC_KC_PREFLIGHT_RESOURCES_TITLE");
         }
 
         public string GetWarningDescription() => message;
-        public string GetProceedOption() => canProceed ? "Continue with the launch" : null;
-        public string GetAbortOption() => "Abort launch.";
+        public string GetProceedOption() => canProceed ? Localizer.Format("#LOC_KC_PREFLIGHT_CONTINUE_WITH_LAUNCH") : null;
+        public string GetAbortOption() => Localizer.Format("#LOC_KC_PREFLIGHT_ABORT");
 
         public static PreFlightTests.IPreFlightTest GetKCResourceTest(string launchSiteName)
         {

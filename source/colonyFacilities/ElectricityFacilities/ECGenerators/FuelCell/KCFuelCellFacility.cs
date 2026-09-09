@@ -1,4 +1,5 @@
 ﻿using KerbalColonies.ResourceManagment;
+using KSP.Localization;
 using Smooth.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -47,7 +48,7 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fue
             window.Toggle();
         }
 
-        public override string GetFacilityProductionDisplay() => $"Fuel cell production rate: {string.Join(", ", ResourcesPerSecond().Select(kvp => $"{kvp.Key.displayName}: {kvp.Value * Throttle:f2}"))}";
+        public override string GetFacilityProductionDisplay() => Localizer.Format("#LOC_KC_FUELCELL_SUMMARY", string.Join(", ", ResourcesPerSecond().Select(kvp => Localizer.Format("#LOC_KC_COMMON_LABEL_VALUE", kvp.Key.displayName, (kvp.Value * Throttle).ToString("f2")))));
 
         public Dictionary<PartResourceDefinition, double> ResourceProduction(double lastTime, double deltaTime, double currentTime) => CanProduce && enabled ? facilityInfo.ResourceUsage[level].Where(kvp => kvp.Value > 0).ToDictionary(kvp => kvp.Key, kvp => kvp.Value * deltaTime * Throttle) : [];
 

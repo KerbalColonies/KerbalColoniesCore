@@ -2,6 +2,7 @@
 using KerbalColonies.ResourceManagment;
 using KerbalColonies.Settings;
 using KerbalKonstructs.Core;
+using KSP.Localization;
 using Smooth.Collections;
 using System;
 using System.Collections.Generic;
@@ -120,9 +121,9 @@ namespace KerbalColonies.colonyFacilities.KCMiningFacility
             miningFacilityInfo.rates[level].ForEach(rate =>
             {
                 if (storedResoures.ContainsKey(rate.resource))
-                    sb.AppendLine($"{(groupDensities.Sum(kvp => kvp.Value.ContainsKey(rate.resource) ? kvp.Value[rate.resource] : 0) * kerbals.Count):f2} {rate.resource.displayName}/day\n{storedResoures[rate.resource]:f2}/{rate.max:f2} stored");
+                    sb.AppendLine(Localizer.Format("#LOC_KC_MINING_SUMMARY", (groupDensities.Sum(kvp => kvp.Value.ContainsKey(rate.resource) ? kvp.Value[rate.resource] : 0) * kerbals.Count).ToString("f2"), rate.resource.displayName, storedResoures[rate.resource].ToString("f2"), rate.max.ToString("f2")));
                 else
-                    sb.AppendLine($"{(groupDensities.Sum(kvp => kvp.Value.ContainsKey(rate.resource) ? kvp.Value[rate.resource] : 0) * kerbals.Count):f2} {rate.resource.displayName}/day\n0/{rate.max:f2} stored");
+                    sb.AppendLine(Localizer.Format("#LOC_KC_MINING_SUMMARY", (groupDensities.Sum(kvp => kvp.Value.ContainsKey(rate.resource) ? kvp.Value[rate.resource] : 0) * kerbals.Count).ToString("f2"), rate.resource.displayName, 0, rate.max.ToString("f2")));
             });
 
             return sb.ToString();

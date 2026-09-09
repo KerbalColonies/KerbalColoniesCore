@@ -4,6 +4,7 @@ using Expansions.Serenity;
 using KerbalColonies.colonyFacilities;
 using KerbalColonies.colonyFacilities.CrewQuarters;
 using KerbalColonies.Settings;
+using KSP.Localization;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -199,8 +200,8 @@ namespace KerbalColonies.UI
 
             List<string> allowedTraits = fromFac.kerbalFacilityInfoClass.allowedTraits[fromFac.level];
             List<string> forbiddenTraits = fromFac.kerbalFacilityInfoClass.forbiddenTraits[fromFac.level];
-            if (allowedTraits.Count > 0) GUILayout.Label($"Allowed traits: {string.Join(", ", allowedTraits)}", LabelGreen);
-            else if (forbiddenTraits.Count > 0) GUILayout.Label($"Forbidden traits: {string.Join(", ", forbiddenTraits)}", LabelGreen);
+            if (allowedTraits.Count > 0) GUILayout.Label(Localizer.Format("#LOC_KC_KERBALGUI_ALLOWED_TRAITS", string.Join(", ", allowedTraits)), LabelGreen);
+            else if (forbiddenTraits.Count > 0) GUILayout.Label(Localizer.Format("#LOC_KC_KERBALGUI_FORBIDDEN_TRAITS", string.Join(", ", forbiddenTraits)), LabelGreen);
 
             GUILayout.BeginHorizontal();
             {
@@ -210,7 +211,7 @@ namespace KerbalColonies.UI
                     fromScrollPos = GUILayout.BeginScrollView(fromScrollPos);
                     foreach (ProtoCrewMember k in fromList)
                     {
-                        if (GUILayout.Button($"{k.name} ({k.experienceTrait.Title}, level {k.experienceLevel})", GUILayout.Height(23)))
+                        if (GUILayout.Button(Localizer.Format("#LOC_KC_KERBALGUI_MEMBER", k.name, k.experienceTrait.Title, k.experienceLevel), GUILayout.Height(23)))
                         {
                             if (toList.Count + 1 <= toCapacity)
                             {
@@ -231,7 +232,7 @@ namespace KerbalColonies.UI
                     toScrollPos = GUILayout.BeginScrollView(toScrollPos);
                     foreach (ProtoCrewMember k in toList)
                     {
-                        if (GUILayout.Button($"{k.name} ({k.experienceTrait.Title}, level {k.experienceLevel})", GUILayout.Height(23)))
+                        if (GUILayout.Button(Localizer.Format("#LOC_KC_KERBALGUI_MEMBER", k.name, k.experienceTrait.Title, k.experienceLevel), GUILayout.Height(23)))
                         {
                             if (fromList.Count + 1 <= fromCapacity)
                             {
@@ -348,7 +349,7 @@ namespace KerbalColonies.UI
                     RequiredTraitCounts.ToList().ForEach(kvp =>
                     {
                         List<ProtoCrewMember> traitKerbals = kerbals.Where(k => k.experienceTrait.Config.Name.ToLower() == kvp.Key.ToLower()).ToList();
-                        GUILayout.Label($"Required {kvp.Key}: {traitKerbals.Count}/{kvp.Value}");
+                        GUILayout.Label(Localizer.Format("#LOC_KC_KERBALGUI_REQUIRED_TRAIT", kvp.Key, traitKerbals.Count, kvp.Value));
                         for (int i = 0; i < traitKerbals.Count; i++)
                         {
                             ProtoCrewMember pcm = traitKerbals[i];
@@ -367,7 +368,7 @@ namespace KerbalColonies.UI
                             GUILayout.Label(pcm.displayName, LabelInfo);
                             GUILayout.Label(pcm.trait, LabelInfo);
                             GUILayout.Label(pcm.gender.ToString(), LabelInfo);
-                            GUILayout.Label($"Level: {pcm.experienceLevel}", LabelInfo);
+                            GUILayout.Label(Localizer.Format("#LOC_KC_COMMON_LEVEL", pcm.experienceLevel), LabelInfo);
                             GUILayout.EndVertical();
 
                             GUILayout.FlexibleSpace();
@@ -386,7 +387,7 @@ namespace KerbalColonies.UI
                     });
 
                     GUILayout.Space(10);
-                    GUILayout.Label("Other kerbals:");
+                    GUILayout.Label(Localizer.Format("#LOC_KC_KERBALGUI_OTHER_KERBALS"));
                 }
 
 
@@ -406,7 +407,7 @@ namespace KerbalColonies.UI
                     GUILayout.Label(pcm.displayName, LabelInfo);
                     GUILayout.Label(pcm.trait, LabelInfo);
                     GUILayout.Label(pcm.gender.ToString(), LabelInfo);
-                    GUILayout.Label($"Level: {pcm.experienceLevel}", LabelInfo);
+                    GUILayout.Label(Localizer.Format("#LOC_KC_COMMON_LEVEL", pcm.experienceLevel), LabelInfo);
                     GUILayout.EndVertical();
 
                     GUILayout.FlexibleSpace();
@@ -427,7 +428,7 @@ namespace KerbalColonies.UI
             GUI.enabled = true;
 
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Staff: " + kerbalCount.ToString("#0") + "/" + fac.MaxKerbals.ToString("#0"), LabelInfo);
+            GUILayout.Label(Localizer.Format("#LOC_KC_KERBALGUI_STAFF", kerbalCount.ToString("#0"), fac.MaxKerbals.ToString("#0")), LabelInfo);
             GUILayout.FlexibleSpace();
             GUILayout.EndHorizontal();
 
@@ -438,7 +439,7 @@ namespace KerbalColonies.UI
                 if ((ksg.mode == KerbalSelectorGUI.SwitchModes.ActiveVessel && !fac.Colony.CAB.PlayerInColony) || DisableTransferWindow) { GUI.enabled = false; }
                 GUILayout.BeginHorizontal();
                 {
-                    if (GUILayout.Button("Assign/Retrive Kerbals", GUILayout.Height(23)))
+                    if (GUILayout.Button(Localizer.Format("#LOC_KC_KERBALGUI_ASSIGN"), GUILayout.Height(23)))
                     {
                         if (transferWindow)
                         {

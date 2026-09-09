@@ -19,6 +19,7 @@
 ## Code Changes
 - Avoid duplicating existing code. If you think a new function or class is needed, check if it already exists. If it does, use it instead of creating a new one.
 - Custom agent profiles should avoid duplicating repository Copilot instructions, reference the instruction file instead, and explicitly treat those instructions as overriding the agent profile.
+- Localize all user-facing GUI text across facilities; ignore log messages and saved-data/configuration strings because they are not user-facing.
 
 ## Production Queue Feature
 - For the production queue feature: producer capability constraints contain all required item constraints; each producer works on the earliest compatible queued item; facility resources and funds drain proportionally and pause on shortage; cancellation deletes unbuilt facilities and in-progress vessels but leaves upgrades at the old level with no refunds; legacy queues migrate in vessel, upgrade, construction order while preserving progress.

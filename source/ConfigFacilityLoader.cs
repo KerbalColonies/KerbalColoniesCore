@@ -22,6 +22,7 @@ using KerbalColonies.Settings;
 using KerbalColonies.UI;
 using KerbalColonies.UI.SingleTimeWindow;
 using KerbalColonies.VesselAutoTransfer;
+using KSP.Localization;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
@@ -68,13 +69,13 @@ namespace KerbalColonies
         {
             if (Configuration.CabTypes.Count == 0 && Configuration.BuildableFacilities.Count == 0 && ConfigFacilityLoader.failedConfigs.Count == 0)
             {
-                GUILayout.Label("No facility configs were found, Kerbal Colonies can't work without facility configs.");
-                GUILayout.Label("Since the v1.0.1 update the facility configs are seperate mods, the previously included ones should be on ckan soon.");
+                GUILayout.Label(Localizer.Format("#LOC_KC_CONFIGLOADER_NO_CONFIGS"));
+                GUILayout.Label(Localizer.Format("#LOC_KC_CONFIGLOADER_CONFIGS_MOVED"));
                 return;
             }
 
-            if (Configuration.CabTypes.Count == 0) GUILayout.Label("No CAB Type was loaded which means this mod won't work.");
-            if (Configuration.BuildableFacilities.Count == 0) GUILayout.Label("No Buildable Facilities were loaded.");
+            if (Configuration.CabTypes.Count == 0) GUILayout.Label(Localizer.Format("#LOC_KC_CONFIGLOADER_NO_CAB_TYPE"));
+            if (Configuration.BuildableFacilities.Count == 0) GUILayout.Label(Localizer.Format("#LOC_KC_CONFIGLOADER_NO_FACILITIES"));
 
             scrollPosition = GUILayout.BeginScrollView(scrollPosition);
             {
@@ -82,7 +83,7 @@ namespace KerbalColonies
                 {
                     GUILayout.BeginHorizontal();
                     {
-                        GUILayout.Label($"{ConfigFacilityLoader.failedConfigs[i]}:");
+                        GUILayout.Label(Localizer.Format("#LOC_KC_CONFIGLOADER_FAILED_CONFIG", ConfigFacilityLoader.failedConfigs[i]));
                         GUILayout.FlexibleSpace();
                         GUILayout.Label(ConfigFacilityLoader.exceptions[i].Message);
                     }
@@ -91,14 +92,14 @@ namespace KerbalColonies
             }
             GUILayout.EndScrollView();
 
-            GUILayout.Label("The mod MIGHT work, but some facilities may not be loaded.");
-            GUILayout.Label("I recommend to fix the configs before using the mod.");
+            GUILayout.Label(Localizer.Format("#LOC_KC_CONFIGLOADER_PARTIAL_LOAD"));
+            GUILayout.Label(Localizer.Format("#LOC_KC_CONFIGLOADER_FIX_CONFIGS"));
             GUILayout.Space(10);
-            GUILayout.Label("Please check the log for more details.");
-            GUILayout.Label("If you are a modder, please check the wiki for more information.");
+            GUILayout.Label(Localizer.Format("#LOC_KC_CONFIGLOADER_CHECK_LOG"));
+            GUILayout.Label(Localizer.Format("#LOC_KC_CONFIGLOADER_CHECK_WIKI"));
         }
 
-        public FacilityConfigExceptionWindow() : base(Configuration.createWindowID(), "Exceptions while loading the facility Configs:")
+        public FacilityConfigExceptionWindow() : base(Configuration.createWindowID(), Localizer.Format("#LOC_KC_CONFIGLOADER_WINDOW_TITLE"))
         {
             toolRect = new Rect(100, 100, 500, 400);
         }

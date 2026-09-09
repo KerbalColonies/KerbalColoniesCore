@@ -34,31 +34,31 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fue
         protected override void CustomWindow()
         {
             facility.Colony.UpdateColony();
-            GUILayout.Label("Resource Production:");
+            GUILayout.Label(Localizer.Format("#LOC_KC_FUELCELL_PRODUCTION"));
             resourceProductionScrollPos = GUILayout.BeginScrollView(resourceProductionScrollPos);
             {
                 fuelCellFacility.facilityInfo.ResourceUsage[facility.level].Where(x => x.Value > 0).ToList().ForEach(kvp =>
-                    GUILayout.Label($"- {kvp.Key.name}: {kvp.Value * fuelCellFacility.Throttle:f2}/s, {KCUnifiedColonyStorage.colonyStorages[facility.Colony].Resources[kvp.Key]:f2} stored")
+                    GUILayout.Label(Localizer.Format("#LOC_KC_FUELCELL_RESOURCE_ITEM", kvp.Key.name, (kvp.Value * fuelCellFacility.Throttle).ToString("f2"), KCUnifiedColonyStorage.colonyStorages[facility.Colony].Resources[kvp.Key].ToString("f2")))
                 );
             }
             GUILayout.EndScrollView();
 
-            GUILayout.Label("Resource consumption:");
+            GUILayout.Label(Localizer.Format("#LOC_KC_FUELCELL_CONSUMPTION"));
             resourceUseageScrollPos = GUILayout.BeginScrollView(resourceUseageScrollPos);
             {
                 fuelCellFacility.facilityInfo.ResourceUsage[facility.level].Where(x => x.Value < 0).ToList().ForEach(kvp =>
-                    GUILayout.Label($"- {kvp.Key.name}: {kvp.Value * fuelCellFacility.Throttle:f2}/s, {KCUnifiedColonyStorage.colonyStorages[facility.Colony].Resources[kvp.Key]:f2} stored")
+                    GUILayout.Label(Localizer.Format("#LOC_KC_FUELCELL_RESOURCE_ITEM", kvp.Key.name, (kvp.Value * fuelCellFacility.Throttle).ToString("f2"), KCUnifiedColonyStorage.colonyStorages[facility.Colony].Resources[kvp.Key].ToString("f2")))
                 );
             }
             GUILayout.EndScrollView();
 
             GUILayout.Space(10);
-            facility.enabled = GUILayout.Toggle(facility.enabled, "Enabled", GUILayout.Height(18));
+            facility.enabled = GUILayout.Toggle(facility.enabled, Localizer.Format("#LOC_KC_COMMON_ENABLED"), GUILayout.Height(18));
             GUILayout.Space(10);
 
             GUILayout.BeginHorizontal();
             {
-                GUILayout.Label($"Resource Consumption Priority: {fuelCellFacility.ResourceConsumptionPriority}", GUILayout.Height(18));
+                GUILayout.Label(Localizer.Format("#LOC_KC_COMMON_RESOURCE_PRIORITY", fuelCellFacility.ResourceConsumptionPriority), GUILayout.Height(18));
                 GUILayout.FlexibleSpace();
                 if (GUILayout.RepeatButton("--", GUILayout.Width(30), GUILayout.Height(23)) | GUILayout.Button("-", GUILayout.Width(30), GUILayout.Height(23))) fuelCellFacility.ResourceConsumptionPriority--;
                 if (GUILayout.Button("+", GUILayout.Width(30), GUILayout.Height(23)) | GUILayout.RepeatButton("++", GUILayout.Width(30), GUILayout.Height(23))) fuelCellFacility.ResourceConsumptionPriority++;
@@ -67,16 +67,16 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fue
 
             GUILayout.Space(10);
             GUILayout.BeginHorizontal();
-            GUILayout.Label($"Throttle: {(fuelCellFacility.Throttle * 100):f1}%", GUILayout.Height(18));
+            GUILayout.Label(Localizer.Format("#LOC_KC_COMMON_THROTTLE", (fuelCellFacility.Throttle * 100).ToString("f1") + "%"), GUILayout.Height(18));
             fuelCellFacility.Throttle = GUILayout.HorizontalSlider(fuelCellFacility.Throttle, 0.0f, 1.0f);
             GUILayout.EndHorizontal();
             GUILayout.Space(10);
 
-            GUILayout.Label("Resource Deltas:");
+            GUILayout.Label(Localizer.Format("#LOC_KC_FUELCELL_DELTAS"));
             resourceDeltaScrollPos = GUILayout.BeginScrollView(resourceDeltaScrollPos, GUILayout.Height(120));
             {
                 fuelCellFacility.facilityInfo.ResourceUsage[facility.level].ToList().ForEach(kvp =>
-                    GUILayout.Label($"- {kvp.Key.displayName}: {KCResourceManager.colonyResources[facility.Colony].ResourceDelta(kvp.Key) / KCResourceManager.colonyResources[facility.Colony].deltaTime}/s")
+                    GUILayout.Label(Localizer.Format("#LOC_KC_COMMON_RESOURCE_RATE_ITEM", kvp.Key.displayName, KCResourceManager.colonyResources[facility.Colony].ResourceDelta(kvp.Key) / KCResourceManager.colonyResources[facility.Colony].deltaTime))
                 );
             }
             GUILayout.EndScrollView();

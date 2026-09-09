@@ -1,5 +1,6 @@
 ﻿using KerbalColonies.Settings;
 using KerbalColonies.UI;
+using KSP.Localization;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -105,12 +106,12 @@ namespace KerbalColonies.colonyFacilities.StorageFacility
         protected override void CustomWindow()
         {
             storageFacility.Colony.UpdateColony();
-            GUILayout.Label($"MaxVolume (facility): {storageFacility.storageInfo.maxVolume[storageFacility.level]:f2}", LabelGreen, GUILayout.Height(18));
+            GUILayout.Label(Localizer.Format("#LOC_KC_STORAGE_FACILITY_VOLUME", storageFacility.storageInfo.maxVolume[storageFacility.level].ToString("f2")), LabelGreen, GUILayout.Height(18));
             GUILayout.Space(2);
             GUILayout.BeginHorizontal();
-            GUILayout.Label($"MaxVolume (colony): {storageFacility.unifiedColonyStorage.Volume:f2}", LabelGreen, GUILayout.Height(18));
+            GUILayout.Label(Localizer.Format("#LOC_KC_STORAGE_COLONY_VOLUME", storageFacility.unifiedColonyStorage.Volume.ToString("f2")), LabelGreen, GUILayout.Height(18));
             GUILayout.FlexibleSpace();
-            GUILayout.Label($"UsedVolume: {storageFacility.unifiedColonyStorage.UsedVolume:f2}", LabelGreen, GUILayout.Height(18));
+            GUILayout.Label(Localizer.Format("#LOC_KC_STORAGE_USED_VOLUME", storageFacility.unifiedColonyStorage.UsedVolume.ToString("f2")), LabelGreen, GUILayout.Height(18));
             GUILayout.EndHorizontal();
             GUILayout.Space(2);
             List<double> valueList = [0.01, 0.1, 1, 10, 100, 1000, 10000, 100000];
@@ -122,10 +123,10 @@ namespace KerbalColonies.colonyFacilities.StorageFacility
             canTranfer |= trashResources;
 
 
-            GUILayout.Label($"Amount: {transferAmount}");
+            GUILayout.Label(Localizer.Format("#LOC_KC_STORAGE_AMOUNT", transferAmount));
             GUILayout.BeginHorizontal();
             transferAmountString = GUILayout.TextField(transferAmountString, GUILayout.Width(100));
-            if (GUILayout.Button("Set") && double.TryParse(transferAmountString, out double amountRes)) transferAmount = amountRes;
+            if (GUILayout.Button(Localizer.Format("#LOC_KC_STORAGE_SET")) && double.TryParse(transferAmountString, out double amountRes)) transferAmount = amountRes;
             GUILayout.EndHorizontal();
             GUILayout.BeginHorizontal();
             foreach (double i in valueList)
@@ -228,12 +229,12 @@ namespace KerbalColonies.colonyFacilities.StorageFacility
                 }
                 else if (kvp.Value == ResourceTransferAvailable.Colony_only)
                 {
-                    if (FlightGlobals.ActiveVessel == null) GUILayout.Label("No active vessel", GUILayout.Height(18));
-                    else GUILayout.Label("No space on vessel", GUILayout.Height(18));
+                    if (FlightGlobals.ActiveVessel == null) GUILayout.Label(Localizer.Format("#LOC_KC_STORAGE_NO_VESSEL"), GUILayout.Height(18));
+                    else GUILayout.Label(Localizer.Format("#LOC_KC_STORAGE_NO_VESSEL_SPACE"), GUILayout.Height(18));
                 }
                 else if (kvp.Value == ResourceTransferAvailable.Vessel_only)
                 {
-                    GUILayout.Label("No space in colony", GUILayout.Height(18));
+                    GUILayout.Label(Localizer.Format("#LOC_KC_STORAGE_NO_COLONY_SPACE"), GUILayout.Height(18));
                 }
 
                 GUILayout.EndHorizontal();
@@ -242,31 +243,31 @@ namespace KerbalColonies.colonyFacilities.StorageFacility
 
             GUILayout.Space(2);
 
-            storageFacility.locked = GUILayout.Toggle(storageFacility.locked, "Lock storage", GUILayout.Height(18));
+            storageFacility.locked = GUILayout.Toggle(storageFacility.locked, Localizer.Format("#LOC_KC_STORAGE_LOCK"), GUILayout.Height(18));
             GUILayout.Space(10);
 
             if (facility.facilityInfo.ResourceUsage[facility.level].Count > 0)
             {
                 GUILayout.BeginHorizontal();
                 {
-                    GUILayout.Label($"Resource Consumption Priority: {storageFacility.ResourceConsumptionPriority}", GUILayout.Height(18));
+                    GUILayout.Label(Localizer.Format("#LOC_KC_COMMON_RESOURCE_PRIORITY", storageFacility.ResourceConsumptionPriority), GUILayout.Height(18));
                     GUILayout.FlexibleSpace();
                     if (GUILayout.RepeatButton("--", GUILayout.Width(30), GUILayout.Height(23)) | GUILayout.Button("-", GUILayout.Width(30), GUILayout.Height(23))) storageFacility.ResourceConsumptionPriority--;
                     if (GUILayout.Button("+", GUILayout.Width(30), GUILayout.Height(23)) | GUILayout.RepeatButton("++", GUILayout.Width(30), GUILayout.Height(23))) storageFacility.ResourceConsumptionPriority++;
                 }
                 GUILayout.EndHorizontal();
-                GUILayout.Label("Resource usage:");
+                GUILayout.Label(Localizer.Format("#LOC_KC_COMMON_RESOURCE_USAGE"));
                 resourceUsageScrollPos = GUILayout.BeginScrollView(resourceUsageScrollPos, GUILayout.Height(120));
                 {
                     storageFacility.facilityInfo.ResourceUsage[facility.level].ToList().ForEach(kvp =>
-                        GUILayout.Label($"- {kvp.Key.displayName}: {kvp.Value}/s")
+                        GUILayout.Label(Localizer.Format("#LOC_KC_COMMON_RESOURCE_RATE_ITEM", kvp.Key.displayName, kvp.Value))
                     );
                 }
                 GUILayout.EndScrollView();
             }
 
-            trashResources = GUILayout.Toggle(trashResources, "Trash resources", GUILayout.Height(18));
-            GUILayout.Label("Warning: enabling the trash resources option will delete the resource instead of transferring it to the vessel.");
+            trashResources = GUILayout.Toggle(trashResources, Localizer.Format("#LOC_KC_STORAGE_TRASH"), GUILayout.Height(18));
+            GUILayout.Label(Localizer.Format("#LOC_KC_STORAGE_TRASH_WARNING"));
         }
 
         private void TryAddResource(PartResourceDefinition resource, ResourceTransferAvailable status)

@@ -2,6 +2,7 @@
 using KerbalColonies.colonyFacilities.ProductionFacility;
 using KerbalColonies.Settings;
 using KerbalColonies.UI;
+using KSP.Localization;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -56,9 +57,9 @@ namespace KerbalColonies.colonyFacilities.HangarFacility
             hangar.Colony.UpdateColony();
             List<StoredVessel> vesselList = hangar.storedVessels.ToList();
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Stored vessels");
+            GUILayout.Label(Localizer.Format("#LOC_KC_HANGAR_STORED_VESSELS"));
             GUILayout.FlexibleSpace();
-            if (GUILayout.Button(editStoredVessels ? "Done removing" : "Remove vessels", GUILayout.Width(110))) editStoredVessels = !editStoredVessels;
+            if (GUILayout.Button(Localizer.Format(editStoredVessels ? "#LOC_KC_HANGAR_DONE_REMOVING" : "#LOC_KC_HANGAR_REMOVE_VESSELS"), GUILayout.Width(110))) editStoredVessels = !editStoredVessels;
             GUILayout.EndHorizontal();
             scrollPos = GUILayout.BeginScrollView(scrollPos);
             GUILayout.BeginVertical();
@@ -71,17 +72,17 @@ namespace KerbalColonies.colonyFacilities.HangarFacility
 
                 if (vessel.vesselBuildTime == null)
                 {
-                    if (GUILayout.Button("Load", GUILayout.Width(150)))
+                    if (GUILayout.Button(Localizer.Format("#LOC_KC_HANGAR_LOAD"), GUILayout.Width(150)))
                     {
                         Vessel v = hangar.RollOutVessel(vessel).vesselRef;
                     }
                 }
                 else
                 {
-                    GUILayout.Label($"Build time: {vessel.entireVesselBuildTime - vessel.vesselBuildTime:f2}/{vessel.entireVesselBuildTime:f2}");
+                    GUILayout.Label(Localizer.Format("#LOC_KC_HANGAR_BUILD_TIME", $"{vessel.entireVesselBuildTime - vessel.vesselBuildTime:f2}", $"{vessel.entireVesselBuildTime:f2}"));
                 }
 
-                if (editStoredVessels && GUILayout.Button("Remove", UIConfig.ButtonRed, GUILayout.Width(65)))
+                if (editStoredVessels && GUILayout.Button(Localizer.Format("#LOC_KC_HANGAR_REMOVE"), UIConfig.ButtonRed, GUILayout.Width(65)))
                 {
                     Configuration.writeLog($"Removing vessel {vessel.vesselName} from hangar {hangar.name}");
                     KCVesselProductionQueueItem queueItem = KCProductionFacility.GetQueue(hangar.Colony).OfType<KCVesselProductionQueueItem>().FirstOrDefault(item => item.VesselId == vessel.uuid);
@@ -101,20 +102,20 @@ namespace KerbalColonies.colonyFacilities.HangarFacility
                 {
                     CanStoreVessel = false;
                     GUILayout.BeginHorizontal();
-                    GUILayout.Label("Max permutations to test:");
+                    GUILayout.Label(Localizer.Format("#LOC_KC_HANGAR_MAX_PERMUTATIONS"));
                     if (int.TryParse(GUILayout.TextField(MaxPermutations.ToString()), out int permutationRes))
                     {
                         MaxPermutations = permutationRes;
                     }
                     GUILayout.EndHorizontal();
                     GUILayout.BeginHorizontal();
-                    GUILayout.Label("Max processors to use:");
+                    GUILayout.Label(Localizer.Format("#LOC_KC_HANGAR_MAX_PROCESSORS"));
                     if (int.TryParse(GUILayout.TextField(MaxProcessors.ToString()), out int procRes))
                     {
                         MaxProcessors = procRes;
                     }
                     GUILayout.EndHorizontal();
-                    if (GUILayout.Button("Test"))
+                    if (GUILayout.Button(Localizer.Format("#LOC_KC_HANGAR_TEST")))
                     {
                         TestTime = Planetarium.GetUniversalTime();
                         CanStoreVessel = hangar.CanStoreVessel(FlightGlobals.ActiveVessel, MaxPermutations);
@@ -122,7 +123,7 @@ namespace KerbalColonies.colonyFacilities.HangarFacility
                 }
                 else
                 {
-                    if (GUILayout.Button("Store vessel"))
+                    if (GUILayout.Button(Localizer.Format("#LOC_KC_HANGAR_STORE")))
                     {
                         hangar.StoreVessel(FlightGlobals.ActiveVessel, null);
                     }
@@ -133,24 +134,24 @@ namespace KerbalColonies.colonyFacilities.HangarFacility
 
             GUILayout.Space(5);
 
-            hangar.enabled = GUILayout.Toggle(hangar.enabled, "Enable hangar", GUILayout.Height(18));
+            hangar.enabled = GUILayout.Toggle(hangar.enabled, Localizer.Format("#LOC_KC_HANGAR_ENABLE"), GUILayout.Height(18));
             GUILayout.Space(10);
 
             if (facility.facilityInfo.ResourceUsage[facility.level].Count > 0)
             {
                 GUILayout.BeginHorizontal();
                 {
-                    GUILayout.Label($"Resource Consumption Priority: {hangar.ResourceConsumptionPriority}", GUILayout.Height(18));
+                    GUILayout.Label(Localizer.Format("#LOC_KC_COMMON_RESOURCE_PRIORITY", hangar.ResourceConsumptionPriority), GUILayout.Height(18));
                     GUILayout.FlexibleSpace();
                     if (GUILayout.RepeatButton("--", GUILayout.Width(30), GUILayout.Height(23)) | GUILayout.Button("-", GUILayout.Width(30), GUILayout.Height(23))) hangar.ResourceConsumptionPriority--;
                     if (GUILayout.Button("+", GUILayout.Width(30), GUILayout.Height(23)) | GUILayout.RepeatButton("++", GUILayout.Width(30), GUILayout.Height(23))) hangar.ResourceConsumptionPriority++;
                 }
                 GUILayout.EndHorizontal();
-                GUILayout.Label("Resource usage:");
+                GUILayout.Label(Localizer.Format("#LOC_KC_COMMON_RESOURCE_USAGE"));
                 resourceUsageScrollPos = GUILayout.BeginScrollView(resourceUsageScrollPos, GUILayout.Height(120));
                 {
                     hangar.ResourceConsumptionPerSecond().ToList().ForEach(kvp =>
-                        GUILayout.Label($"- {kvp.Key.displayName}: {kvp.Value}/s")
+                        GUILayout.Label(Localizer.Format("#LOC_KC_COMMON_RESOURCE_RATE_ITEM", kvp.Key.displayName, kvp.Value))
                     );
                 }
                 GUILayout.EndScrollView();

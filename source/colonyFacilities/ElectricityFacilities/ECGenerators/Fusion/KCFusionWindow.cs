@@ -1,5 +1,6 @@
 ﻿using KerbalColonies.Settings;
 using KerbalColonies.UI;
+using KSP.Localization;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -48,20 +49,20 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fus
                 GUILayout.Space(10);
                 GUILayout.BeginVertical(GUILayout.Width(420));
                 {
-                    GUILayout.Label($"Current power output: {fusionReactor.ActualLastECPerSecond} EC/s");
-                    GUILayout.Label($"Current power level: {fusionReactor.lastPowerLevel.Key}");
-                    GUILayout.Label($"Current throttle: {fusionReactor.currentThrottle}");
+                    GUILayout.Label(Localizer.Format("#LOC_KC_COMMON_CURRENT_POWER_OUTPUT", fusionReactor.ActualLastECPerSecond));
+                    GUILayout.Label(Localizer.Format("#LOC_KC_COMMON_CURRENT_POWER_LEVEL", fusionReactor.lastPowerLevel.Key));
+                    GUILayout.Label(Localizer.Format("#LOC_KC_COMMON_CURRENT_THROTTLE", fusionReactor.currentThrottle));
 
                     SortedDictionary<int, double> powerLevels = fusionReactor.AvailablePowerLevels();
 
-                    GUILayout.Label("Available Power Levels:");
+                    GUILayout.Label(Localizer.Format("#LOC_KC_COMMON_AVAILABLE_POWER_LEVELS"));
                     scrollPosPowerLevels = GUILayout.BeginScrollView(scrollPosPowerLevels, GUILayout.Height(125));
                     {
                         PartResourceDefinition ec = PartResourceLibrary.Instance.GetDefinition("ElectricCharge");
 
                         powerLevels.ToList().ForEach(kvp =>
                         {
-                            GUILayout.Label($"Power Level: {fusionReactor.FusionInfo.MinKerbals[kvp.Key]} Kerbals = {kvp.Value - fusionReactor.facilityInfo.ResourceUsage[kvp.Key].GetValueOrDefault(ec)} EC/s");
+                            GUILayout.Label(Localizer.Format("#LOC_KC_COMMON_POWER_LEVEL", fusionReactor.FusionInfo.MinKerbals[kvp.Key], kvp.Value - fusionReactor.facilityInfo.ResourceUsage[kvp.Key].GetValueOrDefault(ec)));
                             Dictionary<string, int> requiredTraits = fusionReactor.FusionInfo.RequiredTraits[kvp.Key];
                             if (requiredTraits.Count > 0)
                             {
@@ -72,7 +73,7 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fus
                                     {
                                         requiredTraits.ToList().ForEach(trait =>
                                         {
-                                            GUILayout.Label($"{trait.Key}: {trait.Value} Kerbals");
+                                            GUILayout.Label(Localizer.Format("#LOC_KC_FUSION_TRAIT_ITEM", trait.Key, trait.Value));
                                         });
                                     }
                                     GUILayout.EndVertical();
@@ -85,7 +86,7 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fus
                     GUILayout.EndScrollView();
 
 
-                    if (GUILayout.Toggle(fusionReactor.ManualControl, "Manual control"))
+                    if (GUILayout.Toggle(fusionReactor.ManualControl, Localizer.Format("#LOC_KC_COMMON_MANUAL_CONTROL")))
                     {
                         if (!fusionReactor.ManualControl)
                         {
@@ -108,7 +109,7 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fus
                     {
                         GUILayout.BeginHorizontal();
                         {
-                            GUILayout.Label("Level: 0");
+                            GUILayout.Label(Localizer.Format("#LOC_KC_COMMON_LEVEL", 0));
                             GUILayout.FlexibleSpace();
                             manualLevel = 0;
                             manualLevel = GUILayout.HorizontalSlider(manualLevel, 0, 0, GUILayout.Width(300));
@@ -120,7 +121,7 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fus
                     {
                         GUILayout.BeginHorizontal();
                         {
-                            GUILayout.Label($"Level: {fusionReactor.ManualPowerLevel}");
+                            GUILayout.Label(Localizer.Format("#LOC_KC_COMMON_LEVEL", fusionReactor.ManualPowerLevel));
                             GUILayout.FlexibleSpace();
                             manualLevel = GUILayout.HorizontalSlider(manualLevel, possiblePowerLevels.First().Key, possiblePowerLevels.Last().Key, GUILayout.Width(300));
                             fusionReactor.ManualPowerLevel = (int)Math.Round(manualLevel, 0);
@@ -129,7 +130,7 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fus
                     }
                     GUILayout.BeginHorizontal();
                     {
-                        GUILayout.Label($"Throttle: {fusionReactor.ManualThrottle}");
+                        GUILayout.Label(Localizer.Format("#LOC_KC_COMMON_THROTTLE", fusionReactor.ManualThrottle));
                         GUILayout.FlexibleSpace();
                         fusionReactor.ManualThrottle = Math.Round(GUILayout.HorizontalSlider((float)fusionReactor.ManualThrottle, (float)fusionReactor.FusionInfo.MinECThrottle[fusionReactor.ManualPowerLevel], 1, GUILayout.Width(300)), 3);
                         fusionReactor.ManualThrottle = Math.Max(fusionReactor.ManualThrottle, fusionReactor.FusionInfo.MinECThrottle[fusionReactor.ManualPowerLevel]);
@@ -138,16 +139,16 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fus
 
 
                     GUI.enabled = true;
-                    fusionReactor.Active = GUILayout.Toggle(fusionReactor.Active, "Reactor active");
+                    fusionReactor.Active = GUILayout.Toggle(fusionReactor.Active, Localizer.Format("#LOC_KC_COMMON_REACTOR_ACTIVE"));
                     GUILayout.BeginHorizontal(GUILayout.Height(155));
                     {
                         GUILayout.BeginVertical();
                         {
                             {
-                                GUILayout.Label("Input Resources:");
+                                GUILayout.Label(Localizer.Format("#LOC_KC_COMMON_INPUT_RESOURCES"));
                                 inputScrollPos = GUILayout.BeginScrollView(inputScrollPos);
                                 {
-                                    fusionReactor.facilityInfo.ResourceUsage[fusionReactor.lastPowerLevel.Key == -1 ? 0 : fusionReactor.lastPowerLevel.Key].Where(kvp => kvp.Value < 0).ToList().ForEach(kvp => GUILayout.Label($"{kvp.Key.displayName}: {kvp.Value}/s * throttle"));
+                                    fusionReactor.facilityInfo.ResourceUsage[fusionReactor.lastPowerLevel.Key == -1 ? 0 : fusionReactor.lastPowerLevel.Key].Where(kvp => kvp.Value < 0).ToList().ForEach(kvp => GUILayout.Label(Localizer.Format("#LOC_KC_FUSION_RESOURCE_ITEM", kvp.Key.displayName, kvp.Value)));
                                 }
                                 GUILayout.EndScrollView();
                             }
@@ -156,10 +157,10 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Fus
 
                         GUILayout.BeginVertical();
                         {
-                            GUILayout.Label("Output Resources:");
+                            GUILayout.Label(Localizer.Format("#LOC_KC_COMMON_OUTPUT_RESOURCES"));
                             outputScrollPos = GUILayout.BeginScrollView(outputScrollPos);
                             {
-                                fusionReactor.facilityInfo.ResourceUsage[fusionReactor.lastPowerLevel.Key == -1 ? 0 : fusionReactor.lastPowerLevel.Key].Where(kvp => kvp.Value > 0).ToList().ForEach(kvp => GUILayout.Label($"{kvp.Key.displayName}: {kvp.Value}/s * throttle"));
+                                fusionReactor.facilityInfo.ResourceUsage[fusionReactor.lastPowerLevel.Key == -1 ? 0 : fusionReactor.lastPowerLevel.Key].Where(kvp => kvp.Value > 0).ToList().ForEach(kvp => GUILayout.Label(Localizer.Format("#LOC_KC_FUSION_RESOURCE_ITEM", kvp.Key.displayName, kvp.Value)));
                             }
                             GUILayout.EndScrollView();
                         }

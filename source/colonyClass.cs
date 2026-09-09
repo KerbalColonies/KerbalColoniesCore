@@ -1,6 +1,7 @@
 ﻿using KerbalColonies.colonyFacilities;
 using KerbalColonies.colonyFacilities.CabFacility;
 using KerbalColonies.Settings;
+using KSP.Localization;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -129,7 +130,7 @@ namespace KerbalColonies
 
         public string Name { get; private set; }
         private string displayName;
-        public string DisplayName { get => UseCustomDisplayName ? displayName ?? $"{BodyName} colony {ColonyNumber}" : $"{BodyName} colony {ColonyNumber}"; set { displayName = value; UseCustomDisplayName = true; } }
+        public string DisplayName { get => UseCustomDisplayName ? displayName ?? Localizer.Format("#LOC_KC_COLONY_DEFAULT_NAME", BodyName, ColonyNumber) : Localizer.Format("#LOC_KC_COLONY_DEFAULT_NAME", BodyName, ColonyNumber); set { displayName = value; UseCustomDisplayName = true; } }
         public bool UseCustomDisplayName { get; private set; } = false;
 
         public int ColonyNumber { get; private set; }

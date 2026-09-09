@@ -4,6 +4,7 @@ using KerbalColonies.Settings;
 using KerbalColonies.UI;
 using KerbalKonstructs;
 using KerbalKonstructs.UI;
+using KSP.Localization;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -56,7 +57,7 @@ namespace KerbalColonies
                 else
                 {
                     Configuration.writeLog($"Insufficient {resource.Key.displayName} resources on vessel.");
-                    ScreenMessages.PostScreenMessage($"KC: {vesselAmount:f2}/{resource.Value * Configuration.FacilityCostMultiplier:f2} {resource.Key.displayName}", 10f, ScreenMessageStyle.UPPER_RIGHT);
+                    ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KC_COLONYBUILDING_INSUFFICIENT_RESOURCE", vesselAmount.ToString("f2"), (resource.Value * Configuration.FacilityCostMultiplier).ToString("f2"), resource.Key.displayName), 10f, ScreenMessageStyle.UPPER_RIGHT);
                     insufficientResources = true;
                 }
             }
@@ -66,7 +67,7 @@ namespace KerbalColonies
                 Configuration.writeLog($"Funds: {Funding.Instance.Funds:f2} / {info.Funds[0] * Configuration.FacilityCostMultiplier:f2}");
                 if (Funding.Instance.Funds < info.Funds[0] * Configuration.FacilityCostMultiplier)
                 {
-                    ScreenMessages.PostScreenMessage($"KC: {Funding.Instance.Funds}/{info.Funds[0] * Configuration.FacilityCostMultiplier} Funds", 10f, ScreenMessageStyle.UPPER_RIGHT);
+                    ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KC_COLONYBUILDING_INSUFFICIENT_FUNDS", Funding.Instance.Funds, info.Funds[0] * Configuration.FacilityCostMultiplier), 10f, ScreenMessageStyle.UPPER_RIGHT);
                     insufficientResources = true;
                 }
             }
@@ -98,13 +99,13 @@ namespace KerbalColonies
                     {
                         for (int i = 0; i < info.resourceCost[0].Count; i++)
                         {
-                            GUILayout.Label($"{info.resourceCost[0].ElementAt(i).Key.displayName}: {info.resourceCost[0].ElementAt(i).Value}");
+                            GUILayout.Label(Localizer.Format("#LOC_KC_COMMON_LABEL_VALUE", info.resourceCost[0].ElementAt(i).Key.displayName, info.resourceCost[0].ElementAt(i).Value));
                         }
                     }
                     GUILayout.EndVertical();
                     GUILayout.FlexibleSpace();
                     GUILayout.BeginVertical();
-                    GUILayout.Label($"Funds: {(info.Funds.Count > 0 ? info.Funds[0] : 0)}");
+                    GUILayout.Label(Localizer.Format("#LOC_KC_COMMON_FUNDS", info.Funds.Count > 0 ? info.Funds[0] : 0));
                     //GUILayout.Label($"ECperSecond: {t.ECperSecond}");
                     GUILayout.EndVertical();
 
@@ -114,7 +115,7 @@ namespace KerbalColonies
 
                     if (!checkVesselResources(info)) { GUI.enabled = false; }
 
-                    if (GUILayout.Button("Build"))
+                    if (GUILayout.Button(Localizer.Format("#LOC_KC_COMMON_BUILD")))
                     {
                         removeVesselResources(info);
                         ColonyBuilding.BuildColony(info);
@@ -127,7 +128,7 @@ namespace KerbalColonies
             GUILayout.EndScrollView();
         }
 
-        internal CABSelectorWindow() : base(Configuration.createWindowID(), "Select a CAB")
+        internal CABSelectorWindow() : base(Configuration.createWindowID(), Localizer.Format("#LOC_KC_COLONYBUILDING_SELECT_CAB"))
         {
             toolRect = new Rect(100, 100, 500, 400);
         }
@@ -261,7 +262,7 @@ namespace KerbalColonies
             }
             else if (Configuration.CabTypes.Count == 0)
             {
-                ScreenMessages.PostScreenMessage($"KC: no CABs are unlocked yet.", 10f, ScreenMessageStyle.UPPER_RIGHT);
+                ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KC_COLONYBUILDING_NO_CABS"), 10f, ScreenMessageStyle.UPPER_RIGHT);
                 Configuration.writeLog("Unable to create colony: no CABs are unlocked yet.");
                 return 1;
             }

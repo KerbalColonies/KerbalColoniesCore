@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Reflection;
 using KerbalColonies.colonyFacilities.ProductionFacility;
+using KSP.Localization;
 using UnityEngine;
 
 // KC: Kerbal Colonies
@@ -24,35 +25,35 @@ namespace KerbalColonies.Settings
 {
     public class KCGameParameters : GameParameters.CustomParameterNode
     {
-        public override string Title { get => "Kerbal Colonies"; }
+        public override string Title { get => Localizer.Format("#LOC_KC_COMMON_BRAND"); }
         public override GameParameters.GameMode GameMode { get { return GameParameters.GameMode.ANY; } }
-        public override string Section { get { return "Kerbal Colonies"; } }
-        public override string DisplaySection { get { return "Kerbal Colonies"; } }
+        public override string Section { get { return Localizer.Format("#LOC_KC_COMMON_BRAND"); } }
+        public override string DisplaySection { get { return Localizer.Format("#LOC_KC_COMMON_BRAND"); } }
         public override int SectionOrder { get { return 1; } }
         public override bool HasPresets { get { return true; } }
 
-        [GameParameters.CustomFloatParameterUI("Facility build cost multiplier", toolTip = "Multiplies the build cost for all facilities and new colonies.", addTextField = true, asPercentage = false, autoPersistance = false, gameMode = GameParameters.GameMode.ANY, maxValue = 10f, newGameOnly = false, displayFormat = "0.00")]
+        [GameParameters.CustomFloatParameterUI("#LOC_KC_SETTINGS_FACILITY_COST", toolTip = "#LOC_KC_SETTINGS_FACILITY_COST_TOOLTIP", addTextField = true, asPercentage = false, autoPersistance = false, gameMode = GameParameters.GameMode.ANY, maxValue = 10f, newGameOnly = false, displayFormat = "0.00")]
         public float FacilityCostMultiplier { get => Configuration.FacilityCostMultiplier; set { if (Configuration.FacilityCostMultiplier == value) return; Configuration.FacilityCostMultiplier = value; KCProductionFacility.RecalculateAllCosts(); } }
 
-        [GameParameters.CustomFloatParameterUI("Facility build time multiplier", toolTip = "Multiplies the build time for all facilities.", addTextField = true, asPercentage = false, autoPersistance = false, gameMode = GameParameters.GameMode.ANY, maxValue = 10f, newGameOnly = false, displayFormat = "0.00")]
+        [GameParameters.CustomFloatParameterUI("#LOC_KC_SETTINGS_FACILITY_TIME", toolTip = "#LOC_KC_SETTINGS_FACILITY_TIME_TOOLTIP", addTextField = true, asPercentage = false, autoPersistance = false, gameMode = GameParameters.GameMode.ANY, maxValue = 10f, newGameOnly = false, displayFormat = "0.00")]
         public float FacilityTimeMultiplier { get => Configuration.FacilityTimeMultiplier; set => Configuration.FacilityTimeMultiplier = value; }
 
-        [GameParameters.CustomFloatParameterUI("Facility range multiplier", toolTip = "Multiplies the range of all facilities.", addTextField = true, asPercentage = false, autoPersistance = false, gameMode = GameParameters.GameMode.ANY, minValue = 0.1f, maxValue = 10f, newGameOnly = false, displayFormat = "0.00")]
+        [GameParameters.CustomFloatParameterUI("#LOC_KC_SETTINGS_FACILITY_RANGE", toolTip = "#LOC_KC_SETTINGS_FACILITY_RANGE_TOOLTIP", addTextField = true, asPercentage = false, autoPersistance = false, gameMode = GameParameters.GameMode.ANY, minValue = 0.1f, maxValue = 10f, newGameOnly = false, displayFormat = "0.00")]
         public float FacilityRangeMultiplier { get => Configuration.FacilityRangeMultiplier; set => Configuration.FacilityRangeMultiplier = value; }
 
-        [GameParameters.CustomFloatParameterUI("Editor range multiplier", toolTip = "Multiplies the range of KCs custom KK editor.", addTextField = true, asPercentage = false, autoPersistance = false, gameMode = GameParameters.GameMode.ANY, minValue = 0.1f, maxValue = 10f, newGameOnly = false, displayFormat = "0.00")]
+        [GameParameters.CustomFloatParameterUI("#LOC_KC_SETTINGS_EDITOR_RANGE", toolTip = "#LOC_KC_SETTINGS_EDITOR_RANGE_TOOLTIP", addTextField = true, asPercentage = false, autoPersistance = false, gameMode = GameParameters.GameMode.ANY, minValue = 0.1f, maxValue = 10f, newGameOnly = false, displayFormat = "0.00")]
         public float EditorRangeMultiplier { get => Configuration.EditorRangeMultiplier; set => Configuration.EditorRangeMultiplier = value; }
 
-        [GameParameters.CustomFloatParameterUI("Vessel build cost multiplier", toolTip = "Multiplies the build cost for all vessel built at colonies.", addTextField = true, asPercentage = false, autoPersistance = false, gameMode = GameParameters.GameMode.ANY, maxValue = 10f, newGameOnly = false, displayFormat = "0.00")]
+        [GameParameters.CustomFloatParameterUI("#LOC_KC_SETTINGS_VESSEL_COST", toolTip = "#LOC_KC_SETTINGS_VESSEL_COST_TOOLTIP", addTextField = true, asPercentage = false, autoPersistance = false, gameMode = GameParameters.GameMode.ANY, maxValue = 10f, newGameOnly = false, displayFormat = "0.00")]
         public float VesselCostMultiplier { get => Configuration.VesselCostMultiplier; set { if (Configuration.VesselCostMultiplier == value) return; Configuration.VesselCostMultiplier = value; KCProductionFacility.RecalculateAllCosts(); } }
 
-        [GameParameters.CustomFloatParameterUI("Vessel build time multiplier", toolTip = "Multiplies the build time for all vessel built at colonies.", addTextField = true, asPercentage = false, autoPersistance = false, gameMode = GameParameters.GameMode.ANY, maxValue = 10f, newGameOnly = false, displayFormat = "0.00")]
+        [GameParameters.CustomFloatParameterUI("#LOC_KC_SETTINGS_VESSEL_TIME", toolTip = "#LOC_KC_SETTINGS_VESSEL_TIME_TOOLTIP", addTextField = true, asPercentage = false, autoPersistance = false, gameMode = GameParameters.GameMode.ANY, maxValue = 10f, newGameOnly = false, displayFormat = "0.00")]
         public float VesselTimeMultiplier { get => Configuration.VesselTimeMultiplier; set => Configuration.VesselTimeMultiplier = value; }
 
-        [GameParameters.CustomIntParameterUI("Max colonies per body", toolTip = "Maximum number of colonies that can be built on a single body. Set to 0 to disable the limit.", autoPersistance = false, gameMode = GameParameters.GameMode.ANY, minValue = 0, maxValue = 15, newGameOnly = false)]
+        [GameParameters.CustomIntParameterUI("#LOC_KC_SETTINGS_MAX_COLONIES", toolTip = "#LOC_KC_SETTINGS_MAX_COLONIES_TOOLTIP", autoPersistance = false, gameMode = GameParameters.GameMode.ANY, minValue = 0, maxValue = 15, newGameOnly = false)]
         public int maxColoniesPerBody { get => Configuration.MaxColoniesPerBody; set => Configuration.MaxColoniesPerBody = value; }
 
-        [GameParameters.CustomParameterUI("Enable debug logging", toolTip = "Enables debug logging for Kerbal Colonies.", autoPersistance = false, gameMode = GameParameters.GameMode.ANY, newGameOnly = false)]
+        [GameParameters.CustomParameterUI("#LOC_KC_SETTINGS_DEBUG_LOGGING", toolTip = "#LOC_KC_SETTINGS_DEBUG_LOGGING_TOOLTIP", autoPersistance = false, gameMode = GameParameters.GameMode.ANY, newGameOnly = false)]
         public bool enableLogging { get => Configuration.enableLogging; set => Configuration.enableLogging = value; }
 
         public override bool Enabled(MemberInfo member, GameParameters parameters)

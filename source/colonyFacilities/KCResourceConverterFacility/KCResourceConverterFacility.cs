@@ -1,6 +1,7 @@
 ﻿using KerbalColonies.colonyFacilities.StorageFacility;
 using KerbalColonies.ResourceManagment;
 using KerbalColonies.Settings;
+using KSP.Localization;
 using Smooth.Collections;
 using System;
 using System.Collections.Generic;
@@ -301,7 +302,7 @@ namespace KerbalColonies.colonyFacilities.KCResourceConverterFacility
 
         public override void OnRemoteClicked() => kCResourceConverterWindow.Toggle();
 
-        public override string GetFacilityProductionDisplay() => $"{(enabled ? "Enabled" : "Disabled")}\nRecipe: {activeRecipe.DisplayName}";
+        public override string GetFacilityProductionDisplay() => Localizer.Format("#LOC_KC_CONVERTER_SUMMARY", Localizer.Format(enabled ? "#LOC_KC_COMMON_ENABLED" : "#LOC_KC_CONVERTER_DISABLED"), activeRecipe.DisplayName);
 
         public override ConfigNode getConfigNode()
         {

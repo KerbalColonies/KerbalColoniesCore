@@ -1,6 +1,7 @@
 ﻿using ClickThroughFix;
 using KerbalColonies.Settings;
 using KerbalColonies.UI.SingleTimeWindow;
+using KSP.Localization;
 using System;
 using UnityEngine;
 
@@ -77,7 +78,7 @@ namespace KerbalColonies.UI.SingleTimePopup
             GUILayout.BeginHorizontal();
             {
                 GUI.enabled = false;
-                GUILayout.Button("-KC-", UIConfig.DeadButton, GUILayout.Height(21));
+                GUILayout.Button(Localizer.Format("#LOC_KC_COMMON_WINDOW_BRAND"), UIConfig.DeadButton, GUILayout.Height(21));
 
                 GUILayout.FlexibleSpace();
 
@@ -88,7 +89,7 @@ namespace KerbalColonies.UI.SingleTimePopup
 
                 GUI.enabled = true;
 
-                if (GUILayout.Button("X", UIConfig.DeadButtonRed, GUILayout.Height(21)))
+                if (GUILayout.Button(Localizer.Format("#LOC_KC_COMMON_CLOSE"), UIConfig.DeadButtonRed, GUILayout.Height(21)))
                 {
                     showAgain = true;
                     Close();
@@ -102,8 +103,8 @@ namespace KerbalColonies.UI.SingleTimePopup
 
             GUILayout.BeginHorizontal();
             {
-                if (GUILayout.Button("Don't show again", GUILayout.Width((toolRect.width / 2) - 15))) { showAgain = false; Close(); }
-                if (GUILayout.Button("Close", GUILayout.Width((toolRect.width / 2) - 15))) { showAgain = true; Close(); }
+                if (GUILayout.Button(Localizer.Format("#LOC_KC_SINGLETIME_DONT_SHOW"), GUILayout.Width((toolRect.width / 2) - 15))) { showAgain = false; Close(); }
+                if (GUILayout.Button(Localizer.Format("#LOC_KC_SINGLETIME_CLOSE"), GUILayout.Width((toolRect.width / 2) - 15))) { showAgain = true; Close(); }
             }
             GUILayout.EndHorizontal();
 

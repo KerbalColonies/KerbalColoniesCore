@@ -1,6 +1,7 @@
 ﻿using KerbalColonies.ResourceManagment;
 using KerbalColonies.Settings;
 using KerbalKonstructs.Core;
+using KSP.Localization;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -179,7 +180,7 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities.ECGenerators.Win
             return resourcesProduced;
         }
 
-        public override string GetFacilityProductionDisplay() => $"Wind turbine production rate: {string.Join(", ", ResourcesPerSecond().Select(kvp => $"{kvp.Key.displayName}: {kvp.Value:f2}"))}";
+        public override string GetFacilityProductionDisplay() => Localizer.Format("#LOC_KC_WINDTURBINE_SUMMARY", string.Join(", ", ResourcesPerSecond().Select(kvp => Localizer.Format("#LOC_KC_COMMON_LABEL_VALUE", kvp.Key.displayName, kvp.Value.ToString("f2")))));
 
         public override ConfigNode getConfigNode()
         {

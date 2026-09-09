@@ -1,5 +1,6 @@
 ﻿using KerbalColonies.Settings;
 using KerbalColonies.UI;
+using KSP.Localization;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -42,12 +43,12 @@ namespace KerbalColonies.colonyFacilities.KCMiningFacility
         {
             scrollPos = GUILayout.BeginScrollView(scrollPos);
             {
-                newRates.ToList().ForEach(rate => GUILayout.Label($"{rate.Key.displayName}: {rate.Value}/day"));
+                newRates.ToList().ForEach(rate => GUILayout.Label(Localizer.Format("#LOC_KC_MINING_RATE_ITEM", rate.Key.displayName, rate.Value)));
             }
             GUILayout.EndScrollView();
         }
 
-        public KCMiningFacilityPlacementWindow() : base(Configuration.createWindowID(), "Miningfacility placement info")
+        public KCMiningFacilityPlacementWindow() : base(Configuration.createWindowID(), Localizer.Format("#LOC_KC_MINING_PLACEMENT_TITLE"))
         {
             toolRect = new Rect(100, 100, 400, 300);
         }

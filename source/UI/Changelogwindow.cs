@@ -1,5 +1,6 @@
 ﻿using KerbalColonies.Settings;
 using KerbalColonies.UI.SingleTimePopup;
+using KSP.Localization;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -142,7 +143,7 @@ namespace KerbalColonies.UI
             n.Save(path);
         }
 
-        public Changelogwindow() : base("KC Changlelog", "kc_changelog", true, false, false, false, false)
+        public Changelogwindow() : base(Localizer.Format("#LOC_KC_CHANGELOG_TITLE"), "kc_changelog", true, false, false, false, false)
         {
 #if DEBUG
             showAgain = true;
@@ -172,7 +173,7 @@ namespace KerbalColonies.UI
                 catch (Exception e)
                 {
                     Debug.LogError($"Kerbal Colonies: Error loading changelog file: {e.Message}");
-                    changelogText = ["Error loading changelog. Please check the log for details."];
+                    changelogText = [Localizer.Format("#LOC_KC_CHANGELOG_LOAD_ERROR")];
                 }
             }
         }

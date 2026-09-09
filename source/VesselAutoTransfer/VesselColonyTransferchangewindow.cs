@@ -1,6 +1,7 @@
 ﻿using KerbalColonies.colonyFacilities.StorageFacility;
 using KerbalColonies.Settings;
 using KerbalColonies.UI;
+using KSP.Localization;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -40,7 +41,7 @@ namespace KerbalColonies.VesselAutoTransfer
 
             if (possibleTargets.Count == 0)
             {
-                GUILayout.Label("No colonies in range.");
+                GUILayout.Label(Localizer.Format("#LOC_KC_TRANSFER_NO_COLONIES"));
                 return;
             }
 
@@ -59,7 +60,7 @@ namespace KerbalColonies.VesselAutoTransfer
             GUILayout.EndScrollView();
         }
 
-        public VesselColonyTransferchangewindow(ModuleKCTransfer transferModule) : base(Configuration.createWindowID(), "Change target colony", false)
+        public VesselColonyTransferchangewindow(ModuleKCTransfer transferModule) : base(Configuration.createWindowID(), Localizer.Format("#LOC_KC_TRANSFER_CHANGE_TARGET"), false)
         {
             TransferModule = transferModule;
 

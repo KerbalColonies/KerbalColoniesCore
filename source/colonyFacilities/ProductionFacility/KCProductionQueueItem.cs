@@ -1,6 +1,7 @@
 using KerbalColonies.colonyFacilities.HangarFacility;
 using KerbalColonies.colonyFacilities.StorageFacility;
 using KerbalColonies.Settings;
+using KSP.Localization;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -152,7 +153,11 @@ namespace KerbalColonies.colonyFacilities.ProductionFacility
 
         public override bool IsAvailable(colonyClass colony) => Facility != null && (IsUpgrade ? Facility.level + 1 == TargetLevel : !Facility.built);
 
-        public override string GetDisplayName(colonyClass colony) => $"{Facility?.DisplayName ?? "Missing facility"}{(IsUpgrade ? " upgrade" : " construction")}";
+        public override string GetDisplayName(colonyClass colony)
+        {
+            string facilityName = Facility?.DisplayName ?? Localizer.Format("#LOC_KC_PRODUCTION_MISSING_FACILITY");
+            return Localizer.Format(IsUpgrade ? "#LOC_KC_PRODUCTION_UPGRADE_ITEM" : "#LOC_KC_PRODUCTION_CONSTRUCTION_ITEM", facilityName);
+        }
 
         public override void Complete(colonyClass colony)
         {
@@ -241,7 +246,7 @@ namespace KerbalColonies.colonyFacilities.ProductionFacility
 
         public override bool IsAvailable(colonyClass colony) => Hangar != null && Vessel != null;
 
-        public override string GetDisplayName(colonyClass colony) => Vessel?.vesselName ?? "Missing vessel";
+        public override string GetDisplayName(colonyClass colony) => Vessel?.vesselName ?? Localizer.Format("#LOC_KC_PRODUCTION_MISSING_VESSEL");
 
         public override void Complete(colonyClass colony)
         {
@@ -250,7 +255,7 @@ namespace KerbalColonies.colonyFacilities.ProductionFacility
             vessel.vesselBuildTime = null;
             vessel.entireVesselBuildTime = null;
             vessel.vesselDryMass = null;
-            ScreenMessages.PostScreenMessage($"KC: Vessel {vessel.vesselName} was fully built on colony {colony.DisplayName}", 10f, ScreenMessageStyle.UPPER_RIGHT);
+            ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KC_PRODUCTION_VESSEL_COMPLETE", vessel.vesselName, colony.DisplayName), 10f, ScreenMessageStyle.UPPER_RIGHT);
         }
 
         public override void Cancel(colonyClass colony)

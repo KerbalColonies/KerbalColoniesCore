@@ -1,4 +1,5 @@
 ﻿using KerbalColonies.Settings;
+using KSP.Localization;
 using System.Linq;
 using UnityEngine;
 
@@ -53,7 +54,7 @@ namespace KerbalColonies.UI
             borderOnlyStyle.margin = new RectOffset(10, 10, 10, 10);
             borderOnlyStyle.padding = new RectOffset(10, 10, 10, 10);
 
-            GUILayout.Label("Colony list:");
+            GUILayout.Label(Localizer.Format("#LOC_KC_OVERVIEW_COLONY_LIST"));
 
             scrollPos = GUILayout.BeginScrollView(scrollPos);
             KCSaveGame.colonyDictionary.SelectMany(x => x.Value).ToList().ForEach(colony =>
@@ -70,7 +71,7 @@ namespace KerbalColonies.UI
 
                     GUI.enabled = true;
                     GUILayout.FlexibleSpace();
-                    if (GUILayout.Button("Open CAB"))
+                    if (GUILayout.Button(Localizer.Format("#LOC_KC_OVERVIEW_OPEN_CAB")))
                     {
                         colony.CAB.Update();
                         colony.CAB.OnRemoteClicked();
@@ -83,20 +84,20 @@ namespace KerbalColonies.UI
 
             if (showNameField)
             {
-                GUILayout.Label("Enter new Name: ");
+                GUILayout.Label(Localizer.Format("#LOC_KC_COMMON_RENAME_PROMPT"));
 
                 newTitle = GUILayout.TextField(newTitle, GUILayout.Width(150));
 
                 GUILayout.BeginHorizontal();
                 {
-                    if (GUILayout.Button("OK", GUILayout.Height(23)))
+                    if (GUILayout.Button(Localizer.Format("#LOC_KC_COMMON_OK"), GUILayout.Height(23)))
                     {
                         Configuration.writeLog($"Changing the name of the {selectedColony.Name} from {selectedColony.DisplayName} to {newTitle}");
                         selectedColony.DisplayName = newTitle;
                         showNameField = false;
                         selectedColony.Facilities.ForEach(facility => facility.OnColonyNameChange(title));
                     }
-                    if (GUILayout.Button("Cancel", GUILayout.Height(23)))
+                    if (GUILayout.Button(Localizer.Format("#LOC_KC_COMMON_CANCEL"), GUILayout.Height(23)))
                     {
                         showNameField = false;
                     }
@@ -112,7 +113,7 @@ namespace KerbalColonies.UI
             //KerbalColonies.toolbarControl.buttonActive = false;
         }
 
-        private OverviewWindow() : base(Configuration.createWindowID(), "Overview")
+        private OverviewWindow() : base(Configuration.createWindowID(), Localizer.Format("#LOC_KC_OVERVIEW_WINDOW_TITLE"))
         {
             toolRect = new Rect(100, 100, 330, 600);
         }

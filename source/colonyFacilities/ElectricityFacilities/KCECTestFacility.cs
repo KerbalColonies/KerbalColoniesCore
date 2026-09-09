@@ -1,6 +1,7 @@
 ﻿using KerbalColonies.ResourceManagment;
 using KerbalColonies.Settings;
 using KerbalColonies.UI;
+using KSP.Localization;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
@@ -33,7 +34,7 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities
         protected override void CustomWindow()
         {
             facility.Colony.UpdateColony();
-            GUILayout.Label($"Current production: {ecFacility.ECProduced}");
+            GUILayout.Label(Localizer.Format("#LOC_KC_ECTEST_PRODUCTION", ecFacility.ECProduced));
 
             GUILayout.BeginHorizontal();
             foreach (double i in valueList)
@@ -46,7 +47,7 @@ namespace KerbalColonies.colonyFacilities.ElectricityFacilities
             }
             GUILayout.EndHorizontal();
 
-            GUILayout.Label($"Current priority: {ecFacility.ResourceConsumptionPriority}");
+            GUILayout.Label(Localizer.Format("#LOC_KC_ECTEST_PRIORITY", ecFacility.ResourceConsumptionPriority));
 
             GUILayout.BeginHorizontal();
             foreach (int i in ints)

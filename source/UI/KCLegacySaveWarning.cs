@@ -1,4 +1,5 @@
 ﻿using KerbalColonies.Settings;
+using KSP.Localization;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -38,18 +39,18 @@ namespace KerbalColonies.UI
 
         protected override void CustomWindow()
         {
-            GUILayout.Label("<b>Legacy Save Detected</b>");
-            GUILayout.Label("This save was created with an older version of Kerbal Colonies.");
-            GUILayout.Label("Because of large changes like the electricity system old saves are not compatible with the current version.");
-            GUILayout.Label("You can keep the colonies from this save but they won't be loaded in the current version of KC.");
+            GUILayout.Label(Localizer.Format("#LOC_KC_LEGACYSAVE_TITLE"));
+            GUILayout.Label(Localizer.Format("#LOC_KC_LEGACYSAVE_CREATED_OLDER"));
+            GUILayout.Label(Localizer.Format("#LOC_KC_LEGACYSAVE_INCOMPATIBLE"));
+            GUILayout.Label(Localizer.Format("#LOC_KC_LEGACYSAVE_KEEP_EXPLANATION"));
             GUILayout.BeginHorizontal();
             {
-                if (GUILayout.Button("Keep Colonies", GUILayout.Width(190)))
+                if (GUILayout.Button(Localizer.Format("#LOC_KC_LEGACYSAVE_KEEP"), GUILayout.Width(190)))
                 {
                     LoadedSaves.TryAdd(HighLogic.CurrentGame.Seed.ToString(), false);
                     Close();
                 }
-                if (GUILayout.Button("Delete Colonies", GUILayout.Width(190)))
+                if (GUILayout.Button(Localizer.Format("#LOC_KC_LEGACYSAVE_DELETE"), GUILayout.Width(190)))
                 {
                     LoadedSaves.Remove(HighLogic.CurrentGame.Seed.ToString());
                     Close();
@@ -86,7 +87,7 @@ namespace KerbalColonies.UI
             }
         }
 
-        public KCLegacySaveWarning() : base(Configuration.createWindowID(), "<b>Legacy Save Warning</b>", false)
+        public KCLegacySaveWarning() : base(Configuration.createWindowID(), Localizer.Format("#LOC_KC_LEGACYSAVE_WINDOW_TITLE"), false)
         {
             toolRect = new Rect(100, 100, 400, 240);
         }

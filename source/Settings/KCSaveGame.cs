@@ -33,20 +33,6 @@ namespace KerbalColonies.Settings
         {
             loadedNode = node.CreateCopy();
 
-
-            if (node.CountNodes == 0)
-            {
-                // Check for old CONFIGURATION node
-                ConfigNode legacySaveNode = HighLogic.CurrentGame.config.GetNodes("SCENARIO").FirstOrDefault(n => n.GetValue("name") == "Configuration");
-                if (legacySaveNode != null)
-                {
-                    loadedNode = legacySaveNode.CreateCopy();
-                    HighLogic.CurrentGame.config.RemoveNode(legacySaveNode);
-
-                    HighLogic.CurrentGame.scenarios.RemoveAll(s => s.moduleName == "Configuration");
-                }
-            }
-
             KCProductionFacility.ConstructedFacilities.Clear();
             KCProductionFacility.ConstructingFacilities.Clear();
             KCProductionFacility.UpgradingFacilities.Clear();

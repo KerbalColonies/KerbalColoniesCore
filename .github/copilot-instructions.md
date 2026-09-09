@@ -6,6 +6,7 @@
 - Never use emojis, slang, or informal language in code comments or documentation. Use clear, professional language.
 - Never add yourself to the list of authors in code comments or documentation.
 - Think critically about the requested changes and determine if they are a good solution/change or if there's a better approach. If you think there is a better approach, explain and ASK. Don't assume.
+- For source change requests, do not announce planned changes or wait for a follow-up message; directly inspect and modify the workspace files.
 
 ## Writing Plans
 - When writing a plan:
@@ -19,6 +20,12 @@
 - Avoid duplicating existing code. If you think a new function or class is needed, check if it already exists. If it does, use it instead of creating a new one.
 - Custom agent profiles should avoid duplicating repository Copilot instructions, reference the instruction file instead, and explicitly treat those instructions as overriding the agent profile.
 
+## Production Queue Feature
+- For the production queue feature: producer capability constraints contain all required item constraints; each producer works on the earliest compatible queued item; facility resources and funds drain proportionally and pause on shortage; cancellation deletes unbuilt facilities and in-progress vessels but leaves upgrades at the old level with no refunds; legacy queues migrate in vessel, upgrade, construction order while preserving progress.
+- Use a base queue-item class with facility and vessel overloads/subtypes; the base defines lifecycle methods such as start, completion/build, and placement plus a string-list of constraints. Per-level constraints/capabilities inherit from the previous level when omitted; level 0 stays empty when unspecified, and vessel-capable production levels automatically include the hardcoded "vessel" capability.
+- Incremental facility construction and upgrade resource costs must drain from colony storage only, matching background vessel production; active-vessel resources are not used.
+- Production scheduling must skip compatible items that are resource- or funds-blocked so available production is used as fully as possible. Queue cost/time must always be derived from current configs rather than snapshotted; cost drain is extrapolated from total current cost and build progress, with a persisted paid flag for migrated/prepaid items. Completed vessels are immediately finalized in their hangar and removed from the queue, with no finished-vessel list or placement step.
+- The production queue base model should expose a generic cost-calculation method. Facility queue items derive current total cost from facility configs, while vessel queue items persist the vessel-specific cost parameters needed to calculate their total cost; vessels should not persist a precomputed cost snapshot.
 
 ---
 name: karpathy-guidelines

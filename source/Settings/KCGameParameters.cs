@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Reflection;
+using KerbalColonies.colonyFacilities.ProductionFacility;
 using UnityEngine;
 
 // KC: Kerbal Colonies
@@ -31,7 +32,7 @@ namespace KerbalColonies.Settings
         public override bool HasPresets { get { return true; } }
 
         [GameParameters.CustomFloatParameterUI("Facility build cost multiplier", toolTip = "Multiplies the build cost for all facilities and new colonies.", addTextField = true, asPercentage = false, autoPersistance = false, gameMode = GameParameters.GameMode.ANY, maxValue = 10f, newGameOnly = false, displayFormat = "0.00")]
-        public float FacilityCostMultiplier { get => Configuration.FacilityCostMultiplier; set => Configuration.FacilityCostMultiplier = value; }
+        public float FacilityCostMultiplier { get => Configuration.FacilityCostMultiplier; set { if (Configuration.FacilityCostMultiplier == value) return; Configuration.FacilityCostMultiplier = value; KCProductionFacility.RecalculateAllCosts(); } }
 
         [GameParameters.CustomFloatParameterUI("Facility build time multiplier", toolTip = "Multiplies the build time for all facilities.", addTextField = true, asPercentage = false, autoPersistance = false, gameMode = GameParameters.GameMode.ANY, maxValue = 10f, newGameOnly = false, displayFormat = "0.00")]
         public float FacilityTimeMultiplier { get => Configuration.FacilityTimeMultiplier; set => Configuration.FacilityTimeMultiplier = value; }
@@ -43,7 +44,7 @@ namespace KerbalColonies.Settings
         public float EditorRangeMultiplier { get => Configuration.EditorRangeMultiplier; set => Configuration.EditorRangeMultiplier = value; }
 
         [GameParameters.CustomFloatParameterUI("Vessel build cost multiplier", toolTip = "Multiplies the build cost for all vessel built at colonies.", addTextField = true, asPercentage = false, autoPersistance = false, gameMode = GameParameters.GameMode.ANY, maxValue = 10f, newGameOnly = false, displayFormat = "0.00")]
-        public float VesselCostMultiplier { get => Configuration.VesselCostMultiplier; set => Configuration.VesselCostMultiplier = value; }
+        public float VesselCostMultiplier { get => Configuration.VesselCostMultiplier; set { if (Configuration.VesselCostMultiplier == value) return; Configuration.VesselCostMultiplier = value; KCProductionFacility.RecalculateAllCosts(); } }
 
         [GameParameters.CustomFloatParameterUI("Vessel build time multiplier", toolTip = "Multiplies the build time for all vessel built at colonies.", addTextField = true, asPercentage = false, autoPersistance = false, gameMode = GameParameters.GameMode.ANY, maxValue = 10f, newGameOnly = false, displayFormat = "0.00")]
         public float VesselTimeMultiplier { get => Configuration.VesselTimeMultiplier; set => Configuration.VesselTimeMultiplier = value; }

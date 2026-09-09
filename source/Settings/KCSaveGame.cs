@@ -34,9 +34,8 @@ namespace KerbalColonies.Settings
             loadedNode = node.CreateCopy();
 
             KCProductionFacility.ConstructedFacilities.Clear();
-            KCProductionFacility.ConstructingFacilities.Clear();
-            KCProductionFacility.UpgradingFacilities.Clear();
             KCProductionFacility.UpgradedFacilities.Clear();
+            KCProductionFacility.ProductionQueues.Clear();
 
             colonyDictionary.Clear();
             GroupFacilities.Clear();

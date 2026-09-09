@@ -78,6 +78,7 @@ namespace KerbalColonies
         // 500 per day * 4 kerbin days = 500
         // 500 per day * 2 kerbin days = 250
         public SortedDictionary<int, double> UpgradeTimes { get; protected set; } = [];
+        public SortedDictionary<int, List<string>> BuildConstraints { get; protected set; } = [];
 
         public SortedDictionary<int, int> MinCABLevel { get; protected set; } = [];
 
@@ -258,6 +259,21 @@ namespace KerbalColonies
 
                 if (n.HasValue("upgradeTime")) UpgradeTimes.Add(level, double.Parse(n.GetValue("upgradeTime")));
                 else UpgradeTimes.Add(level, 0);
+
+                if (n.HasNode("buildConstraints"))
+                {
+                    List<string> constraints = [];
+                    foreach (ConfigNode.Value value in n.GetNode("buildConstraints").values) constraints.Add(value.value);
+                    BuildConstraints.Add(level, constraints.Distinct().ToList());
+                }
+                else if (level > 0)
+                {
+                    BuildConstraints.Add(level, new List<string>(BuildConstraints[level - 1]));
+                }
+                else
+                {
+                    BuildConstraints.Add(level, []);
+                }
 
                 if (n.HasValue("minCABLevel")) MinCABLevel.Add(level, int.Parse(n.GetValue("minCABLevel")));
                 else if (level > 0) MinCABLevel.Add(level, MinCABLevel[level - 1]);

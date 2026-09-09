@@ -1,8 +1,10 @@
 ﻿using KerbalColonies.colonyFacilities;
 using KerbalColonies.colonyFacilities.CabFacility;
+using KerbalColonies.colonyFacilities.ProductionFacility;
 using KerbalColonies.Settings;
 using KerbalColonies.UI;
 using KerbalKonstructs;
+using KerbalKonstructs.Modules;
 using KerbalKonstructs.UI;
 using KSP.Localization;
 using System.Collections.Generic;
@@ -142,16 +144,22 @@ namespace KerbalColonies
 
         internal class QueueInformation
         {
-            internal KCFacilityBase Facility = null;
+            internal IKCColonyBuildable Buildable = null;
             internal string groupName = null;
             internal string fromGroupName = null;
+            internal int targetLevel;
+            internal bool singleStatic;
+            internal bool isUpgrade;
 
 
-            internal QueueInformation(KCFacilityBase facility, string groupName, string fromGroupName)
+            internal QueueInformation(IKCColonyBuildable buildable, string groupName, string fromGroupName, int targetLevel, bool singleStatic, bool isUpgrade = false)
             {
-                Facility = facility;
+                Buildable = buildable;
                 this.groupName = groupName;
                 this.fromGroupName = fromGroupName;
+                this.targetLevel = targetLevel;
+                this.singleStatic = singleStatic;
+                this.isUpgrade = isUpgrade;
             }
         }
 
@@ -161,7 +169,8 @@ namespace KerbalColonies
         /// </summary>
         internal static void PlaceNewGroupSave(KerbalKonstructs.Core.GroupCenter groupCenter)
         {
-            Configuration.writeLog($"Placing group {groupCenter.Group} ({buildQueue.Peek().groupName} wanted) for facility {buildQueue.Peek().Facility.name} at level {buildQueue.Peek().Facility.level}");
+            QueueInformation placement = buildQueue.Peek();
+            Configuration.writeLog($"Placing group {groupCenter.Group} ({placement.groupName} wanted) for {placement.Buildable.Name} at level {placement.targetLevel}");
 
             if (groupCenter.Group != buildQueue.Peek().groupName) { return; }
 
@@ -173,13 +182,16 @@ namespace KerbalColonies
                 instance.ToggleAllColliders(true);
             }
 
-            buildQueue.Peek().Facility.enabled = true;
-            buildQueue.Peek().Facility.OnGroupPlaced(KCGroupEditor.selectedGroup);
+            if (placement.Buildable is KCFacilityBase facility)
+            {
+                facility.enabled = true;
+                facility.OnGroupPlaced(KCGroupEditor.selectedGroup);
+            }
 
             KerbalKonstructs.API.Save();
 
             KCGroupEditor.selectedGroup = null;
-            KCGroupEditor.selectedFacility = null;
+            KCGroupEditor.selectedBuildable = null;
 
             buildQueue.Dequeue();
             placedGroup = true;
@@ -192,11 +204,11 @@ namespace KerbalColonies
         /// It's also used for additional group upgrades.
         /// The facility level must be set correctly before calling this function.
         /// </summary>
-        internal static bool PlaceNewGroup(KCFacilityBase facility, string newGroupName)
+        internal static bool PlaceNewGroup(IKCColonyBuildable buildable, string newGroupName)
         {
-            Configuration.writeLog($"Adding facility {facility.name} with group {newGroupName} from colony {facility.Colony.Name} to the buildqueue");
+            Configuration.writeLog($"Adding {buildable.Name} with group {newGroupName} from colony {buildable.Colony.Name} to the placement queue");
 
-            QueueInformation buildObj = new(facility, newGroupName, facility.GetBaseGroupName(facility.level));
+            QueueInformation buildObj = new(buildable, newGroupName, buildable.BuildableInfo.BasegroupNames[buildable.Level], buildable.Level, false);
 
             buildQueue.Enqueue(buildObj);
             placedGroup = true;
@@ -204,12 +216,88 @@ namespace KerbalColonies
             return true;
         }
 
+        internal static bool PlaceSingleStatic(KCSingleStaticBuildable buildable, int targetLevel, bool isUpgrade)
+        {
+            string sharedGroupName = GetStaticBuildablesGroupName(buildable.Colony);
+            string pointerName = ((KCSingleStaticBuildableInfo)buildable.BuildableInfo).PointerNames[targetLevel];
+            buildQueue.Enqueue(new QueueInformation(buildable, sharedGroupName, pointerName, targetLevel, true, isUpgrade));
+            placedGroup = true;
+            nextFrame = false;
+            return true;
+        }
+
+        internal static void PlaceBuildable(KCBuildableBase buildable, int targetLevel, bool upgrade)
+        {
+            if (buildable is KCSingleStaticBuildable singleStatic)
+            {
+                PlaceSingleStatic(singleStatic, targetLevel, upgrade);
+                return;
+            }
+
+            KCGroupedBuildable grouped = (KCGroupedBuildable)buildable;
+            if (upgrade) grouped.Upgrade(targetLevel);
+            string groupName = $"{buildable.Colony.Name}_{buildable.Name}_{targetLevel}_{buildable.BuildableTypeNumber}";
+            PlaceNewGroup(grouped, groupName);
+        }
+
+        internal static string GetStaticBuildablesGroupName(colonyClass colony) => $"{colony.Name}_Buildables";
+
         internal static void QueuePlacer()
         {
             ColonyBuilding.placedGroup = false;
             if (buildQueue.Count() > 0)
             {
-                Configuration.writeLog($"Placing group {buildQueue.Peek().groupName} for facility {buildQueue.Peek().Facility.name} at level {buildQueue.Peek().Facility.level}");
+                Configuration.writeLog($"Placing group {buildQueue.Peek().groupName} for {buildQueue.Peek().Buildable.Name} at level {buildQueue.Peek().targetLevel}");
+
+                if (ColonyBuilding.buildQueue.Peek().singleStatic)
+                {
+                    QueueInformation placement = ColonyBuilding.buildQueue.Peek();
+                    KerbalKonstructs.Core.GroupCenter sharedGroup = API.GetGroupCenter(placement.groupName, placement.Buildable.Colony.BodyName);
+                    if (sharedGroup == null)
+                    {
+                        API.CreateGroup(placement.groupName);
+                        sharedGroup = API.GetGroupCenter(placement.groupName, placement.Buildable.Colony.BodyName);
+                    }
+                    if (sharedGroup == null)
+                    {
+                        RestoreSingleStaticPlacement(placement);
+                        buildQueue.Dequeue();
+                        placedGroup = true;
+                        return;
+                    }
+                    sharedGroup.isInSavegame = true;
+
+                    string uuid = API.SpawnObject(ColonyBuilding.buildQueue.Peek().fromGroupName);
+                    if (uuid == null)
+                    {
+                        RestoreSingleStaticPlacement(placement);
+                        buildQueue.Dequeue();
+                        placedGroup = true;
+                        return;
+                    }
+                    KerbalKonstructs.Core.StaticInstance instance = API.getStaticInstanceByUUID(uuid);
+                    if (instance == null)
+                    {
+                        API.RemoveStatic(uuid);
+                        RestoreSingleStaticPlacement(placement);
+                        buildQueue.Dequeue();
+                        placedGroup = true;
+                        return;
+                    }
+                    instance.isInSavegame = true;
+                    instance.ToggleAllColliders(false);
+                    if (!API.AddStaticToGroup(uuid, placement.groupName, placement.Buildable.Colony.BodyName))
+                    {
+                        API.RemoveStatic(uuid);
+                        RestoreSingleStaticPlacement(placement);
+                        buildQueue.Dequeue();
+                        placedGroup = true;
+                        return;
+                    }
+                    CareerEditor.instance.Close();
+                    KCInstanceEditor.Instance.Open(instance, CompleteSingleStaticPlacement, CancelSingleStaticPlacement);
+                    return;
+                }
 
                 API.RemoveGroup(ColonyBuilding.buildQueue.Peek().groupName); // remove the group if it exists
                 API.CreateGroup(ColonyBuilding.buildQueue.Peek().groupName);
@@ -219,17 +307,64 @@ namespace KerbalColonies
                 MapDecalEditor.Instance.Close();
                 GroupEditor.instance.Close();
                 GroupEditor.selectedGroup = API.GetGroupCenter(ColonyBuilding.buildQueue.Peek().groupName);
-                KCGroupEditor.selectedFacility = ColonyBuilding.buildQueue.Peek().Facility;
+                KCGroupEditor.selectedBuildable = ColonyBuilding.buildQueue.Peek().Buildable;
                 KCGroupEditor.KCInstance.Open();
 
                 API.RegisterOnGroupSaved(ColonyBuilding.PlaceNewGroupSave);
-                ColonyBuilding.buildQueue.Peek().Facility.KKgroups.Add(ColonyBuilding.buildQueue.Peek().groupName); // add the group to the facility groups
-                KCSaveGame.AddGroup(FlightGlobals.GetBodyIndex(FlightGlobals.currentMainBody), ColonyBuilding.buildQueue.Peek().groupName, ColonyBuilding.buildQueue.Peek().Facility);
+                if (ColonyBuilding.buildQueue.Peek().Buildable is KCFacilityBase facility)
+                {
+                    facility.KKgroups.Add(ColonyBuilding.buildQueue.Peek().groupName);
+                    KCSaveGame.AddGroup(FlightGlobals.GetBodyIndex(FlightGlobals.currentMainBody), ColonyBuilding.buildQueue.Peek().groupName, facility);
+                }
+                else if (ColonyBuilding.buildQueue.Peek().Buildable is KCGroupedBuildable groupedBuildable)
+                {
+                    groupedBuildable.KKGroups.Add(ColonyBuilding.buildQueue.Peek().groupName);
+                }
             }
             else
             {
                 GamePersistence.SaveGame("persistent", HighLogic.SaveFolder, SaveMode.OVERWRITE);
             }
+        }
+
+        private static void CompleteSingleStaticPlacement(KerbalKonstructs.Core.StaticInstance instance)
+        {
+            QueueInformation placement = buildQueue.Peek();
+            KCSingleStaticBuildable buildable = (KCSingleStaticBuildable)placement.Buildable;
+
+            if (placement.isUpgrade && buildable.BuildableInfo.UpgradeTypes[placement.targetLevel] == UpgradeType.withGroupChange)
+            {
+                buildable.StaticIds.ForEach(uuid => API.RemoveStatic(uuid));
+                buildable.StaticIds.Clear();
+            }
+
+            buildable.StaticIds.Add(instance.UUID);
+            buildable.Upgrade(placement.targetLevel);
+            API.Save();
+            FinishSingleStaticPlacement();
+        }
+
+        private static void CancelSingleStaticPlacement(KerbalKonstructs.Core.StaticInstance instance)
+        {
+            QueueInformation placement = buildQueue.Peek();
+            API.RemoveStatic(instance.UUID);
+            RestoreSingleStaticPlacement(placement);
+            API.Save();
+            FinishSingleStaticPlacement();
+        }
+
+        private static void RestoreSingleStaticPlacement(QueueInformation placement)
+        {
+            KCSingleStaticBuildable buildable = (KCSingleStaticBuildable)placement.Buildable;
+            if (placement.isUpgrade) KCProductionFacility.AddUpgradedBuildable(buildable);
+            else KCProductionFacility.AddConstructedBuildable(buildable);
+        }
+
+        private static void FinishSingleStaticPlacement()
+        {
+            buildQueue.Dequeue();
+            placedGroup = true;
+            nextFrame = false;
         }
 
         /// <summary>

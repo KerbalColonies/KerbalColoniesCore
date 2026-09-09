@@ -113,7 +113,7 @@ namespace KerbalColonies
         {
             KCSaveGame.colonyDictionary.Values.SelectMany(x => x).ToList().ForEach(x => x.currentFrameUpdated = false);
 
-            KCGroupEditor.selectedFacility?.WhileBuildingPlaced(KCGroupEditor.selectedGroup);
+            (KCGroupEditor.selectedBuildable as KCFacilityBase)?.WhileBuildingPlaced(KCGroupEditor.selectedGroup);
 
             if (Planetarium.GetUniversalTime() - lastTime >= 10 || UpdateNextFrame || Time.time - realTime >= 10)
             {

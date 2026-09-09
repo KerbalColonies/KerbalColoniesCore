@@ -33,6 +33,8 @@ namespace KerbalColonies.colonyFacilities.ProductionFacility
         public static Dictionary<colonyClass, List<KCProductionQueueItem>> ProductionQueues { get; protected set; } = [];
         public static Dictionary<colonyClass, List<KCFacilityBase>> ConstructedFacilities { get; protected set; } = [];
         public static Dictionary<colonyClass, List<KCFacilityBase>> UpgradedFacilities { get; protected set; } = [];
+        public static Dictionary<colonyClass, List<KCBuildableBase>> ConstructedBuildables { get; protected set; } = [];
+        public static Dictionary<colonyClass, List<KCBuildableBase>> UpgradedBuildables { get; protected set; } = [];
 
         public static void AddConstructedFacility(KCFacilityBase facility)
         {
@@ -44,6 +46,18 @@ namespace KerbalColonies.colonyFacilities.ProductionFacility
         {
             UpgradedFacilities.TryAdd(facility.Colony, []);
             UpgradedFacilities[facility.Colony].Add(facility);
+        }
+
+        public static void AddConstructedBuildable(KCBuildableBase buildable)
+        {
+            ConstructedBuildables.TryAdd(buildable.Colony, []);
+            ConstructedBuildables[buildable.Colony].Add(buildable);
+        }
+
+        public static void AddUpgradedBuildable(KCBuildableBase buildable)
+        {
+            UpgradedBuildables.TryAdd(buildable.Colony, []);
+            UpgradedBuildables[buildable.Colony].Add(buildable);
         }
 
         public static List<KCProductionQueueItem> GetQueue(colonyClass colony)
@@ -85,7 +99,9 @@ namespace KerbalColonies.colonyFacilities.ProductionFacility
                 {
                     KCProductionQueueItem item = node.GetValue("variant") == KCProductionQueueItem.VesselVariant
                         ? new KCVesselProductionQueueItem(node)
-                        : new KCFacilityProductionQueueItem(node);
+                        : node.HasValue("buildableId")
+                            ? new KCBuildableProductionQueueItem(node)
+                            : new KCFacilityProductionQueueItem(node);
                     if (item.IsAvailable(colony)) Enqueue(colony, item);
                 }
                 return;
@@ -127,6 +143,7 @@ namespace KerbalColonies.colonyFacilities.ProductionFacility
         }
 
         public bool FacilityQueue => GetQueue(Colony).OfType<KCFacilityProductionQueueItem>().Any();
+        public bool BuildableQueue => GetQueue(Colony).OfType<KCBuildableProductionQueueItem>().Any();
         public bool VesselQueue => GetQueue(Colony).OfType<KCVesselProductionQueueItem>().Any();
 
         private static double getDeltaTime(colonyClass colony)
@@ -148,13 +165,18 @@ namespace KerbalColonies.colonyFacilities.ProductionFacility
         public static void ExecuteProduction(colonyClass colony)
         {
             ProductionQueues.TryAdd(colony, []);
-            if (ConstructedFacilities.TryAdd(colony, []) | UpgradedFacilities.TryAdd(colony, []))
+            if (ConstructedFacilities.TryAdd(colony, [])
+                | UpgradedFacilities.TryAdd(colony, [])
+                | ConstructedBuildables.TryAdd(colony, [])
+                | UpgradedBuildables.TryAdd(colony, []))
             {
                 ConfigNode production = colony.sharedColonyNodes.FirstOrDefault(n => n.name == "production");
                 if (production != null)
                 {
                     if (!production.HasNode("constructedFacilities")) production.AddNode(new ConfigNode("constructedFacilities"));
                     if (!production.HasNode("upgradedFacilities")) production.AddNode(new ConfigNode("upgradedFacilities"));
+                    if (!production.HasNode("constructedBuildables")) production.AddNode(new ConfigNode("constructedBuildables"));
+                    if (!production.HasNode("upgradedBuildables")) production.AddNode(new ConfigNode("upgradedBuildables"));
 
                     foreach (ConfigNode facilityNode in production.GetNode("constructedFacilities").GetNodes("facilityNode"))
                     {
@@ -165,6 +187,16 @@ namespace KerbalColonies.colonyFacilities.ProductionFacility
                     {
                         KCFacilityBase facility = KCFacilityBase.GetFacilityByID(int.Parse(facilityNode.GetValue("facilityID")));
                         if (facility != null) AddUpgradedFacility(facility);
+                    }
+                    foreach (ConfigNode buildableNode in production.GetNode("constructedBuildables").GetNodes("buildableNode"))
+                    {
+                        KCBuildableBase buildable = KCFacilityBase.GetBuildableByID(int.Parse(buildableNode.GetValue("buildableID"))) as KCBuildableBase;
+                        if (buildable != null) AddConstructedBuildable(buildable);
+                    }
+                    foreach (ConfigNode buildableNode in production.GetNode("upgradedBuildables").GetNodes("buildableNode"))
+                    {
+                        KCBuildableBase buildable = KCFacilityBase.GetBuildableByID(int.Parse(buildableNode.GetValue("buildableID"))) as KCBuildableBase;
+                        if (buildable != null) AddUpgradedBuildable(buildable);
                     }
                     LoadQueue(colony, production);
                 }
@@ -285,7 +317,7 @@ namespace KerbalColonies.colonyFacilities.ProductionFacility
         public override void Update()
         {
             lastUpdateTime = Planetarium.GetUniversalTime();
-            enabled = !OutOfResources && built && (FacilityQueue || (VesselQueue && KCProductionInfo.CanBuildVessels(level)));
+            enabled = !OutOfResources && built && (FacilityQueue || BuildableQueue || (VesselQueue && KCProductionInfo.CanBuildVessels(level)));
         }
 
         public override void OnBuildingClicked()
@@ -361,6 +393,26 @@ namespace KerbalColonies.colonyFacilities.ProductionFacility
                 upgradedFacilities.AddNode(facilityNode);
             });
             production.AddNode(upgradedFacilities);
+
+            ConfigNode constructedBuildables = new("constructedBuildables");
+            ConstructedBuildables.TryAdd(colony, []);
+            ConstructedBuildables[colony].ForEach(buildable =>
+            {
+                ConfigNode buildableNode = new("buildableNode");
+                buildableNode.AddValue("buildableID", buildable.Id);
+                constructedBuildables.AddNode(buildableNode);
+            });
+            production.AddNode(constructedBuildables);
+
+            ConfigNode upgradedBuildables = new("upgradedBuildables");
+            UpgradedBuildables.TryAdd(colony, []);
+            UpgradedBuildables[colony].ForEach(buildable =>
+            {
+                ConfigNode buildableNode = new("buildableNode");
+                buildableNode.AddValue("buildableID", buildable.Id);
+                upgradedBuildables.AddNode(buildableNode);
+            });
+            production.AddNode(upgradedBuildables);
         }
 
         private void configNodeLoader()

@@ -143,11 +143,13 @@ namespace KerbalColonies
 
         public List<KCFacilityBase> Facilities { get; private set; } = [];
         public void AddFacility(KCFacilityBase facility) => Facilities.Add(facility);
+        public List<KCBuildableBase> Buildables { get; private set; } = [];
+        public void AddBuildable(KCBuildableBase buildable) => Buildables.Add(buildable);
         public List<ConfigNode> sharedColonyNodes { get; set; } = [];
 
         public ConfigNode CreateConfigNode()
         {
-            Configuration.writeLog($"Saving colony {Name} with {Facilities.Count} facilites and {sharedColonyNodes.Count} shared nodes");
+            Configuration.writeLog($"Saving colony {Name} with {Facilities.Count} facilities, {Buildables.Count} buildables and {sharedColonyNodes.Count} shared nodes");
 
             ColonyPreSave.ToList().ForEach(actionClass => actionClass.action.Invoke(this));
 
@@ -191,6 +193,20 @@ namespace KerbalColonies
                 }
             }
 
+            foreach (KCBuildableBase buildable in Buildables)
+            {
+                try
+                {
+                    ConfigNode buildableNode = new("buildable");
+                    buildableNode.AddNode(buildable.GetConfigNode());
+                    node.AddNode(buildableNode);
+                }
+                catch (Exception e)
+                {
+                    Configuration.writeLog($"Unable to save the buildable {buildable.Name}: {e}");
+                }
+            }
+
             ColonySave.ToList().ForEach(actionClass => actionClass.action.Invoke(this));
 
             return node;
@@ -217,6 +233,7 @@ namespace KerbalColonies
             ColonyNumber = KCSaveGame.colonyDictionary[FlightGlobals.currentMainBody.name].Count + 1;
             CAB = new KC_CAB_Facility(this, CABInfo);
             Facilities = [];
+            Buildables = [];
             sharedColonyNodes = [];
 
             ColonyPreLoad.ToList().ForEach(actionClass => actionClass.action.Invoke(this));
@@ -233,6 +250,7 @@ namespace KerbalColonies
             ColonyNumber = int.Parse(node.GetValue("colonyNumber"));
 
             Facilities = [];
+            Buildables = [];
             sharedColonyNodes = node.GetNode("sharedColonyNodes").GetNodes().ToList();
             Configuration.writeLog($"Loading colony {Name} with {sharedColonyNodes.Count} shared nodes");
             sharedColonyNodes.ForEach(x => Configuration.writeDebug($"Shared node: {x.name}\n{x}"));
@@ -257,9 +275,23 @@ namespace KerbalColonies
                     Configuration.writeLog($"ConfigNode: {facility}");
                 }
 
-                ConfigNode CABNode = node.GetNode("CAB");
+            }
 
-                CAB = new KC_CAB_Facility(this, CABNode.GetNodes().First());
+            ConfigNode CABNode = node.GetNode("CAB");
+            CAB = new KC_CAB_Facility(this, CABNode.GetNodes().First());
+
+            foreach (ConfigNode wrapper in node.GetNodes("buildable"))
+            {
+                ConfigNode buildableNode = wrapper.GetNode("buildableNode");
+                try
+                {
+                    KCBuildableInfoClass info = Configuration.GetBuildableInfoClass(buildableNode.GetValue("name"));
+                    Buildables.Add(Configuration.CreateBuildable(info, this, buildableNode));
+                }
+                catch (Exception e)
+                {
+                    Configuration.writeLog($"Unable to load the buildable {buildableNode?.GetValue("name")}: {e}");
+                }
             }
 
             ColonyLoad.ToList().ForEach(actionClass => actionClass.action.Invoke(this));

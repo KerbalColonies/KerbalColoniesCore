@@ -35,7 +35,7 @@ namespace KerbalColonies.colonyFacilities
     /// <summary>
     /// The KCFaciltiyBase class is used to create custom KCFacilities, you must register your types in the typeregistry at the mainmenu Awake
     /// </summary>
-    public abstract class KCFacilityBase
+    public abstract class KCFacilityBase : IKCColonyBuildable
     {
         public static List<T> GetAllTInColony<T>(colonyClass colony) where T : KCFacilityBase => colony.Facilities.OfType<T>().ToList();
 
@@ -63,6 +63,15 @@ namespace KerbalColonies.colonyFacilities
         /// The KK group name and the body id
         /// </summary>
         public List<string> KKgroups = [];
+
+        public KCFacilityInfoClass BuildableInfo => facilityInfo;
+        public string Name => name;
+        public int Id => id;
+        public int Level => level;
+        public int MaxLevel => maxLevel;
+        public int BuildableTypeNumber => facilityTypeNumber;
+        public bool Upgradeable => upgradeable;
+        public bool Built => built;
 
         public void changeDisplayName(string displayName)
         {
@@ -225,9 +234,23 @@ namespace KerbalColonies.colonyFacilities
             return null;
         }
 
+        public static IKCColonyBuildable GetBuildableByID(int id)
+        {
+            KCFacilityBase facility = GetFacilityByID(id);
+            if (facility != null) return facility;
+
+            return KCSaveGame.colonyDictionary.Values
+                .SelectMany(colonies => colonies)
+                .SelectMany(colony => colony.Buildables)
+                .FirstOrDefault(buildable => buildable.Id == id);
+        }
+
         public static bool IDexists(int id)
         {
-            return KCSaveGame.colonyDictionary.Values.SelectMany(c => c).Any(c => c.Facilities.Any(fac => fac.id == id) || c.CAB.id == id);
+            return KCSaveGame.colonyDictionary.Values.SelectMany(c => c).Any(c =>
+                c.Facilities.Any(fac => fac.id == id)
+                || c.Buildables.Any(buildable => buildable.Id == id)
+                || c.CAB.id == id);
         }
 
         private static System.Random random = new();
@@ -302,11 +325,41 @@ namespace KerbalColonies.colonyFacilities
             return node;
         }
 
+        public ConfigNode GetConfigNode() => getConfigNode();
+
         public virtual bool UpgradeFacility(int level)
         {
             this.level = level;
             if (this.level >= maxLevel) upgradeable = false;
             return true;
+        }
+
+        public bool Upgrade(int level) => UpgradeFacility(level);
+
+        public virtual void CompleteConstruction()
+        {
+            ProductionFacility.KCProductionFacility.AddConstructedFacility(this);
+        }
+
+        public virtual void CompleteUpgrade()
+        {
+            switch (facilityInfo.UpgradeTypes[level + 1])
+            {
+                case UpgradeType.withGroupChange:
+                    UpgradeFacilityWithGroupChange(this);
+                    break;
+                case UpgradeType.withoutGroupChange:
+                    UpgradeFacilityWithoutGroupChange(this);
+                    break;
+                case UpgradeType.withAdditionalGroup:
+                    ProductionFacility.KCProductionFacility.AddUpgradedFacility(this);
+                    break;
+            }
+        }
+
+        public virtual void CancelConstruction()
+        {
+            Colony.Facilities.Remove(this);
         }
 
         /// <summary>

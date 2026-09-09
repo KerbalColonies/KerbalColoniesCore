@@ -53,7 +53,7 @@ namespace KerbalColonies.UI
         }
 
         public static float oldEditorRange = 0f;
-        public static KCFacilityBase selectedFacility;
+        public static IKCColonyBuildable selectedBuildable;
         protected override void GroupEditorWindow(int windowID)
         {
             toolRect.size = new Vector2(330, 350);
@@ -81,7 +81,7 @@ namespace KerbalColonies.UI
 
             GUIStyle labelStyle = new(GUI.skin.label);
             labelStyle.fontSize *= 2;
-            GUILayout.Label(Localizer.Format("#LOC_KC_GROUPEDITOR_FACILITY", selectedFacility.DisplayName), labelStyle);
+            GUILayout.Label(Localizer.Format("#LOC_KC_GROUPEDITOR_FACILITY", selectedBuildable.DisplayName), labelStyle);
 
             GUILayout.EndHorizontal();
 
@@ -338,7 +338,7 @@ namespace KerbalColonies.UI
         public override void Open()
         {
             oldEditorRange = KerbalKonstructs.UI.GroupEditor.maxEditorRange;
-            KC_CAB_Facility cab = selectedFacility.Colony.CAB;
+            KC_CAB_Facility cab = selectedBuildable.Colony.CAB;
             KerbalKonstructs.UI.GroupEditor.maxEditorRange = cab.cabInfo.EditorRange[cab.level] * Configuration.EditorRangeMultiplier;
             selectedGroup.isInSavegame = true;
             foreach (var item in API.GetGroupStatics(selectedGroup.Group, selectedGroup.CelestialBody.name))

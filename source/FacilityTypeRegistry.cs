@@ -28,13 +28,13 @@ namespace KerbalColonies
         public static Dictionary<string, Type> RegisteredTypes => _registeredTypes;
 
         // Register a new type by a unique string key
-        public static void RegisterType<T>() where T : KCFacilityBase
+        public static void RegisterType<T>() where T : IKCColonyBuildable
         {
             string key = typeof(T).FullName;
             _registeredTypes[key] = typeof(T);
         }
 
-        public static bool RemoveType<T>() where T : KCFacilityBase
+        public static bool RemoveType<T>() where T : IKCColonyBuildable
         {
             string key = typeof(T).FullName;
             return _registeredTypes.Remove(key);
@@ -57,7 +57,7 @@ namespace KerbalColonies
         public static Dictionary<Type, Type> RegisteredInfoTypes => _registeredInfoTypes;
 
         // Register a facility with its info type
-        public static void RegisterFacilityInfo<T, U>() where T : KCFacilityBase where U : KCFacilityInfoClass
+        public static void RegisterFacilityInfo<T, U>() where T : IKCColonyBuildable where U : KCFacilityInfoClass
         {
             Type facilityType = typeof(T);
             Type infoType = typeof(U);
@@ -67,7 +67,7 @@ namespace KerbalColonies
             }
         }
 
-        public static bool RemoveFacilityInfo<T>() where T : KCFacilityBase
+        public static bool RemoveFacilityInfo<T>() where T : IKCColonyBuildable
         {
             Type facilityType = typeof(T);
             return _registeredInfoTypes.Remove(facilityType);

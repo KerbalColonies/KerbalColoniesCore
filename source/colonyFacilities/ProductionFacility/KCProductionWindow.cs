@@ -26,6 +26,10 @@ namespace KerbalColonies.colonyFacilities.ProductionFacility
 {
     public class KCProductionWindow : KCFacilityWindowBase
     {
+        private const int BaseWindowWidth = 1090;
+        private const int ExpandedWindowWidth = 1580;
+        private const int ContentWidth = 1060;
+
         private KCProductionFacility productionFacility;
         public KerbalGUI kerbalGUI;
         private string selectedType = null;
@@ -35,10 +39,14 @@ namespace KerbalColonies.colonyFacilities.ProductionFacility
         private Vector2 scrollPosVesselCost = new();
         private Vector2 resourceUsageScrollPos = new();
         private bool editQueue;
+        private bool showBuildables;
+        private string selectedBuildableCategory;
+        private bool typesLoaded;
 
         private int cabLevel;
         private SortedDictionary<string, List<KCFacilityInfoClass>> sortedTypes = [];
         public SortedDictionary<string, List<KCFacilityInfoClass>> SortedTypes => sortedTypes;
+        private SortedDictionary<string, SortedDictionary<string, List<KCBuildableInfoClass>>> sortedBuildables = [];
 
         public void addType(KCFacilityInfoClass info)
         {
@@ -50,13 +58,28 @@ namespace KerbalColonies.colonyFacilities.ProductionFacility
             else if (!sortedTypes[info.category].Contains(info)) sortedTypes[info.category].Add(info);
         }
 
-        public void addAllTypes() => Configuration.BuildableFacilities.ForEach(info => addType(info));
+        public void addAllTypes()
+        {
+            sortedTypes.Clear();
+            sortedBuildables.Clear();
+            Configuration.BuildableFacilities.ForEach(info => addType(info));
+            Configuration.Buildables.Where(info => !info.hidden && KCTechTreeHandler.CanBuild(info, 0)).ToList().ForEach(info =>
+            {
+                if (!sortedBuildables.ContainsKey(info.category)) sortedBuildables.Add(info.category, []);
+                if (!sortedBuildables[info.category].ContainsKey(info.subgroup)) sortedBuildables[info.category].Add(info.subgroup, []);
+                sortedBuildables[info.category][info.subgroup].Add(info);
+            });
+            typesLoaded = true;
+        }
 
         protected override void OnOpen()
         {
             selectedType = null;
+            selectedBuildableCategory = null;
+            showBuildables = false;
+            typesLoaded = false;
             editQueue = false;
-            toolRect = new Rect(100, 100, 920, 700);
+            toolRect = new Rect(100, 100, BaseWindowWidth, 700);
         }
 
         protected override void CustomWindow()
@@ -65,11 +88,11 @@ namespace KerbalColonies.colonyFacilities.ProductionFacility
 
             kerbalGUI ??= new KerbalGUI(productionFacility, true);
 
-            if (sortedTypes.Count == 0) addAllTypes();
+            if (!typesLoaded) addAllTypes();
 
             cabLevel = facility.Colony.CAB.level;
 
-            GUILayout.BeginHorizontal(GUILayout.Width(900));
+            GUILayout.BeginHorizontal(GUILayout.Width(ContentWidth));
             {
                 GUILayout.BeginVertical(GUILayout.Width(450));
                 {
@@ -92,22 +115,53 @@ namespace KerbalColonies.colonyFacilities.ProductionFacility
                         {
                             scrollPosTypeOverview = GUILayout.BeginScrollView(scrollPosTypeOverview);
                             {
-                                SortedTypes.ToList().ForEach(kvp =>
+                                GUILayout.BeginHorizontal();
+                                if (!showBuildables) GUI.enabled = false;
+                                if (GUILayout.Button(Localizer.Format("#LOC_KC_PRODUCTION_FACILITIES")))
                                 {
-                                    if (GUILayout.Button($"{kvp.Key} ({kvp.Value.Count})"))
+                                    showBuildables = false;
+                                    selectedType = null;
+                                    selectedBuildableCategory = null;
+                                }
+                                GUI.enabled = true;
+                                if (showBuildables) GUI.enabled = false;
+                                if (GUILayout.Button(Localizer.Format("#LOC_KC_PRODUCTION_BUILDABLES")))
+                                {
+                                    showBuildables = true;
+                                    selectedType = null;
+                                    selectedBuildableCategory = null;
+                                }
+                                GUI.enabled = true;
+                                GUILayout.EndHorizontal();
+
+                                if (!showBuildables)
+                                {
+                                    SortedTypes.ToList().ForEach(kvp =>
                                     {
-                                        if (selectedType == kvp.Key)
+                                        if (GUILayout.Button($"{kvp.Key} ({kvp.Value.Count})"))
                                         {
-                                            selectedType = null;
-                                            toolRect = new Rect(toolRect.x, toolRect.y, 920, 700);
+                                            selectedType = selectedType == kvp.Key ? null : kvp.Key;
+                                            toolRect = new Rect(toolRect.x, toolRect.y, selectedType == null ? BaseWindowWidth : ExpandedWindowWidth, 700);
                                         }
-                                        else
+                                    });
+                                }
+                                else
+                                {
+                                    foreach (KeyValuePair<string, SortedDictionary<string, List<KCBuildableInfoClass>>> category in sortedBuildables)
+                                    {
+                                        GUILayout.Label(category.Key);
+                                        foreach (KeyValuePair<string, List<KCBuildableInfoClass>> subgroup in category.Value)
                                         {
-                                            selectedType = kvp.Key;
-                                            toolRect = new Rect(toolRect.x, toolRect.y, 1410, 700);
+                                            if (GUILayout.Button($"{subgroup.Key} ({subgroup.Value.Count})"))
+                                            {
+                                                bool deselect = selectedBuildableCategory == category.Key && selectedType == subgroup.Key;
+                                                selectedBuildableCategory = deselect ? null : category.Key;
+                                                selectedType = deselect ? null : subgroup.Key;
+                                                toolRect = new Rect(toolRect.x, toolRect.y, deselect ? BaseWindowWidth : ExpandedWindowWidth, 700);
+                                            }
                                         }
                                     }
-                                });
+                                }
                             }
                             GUILayout.EndScrollView();
                         }
@@ -204,10 +258,13 @@ namespace KerbalColonies.colonyFacilities.ProductionFacility
                 {
                     GUILayout.BeginVertical(GUILayout.Width(480));
                     {
-                        GUILayout.Label(Localizer.Format("#LOC_KC_PRODUCTION_FACILITY_TYPE", selectedType));
+                        GUILayout.Label(Localizer.Format(showBuildables ? "#LOC_KC_PRODUCTION_BUILDABLE_SUBGROUP" : "#LOC_KC_PRODUCTION_FACILITY_TYPE", selectedType));
                         scrollPosTypes = GUILayout.BeginScrollView(scrollPosTypes);
                         {
-                            foreach (KCFacilityInfoClass t in SortedTypes[selectedType])
+                            IEnumerable<KCFacilityInfoClass> selectedInfos = showBuildables
+                                ? sortedBuildables[selectedBuildableCategory][selectedType]
+                                : SortedTypes[selectedType];
+                            foreach (KCFacilityInfoClass t in selectedInfos)
                             {
                                 bool cabLevelPass = t.MinCABLevel[0] <= cabLevel;
 
@@ -238,11 +295,18 @@ namespace KerbalColonies.colonyFacilities.ProductionFacility
 
                                 if (GUILayout.Button(Localizer.Format("#LOC_KC_COMMON_BUILD")))
                                 {
-                                    Configuration.writeLog($"Building facility {t.displayName} in colony {productionFacility.Colony.Name}");
-
-                                    KCFacilityBase KCFac = Configuration.CreateInstance(t, productionFacility.Colony, false);
-
-                                    productionFacility.Colony.CAB.AddconstructingFacility(KCFac);
+                                    if (showBuildables)
+                                    {
+                                        Configuration.writeLog($"Building {t.displayName} in colony {productionFacility.Colony.Name}");
+                                        KCBuildableBase buildable = Configuration.CreateBuildable((KCBuildableInfoClass)t, productionFacility.Colony, false);
+                                        KCProductionFacility.Enqueue(productionFacility.Colony, new KCBuildableProductionQueueItem(buildable, 0, false));
+                                    }
+                                    else
+                                    {
+                                        Configuration.writeLog($"Building facility {t.displayName} in colony {productionFacility.Colony.Name}");
+                                        KCFacilityBase KCFac = Configuration.CreateInstance(t, productionFacility.Colony, false);
+                                        productionFacility.Colony.CAB.AddconstructingFacility(KCFac);
+                                    }
                                 }
                                 GUI.enabled = true;
                                 GUILayout.Space(10);
@@ -308,7 +372,7 @@ namespace KerbalColonies.colonyFacilities.ProductionFacility
         {
             productionFacility = facility;
             kerbalGUI = null;
-            toolRect = new Rect(100, 100, 920, 800);
+            toolRect = new Rect(100, 100, BaseWindowWidth, 800);
         }
     }
 }

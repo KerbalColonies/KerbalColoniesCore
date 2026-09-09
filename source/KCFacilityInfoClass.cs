@@ -236,6 +236,7 @@ namespace KerbalColonies
 
                 if (n.HasValue("basegroupName")) BasegroupNames.Add(level, n.GetValue("basegroupName"));
                 else if (level != 0) BasegroupNames.Add(level, BasegroupNames[level - 1]);
+                else if (type == typeof(KCSingleStaticBuildable)) BasegroupNames.Add(level, string.Empty);
                 else throw new MissingFieldException($"The facility {name} (type: {type}) has no basegroupName (at least for level 0).");
 
                 if (n.HasNode("resources"))

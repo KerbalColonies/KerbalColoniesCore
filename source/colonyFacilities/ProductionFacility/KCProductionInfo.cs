@@ -28,6 +28,7 @@ namespace KerbalColonies.colonyFacilities.ProductionFacility
         public SortedDictionary<int, double> baseProduction { get; private set; } = [];
         public SortedDictionary<int, double> experienceMultiplier { get; private set; } = [];
         public SortedDictionary<int, double> facilityLevelMultiplier { get; private set; } = [];
+        public SortedDictionary<int, List<string>> ProductionCapabilities { get; private set; } = [];
 
         public bool CanBuildVessels(int level) => vesselResourceCost.ContainsKey(level);
 
@@ -69,6 +70,26 @@ namespace KerbalColonies.colonyFacilities.ProductionFacility
                     vesselResourceCost.Add(n.Key, resourceList);
                 }
                 else if (n.Key > 0 && vesselResourceCost.ContainsKey(n.Key - 1)) vesselResourceCost.Add(n.Key, vesselResourceCost[n.Key - 1]);
+
+                if (iLevel.HasNode("productionCapabilities"))
+                {
+                    List<string> capabilities = [];
+                    foreach (ConfigNode.Value value in iLevel.GetNode("productionCapabilities").values) capabilities.Add(value.value);
+                    ProductionCapabilities.Add(n.Key, capabilities.Distinct().ToList());
+                }
+                else if (n.Key > 0)
+                {
+                    ProductionCapabilities.Add(n.Key, new List<string>(ProductionCapabilities[n.Key - 1]));
+                }
+                else
+                {
+                    ProductionCapabilities.Add(n.Key, []);
+                }
+
+                if (CanBuildVessels(n.Key) && !ProductionCapabilities[n.Key].Contains(KCProductionQueueItem.VesselVariant))
+                {
+                    ProductionCapabilities[n.Key].Add(KCProductionQueueItem.VesselVariant);
+                }
             });
         }
     }

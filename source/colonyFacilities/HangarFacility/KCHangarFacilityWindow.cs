@@ -1,4 +1,5 @@
 ﻿using KerbalColonies.colonyFacilities.StorageFacility;
+using KerbalColonies.colonyFacilities.ProductionFacility;
 using KerbalColonies.Settings;
 using KerbalColonies.UI;
 using System;
@@ -49,10 +50,16 @@ namespace KerbalColonies.colonyFacilities.HangarFacility
         private int MaxProcessors;
         private Vector2 scrollPos;
         private Vector2 resourceUsageScrollPos;
+        private bool editStoredVessels;
         protected override void CustomWindow()
         {
             hangar.Colony.UpdateColony();
             List<StoredVessel> vesselList = hangar.storedVessels.ToList();
+            GUILayout.BeginHorizontal();
+            GUILayout.Label("Stored vessels");
+            GUILayout.FlexibleSpace();
+            if (GUILayout.Button(editStoredVessels ? "Done removing" : "Remove vessels", GUILayout.Width(110))) editStoredVessels = !editStoredVessels;
+            GUILayout.EndHorizontal();
             scrollPos = GUILayout.BeginScrollView(scrollPos);
             GUILayout.BeginVertical();
             vesselList.ForEach(vessel =>
@@ -74,10 +81,12 @@ namespace KerbalColonies.colonyFacilities.HangarFacility
                     GUILayout.Label($"Build time: {vessel.entireVesselBuildTime - vessel.vesselBuildTime:f2}/{vessel.entireVesselBuildTime:f2}");
                 }
 
-                if (GUILayout.Button("<b>x</b>", UIConfig.ButtonRed))
+                if (editStoredVessels && GUILayout.Button("Remove", UIConfig.ButtonRed, GUILayout.Width(65)))
                 {
                     Configuration.writeLog($"Removing vessel {vessel.vesselName} from hangar {hangar.name}");
-                    hangar.storedVessels.Remove(vessel);
+                    KCVesselProductionQueueItem queueItem = KCProductionFacility.GetQueue(hangar.Colony).OfType<KCVesselProductionQueueItem>().FirstOrDefault(item => item.VesselId == vessel.uuid);
+                    if (queueItem != null) KCProductionFacility.CancelQueueItem(hangar.Colony, queueItem);
+                    else hangar.storedVessels.Remove(vessel);
                 }
                 GUILayout.EndHorizontal();
             });

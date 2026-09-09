@@ -309,6 +309,7 @@ namespace KerbalColonies.colonyFacilities.HangarFacility
 
             // save the stored information in the hangar
             storedVessels.Add(storedVessel);
+            QueueVesselBuild(storedVessel, vesselDryMass, vessel.Parts.Count);
 
             // remove the stored vessel from the game
             vessel.MakeInactive();
@@ -381,6 +382,7 @@ namespace KerbalColonies.colonyFacilities.HangarFacility
 
             // save the stored information in the hangar
             storedVessels.Add(storedVessel);
+            QueueVesselBuild(storedVessel, vesselDryMass, vessel.Parts.Count);
 
             // remove the stored vessel from the game
             vessel.MakeInactive();
@@ -393,6 +395,14 @@ namespace KerbalColonies.colonyFacilities.HangarFacility
 
             GamePersistence.SaveGame("persistent", HighLogic.SaveFolder, SaveMode.OVERWRITE);
             HighLogic.LoadScene(GameScenes.SPACECENTER);
+        }
+
+        private void QueueVesselBuild(StoredVessel vessel, double? dryMass, int partCount)
+        {
+            if (dryMass == null) return;
+            ConfigNode recipeNode = Colony.sharedColonyNodes.FirstOrDefault(n => n.name == "vesselBuildInfo");
+            if (recipeNode == null) return;
+            KCProductionFacility.Enqueue(Colony, new KCVesselProductionQueueItem(this, vessel, (double)dryMass, partCount));
         }
 
         public ProtoVessel RollOutVessel(StoredVessel storedVessel)

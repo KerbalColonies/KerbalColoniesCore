@@ -38,37 +38,12 @@ namespace KerbalColonies.colonyFacilities.CabFacility
 
         public void AddUpgradeableFacility(KCFacilityBase facility)
         {
-            if (facility.facilityInfo.UpgradeTimes[facility.level + 1] * Configuration.FacilityTimeMultiplier == 0)
-            {
-                switch (facility.facilityInfo.UpgradeTypes[facility.level + 1])
-                {
-                    case UpgradeType.withGroupChange:
-                        KCFacilityBase.UpgradeFacilityWithGroupChange(facility);
-                        break;
-                    case UpgradeType.withoutGroupChange:
-                        KCFacilityBase.UpgradeFacilityWithoutGroupChange(facility);
-                        break;
-                    case UpgradeType.withAdditionalGroup:
-                        KCProductionFacility.AddUpgradedFacility(facility);
-                        break;
-                }
-            }
-            else
-            {
-                KCProductionFacility.AddUpgradingFacility(facility, facility.facilityInfo.UpgradeTimes[facility.level + 1] * Configuration.FacilityTimeMultiplier);
-            }
+            KCProductionFacility.Enqueue(Colony, new KCFacilityProductionQueueItem(facility, facility.level + 1, true));
         }
 
         public void AddconstructingFacility(KCFacilityBase facility)
         {
-            if (facility.facilityInfo.UpgradeTimes[0] * Configuration.FacilityTimeMultiplier == 0)
-            {
-                KCProductionFacility.AddConstructedFacility(facility);
-            }
-            else
-            {
-                KCProductionFacility.AddConstructingFacility(facility, facility.facilityInfo.UpgradeTimes[0] * Configuration.FacilityTimeMultiplier);
-            }
+            KCProductionFacility.Enqueue(Colony, new KCFacilityProductionQueueItem(facility, 0, false));
         }
 
         public override void OnBuildingClicked()

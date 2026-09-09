@@ -50,7 +50,7 @@ namespace KerbalColonies.colonyFacilities.CabFacility
                 else if (!facilitiesByType[category].Contains(facility)) facilitiesByType[category].Add(facility);
             }
 
-            CABFacility.Colony.Facilities.Where(facility => !KCProductionFacility.ConstructingFacilities[facility.Colony].ContainsKey(facility)).ToList().ForEach(facility => addType(facility));
+            CABFacility.Colony.Facilities.Where(facility => !KCProductionFacility.GetQueue(facility.Colony).OfType<KCFacilityProductionQueueItem>().Any(item => item.FacilityId == facility.id && !item.IsUpgrade)).ToList().ForEach(facility => addType(facility));
 
             facilitiesByType.ToList().ForEach(kvp => kvp.Value.Sort((x, y) => string.Compare(x.DisplayName, y.DisplayName)));
 
@@ -115,7 +115,7 @@ namespace KerbalColonies.colonyFacilities.CabFacility
                                     }
                                     GUI.enabled = true;
                                 }
-                                else if (KCProductionFacility.UpgradingFacilities[CABFacility.Colony].Keys.Contains(CABFacility))
+                                else if (KCProductionFacility.GetQueue(CABFacility.Colony).OfType<KCFacilityProductionQueueItem>().Any(item => item.FacilityId == CABFacility.id && item.IsUpgrade))
                                 {
                                     GUI.enabled = false;
                                     GUILayout.Button("Upgrading...");
@@ -139,11 +139,9 @@ namespace KerbalColonies.colonyFacilities.CabFacility
                                         }
                                         else
                                         {
-                                            if (!CABFacility.facilityInfo.checkResources(CABFacility.level + 1, CABFacility.Colony)) GUI.enabled = false;
                                             if (GUILayout.Button("Upgrade"))
                                             {
                                                 Configuration.writeLog($"KC: Upgrading facility {CABFacility.DisplayName} in {CABFacility.Colony.DisplayName} to level {CABFacility.level + 1}");
-                                                CABFacility.facilityInfo.removeResources(CABFacility.level + 1, CABFacility.Colony);
                                                 CABFacility.AddUpgradeableFacility(CABFacility);
                                             }
                                             else
@@ -234,7 +232,7 @@ namespace KerbalColonies.colonyFacilities.CabFacility
                                         }
                                         GUI.enabled = true;
                                     }
-                                    else if (KCProductionFacility.UpgradingFacilities[facility.Colony].Keys.Contains(facility))
+                                    else if (KCProductionFacility.GetQueue(facility.Colony).OfType<KCFacilityProductionQueueItem>().Any(item => item.FacilityId == facility.id && item.IsUpgrade))
                                     {
                                         GUI.enabled = false;
                                         GUILayout.Button("Upgrading...");
@@ -260,11 +258,10 @@ namespace KerbalColonies.colonyFacilities.CabFacility
                                             {
                                                 bool higherCABLevelNeeded = facility.facilityInfo.MinCABLevel[facility.level] > CABFacility.level;
 
-                                                if (!facility.facilityInfo.checkResources(facility.level + 1, CABFacility.Colony) || higherCABLevelNeeded) GUI.enabled = false;
+                                                if (higherCABLevelNeeded) GUI.enabled = false;
                                                 if (GUILayout.Button("Upgrade"))
                                                 {
                                                     Configuration.writeLog($"KC: Upgrading facility {facility.DisplayName} in {CABFacility.Colony.DisplayName} to level {facility.level + 1}");
-                                                    facility.facilityInfo.removeResources(facility.level + 1, CABFacility.Colony);
                                                     CABFacility.AddUpgradeableFacility(facility);
                                                     continue;
                                                 }

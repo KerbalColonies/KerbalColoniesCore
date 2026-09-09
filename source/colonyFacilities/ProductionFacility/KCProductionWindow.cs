@@ -33,6 +33,7 @@ namespace KerbalColonies.colonyFacilities.ProductionFacility
         private Vector2 scrollPosUnfinishedFacilities = new();
         private Vector2 scrollPosVesselCost = new();
         private Vector2 resourceUsageScrollPos = new();
+        private bool editQueue;
 
         private int cabLevel;
         private SortedDictionary<string, List<KCFacilityInfoClass>> sortedTypes = [];
@@ -53,7 +54,8 @@ namespace KerbalColonies.colonyFacilities.ProductionFacility
         protected override void OnOpen()
         {
             selectedType = null;
-            toolRect = new Rect(100, 100, 620, 700);
+            editQueue = false;
+            toolRect = new Rect(100, 100, 920, 700);
         }
 
         protected override void CustomWindow()
@@ -66,9 +68,15 @@ namespace KerbalColonies.colonyFacilities.ProductionFacility
 
             cabLevel = facility.Colony.CAB.level;
 
-            GUILayout.BeginHorizontal(GUILayout.Width(600));
+            GUILayout.BeginHorizontal(GUILayout.Width(900));
             {
-                GUILayout.BeginVertical();
+                GUILayout.BeginVertical(GUILayout.Width(450));
+                {
+                    DrawProductionQueue();
+                }
+                GUILayout.EndVertical();
+
+                GUILayout.BeginVertical(GUILayout.Width(600));
                 {
                     GUILayout.BeginHorizontal(GUILayout.Height(300));
                     {
@@ -90,12 +98,12 @@ namespace KerbalColonies.colonyFacilities.ProductionFacility
                                         if (selectedType == kvp.Key)
                                         {
                                             selectedType = null;
-                                            toolRect = new Rect(toolRect.x, toolRect.y, 620, 700);
+                                            toolRect = new Rect(toolRect.x, toolRect.y, 920, 700);
                                         }
                                         else
                                         {
                                             selectedType = kvp.Key;
-                                            toolRect = new Rect(toolRect.x, toolRect.y, 1110, 700);
+                                            toolRect = new Rect(toolRect.x, toolRect.y, 1410, 700);
                                         }
                                     }
                                 });
@@ -126,41 +134,6 @@ namespace KerbalColonies.colonyFacilities.ProductionFacility
                         }
                         GUILayout.EndScrollView();
                     }
-
-                    GUILayout.Space(10);
-                    GUILayout.Label("Unfinished facilities");
-
-                    scrollPosUnfinishedFacilities = GUILayout.BeginScrollView(scrollPosUnfinishedFacilities);
-                    {
-                        GUILayout.Label("Facilities under construction:");
-                        GUILayout.BeginVertical();
-                        {
-                            GUILayout.Label("Upgrading Facilities:");
-                            KCProductionFacility.UpgradingFacilities[facility.Colony].ToList().ForEach(pair =>
-                            {
-                                GUILayout.BeginHorizontal();
-                                double max = pair.Key.facilityInfo.UpgradeTimes[pair.Key.level + 1] * Configuration.FacilityTimeMultiplier;
-                                GUILayout.Label($"{pair.Key.DisplayName}: {max - pair.Value:f2}/{max:f2}");
-                                GUILayout.EndHorizontal();
-                                GUILayout.Box("", GUILayout.ExpandWidth(true), GUILayout.Height(1));
-                            });
-
-                            GUILayout.Space(10);
-
-                            KCProductionFacility.ConstructingFacilities[facility.Colony].ToList().ForEach(pair =>
-                            {
-                                GUILayout.BeginHorizontal();
-                                double max = pair.Key.facilityInfo.UpgradeTimes[0] * Configuration.FacilityTimeMultiplier;
-                                GUILayout.Label($"{pair.Key.DisplayName}: {max - pair.Value:f2}/{max:f2}");
-                                GUILayout.EndHorizontal();
-                                GUILayout.Space(10);
-                                GUILayout.Box("", GUILayout.ExpandWidth(true), GUILayout.Height(1));
-                                GUILayout.Space(10);
-                            });
-                        }
-                        GUILayout.EndVertical();
-                    }
-                    GUILayout.EndScrollView();
 
                     if (((KCProductionInfo)productionFacility.facilityInfo).CanBuildVessels(productionFacility.level))
                     {
@@ -260,13 +233,12 @@ namespace KerbalColonies.colonyFacilities.ProductionFacility
 
                                 GUILayout.Space(10);
 
-                                if (!t.checkResources(0, productionFacility.Colony) || !cabLevelPass) { GUI.enabled = false; }
+                                if (!cabLevelPass) { GUI.enabled = false; }
 
                                 if (GUILayout.Button("Build"))
                                 {
                                     Configuration.writeLog($"Building facility {t.displayName} in colony {productionFacility.Colony.Name}");
 
-                                    t.removeResources(0, productionFacility.Colony);
                                     KCFacilityBase KCFac = Configuration.CreateInstance(t, productionFacility.Colony, false);
 
                                     productionFacility.Colony.CAB.AddconstructingFacility(KCFac);
@@ -285,6 +257,43 @@ namespace KerbalColonies.colonyFacilities.ProductionFacility
             GUILayout.EndHorizontal();
         }
 
+        private void DrawProductionQueue()
+        {
+            GUILayout.BeginHorizontal();
+            GUILayout.Label("Production queue");
+            GUILayout.FlexibleSpace();
+            if (GUILayout.Button(editQueue ? "Done canceling" : "Cancel items", GUILayout.Width(100))) editQueue = !editQueue;
+            GUILayout.EndHorizontal();
+
+            scrollPosUnfinishedFacilities = GUILayout.BeginScrollView(scrollPosUnfinishedFacilities);
+            List<KCProductionQueueItem> queue = KCProductionFacility.GetQueue(facility.Colony);
+            for (int i = 0; i < queue.Count; i++)
+            {
+                KCProductionQueueItem item = queue[i];
+                bool compatible = facility.Colony.Facilities.OfType<KCProductionFacility>().Any(producer => item.Matches(producer));
+                bool affordable = item.GetAffordableProgress(facility.Colony, item.RemainingProgress) > 0;
+                double requiredProgress = item.GetBuildTime(facility.Colony);
+
+                GUILayout.Label($"{item.GetDisplayName(facility.Colony)}{(!compatible ? " (no compatible producer)" : !affordable ? " (waiting for costs)" : "")}");
+                GUILayout.BeginHorizontal();
+                GUILayout.Label($"{item.Progress * requiredProgress:f2}/{requiredProgress:f2} points ({item.Progress * 100:f1})", GUILayout.Width(160));
+                GUILayout.FlexibleSpace();
+                GUI.enabled = i > 0;
+                if (GUILayout.Button("↑", GUILayout.Width(25))) KCProductionFacility.MoveQueueItem(facility.Colony, item, -1);
+                GUI.enabled = i < queue.Count - 1;
+                if (GUILayout.Button("↓", GUILayout.Width(25))) KCProductionFacility.MoveQueueItem(facility.Colony, item, 1);
+                GUI.enabled = true;
+                if (editQueue && GUILayout.Button("Cancel", UIConfig.ButtonRed, GUILayout.Width(55)))
+                {
+                    KCProductionFacility.CancelQueueItem(facility.Colony, item);
+                    break;
+                }
+                GUILayout.EndHorizontal();
+                GUILayout.Box("", GUILayout.ExpandWidth(true), GUILayout.Height(1));
+            }
+            GUILayout.EndScrollView();
+        }
+
         protected override void OnClose()
         {
             if (kerbalGUI != null && kerbalGUI.ksg != null)
@@ -298,7 +307,7 @@ namespace KerbalColonies.colonyFacilities.ProductionFacility
         {
             productionFacility = facility;
             kerbalGUI = null;
-            toolRect = new Rect(100, 100, 620, 800);
+            toolRect = new Rect(100, 100, 920, 800);
         }
     }
 }

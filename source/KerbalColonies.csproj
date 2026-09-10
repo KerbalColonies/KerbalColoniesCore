@@ -50,6 +50,7 @@
     </Reference>
     <Reference Include="KerbalKonstructs">
       <HintPath>D:\KSP-Test\GameData\KerbalKonstructs\KerbalKonstructs.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="NDTester">
       <HintPath>..\..\NDTester\NDTester\bin\Release\net481\NDTester.dll</HintPath>

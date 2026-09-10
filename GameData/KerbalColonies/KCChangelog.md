@@ -1,3 +1,11 @@
+# v1.5.0
+- Added a unified, reorderable production queue for vessels, facility construction, and facility upgrades, including queue item cancellation, see issue [#53](https://github.com/KerbalColonies/KerbalColoniesCore/issues/53)
+- Added support for buildable statics and groups without a facility function
+- Added localization for user-facing strings
+- Fixed production queue loading and removed legacy `Configuration` node compatibility
+- Fixed colony instances not being converted to savegame-specific instances when opening the editor, see issue [#68](https://github.com/KerbalColonies/KerbalColoniesCore/issues/68)
+- Prevent EVA Kerbals from being added to the crew quarters, see issue [#58](https://github.com/KerbalColonies/KerbalColoniesCore/issues/58)
+
 # v1.4.2
 - Fixed a possible NRE during the production facility saving, see issue [#67](https://github.com/KerbalColonies/KerbalColoniesCore/issues/67)
 

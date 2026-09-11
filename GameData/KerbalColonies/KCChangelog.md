@@ -1,3 +1,6 @@
+# v1.5.1
+- Fix KK version dependency
+
 # v1.5.0
 - Added a unified, reorderable production queue for vessels, facility construction, and facility upgrades, including queue item cancellation, see issue [#53](https://github.com/KerbalColonies/KerbalColoniesCore/issues/53)
 - Added support for buildable statics and groups without a facility function

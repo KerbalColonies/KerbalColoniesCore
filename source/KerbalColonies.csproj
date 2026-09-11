@@ -1,96 +1,99 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <Description>Kerbal Colonies mod for KSP</Description>
+	<PropertyGroup>
+		<Description>Kerbal Colonies mod for KSP</Description>
 
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <EnableNETAnalyzers>true</EnableNETAnalyzers>
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+		<EnableNETAnalyzers>true</EnableNETAnalyzers>
 
-    <GenerateKSPAssemblyAttribute>true</GenerateKSPAssemblyAttribute>
-    <GenerateKSPAssemblyDependencyAttributes>true</GenerateKSPAssemblyDependencyAttributes>
-    
-    <KSPBinaryType>binary</KSPBinaryType>
+		<GenerateKSPAssemblyAttribute>true</GenerateKSPAssemblyAttribute>
+		<GenerateKSPAssemblyDependencyAttributes>true</GenerateKSPAssemblyDependencyAttributes>
 
-    <BinariesOutputRelativePath>..\GameData\KerbalColonies\Plugins\</BinariesOutputRelativePath>
-  </PropertyGroup>
+		<KSPBinaryType>binary</KSPBinaryType>
 
-  <ItemGroup>
-    <Compile Remove="C:\Users\AMPW\.nuget\packages\kspbuildtools\0.0.4\build\include\Log.cs" />
-  </ItemGroup>
+		<BinariesOutputRelativePath>..\GameData\KerbalColonies\Plugins\</BinariesOutputRelativePath>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<Compile Remove="C:\Users\AMPW\.nuget\packages\kspbuildtools\0.0.4\build\include\Log.cs" />
+	</ItemGroup>
 
 
 
-  <ItemGroup>
-    <!-- <PackageReference Include="System.Memory" Version="4.6.3" /> -->
-    <PackageReference Include="JsonPoke" Version="1.2.0" />
-    <PackageReference Include="KSPBuildTools" Version="0.0.4" />
+	<ItemGroup>
+		<!-- <PackageReference Include="System.Memory" Version="4.6.3" /> -->
+		<PackageReference Include="JsonPoke" Version="1.2.0" />
+		<PackageReference Include="KSPBuildTools" Version="0.0.4" />
 
-    <!-- <KSPVersionFile Include=".">
+		<!-- <KSPVersionFile Include=".">
       <Destination>$(GameDataOutDir)/BackgroundResourceProcessing.version</Destination>
       <URL>
         https://github.com/Phantomical/BackgroundResourceProcessing/releases/latest/download/BackgroundResourceProcessing.version</URL>
       <Download>https://github.com/Phantomical/BackgroundResourceProcessing/releases/latest</Download>
     </KSPVersionFile> -->
-  </ItemGroup>
+	</ItemGroup>
 
-  <ItemGroup>
-    <Reference Include="ClickThroughBlocker">
-      <HintPath>$(KSPRoot)\GameData\000_ClickThroughBlocker\Plugins\ClickThroughBlocker.dll</HintPath>
-      <Private>false</Private>
-      <CKANIdentifier>ClickThroughBlocker</CKANIdentifier>
-      <KSPAssemblyName>ClickThroughBlocker</KSPAssemblyName>
-      <KSPAssemblyVersion>1.0.0</KSPAssemblyVersion>
-    </Reference>
-    <Reference Include="CustomPreLaunchChecks">
-      <HintPath>$(KSPRoot)\GameData\CustomPreLaunchChecks\CustomPreLaunchChecks.dll</HintPath>
-      <Private>false</Private>
-      <CKANIdentifier>CustomPreLaunchChecks</CKANIdentifier>
-      <KSPAssemblyName>CustomPreLaunchChecks</KSPAssemblyName>
-      <KSPAssemblyVersion>1.0.0</KSPAssemblyVersion>
-    </Reference>
-    <Reference Include="KerbalKonstructs">
-      <HintPath>D:\KSP-Test\GameData\KerbalKonstructs\KerbalKonstructs.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="NDTester">
-      <HintPath>..\..\NDTester\NDTester\bin\Release\net481\NDTester.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="ToolbarControl">
-      <HintPath>$(KSPRoot)\GameData\001_ToolbarControl\Plugins\ToolbarControl.dll</HintPath>
-      <Private>false</Private>
-      <CKANIdentifier>ToolbarController</CKANIdentifier>
-      <KSPAssemblyName>ToolbarController</KSPAssemblyName>
-      <KSPAssemblyVersion>1.0.0</KSPAssemblyVersion>
-    </Reference>
-    <Reference Include="BackgroundResourceProcessing">
-      <HintPath>$(KSPRoot)\GameData\BackgroundResourceProcessing\Plugins\BackgroundResourceProcessing.dll</HintPath>
-      <Private>false</Private>
-      <CKANIdentifier>BackgroundResourceProcessing</CKANIdentifier>
-      <KSPAssemblyName>BackgroundResourceProcessing</KSPAssemblyName>
-      <KSPAssemblyVersion>0.1.18</KSPAssemblyVersion>
-    </Reference>
-  </ItemGroup>
+	<ItemGroup>
+		<Reference Include="ClickThroughBlocker">
+			<HintPath>$(KSPRoot)\GameData\000_ClickThroughBlocker\Plugins\ClickThroughBlocker.dll</HintPath>
+			<Private>false</Private>
+			<CKANIdentifier>ClickThroughBlocker</CKANIdentifier>
+			<KSPAssemblyName>ClickThroughBlocker</KSPAssemblyName>
+			<KSPAssemblyVersion>1.0.0</KSPAssemblyVersion>
+		</Reference>
+		<Reference Include="CustomPreLaunchChecks">
+			<HintPath>$(KSPRoot)\GameData\CustomPreLaunchChecks\CustomPreLaunchChecks.dll</HintPath>
+			<Private>false</Private>
+			<CKANIdentifier>CustomPreLaunchChecks</CKANIdentifier>
+			<KSPAssemblyName>CustomPreLaunchChecks</KSPAssemblyName>
+			<KSPAssemblyVersion>1.0.0</KSPAssemblyVersion>
+		</Reference>
+		<Reference Include="KerbalKonstructs">
+			<HintPath>D:\KSP-Test\GameData\KerbalKonstructs\KerbalKonstructs.dll</HintPath>
+			<Private>False</Private>
+			<CKANIdentifier>KerbalKonstructs</CKANIdentifier>
+			<KSPAssemblyName>KerbalKonstructs</KSPAssemblyName>
+			<KSPAssemblyVersion>1.11.0</KSPAssemblyVersion>
+		</Reference>
+		<Reference Include="NDTester">
+			<HintPath>..\..\NDTester\NDTester\bin\Release\net481\NDTester.dll</HintPath>
+			<Private>True</Private>
+		</Reference>
+		<Reference Include="ToolbarControl">
+			<HintPath>$(KSPRoot)\GameData\001_ToolbarControl\Plugins\ToolbarControl.dll</HintPath>
+			<Private>false</Private>
+			<CKANIdentifier>ToolbarController</CKANIdentifier>
+			<KSPAssemblyName>ToolbarController</KSPAssemblyName>
+			<KSPAssemblyVersion>1.0.0</KSPAssemblyVersion>
+		</Reference>
+		<Reference Include="BackgroundResourceProcessing">
+			<HintPath>$(KSPRoot)\GameData\BackgroundResourceProcessing\Plugins\BackgroundResourceProcessing.dll</HintPath>
+			<Private>false</Private>
+			<CKANIdentifier>BackgroundResourceProcessing</CKANIdentifier>
+			<KSPAssemblyName>BackgroundResourceProcessing</KSPAssemblyName>
+			<KSPAssemblyVersion>0.1.18</KSPAssemblyVersion>
+		</Reference>
+	</ItemGroup>
 
-  <PropertyGroup>
-<TargetFramework>net481</TargetFramework>
-<LangVersion>latest</LangVersion>
-  </PropertyGroup>
+	<PropertyGroup>
+		<TargetFramework>net481</TargetFramework>
+		<LangVersion>latest</LangVersion>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <KSPVersionFile Include=".">
-      <Destination>$(RepoRootPath)../GameData/KerbalColonies/KerbalColonies.version</Destination>
-      <URL>https://raw.githubusercontent.com/KerbalColonies/KerbalColoniesCore/refs/heads/master/GameData/KerbalColonies/KerbalColonies.version</URL>
-      <Download>https://github.com/KerbalColonies/KerbalColoniesCore/releases/latest</Download>
-      <KSP_VERSION>1.12.5</KSP_VERSION>
-      <KSP_VERSION_MAX>1.12.5</KSP_VERSION_MAX>
-    </KSPVersionFile>
-  </ItemGroup>
-  
-  <PropertyGroup>
-    <FileVersion>1.5.0.0</FileVersion>
-    <AssemblyVersion>1.4.0.0</AssemblyVersion>
-  </PropertyGroup>
+	<ItemGroup>
+		<KSPVersionFile Include=".">
+			<Destination>$(RepoRootPath)../GameData/KerbalColonies/KerbalColonies.version</Destination>
+			<URL>https://raw.githubusercontent.com/KerbalColonies/KerbalColoniesCore/refs/heads/master/GameData/KerbalColonies/KerbalColonies.version</URL>
+			<Download>https://github.com/KerbalColonies/KerbalColoniesCore/releases/latest</Download>
+			<KSP_VERSION>1.12.5</KSP_VERSION>
+			<KSP_VERSION_MAX>1.12.5</KSP_VERSION_MAX>
+		</KSPVersionFile>
+	</ItemGroup>
+
+	<PropertyGroup>
+		<FileVersion>1.5.1.0</FileVersion>
+		<AssemblyVersion>1.4.0.0</AssemblyVersion>
+	</PropertyGroup>
 
 </Project>
 
